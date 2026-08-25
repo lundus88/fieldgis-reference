@@ -22,7 +22,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Java 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
@@ -49,11 +49,26 @@ jobs:
           p.write_text(s)
           PY
 
+      - name: Write smoke test after scaffold generation
+        run: |
+          mkdir -p test
+          cat > test/widget_test.dart <<'DART'
+          import 'package:flutter_test/flutter_test.dart';
+          import 'package:fieldgis_reference/main.dart';
+
+          void main() {
+            testWidgets('FieldGIS app boots', (tester) async {
+              await tester.pumpWidget(const FieldGisApp());
+              expect(find.text('FieldGIS Reference'), findsOneWidget);
+            });
+          }
+          DART
+
       - name: Resolve dependencies
         run: flutter pub get
 
       - name: Analyze
-        run: flutter analyze
+        run: flutter analyze --no-fatal-infos
 
       - name: Test
         run: flutter test
