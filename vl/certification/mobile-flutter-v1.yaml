@@ -1,0 +1,24 @@
+builder_id: mobile-flutter-v1
+platform: android
+framework: flutter
+role: official-mobile-builder-candidate
+status: experimental
+certification:
+  state: pending
+  activation_policy: certification-approved-only
+  direct_activation_allowed: false
+  required_gates:
+    - flutter_analyze
+    - flutter_test
+    - android_arm64_apk_build
+    - artifact_upload
+    - mobile_gis_e2e
+    - human_approval
+  evidence:
+    reference_repo: lundus88/fieldgis-reference
+    workflow: .github/workflows/android-device-cert.yml
+    reference_commit: 12906d8803d98108c2cc9c4637476bffbe2a5a25
+activation:
+  target_status: active
+  allowed_when: certification.state == approved
+  rollback_status: experimental
