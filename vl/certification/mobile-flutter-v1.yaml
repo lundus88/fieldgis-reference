@@ -26,7 +26,7 @@ certification:
     flutter_generation: passed
     flutter_analyze: passed
     flutter_test: passed
-    dependency_validation: pending
+    dependency_validation: passed
     android_arm64_apk_build: passed
     artifact_upload: passed
     config_env_injection: passed
@@ -48,14 +48,16 @@ certification:
     artifact_sha256: bad790953e60051b1dbd2dbc8c00a1737d76d445e90996660ee3354108659617
     human_approval_source: user_confirmation_2026-08-26
     core_certification_workflow: .github/workflows/vl-mobile-cert-core.yml
-    core_certification_run_id: 32905660547
-    config_env_injection_job: 97989071049
-    error_logging_job: 97989071049
-    rollback_validation_job: 97989070868
-    reproducible_build_job: 97989070951
+    core_certification_run_id: 32906404439
+    config_env_injection_job: 97991389911
+    error_logging_job: 97991389911
+    rollback_validation_job: 97991389969
+    reproducible_build_job: 97991389947
     reproducible_build_result: normalized_payload_hash_match
-    dependency_validation_job: 97989070921
-    dependency_validation_result: failed_missing_committed_pubspec_lock
+    dependency_lockfile: pubspec.lock
+    dependency_lockfile_blob_sha: 424e113d69f39fa22df0fddc0d09a3f24d314fae
+    dependency_validation_job: 97991389746
+    dependency_validation_result: passed_locked_resolution
     supabase_project_ref: wczelfmnqpgzfdszxubl
     supabase_project_name: vrs-core
     supabase_project_region: ap-southeast-1
