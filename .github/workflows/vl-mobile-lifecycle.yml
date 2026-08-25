@@ -1,0 +1,90 @@
+name: VL Mobile Navigation Lifecycle Certification
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - cert/mobile-flutter-v1
+    paths:
+      - 'lib/**'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+      - '.github/workflows/vl-mobile-lifecycle.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  navigation-lifecycle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.1'
+          channel: stable
+          cache: true
+
+      - name: Generate Android scaffold
+        run: flutter create . --platforms=android --org com.vrslabs --project-name fieldgis_reference
+
+      - name: Configure Android permissions
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('android/app/src/main/AndroidManifest.xml')
+          s = p.read_text()
+          marker = '<manifest xmlns:android="http://schemas.android.com/apk/res/android">'
+          perms = '''<manifest xmlns:android="http://schemas.android.com/apk/res/android">\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>\n    <uses-permission android:name="android.permission.INTERNET"/>'''
+          if 'ACCESS_FINE_LOCATION' not in s:
+              s = s.replace(marker, perms)
+          p.write_text(s)
+          PY
+
+      - name: Resolve and build app
+        run: |
+          flutter pub get
+          flutter build apk --debug --target-platform android-x64 --dart-define=VL_CERT_ENV=certification
+
+      - name: Verify background resume and cold relaunch
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          force-avd-creation: false
+          emulator-options: -no-snapshot-load -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none
+          disable-animations: true
+          script: |
+            adb install -r build/app/outputs/flutter-apk/app-debug.apk
+            adb shell pm grant com.vrslabs.fieldgis_reference android.permission.ACCESS_FINE_LOCATION
+            adb shell pm grant com.vrslabs.fieldgis_reference android.permission.ACCESS_COARSE_LOCATION
+            adb shell monkey -p com.vrslabs.fieldgis_reference 1
+            sleep 3
+            test -n "$(adb shell pidof com.vrslabs.fieldgis_reference)"
+            adb shell input keyevent KEYCODE_HOME
+            sleep 2
+            adb shell monkey -p com.vrslabs.fieldgis_reference 1
+            sleep 3
+            test -n "$(adb shell pidof com.vrslabs.fieldgis_reference)"
+            adb shell am force-stop com.vrslabs.fieldgis_reference
+            sleep 2
+            test -z "$(adb shell pidof com.vrslabs.fieldgis_reference)"
+            adb shell monkey -p com.vrslabs.fieldgis_reference 1
+            sleep 3
+            test -n "$(adb shell pidof com.vrslabs.fieldgis_reference)"
+            echo 'Navigation/lifecycle smoke passed: launch, background/resume, force-stop/cold relaunch.'

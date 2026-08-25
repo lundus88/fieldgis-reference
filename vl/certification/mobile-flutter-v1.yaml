@@ -1,0 +1,81 @@
+builder_id: mobile-flutter-v1
+platform: android
+framework: flutter
+role: official-mobile-builder-candidate
+status: experimental
+certification:
+  state: approved
+  activation_policy: certification-approved-only
+  direct_activation_allowed: false
+  required_gates:
+    - flutter_generation
+    - flutter_analyze
+    - flutter_test
+    - dependency_validation
+    - android_arm64_apk_build
+    - artifact_upload
+    - config_env_injection
+    - supabase_api_integration
+    - navigation_lifecycle
+    - error_logging
+    - reproducible_build
+    - rollback_validation
+    - mobile_gis_e2e
+    - human_approval
+  gate_status:
+    flutter_generation: passed
+    flutter_analyze: passed
+    flutter_test: passed
+    dependency_validation: passed
+    android_arm64_apk_build: passed
+    artifact_upload: passed
+    config_env_injection: passed
+    supabase_api_integration: passed
+    navigation_lifecycle: passed
+    error_logging: passed
+    reproducible_build: passed
+    rollback_validation: passed
+    mobile_gis_e2e: passed
+    human_approval: approved
+  evidence:
+    reference_repo: lundus88/fieldgis-reference
+    workflow: .github/workflows/android-device-cert.yml
+    reference_commit: 12906d8803d98108c2cc9c4637476bffbe2a5a25
+    workflow_run_id: 32860394491
+    workflow_run_conclusion: success
+    artifact_id: 9568101849
+    artifact_name: fieldgis-device-cert-arm64-apk
+    artifact_sha256: bad790953e60051b1dbd2dbc8c00a1737d76d445e90996660ee3354108659617
+    human_approval_source: user_confirmation_2026-08-26
+    core_certification_workflow: .github/workflows/vl-mobile-cert-core.yml
+    core_certification_run_id: 32906404439
+    config_env_injection_job: 97991389911
+    error_logging_job: 97991389911
+    rollback_validation_job: 97991389969
+    reproducible_build_job: 97991389947
+    reproducible_build_result: normalized_payload_hash_match
+    dependency_lockfile: pubspec.lock
+    dependency_lockfile_blob_sha: 424e113d69f39fa22df0fddc0d09a3f24d314fae
+    dependency_validation_job: 97991389746
+    dependency_validation_result: passed_locked_resolution
+    mobile_gis_e2e_workflow: .github/workflows/mobile-gis-e2e.yml
+    mobile_gis_e2e_run_id: 32906382452
+    mobile_gis_e2e_job: 97991316545
+    mobile_gis_e2e_result: success
+    navigation_lifecycle_workflow: .github/workflows/vl-mobile-lifecycle.yml
+    navigation_lifecycle_run_id: 32906910404
+    navigation_lifecycle_job: 97992904492
+    navigation_lifecycle_result: success
+    supabase_api_workflow: .github/workflows/vl-supabase-api-cert.yml
+    supabase_api_run_id: 32907687525
+    supabase_api_job: 97995216673
+    supabase_api_result: success
+    supabase_api_contract: public.vl_cert_health id=1 status=ok
+    supabase_project_ref: wczelfmnqpgzfdszxubl
+    supabase_project_name: vrs-core
+    supabase_project_region: ap-southeast-1
+    supabase_project_status: ACTIVE_HEALTHY
+activation:
+  target_status: active
+  allowed_when: certification.state == approved
+  rollback_status: experimental

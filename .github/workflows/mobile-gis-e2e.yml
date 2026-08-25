@@ -1,0 +1,110 @@
+name: VL Mobile GIS E2E Certification
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - cert/mobile-flutter-v1
+    paths:
+      - 'integration_test/**'
+      - 'test_driver/**'
+      - 'pubspec.yaml'
+      - '.github/workflows/mobile-gis-e2e.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  mobile-gis-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout certification branch
+        uses: actions/checkout@v4
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Flutter 3.38.1
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.1'
+          channel: stable
+          cache: true
+
+      - name: Generate Android scaffold
+        run: flutter create . --platforms=android --org com.vrslabs --project-name fieldgis_reference
+
+      - name: Configure Android location permissions
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('android/app/src/main/AndroidManifest.xml')
+          s = p.read_text()
+          marker = '<manifest xmlns:android="http://schemas.android.com/apk/res/android">'
+          perms = '''<manifest xmlns:android="http://schemas.android.com/apk/res/android">\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>\n    <uses-permission android:name="android.permission.INTERNET"/>'''
+          if 'ACCESS_FINE_LOCATION' not in s:
+              s = s.replace(marker, perms)
+          p.write_text(s)
+          PY
+
+      - name: Rewrite generated smoke test
+        run: |
+          cat > test/widget_test.dart <<'DART'
+          import 'package:flutter_test/flutter_test.dart';
+          import 'package:fieldgis_reference/main.dart';
+
+          void main() {
+            test('FieldPoint JSON roundtrip', () {
+              final createdAt = DateTime.utc(2026, 8, 25, 12, 0);
+              final point = FieldPoint(
+                id: 'e2e-cert-point',
+                code: 'E2E001',
+                latitude: 5.9804,
+                longitude: 116.0735,
+                accuracyM: 3.0,
+                createdAt: createdAt,
+              );
+              final restored = FieldPoint.fromJson(point.toJson());
+              expect(restored.code, 'E2E001');
+              expect(restored.latitude, 5.9804);
+              expect(restored.longitude, 116.0735);
+            });
+          }
+          DART
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Analyze certification changes
+        run: flutter analyze --no-fatal-infos
+
+      - name: Build E2E APK
+        run: flutter build apk --debug --target integration_test/fieldgis_e2e_test.dart
+
+      - name: Run Mobile/GIS E2E on Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          force-avd-creation: false
+          emulator-options: -no-snapshot-load -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none
+          disable-animations: true
+          script: |
+            adb shell settings put secure location_mode 3
+            adb emu geo fix 116.0735 5.9804
+            adb install -r build/app/outputs/flutter-apk/app-debug.apk
+            adb shell pm grant com.vrslabs.fieldgis_reference android.permission.ACCESS_FINE_LOCATION
+            adb shell pm grant com.vrslabs.fieldgis_reference android.permission.ACCESS_COARSE_LOCATION
+            flutter drive --driver=test_driver/integration_test.dart --target=integration_test/fieldgis_e2e_test.dart --use-application-binary=build/app/outputs/flutter-apk/app-debug.apk -d emulator-5554
