@@ -1,8 +1,8 @@
 builder_id: mobile-flutter-v1
 platform: android
 framework: flutter
-role: official-mobile-builder-candidate
-status: experimental
+role: official-mobile-builder
+status: active
 certification:
   state: approved
   activation_policy: certification-approved-only
@@ -71,7 +71,6 @@ certification:
     supabase_api_job: 97995216673
     supabase_api_result: success
     supabase_api_contract: public.vl_cert_health id=1 status=ok
-    supabase_project_ref: wczelfmnqpgzfdszxubl
     supabase_project_name: vrs-core
     supabase_project_region: ap-southeast-1
     supabase_project_status: ACTIVE_HEALTHY
