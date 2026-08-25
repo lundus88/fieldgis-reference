@@ -8,7 +8,15 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-void main() => runApp(const FieldGisApp());
+import 'vl_runtime.dart';
+
+void main() {
+  VlRuntimeLogger.install();
+  VlRuntimeLogger.info('app_start', {
+    'cert_env': VlRuntimeConfig.certificationEnv,
+  });
+  runApp(const FieldGisApp());
+}
 
 class FieldPoint {
   const FieldPoint({required this.id, required this.code, required this.latitude, required this.longitude, required this.accuracyM, required this.createdAt});
@@ -112,7 +120,8 @@ class _FieldMapPageState extends State<FieldMapPage> {
       _position = position;
       await _mapController?.animateCamera(CameraUpdate.newLatLngZoom(LatLng(position.latitude, position.longitude), 17));
       if (mounted) setState(() => _message = 'GPS position ready.');
-    } catch (e) {
+    } catch (e, st) {
+      VlRuntimeLogger.error('gps_locate_failed', e, st);
       if (mounted) setState(() => _message = 'GPS error: $e');
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -138,6 +147,7 @@ class _FieldMapPageState extends State<FieldMapPage> {
       _codeController.text = 'P${(_points.length + 1).toString().padLeft(3, '0')}';
       _message = '$code captured offline.';
     });
+    VlRuntimeLogger.info('field_point_captured', {'code': code});
     await _savePoints();
     await _drawPoints();
   }
