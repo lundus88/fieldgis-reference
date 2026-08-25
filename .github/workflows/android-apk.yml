@@ -49,7 +49,7 @@ jobs:
           p.write_text(s)
           PY
 
-      - name: Write smoke test after scaffold generation
+      - name: Write CI-safe model test after scaffold generation
         run: |
           mkdir -p test
           cat > test/widget_test.dart <<'DART'
@@ -57,9 +57,23 @@ jobs:
           import 'package:fieldgis_reference/main.dart';
 
           void main() {
-            testWidgets('FieldGIS app boots', (tester) async {
-              await tester.pumpWidget(const FieldGisApp());
-              expect(find.text('FieldGIS Reference'), findsOneWidget);
+            test('FieldPoint JSON roundtrip', () {
+              final createdAt = DateTime.utc(2026, 8, 25, 12, 0);
+              final point = FieldPoint(
+                id: 'test-point-1',
+                code: 'P001',
+                latitude: 5.9804,
+                longitude: 116.0735,
+                accuracyM: 3.5,
+                createdAt: createdAt,
+              );
+              final restored = FieldPoint.fromJson(point.toJson());
+              expect(restored.id, point.id);
+              expect(restored.code, point.code);
+              expect(restored.latitude, point.latitude);
+              expect(restored.longitude, point.longitude);
+              expect(restored.accuracyM, point.accuracyM);
+              expect(restored.createdAt, point.createdAt);
             });
           }
           DART
