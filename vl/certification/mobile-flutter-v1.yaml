@@ -31,7 +31,7 @@ certification:
     artifact_upload: passed
     config_env_injection: passed
     supabase_api_integration: pending
-    navigation_lifecycle: pending
+    navigation_lifecycle: passed
     error_logging: passed
     reproducible_build: passed
     rollback_validation: passed
@@ -62,6 +62,10 @@ certification:
     mobile_gis_e2e_run_id: 32906382452
     mobile_gis_e2e_job: 97991316545
     mobile_gis_e2e_result: success
+    navigation_lifecycle_workflow: .github/workflows/vl-mobile-lifecycle.yml
+    navigation_lifecycle_run_id: 32906910404
+    navigation_lifecycle_job: 97992904492
+    navigation_lifecycle_result: success
     supabase_project_ref: wczelfmnqpgzfdszxubl
     supabase_project_name: vrs-core
     supabase_project_region: ap-southeast-1
