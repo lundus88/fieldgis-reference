@@ -1,0 +1,31 @@
+name: VL Generate Lockfile
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - cert/mobile-flutter-v1
+    paths:
+      - '.github/workflows/vl-generate-lockfile.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  generate-lockfile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.1'
+          channel: stable
+          cache: true
+      - name: Generate lockfile
+        run: flutter pub get
+      - name: Emit lockfile evidence
+        run: |
+          echo 'VL_LOCKFILE_BEGIN'
+          base64 -w0 pubspec.lock
+          echo
+          echo 'VL_LOCKFILE_END'
