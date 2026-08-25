@@ -1,0 +1,24 @@
+name: fieldgis_reference
+description: VRS Labs FieldGIS Reference - Android GIS/GNSS field capture app.
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: '>=3.10.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  geolocator: ^14.0.3
+  maplibre_gl: ^0.27.0
+  shared_preferences: ^2.5.5
+  path_provider: ^2.1.6
+  share_plus: ^13.3.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
