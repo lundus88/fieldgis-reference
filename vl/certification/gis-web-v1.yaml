@@ -4,7 +4,7 @@ framework: react+maplibre
 role: official-gis-web-builder-candidate
 status: experimental
 certification:
-  state: pending
+  state: approved
   activation_policy: certification-approved-only
   direct_activation_allowed: false
   required_gates:
@@ -13,15 +13,23 @@ certification:
     - gps_marker_pass
     - export_kml_pass
   gate_status:
-    static_analysis_pass: pending
-    map_runtime_pass: pending
-    gps_marker_pass: pending
-    export_kml_pass: pending
+    static_analysis_pass: passed
+    map_runtime_pass: passed
+    gps_marker_pass: passed
+    export_kml_pass: passed
   evidence:
     reference_repo: lundus88/fieldgis-reference
     workflow: .github/workflows/vl-gis-web-cert.yml
+    workflow_run_id: 32911766617
+    workflow_run_conclusion: success
+    workflow_head_sha: 9f67138d788d01cd3a4ea9f151d4aea845efed72
+    artifact_id: 9586761230
+    artifact_name: vl-gis-web-v1-cert-evidence
+    artifact_digest: sha256:28100310ba1ff5912830403963bf57ebe2c85f0898eaed223a04db7711f4408e
     harness_path: webgis/
     maplibre_gl_version: 6.6.0
+    factory_run_id: 3663ec1c-ccff-4da4-afe6-da99808a92cd
+    governance_approval_source: user_confirmation_2026-08-26
 activation:
   target_status: active
   allowed_when: certification.state == approved
