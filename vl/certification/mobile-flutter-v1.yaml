@@ -8,17 +8,33 @@ certification:
   activation_policy: certification-approved-only
   direct_activation_allowed: false
   required_gates:
+    - flutter_generation
     - flutter_analyze
     - flutter_test
+    - dependency_validation
     - android_arm64_apk_build
     - artifact_upload
+    - config_env_injection
+    - supabase_api_integration
+    - navigation_lifecycle
+    - error_logging
+    - reproducible_build
+    - rollback_validation
     - mobile_gis_e2e
     - human_approval
   gate_status:
+    flutter_generation: passed
     flutter_analyze: passed
     flutter_test: passed
+    dependency_validation: pending
     android_arm64_apk_build: passed
     artifact_upload: passed
+    config_env_injection: pending
+    supabase_api_integration: pending
+    navigation_lifecycle: pending
+    error_logging: pending
+    reproducible_build: pending
+    rollback_validation: pending
     mobile_gis_e2e: pending
     human_approval: approved
   evidence:
