@@ -33,7 +33,7 @@ certification:
     supabase_api_integration: pending
     navigation_lifecycle: pending
     error_logging: passed
-    reproducible_build: pending
+    reproducible_build: passed
     rollback_validation: passed
     mobile_gis_e2e: pending
     human_approval: approved
@@ -52,6 +52,8 @@ certification:
     config_env_injection_job: 97989071049
     error_logging_job: 97989071049
     rollback_validation_job: 97989070868
+    reproducible_build_job: 97989070951
+    reproducible_build_result: normalized_payload_hash_match
     dependency_validation_job: 97989070921
     dependency_validation_result: failed_missing_committed_pubspec_lock
     supabase_project_ref: wczelfmnqpgzfdszxubl
