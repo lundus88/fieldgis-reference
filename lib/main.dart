@@ -178,7 +178,7 @@ class _FieldMapPageState extends State<FieldMapPage> {
           child: ListView.separated(
             padding: const EdgeInsets.all(16),
             itemCount: _points.length,
-            separatorBuilder: (_, __) => const Divider(),
+            separatorBuilder: (_, _) => const Divider(),
             itemBuilder: (_, i) {
               final p = _points[i];
               return ListTile(title: Text(p.code), subtitle: Text('${p.latitude.toStringAsFixed(6)}, ${p.longitude.toStringAsFixed(6)} · ±${p.accuracyM.round()} m'));
