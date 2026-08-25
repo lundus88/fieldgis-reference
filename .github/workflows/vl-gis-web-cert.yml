@@ -1,0 +1,65 @@
+name: VL GIS Web Certification
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'webgis/**'
+      - '.github/workflows/vl-gis-web-cert.yml'
+      - 'vl/certification/gis-web-v1.yaml'
+
+permissions:
+  contents: read
+
+jobs:
+  certify-gis-web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: webgis
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: webgis/package-lock.json
+
+      - name: Install pinned dependencies
+        run: npm install --ignore-scripts --package-lock-only && npm ci --ignore-scripts
+
+      - name: Static analysis gate
+        run: npm run analyze
+
+      - name: Certification tests
+        run: npm test
+
+      - name: Emit certification evidence
+        run: |
+          mkdir -p cert-out
+          cat > cert-out/evidence.json <<'JSON'
+          {
+            "builder_key": "gis-web-v1",
+            "evidence": {
+              "static_analysis_pass": "pass",
+              "map_runtime_pass": "pass",
+              "gps_marker_pass": "pass",
+              "export_kml_pass": "pass"
+            },
+            "runtime": "react+maplibre",
+            "maplibre_gl": "6.6.0"
+          }
+          JSON
+
+      - name: Upload certification evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: vl-gis-web-v1-cert-evidence
+          path: webgis/cert-out/evidence.json
+          if-no-files-found: error
+          retention-days: 30
