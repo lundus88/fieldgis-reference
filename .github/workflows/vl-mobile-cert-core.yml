@@ -22,17 +22,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Validate pending lock
-        run: python3 tool/vl_cert_gate.py vl/certification/mobile-flutter-v1.yaml --mode pending
-      - name: Validate rollback target
-        run: python3 tool/vl_cert_gate.py vl/certification/mobile-flutter-v1.yaml --mode rollback
-      - name: Confirm premature activation is blocked
+      - name: Validate certification state policy
         run: |
-          if python3 tool/vl_cert_gate.py vl/certification/mobile-flutter-v1.yaml --mode activation; then
-            echo 'Activation unexpectedly allowed before all gates passed.'
+          STATE=$(awk '/^certification:/{in_cert=1; next} in_cert && /^  state:/{print $2; exit}' vl/certification/mobile-flutter-v1.yaml)
+          if [ "$STATE" = "pending" ]; then
+            python3 tool/vl_cert_gate.py vl/certification/mobile-flutter-v1.yaml --mode pending
+            if python3 tool/vl_cert_gate.py vl/certification/mobile-flutter-v1.yaml --mode activation; then
+              echo 'Activation unexpectedly allowed while certification is pending.'
+              exit 1
+            fi
+            echo 'Activation correctly blocked while certification is pending.'
+          elif [ "$STATE" = "approved" ]; then
+            python3 tool/vl_cert_gate.py vl/certification/mobile-flutter-v1.yaml --mode activation
+            echo 'Approved certification correctly satisfies activation policy.'
+          else
+            echo "Unsupported certification state: $STATE"
             exit 1
           fi
-          echo 'Activation correctly blocked while certification is pending.'
+      - name: Validate rollback target
+        run: python3 tool/vl_cert_gate.py vl/certification/mobile-flutter-v1.yaml --mode rollback
 
   runtime-config-logging:
     runs-on: ubuntu-latest
