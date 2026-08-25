@@ -76,19 +76,14 @@ jobs:
             adb shell monkey -p com.vrslabs.fieldgis_reference 1
             sleep 3
             test -n "$(adb shell pidof com.vrslabs.fieldgis_reference)"
-
             adb shell input keyevent KEYCODE_HOME
             sleep 2
             adb shell monkey -p com.vrslabs.fieldgis_reference 1
             sleep 3
             test -n "$(adb shell pidof com.vrslabs.fieldgis_reference)"
-
             adb shell am force-stop com.vrslabs.fieldgis_reference
             sleep 2
-            if adb shell pidof com.vrslabs.fieldgis_reference; then
-              echo 'Process still alive after force-stop.'
-              exit 1
-            fi
+            test -z "$(adb shell pidof com.vrslabs.fieldgis_reference)"
             adb shell monkey -p com.vrslabs.fieldgis_reference 1
             sleep 3
             test -n "$(adb shell pidof com.vrslabs.fieldgis_reference)"
