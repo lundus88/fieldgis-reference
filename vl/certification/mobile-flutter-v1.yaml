@@ -35,7 +35,7 @@ certification:
     error_logging: passed
     reproducible_build: passed
     rollback_validation: passed
-    mobile_gis_e2e: pending
+    mobile_gis_e2e: passed
     human_approval: approved
   evidence:
     reference_repo: lundus88/fieldgis-reference
@@ -58,6 +58,10 @@ certification:
     dependency_lockfile_blob_sha: 424e113d69f39fa22df0fddc0d09a3f24d314fae
     dependency_validation_job: 97991389746
     dependency_validation_result: passed_locked_resolution
+    mobile_gis_e2e_workflow: .github/workflows/mobile-gis-e2e.yml
+    mobile_gis_e2e_run_id: 32906382452
+    mobile_gis_e2e_job: 97991316545
+    mobile_gis_e2e_result: success
     supabase_project_ref: wczelfmnqpgzfdszxubl
     supabase_project_name: vrs-core
     supabase_project_region: ap-southeast-1
