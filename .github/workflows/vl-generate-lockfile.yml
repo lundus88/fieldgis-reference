@@ -16,6 +16,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.38.1'
@@ -32,5 +34,7 @@ jobs:
             echo 'pubspec.lock already matches Flutter 3.38.1 resolution.'
           else
             git commit -m 'VL cert: commit Flutter dependency lockfile'
+            git fetch origin cert/mobile-flutter-v1
+            git rebase origin/cert/mobile-flutter-v1
             git push origin HEAD:cert/mobile-flutter-v1
           fi
