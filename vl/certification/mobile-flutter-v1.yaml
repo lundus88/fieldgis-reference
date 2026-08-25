@@ -4,7 +4,7 @@ framework: flutter
 role: official-mobile-builder-candidate
 status: experimental
 certification:
-  state: pending
+  state: approved
   activation_policy: certification-approved-only
   direct_activation_allowed: false
   required_gates:
@@ -30,7 +30,7 @@ certification:
     android_arm64_apk_build: passed
     artifact_upload: passed
     config_env_injection: passed
-    supabase_api_integration: pending
+    supabase_api_integration: passed
     navigation_lifecycle: passed
     error_logging: passed
     reproducible_build: passed
@@ -66,6 +66,11 @@ certification:
     navigation_lifecycle_run_id: 32906910404
     navigation_lifecycle_job: 97992904492
     navigation_lifecycle_result: success
+    supabase_api_workflow: .github/workflows/vl-supabase-api-cert.yml
+    supabase_api_run_id: 32907687525
+    supabase_api_job: 97995216673
+    supabase_api_result: success
+    supabase_api_contract: public.vl_cert_health id=1 status=ok
     supabase_project_ref: wczelfmnqpgzfdszxubl
     supabase_project_name: vrs-core
     supabase_project_region: ap-southeast-1
