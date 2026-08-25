@@ -1,0 +1,28 @@
+builder_id: gis-web-v1
+platform: web
+framework: react+maplibre
+role: official-gis-web-builder-candidate
+status: experimental
+certification:
+  state: pending
+  activation_policy: certification-approved-only
+  direct_activation_allowed: false
+  required_gates:
+    - static_analysis_pass
+    - map_runtime_pass
+    - gps_marker_pass
+    - export_kml_pass
+  gate_status:
+    static_analysis_pass: pending
+    map_runtime_pass: pending
+    gps_marker_pass: pending
+    export_kml_pass: pending
+  evidence:
+    reference_repo: lundus88/fieldgis-reference
+    workflow: .github/workflows/vl-gis-web-cert.yml
+    harness_path: webgis/
+    maplibre_gl_version: 6.6.0
+activation:
+  target_status: active
+  allowed_when: certification.state == approved
+  rollback_status: experimental
