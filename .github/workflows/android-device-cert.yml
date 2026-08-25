@@ -48,11 +48,42 @@ jobs:
           p.write_text(s)
           PY
 
+      - name: Rewrite generated smoke test
+        run: |
+          cat > test/widget_test.dart <<'DART'
+          import 'package:flutter_test/flutter_test.dart';
+          import 'package:fieldgis_reference/main.dart';
+
+          void main() {
+            test('FieldPoint JSON roundtrip', () {
+              final createdAt = DateTime.utc(2026, 8, 25, 12, 0);
+              final point = FieldPoint(
+                id: 'device-cert-point',
+                code: 'DC001',
+                latitude: 5.9804,
+                longitude: 116.0735,
+                accuracyM: 3.0,
+                createdAt: createdAt,
+              );
+              final restored = FieldPoint.fromJson(point.toJson());
+              expect(restored.id, point.id);
+              expect(restored.code, point.code);
+              expect(restored.latitude, point.latitude);
+              expect(restored.longitude, point.longitude);
+              expect(restored.accuracyM, point.accuracyM);
+              expect(restored.createdAt, point.createdAt);
+            });
+          }
+          DART
+
       - name: Resolve dependencies
         run: flutter pub get
 
       - name: Analyze
         run: flutter analyze --no-fatal-infos
+
+      - name: Test
+        run: flutter test
 
       - name: Build ARM64 debug APK
         run: flutter build apk --debug --split-per-abi
