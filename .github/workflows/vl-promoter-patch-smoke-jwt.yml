@@ -1,0 +1,41 @@
+name: VL Promoter Patch Smoke JWT
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/vl-promoter-patch-smoke-jwt.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch promoter to derive smoke JWT from Management API
+        shell: python
+        run: |
+          from pathlib import Path
+          p=Path('.github/workflows/vl-production-promoter.yml')
+          s=p.read_text()
+          s=s.replace("          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}\n          SUPABASE_FUNCTION_SMOKE_JWT: ${{ secrets.SUPABASE_FUNCTION_SMOKE_JWT }}\n        run: |\n          set -euo pipefail\n          test -n \"${SUPABASE_ACCESS_TOKEN:-}\" || { echo 'SUPABASE_ACCESS_TOKEN is not configured in GitHub Actions'; exit 1; }\n          test -n \"${SUPABASE_FUNCTION_SMOKE_JWT:-}\" || { echo 'SUPABASE_FUNCTION_SMOKE_JWT is not configured in GitHub Actions'; exit 1; }",
+          "          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}\n        run: |\n          set -euo pipefail\n          test -n \"${SUPABASE_ACCESS_TOKEN:-}\" || { echo 'SUPABASE_ACCESS_TOKEN is not configured in GitHub Actions'; exit 1; }")
+          s=s.replace("          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}\n          SUPABASE_FUNCTION_SMOKE_JWT: ${{ secrets.SUPABASE_FUNCTION_SMOKE_JWT }}\n        run: |\n          set -euo pipefail\n          # Verify provider metadata and JWT enforcement first.",
+          "          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}\n        run: |\n          set -euo pipefail\n          curl -fsS -H \"Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}\" \"https://api.supabase.com/v1/projects/${SUPABASE_PROD_PROJECT_REF}/api-keys?reveal=true\" -o /tmp/api-keys.json\n          SUPABASE_FUNCTION_SMOKE_JWT=$(python3 - <<'PY'\nimport json\nd=json.load(open('/tmp/api-keys.json'))\nitems=d if isinstance(d,list) else d.get('keys',[])\nfor x in items:\n    name=str(x.get('name') or x.get('key') or x.get('type') or '').lower()\n    value=x.get('api_key') or x.get('value') or x.get('key')\n    if name == 'anon' and isinstance(value,str) and value.count('.') == 2:\n        print(value); break\nelse:\n    raise SystemExit('legacy anon JWT not available for smoke verification')\nPY\n          )\n          echo \"::add-mask::$SUPABASE_FUNCTION_SMOKE_JWT\"\n          # Verify provider metadata and JWT enforcement first.")
+          if 'SUPABASE_FUNCTION_SMOKE_JWT: ${{ secrets.SUPABASE_FUNCTION_SMOKE_JWT }}' in s:
+              raise SystemExit('secret smoke JWT reference still present')
+          if 'api-keys?reveal=true' not in s:
+              raise SystemExit('dynamic smoke JWT fetch patch missing')
+          p.write_text(s)
+      - name: Commit promoter patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'vl-automation'
+          git config user.email 'actions@users.noreply.github.com'
+          git add .github/workflows/vl-production-promoter.yml
+          git diff --cached --quiet && { echo 'No patch needed'; exit 0; }
+          git commit -m 'VL: derive Supabase smoke JWT from Management API'
+          git push
