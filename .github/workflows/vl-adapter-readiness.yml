@@ -96,3 +96,25 @@ jobs:
           assert anon, 'legacy anon key unavailable'
           print('SUPABASE_API_KEY_READ_ACCESS_PASS')
           PY
+
+      - name: Verify Supabase smoke JWT secret
+        shell: bash
+        env:
+          SUPABASE_FUNCTION_SMOKE_JWT: ${{ secrets.SUPABASE_FUNCTION_SMOKE_JWT }}
+          SUPABASE_PROJECT_REF: zetqezdvupdlrzrlqddq
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_FUNCTION_SMOKE_JWT:-}" || { echo 'SUPABASE_FUNCTION_SMOKE_JWT_MISSING'; exit 1; }
+          python3 - <<'PY'
+          import os, json, base64, time
+          token=os.environ['SUPABASE_FUNCTION_SMOKE_JWT']
+          parts=token.split('.')
+          assert len(parts)==3, 'smoke credential is not a JWT'
+          payload=parts[1] + '=' * (-len(parts[1]) % 4)
+          claims=json.loads(base64.urlsafe_b64decode(payload.encode()).decode())
+          assert claims.get('ref')==os.environ['SUPABASE_PROJECT_REF'], 'smoke JWT project ref mismatch'
+          assert claims.get('role')=='anon', 'smoke JWT role is not anon'
+          exp=claims.get('exp')
+          assert isinstance(exp,(int,float)) and exp > time.time(), 'smoke JWT expired'
+          print('SUPABASE_SMOKE_JWT_CONTRACT_PASS')
+          PY
