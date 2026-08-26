@@ -1,0 +1,39 @@
+builder_id: web-react-v1
+platform: web
+framework: react+vite
+role: official-web-builder-candidate
+status: experimental
+certification:
+  state: pending
+  activation_policy: certification-approved-only
+  direct_activation_allowed: false
+  required_gates:
+    - source_generation
+    - dependency_install
+    - vite_build
+    - index_html_present
+    - javascript_bundle_present
+    - immutable_artifact_packaging
+    - artifact_upload
+    - release_validator_pass
+    - reproducible_build
+    - human_approval
+  gate_status:
+    source_generation: pending
+    dependency_install: pending
+    vite_build: pending
+    index_html_present: pending
+    javascript_bundle_present: pending
+    immutable_artifact_packaging: pending
+    artifact_upload: pending
+    release_validator_pass: pending
+    reproducible_build: pending
+    human_approval: pending
+  evidence:
+    reference_repo: lundus88/fieldgis-reference
+    workflow: .github/workflows/vl-web-react-cert.yml
+    release_validator: .github/workflows/vl-release-validator.yml
+activation:
+  target_status: active
+  allowed_when: certification.state == approved
+  rollback_status: experimental
