@@ -1,0 +1,52 @@
+name: VL Payment Gateway Contract
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'contracts/payment-gateway-v1.json'
+      - '.github/workflows/vl-payment-contract.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate provider-neutral payment contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          p='contracts/payment-gateway-v1.json'
+          d=json.load(open(p))
+          assert d['adapter_key']=='payment-gateway-v1'
+          assert d['adapter_type']=='payment'
+          assert d['provider']=='unbound'
+          assert d['status']=='experimental'
+          prod=d['production']
+          assert prod['live_charge_allowed'] is False
+          assert prod['human_production_approval_required'] is True
+          assert prod['production_credentials_required'] is True
+          assert prod['fail_closed_if_provider_unbound'] is True
+          caps=d['capabilities']
+          for k in ['checkout_session','webhook','signature_verification','idempotency','payment_status_sync','refund','reconciliation']:
+              assert caps[k] is True, k
+          gates=set(d['required_gates'])
+          required={
+            'payment_checkout_sandbox','payment_webhook_signature','payment_idempotency',
+            'payment_success_path','payment_failure_path','payment_refund_path','payment_reconciliation'
+          }
+          assert required.issubset(gates), sorted(required-gates)
+          inv=' '.join(d['invariants']).lower()
+          assert 'client callback alone must never mark an order paid' in inv
+          assert 'duplicate webhooks must not duplicate fulfillment or credits' in inv
+          assert 'amounts and currency must be verified' in inv
+          assert 'explicit human approval' in inv
+          print(json.dumps({'status':'PASS','adapter_key':d['adapter_key'],'required_gate_count':len(required)},indent=2))
+          PY
