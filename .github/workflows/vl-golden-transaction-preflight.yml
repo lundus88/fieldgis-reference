@@ -1,0 +1,77 @@
+name: VL Golden Transaction Preflight
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/vl-golden-transaction-preflight.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  readiness:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get GitHub OIDC token
+        id: oidc
+        shell: bash
+        run: |
+          set -euo pipefail
+          resp=$(curl -sS -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=vrs-external-capability-readiness")
+          token=$(printf '%s' "$resp" | python3 -c 'import sys,json; print(json.load(sys.stdin)["value"])')
+          echo "token=$token" >> "$GITHUB_OUTPUT"
+
+      - name: Verify unauthenticated readiness is rejected
+        shell: bash
+        run: |
+          set -euo pipefail
+          code=$(curl -sS -o /tmp/noauth.json -w '%{http_code}' -X POST \
+            'https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vrs-external-capability-readiness-oidc' \
+            -H 'content-type: application/json' \
+            --data '{"action":"readiness"}')
+          test "$code" = "401"
+
+      - name: Evaluate external capability readiness
+        env:
+          OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          code=$(curl -sS -o /tmp/readiness.json -w '%{http_code}' -X POST \
+            'https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vrs-external-capability-readiness-oidc' \
+            -H "Authorization: Bearer $OIDC_TOKEN" \
+            -H 'content-type: application/json' \
+            --data '{"action":"readiness"}')
+          cat /tmp/readiness.json
+          test "$code" = "200"
+          python3 - <<'PY'
+          import json
+          d=json.load(open('/tmp/readiness.json'))
+          assert d['read_only'] is True
+          assert d['external_api_calls'] is False
+          assert d['live_charge'] is False
+          assert d['production_email'] is False
+          assert d['production_locked'] is True
+          assert d['decision'] in ('BLOCKED','READY_FOR_GOLDEN_TRANSACTION')
+          if d['decision']=='BLOCKED':
+              assert d['ready'] is False
+              assert d['blocker_count'] > 0
+          else:
+              assert d['ready'] is True
+              assert d['blocker_count'] == 0
+          core={x['adapter_key']:x['status'] for x in d['capabilities']['core']}
+          for k in ('supabase-database-v1','supabase-auth-v1','supabase-storage-v1'):
+              assert core[k] in ('candidate','active')
+          PY
+
+      - name: Record scope
+        run: |
+          echo 'Readiness probe only.'
+          echo 'No Billplz API call made.'
+          echo 'No Resend API call made.'
+          echo 'No factory run created.'
+          echo 'No production action performed.'
