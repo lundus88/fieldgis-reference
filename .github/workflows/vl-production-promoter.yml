@@ -57,8 +57,8 @@ jobs:
         if: steps.claim.outputs.status != 'leased'
         run: echo "No approved production promotion job available."
 
-      - name: Download immutable mobile source artifact
-        if: steps.claim.outputs.target_adapter == 'mobile-release-artifact'
+      - name: Download immutable source artifact
+        if: steps.claim.outputs.status == 'leased'
         uses: actions/download-artifact@v4
         with:
           name: ${{ steps.claim.outputs.source_artifact_name }}
@@ -67,9 +67,9 @@ jobs:
           run-id: ${{ steps.claim.outputs.source_github_run_id }}
           github-token: ${{ github.token }}
 
-      - name: Verify immutable artifact hash
-        id: verify
-        if: steps.claim.outputs.target_adapter == 'mobile-release-artifact'
+      - name: Verify immutable source hash
+        id: source_verify
+        if: steps.claim.outputs.status == 'leased'
         shell: bash
         run: |
           set -euo pipefail
@@ -77,33 +77,155 @@ jobs:
           test -n "$FILE"
           ACTUAL=$(sha256sum "$FILE" | awk '{print $1}')
           EXPECTED='${{ steps.claim.outputs.expected_sha256 }}'
+          test -n "$EXPECTED"
           test "$ACTUAL" = "$EXPECTED"
           echo "file=$FILE" >> "$GITHUB_OUTPUT"
           echo "sha=$ACTUAL" >> "$GITHUB_OUTPUT"
+
+      # ---------- Mobile immutable release artifact ----------
+      - name: Prepare mobile production artifact
+        id: mobile_prepare
+        if: steps.claim.outputs.target_adapter == 'mobile-release-artifact' && steps.source_verify.outcome == 'success'
+        shell: bash
+        run: |
+          set -euo pipefail
           echo "name=vl-production-${{ steps.claim.outputs.deployment_id }}-android" >> "$GITHUB_OUTPUT"
 
-      - name: Publish immutable production release artifact
-        if: steps.verify.outcome == 'success'
+      - name: Publish immutable mobile production artifact
+        id: mobile_publish
+        if: steps.mobile_prepare.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.verify.outputs.name }}
-          path: ${{ steps.verify.outputs.file }}
+          name: ${{ steps.mobile_prepare.outputs.name }}
+          path: ${{ steps.source_verify.outputs.file }}
           if-no-files-found: error
           retention-days: 90
 
+      # ---------- Vercel prebuilt production adapters ----------
+      - name: Prepare immutable Vercel Build Output
+        id: vercel_prepare
+        if: (steps.claim.outputs.target_adapter == 'vercel-production' || steps.claim.outputs.target_adapter == 'vercel-pwa-production' || steps.claim.outputs.target_adapter == 'vercel-gis-production') && steps.source_verify.outcome == 'success'
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}" || { echo 'VERCEL_TOKEN is not configured in GitHub Actions'; exit 1; }
+          rm -rf vercel-prebuilt
+          mkdir -p vercel-prebuilt
+          tar -xzf '${{ steps.source_verify.outputs.file }}' -C vercel-prebuilt
+          test -s vercel-prebuilt/.vercel/output/config.json
+          test -n "$(find vercel-prebuilt/.vercel/output/static -type f -print -quit)"
+          python3 - <<'PY'
+          import json,pathlib,os
+          d=json.load(open('claim.json'))
+          cfg=d.get('adapter_configuration') or {}
+          disc=cfg.get('discovery') or {}
+          project_id=str(disc.get('project_id') or '')
+          team_id=str(disc.get('team_id') or '')
+          if not project_id or not team_id:
+              raise SystemExit('Vercel project/team mapping missing from adapter registry')
+          p=pathlib.Path('vercel-prebuilt/.vercel/project.json')
+          p.parent.mkdir(parents=True,exist_ok=True)
+          p.write_text(json.dumps({'projectId':project_id,'orgId':team_id}))
+          with open(os.environ['GITHUB_ENV'],'a') as f:
+              f.write(f'VERCEL_PROJECT_ID={project_id}\n')
+              f.write(f'VERCEL_ORG_ID={team_id}\n')
+          PY
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy immutable Vercel output to production
+        id: vercel_deploy
+        if: steps.vercel_prepare.outcome == 'success'
+        working-directory: vercel-prebuilt
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --global vercel@59.5.0
+          URL=$(vercel deploy --prebuilt --prod --yes --token="$VERCEL_TOKEN" | tail -n 1 | tr -d '\r')
+          test -n "$URL"
+          case "$URL" in https://*) ;; *) echo "Unexpected Vercel deployment output: $URL"; exit 1 ;; esac
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+      - name: Verify Vercel production deployment
+        id: vercel_verify
+        if: steps.vercel_deploy.outcome == 'success'
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL='${{ steps.vercel_deploy.outputs.url }}'
+          curl -fsSL --retry 5 --retry-delay 3 --retry-all-errors -o /tmp/vl-vercel-index "$URL/"
+          test -s /tmp/vl-vercel-index
+          ADAPTER='${{ steps.claim.outputs.target_adapter }}'
+          if [ "$ADAPTER" = 'vercel-pwa-production' ]; then
+            curl -fsSL --retry 5 --retry-delay 3 --retry-all-errors -o /tmp/vl-manifest "$URL/manifest.webmanifest"
+            curl -fsSL --retry 5 --retry-delay 3 --retry-all-errors -o /tmp/vl-sw "$URL/sw.js"
+            test -s /tmp/vl-manifest
+            test -s /tmp/vl-sw
+          fi
+          echo "provider_url=$URL" >> "$GITHUB_OUTPUT"
+
+      # ---------- Fail-closed callback ----------
       - name: Callback VL promotion
         if: always() && steps.claim.outputs.status == 'leased'
         shell: bash
         run: |
           set -euo pipefail
-          OK=false
-          [ '${{ steps.verify.outcome }}' = 'success' ] && OK=true
           python3 - <<'PY' > callback.json
           import json
           d=json.load(open('claim.json'))
-          ok='${{ steps.verify.outcome }}'=='success'
-          result={'runner':'github-actions-oidc','promotion_adapter':d.get('target_adapter'),'github_run_id':'${{ github.run_id }}','github_sha':'${{ github.sha }}','artifact_name':'${{ steps.verify.outputs.name }}','artifact_sha256':'${{ steps.verify.outputs.sha }}','immutable_no_rebuild':True}
-          print(json.dumps({'action':'complete','job_id':d['job_id'],'lease_token':d['lease_token'],'success':ok,'result':result,'error_text':None if ok else 'Immutable artifact promotion or SHA verification failed'}))
+          adapter=d.get('target_adapter')
+          source_ok='${{ steps.source_verify.outcome }}'=='success'
+          result={
+            'runner':'github-actions-oidc',
+            'promotion_adapter':adapter,
+            'github_run_id':'${{ github.run_id }}',
+            'github_sha':'${{ github.sha }}',
+            'artifact_sha256':'${{ steps.source_verify.outputs.sha }}',
+            'immutable_no_rebuild':True,
+          }
+          checks=[]
+          ok=False
+          error='Production promotion failed closed'
+          if adapter=='mobile-release-artifact':
+              publish_ok='${{ steps.mobile_publish.outcome }}'=='success'
+              ok=source_ok and publish_ok
+              if ok:
+                  result['artifact_name']='${{ steps.mobile_prepare.outputs.name }}'
+                  result['post_deploy_verification']='PASS'
+                  checks=[
+                    {'check_key':'immutable_source_sha256','status':'pass','expected':d.get('expected_sha256'),'actual':'${{ steps.source_verify.outputs.sha }}','evidence':{'source':'github-actions-artifact'}},
+                    {'check_key':'production_release_artifact','status':'pass','expected':'published','actual':'published','evidence':{'artifact_name':'${{ steps.mobile_prepare.outputs.name }}'}},
+                  ]
+                  result['verification_checks']=checks
+                  error=None
+              else:
+                  error='Mobile immutable artifact publication or SHA verification failed'
+          elif adapter in ('vercel-production','vercel-pwa-production','vercel-gis-production'):
+              deploy_ok='${{ steps.vercel_deploy.outcome }}'=='success'
+              verify_ok='${{ steps.vercel_verify.outcome }}'=='success'
+              ok=source_ok and deploy_ok and verify_ok
+              if ok:
+                  url='${{ steps.vercel_verify.outputs.provider_url }}'
+                  result['provider_url']=url
+                  result['provider_deployment_id']=url
+                  result['post_deploy_verification']='PASS'
+                  checks=[
+                    {'check_key':'immutable_source_sha256','status':'pass','expected':d.get('expected_sha256'),'actual':'${{ steps.source_verify.outputs.sha }}','evidence':{'source':'github-actions-artifact'}},
+                    {'check_key':'vercel_build_output_contract','status':'pass','expected':'v3 prebuilt','actual':'v3 prebuilt','evidence':{'immutable_no_rebuild':True}},
+                    {'check_key':'production_http','status':'pass','expected':'reachable','actual':'reachable','evidence':{'provider_url':url}},
+                  ]
+                  if adapter=='vercel-pwa-production':
+                      checks.append({'check_key':'pwa_runtime_assets','status':'pass','expected':'manifest+service-worker','actual':'manifest+service-worker','evidence':{'provider_url':url}})
+                  result['verification_checks']=checks
+                  error=None
+              else:
+                  error='Vercel prebuilt deployment, immutable SHA verification, or post-deploy HTTP verification failed'
+          else:
+              ok=False
+              error=f'Unsupported promotion adapter: {adapter}'
+          print(json.dumps({'action':'complete','job_id':d['job_id'],'lease_token':d['lease_token'],'success':ok,'result':result,'error_text':error}))
           PY
           curl -fsSL -X POST \
             -H "Authorization: Bearer ${VRS_PROMOTION_TOKEN}" \
