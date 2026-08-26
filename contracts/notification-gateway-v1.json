@@ -1,0 +1,26 @@
+{
+  "contract_version": "1.0.0",
+  "adapter_type": "notification",
+  "adapter_key": "notification-gateway-v1",
+  "channels": ["email"],
+  "invariants": {
+    "provider_binding_required": true,
+    "production_send_allowed": false,
+    "idempotency_required": true,
+    "signed_webhook_required": true,
+    "raw_webhook_body_verification_required": true,
+    "duplicate_event_replay_safe": true,
+    "recipient_pii_must_not_be_stored_in_event_ledger": true,
+    "delivery_state_must_come_from_provider_event_or_reconciliation": true,
+    "client_callback_cannot_mark_delivered": true
+  },
+  "required_gates": [
+    "notification_send_sandbox",
+    "notification_webhook_signature",
+    "notification_idempotency",
+    "notification_delivery_event",
+    "notification_bounce_event",
+    "notification_reconciliation"
+  ],
+  "states": ["queued", "sent", "delivered", "bounced", "failed", "cancelled"]
+}
