@@ -1,0 +1,69 @@
+name: VL API Service Certification
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/vl-api-service-cert.yml'
+      - 'vl/certification/api-service-v1.yaml'
+
+permissions:
+  contents: read
+
+jobs:
+  certify-api-service:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Create reference API harness
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf cert-work && mkdir -p cert-work
+          cat > cert-work/index.ts <<'TS'
+          export function payload(){return {ok:true,builder:'api-service-v1'}}
+          if (import.meta.main) {
+            Deno.serve((_req) => new Response(JSON.stringify(payload()), {headers:{'content-type':'application/json'}}));
+          }
+          TS
+          cat > cert-work/index_test.ts <<'TS'
+          import {assertEquals} from 'jsr:@std/assert@1';
+          import {payload} from './index.ts';
+          Deno.test('health payload contract',()=>assertEquals(payload(),{ok:true,builder:'api-service-v1'}));
+          TS
+      - name: Validate API contract
+        working-directory: cert-work
+        shell: bash
+        run: |
+          set -euo pipefail
+          deno check index.ts
+          deno test
+          grep -q 'Deno.serve' index.ts
+          grep -q "builder:'api-service-v1'" index.ts
+      - name: Verify reproducible source package
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner -C cert-work -cf build-a.tar index.ts index_test.ts
+          sha256sum build-a.tar | awk '{print $1}' > hash-a.txt
+          tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner -C cert-work -cf build-b.tar index.ts index_test.ts
+          sha256sum build-b.tar | awk '{print $1}' > hash-b.txt
+          diff -u hash-a.txt hash-b.txt
+      - name: Package certification evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          cp hash-a.txt evidence/artifact-sha256.txt
+          printf 'builder_id=api-service-v1\nstatus=passed\ngithub_run_id=%s\ngithub_sha=%s\n' '${{ github.run_id }}' '${{ github.sha }}' > evidence/result.txt
+          tar -czf vl-api-service-v1-cert-evidence.tgz evidence cert-work
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vl-api-service-v1-cert-evidence
+          path: vl-api-service-v1-cert-evidence.tgz
+          if-no-files-found: error
