@@ -1,0 +1,99 @@
+name: VL PRD Compiler Smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/vl-prd-compiler-smoke.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  compiler-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SUPABASE_FUNCTION_SMOKE_JWT: ${{ secrets.SUPABASE_FUNCTION_SMOKE_JWT }}
+      ORCHESTRATOR_URL: https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vrs-orchestrator
+      FIELDGIS_APP_SPEC_ID: e8a1e8c6-9395-49e3-a725-761927c8f835
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify authenticated smoke credential is configured
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_FUNCTION_SMOKE_JWT:-}" || { echo 'SUPABASE_FUNCTION_SMOKE_JWT is not configured'; exit 1; }
+
+      - name: Verify orchestrator fails closed without JWT
+        shell: bash
+        run: |
+          set -euo pipefail
+          CODE=$(curl -sS -o /tmp/unauth.json -w '%{http_code}' \
+            -H 'Content-Type: application/json' \
+            -d '{"action":"compile_spec","app_spec_id":"'"$FIELDGIS_APP_SPEC_ID"'"}' \
+            "$ORCHESTRATOR_URL")
+          test "$CODE" = '401'
+
+      - name: Compile FieldGIS reference App Spec through live orchestrator
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsS --retry 3 --retry-delay 2 --retry-all-errors \
+            -H "Authorization: Bearer ${SUPABASE_FUNCTION_SMOKE_JWT}" \
+            -H "apikey: ${SUPABASE_FUNCTION_SMOKE_JWT}" \
+            -H 'Content-Type: application/json' \
+            -d '{"action":"compile_spec","app_spec_id":"'"$FIELDGIS_APP_SPEC_ID"'"}' \
+            "$ORCHESTRATOR_URL" -o compiler-result.json
+          python3 - <<'PY'
+          import json
+          d=json.load(open('compiler-result.json'))
+          if d.get('valid') is not True:
+              raise SystemExit(f"compiler returned invalid: {d}")
+          c=d.get('compilation') or {}
+          n=c.get('normalized_spec') or {}
+          targets=set(n.get('target_platforms') or [])
+          if targets != {'android','gis'}:
+              raise SystemExit(f"unexpected target platforms: {sorted(targets)}")
+          if n.get('software_kind') != 'gis':
+              raise SystemExit(f"unexpected software_kind: {n.get('software_kind')}")
+          bp=c.get('builder_plan') or []
+          keys={x.get('key') for x in bp if isinstance(x,dict)}
+          required={'mobile-flutter-v1','gis-web-v1'}
+          if not required.issubset(keys):
+              raise SystemExit(f"builder routing missing {sorted(required-keys)}; got {sorted(k for k in keys if k)}")
+          steps=c.get('build_plan') or []
+          if len(steps) < 8:
+              raise SystemExit(f"build plan unexpectedly short: {len(steps)}")
+          step_keys=[x.get('step_key') for x in steps if isinstance(x,dict)]
+          for required_step in ('plan-architecture','validate-staging-e2e','certify-release','human-approval'):
+              if required_step not in step_keys:
+                  raise SystemExit(f"required build step missing: {required_step}")
+          if step_keys[-1] != 'human-approval':
+              raise SystemExit(f"human approval is not the terminal planned gate: {step_keys[-1:]}")
+          print(json.dumps({
+              'status':'PASS',
+              'software_kind':n.get('software_kind'),
+              'target_platforms':sorted(targets),
+              'builders':sorted(k for k in keys if k),
+              'build_step_count':len(steps),
+              'terminal_step':step_keys[-1],
+          },indent=2))
+          PY
+
+      - name: Package compiler smoke evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          cp compiler-result.json evidence/compiler-result.json
+          printf 'status=passed\ngithub_run_id=%s\ngithub_sha=%s\napp_spec_id=%s\n' '${{ github.run_id }}' '${{ github.sha }}' "$FIELDGIS_APP_SPEC_ID" > evidence/result.txt
+          tar -czf vl-prd-compiler-smoke-evidence.tgz evidence
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vl-prd-compiler-smoke-evidence
+          path: vl-prd-compiler-smoke-evidence.tgz
+          if-no-files-found: error
