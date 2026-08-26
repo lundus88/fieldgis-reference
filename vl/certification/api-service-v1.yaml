@@ -4,7 +4,7 @@ framework: deno
 role: official-api-builder-candidate
 status: experimental
 certification:
-  state: awaiting_lifecycle_validation
+  state: technical_pass_awaiting_human_approval
   activation_policy: certification-approved-only
   direct_activation_allowed: false
   required_gates:
@@ -24,7 +24,7 @@ certification:
     health_contract: passed
     immutable_artifact_packaging: passed
     artifact_upload: passed
-    release_validator_pass: pending
+    release_validator_pass: passed
     reproducible_build: passed
     human_approval: pending
   evidence:
@@ -37,7 +37,18 @@ certification:
     artifact_id: 9622755056
     artifact_name: vl-api-service-v1-cert-evidence
     artifact_digest: sha256:ea54c29d311df8ae880f33d06a85499ee50367a11e34dccd85b687ae9da51fde
-    lifecycle_note: release_validator_pass requires evidence from an actual VL release-validation lifecycle; certification harness success alone does not satisfy this gate
+    lifecycle_factory_run_id: 6af2b601-2cfa-4d75-847d-ce8b115ae457
+    lifecycle_release_gates:
+      api_compile_test: passed
+      auth_http_e2e: passed
+      data_api_http_e2e: passed
+      database_security: passed
+      qa_regression: passed
+      rollback_contract: passed
+    certification_engine_decision: certified
+    certification_engine_score: 1.0
+    certification_engine_missing_evidence: []
+    activation_requested: false
 activation:
   target_status: active
   allowed_when: certification.state == approved
