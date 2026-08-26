@@ -1,0 +1,41 @@
+builder_id: pwa-react-v1
+platform: web-pwa
+framework: react+vite+pwa
+role: official-pwa-builder-candidate
+status: experimental
+certification:
+  state: pending
+  activation_policy: certification-approved-only
+  direct_activation_allowed: false
+  required_gates:
+    - source_generation
+    - dependency_install
+    - vite_build
+    - manifest_present
+    - service_worker_present
+    - installability_contract
+    - immutable_artifact_packaging
+    - artifact_upload
+    - release_validator_pass
+    - reproducible_build
+    - human_approval
+  gate_status:
+    source_generation: pending
+    dependency_install: pending
+    vite_build: pending
+    manifest_present: pending
+    service_worker_present: pending
+    installability_contract: pending
+    immutable_artifact_packaging: pending
+    artifact_upload: pending
+    release_validator_pass: pending
+    reproducible_build: pending
+    human_approval: pending
+  evidence:
+    reference_repo: lundus88/fieldgis-reference
+    workflow: .github/workflows/vl-pwa-react-cert.yml
+    release_validator: .github/workflows/vl-release-validator.yml
+activation:
+  target_status: active
+  allowed_when: certification.state == approved
+  rollback_status: experimental
