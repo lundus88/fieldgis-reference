@@ -1,11 +1,15 @@
 import crypto from 'node:crypto';
 
+function canonicalKey(key) {
+  return String(key).replace(/[\[\]]/g, '');
+}
+
 export function canonicalizeXSignatureParams(params) {
   const entries = [];
   for (const [key, raw] of Object.entries(params || {})) {
-    if (key === 'x_signature') continue;
+    if (key === 'x_signature' || key === 'billplz[x_signature]') continue;
     const value = raw == null ? '' : String(raw);
-    entries.push(`${key}${value}`);
+    entries.push(`${canonicalKey(key)}${value}`);
   }
   entries.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
   return entries.join('|');
@@ -20,7 +24,7 @@ export function computeXSignature(params, xSignatureKey) {
 }
 
 export function verifyXSignature(params, xSignatureKey) {
-  const received = String(params?.x_signature || '');
+  const received = String(params?.x_signature || params?.['billplz[x_signature]'] || '');
   if (!received) return false;
   const expected = computeXSignature(params, xSignatureKey);
   if (received.length !== expected.length) return false;
