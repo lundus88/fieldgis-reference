@@ -217,6 +217,39 @@ jobs:
             test -s dist/sw.js
           fi
 
+      - name: Set up Deno 2
+        if: steps.claim.outputs.builder_key == 'api-service-v1'
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Validate API release compile contract
+        id: api_validate
+        if: steps.claim.outputs.builder_key == 'api-service-v1'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf release-work && mkdir -p release-work/api
+          python3 - <<'PY'
+          import json,pathlib,re
+          d=json.load(open('claim.json')); root=pathlib.Path('release-work/api').resolve()
+          for a in d.get('generated_artifacts') or []:
+              p=str(a.get('path') or '')
+              if not p.startswith('api/'): continue
+              target=(root/p[len('api/'):]).resolve()
+              if root not in target.parents and target!=root: raise SystemExit('unsafe artifact path')
+              target.parent.mkdir(parents=True,exist_ok=True)
+              text=re.sub(r'\\n(?=(?:import|export|class|function|const|let|var|interface|type|Deno)\b)','\n',str(a.get('content') or ''))
+              target.write_text(text)
+          entry=root/'index.ts'
+          if not entry.exists() or not entry.read_text().strip():
+              raise SystemExit('api/index.ts missing')
+          PY
+          cd release-work/api
+          deno check index.ts
+          grep -q 'Deno.serve' index.ts
+
       - name: Build gate result payload
         if: always() && steps.claim.outputs.status == 'leased'
         shell: bash
@@ -245,6 +278,10 @@ jobs:
               gates=[{'key':'web_compile_test','status':status,'score':1 if ok else 0,'evidence':{'vite_build':ok,'index_html':ok,'javascript_bundle':ok}}]
               if b=='pwa-react-v1':
                   gates.append({'key':'pwa_runtime_contract','status':status,'score':1 if ok else 0,'evidence':{'manifest':ok,'service_worker':ok}})
+          elif b=='api-service-v1':
+              ok='${{ steps.api_validate.outcome }}'=='success'
+              status='pass' if ok else 'fail'
+              gates=[{'key':'api_compile_test','status':status,'score':1 if ok else 0,'evidence':{'deno_check':ok,'deno_serve_handler':ok}}]
           else:
               ok=False
           pathlib.Path('validator-result.json').write_text(json.dumps({'ok':ok,'gate_results':gates,'builder_key':b,'github_run_id':'${{ github.run_id }}','github_sha':'${{ github.sha }}'}))
