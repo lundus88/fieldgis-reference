@@ -1,0 +1,22 @@
+name: VL Billplz Adapter
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'vl/adapters/payment/billplz-v1.mjs'
+      - 'vl/adapters/payment/billplz-v1.test.mjs'
+      - '.github/workflows/vl-billplz-adapter.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  deterministic-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Billplz adapter tests
+        run: node vl/adapters/payment/billplz-v1.test.mjs
