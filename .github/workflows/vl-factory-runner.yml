@@ -149,7 +149,7 @@ jobs:
           if not entry.exists(): entry.write_text("import maplibregl from 'maplibre-gl';\nexport function createMap(container:string){return new maplibregl.Map({container,style:'https://demotiles.maplibre.org/style.json',center:[116.0735,5.9804],zoom:10});}\n")
           PY
 
-      - name: Build Web GIS artifact
+      - name: Build immutable Web GIS artifact
         id: gis_build
         if: steps.claim.outputs.builder_key == 'gis-web-v1'
         continue-on-error: true
@@ -160,7 +160,19 @@ jobs:
           npm install --ignore-scripts 2>&1 | tee ../../runner-gis.log
           npm run check 2>&1 | tee -a ../../runner-gis.log
           npm run build 2>&1 | tee -a ../../runner-gis.log
-          tar -czf ../vl-gis-build.tgz dist package.json package-lock.json
+          rm -rf .vercel/output
+          mkdir -p .vercel/output/static/dist
+          cp -R dist/. .vercel/output/static/dist/
+          cat > .vercel/output/static/index.html <<'HTML'
+          <!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VL GIS Build</title></head><body><main><h1>VL GIS Build</h1><p>Immutable GIS production artifact.</p></main></body></html>
+          HTML
+          cat > .vercel/output/config.json <<'JSON'
+          {"version":3}
+          JSON
+          test -s .vercel/output/config.json
+          test -s .vercel/output/static/index.html
+          test -n "$(find .vercel/output/static -type f -print -quit)"
+          tar -czf ../vl-gis-build.tgz .vercel/output package.json package-lock.json
           sha256sum ../vl-gis-build.tgz > ../../runner-sha256.txt
           echo "workspace/vl-gis-build.tgz" > ../../runner-artifact-path.txt
 
@@ -199,7 +211,7 @@ jobs:
               main.write_text(main.read_text()+"\nif('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js'));}\n")
           PY
 
-      - name: Build React Web or PWA artifact
+      - name: Build immutable React Web or PWA artifact
         id: web_build
         if: steps.claim.outputs.builder_key == 'web-react-v1' || steps.claim.outputs.builder_key == 'pwa-react-v1'
         continue-on-error: true
@@ -210,7 +222,17 @@ jobs:
           npm install --ignore-scripts 2>&1 | tee ../../runner-web.log
           npm run build 2>&1 | tee -a ../../runner-web.log
           if [ '${{ steps.claim.outputs.builder_key }}' = 'pwa-react-v1' ]; then test -f dist/manifest.webmanifest && test -f dist/sw.js; fi
-          tar -czf ../vl-web-build.tgz dist package.json package-lock.json
+          rm -rf .vercel/output
+          mkdir -p .vercel/output/static
+          cp -R dist/. .vercel/output/static/
+          cat > .vercel/output/config.json <<'JSON'
+          {"version":3}
+          JSON
+          test -s .vercel/output/config.json
+          test -s .vercel/output/static/index.html
+          test -n "$(find .vercel/output/static -type f -print -quit)"
+          if [ '${{ steps.claim.outputs.builder_key }}' = 'pwa-react-v1' ]; then test -s .vercel/output/static/manifest.webmanifest && test -s .vercel/output/static/sw.js; fi
+          tar -czf ../vl-web-build.tgz .vercel/output package.json package-lock.json
           sha256sum ../vl-web-build.tgz > ../../runner-sha256.txt
           echo "workspace/vl-web-build.tgz" > ../../runner-artifact-path.txt
 
@@ -299,7 +321,11 @@ jobs:
           import json
           claim=json.load(open('claim.json'))
           ok='${{ steps.result.outputs.ok }}'=='true'
-          result={'runner':'github-actions-oidc','builder_key':'${{ steps.claim.outputs.builder_key }}','github_run_id':'${{ github.run_id }}','github_sha':'${{ github.sha }}','artifact_name':'${{ steps.result.outputs.name }}','artifact_sha256':'${{ steps.result.outputs.sha }}','qa_result':'PASS' if ok else 'FAIL'}
+          builder='${{ steps.claim.outputs.builder_key }}'
+          result={'runner':'github-actions-oidc','builder_key':builder,'github_run_id':'${{ github.run_id }}','github_sha':'${{ github.sha }}','artifact_name':'${{ steps.result.outputs.name }}','artifact_sha256':'${{ steps.result.outputs.sha }}','qa_result':'PASS' if ok else 'FAIL'}
+          if builder in ('web-react-v1','pwa-react-v1','gis-web-v1'):
+              result['artifact_contract']='vercel-build-output-v3'
+              result['immutable_prebuilt']=True
           print(json.dumps({'action':'complete','job_id':claim['job_id'],'lease_token':claim['lease_token'],'success':ok,'result':result,'error_text':None if ok else 'GitHub runner build or validation failed'}))
           PY
           curl -fsSL -X POST \
