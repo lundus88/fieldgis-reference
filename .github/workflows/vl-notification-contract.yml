@@ -1,0 +1,43 @@
+name: VL Notification Gateway Contract
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'contracts/notification-gateway-v1.json'
+      - '.github/workflows/vl-notification-contract.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate notification contract invariants
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          p='contracts/notification-gateway-v1.json'
+          d=json.load(open(p))
+          assert d['adapter_type']=='notification'
+          assert d['invariants']['production_send_allowed'] is False
+          assert d['invariants']['provider_binding_required'] is True
+          assert d['invariants']['idempotency_required'] is True
+          assert d['invariants']['signed_webhook_required'] is True
+          assert d['invariants']['raw_webhook_body_verification_required'] is True
+          assert d['invariants']['duplicate_event_replay_safe'] is True
+          assert d['invariants']['recipient_pii_must_not_be_stored_in_event_ledger'] is True
+          assert d['invariants']['delivery_state_must_come_from_provider_event_or_reconciliation'] is True
+          assert d['invariants']['client_callback_cannot_mark_delivered'] is True
+          required={
+            'notification_send_sandbox','notification_webhook_signature','notification_idempotency',
+            'notification_delivery_event','notification_bounce_event','notification_reconciliation'
+          }
+          assert required == set(d['required_gates'])
+          print('notification contract PASS')
+          PY
