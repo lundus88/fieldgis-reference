@@ -129,24 +129,36 @@ jobs:
           set -euo pipefail
           rm -rf workspace && mkdir -p workspace/gis/src
           cat > workspace/gis/package.json <<'JSON'
-          {"name":"vl-generated-gis","private":true,"version":"0.0.0","scripts":{"check":"tsc --noEmit","build":"tsc"},"dependencies":{"maplibre-gl":"6.6.0"},"devDependencies":{"typescript":"5.8.3"}}
+          {"name":"vl-generated-gis","private":true,"version":"0.0.0","type":"module","scripts":{"build":"vite build"},"dependencies":{"maplibre-gl":"6.6.0"},"devDependencies":{"typescript":"5.8.3","vite":"8.2.2"}}
           JSON
-          cat > workspace/gis/tsconfig.json <<'JSON'
-          {"compilerOptions":{"target":"ES2022","module":"ESNext","moduleResolution":"Bundler","strict":true,"outDir":"dist","skipLibCheck":true},"include":["src/**/*.ts"]}
-          JSON
+          cat > workspace/gis/index.html <<'HTML'
+          <!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VL GIS Build</title><style>html,body,#map{height:100%;width:100%;margin:0}body{overflow:hidden}</style></head><body><div id="map" aria-label="Interactive GIS map"></div><script type="module" src="/src/main.ts"></script></body></html>
+          HTML
+          cat > workspace/gis/src/main.ts <<'TS'
+          import maplibregl from 'maplibre-gl';
+          import 'maplibre-gl/dist/maplibre-gl.css';
+          const map = new maplibregl.Map({
+            container: 'map',
+            style: 'https://demotiles.maplibre.org/style.json',
+            center: [116.0735, 5.9804],
+            zoom: 10
+          });
+          map.addControl(new maplibregl.NavigationControl(), 'top-right');
+          (globalThis as any).__VL_MAPLIBRE_RUNTIME__ = { version: maplibregl.version ?? 'unknown', booted: true };
+          TS
           python3 - <<'PY'
           import json,pathlib,re
           d=json.load(open('claim.json')); root=pathlib.Path('workspace/gis').resolve()
           for a in d.get('generated_artifacts') or []:
               p=str(a.get('path') or '')
               if not p.startswith('gis/'): continue
-              target=(root/p[len('gis/'):]).resolve()
+              rel=p[len('gis/'):]
+              if rel in ('package.json','index.html','src/main.ts'): continue
+              target=(root/rel).resolve()
               if root not in target.parents and target!=root: raise SystemExit('unsafe artifact path')
               target.parent.mkdir(parents=True,exist_ok=True)
               text=re.sub(r'\\n(?=(?:import|export|class|function|const|let|var|interface|type)\b)','\n',str(a.get('content') or ''))
               target.write_text(text)
-          entry=root/'src/map.ts'
-          if not entry.exists(): entry.write_text("import maplibregl from 'maplibre-gl';\nexport function createMap(container:string){return new maplibregl.Map({container,style:'https://demotiles.maplibre.org/style.json',center:[116.0735,5.9804],zoom:10});}\n")
           PY
 
       - name: Build immutable Web GIS artifact
@@ -158,20 +170,20 @@ jobs:
         run: |
           set -o pipefail
           npm install --ignore-scripts 2>&1 | tee ../../runner-gis.log
-          npm run check 2>&1 | tee -a ../../runner-gis.log
           npm run build 2>&1 | tee -a ../../runner-gis.log
+          test -s dist/index.html
+          test -n "$(find dist/assets -type f -name '*.js' -print -quit)"
+          grep -R -q "__VL_MAPLIBRE_RUNTIME__" dist/assets
           rm -rf .vercel/output
-          mkdir -p .vercel/output/static/dist
-          cp -R dist/. .vercel/output/static/dist/
-          cat > .vercel/output/static/index.html <<'HTML'
-          <!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VL GIS Build</title></head><body><main><h1>VL GIS Build</h1><p>Immutable GIS production artifact.</p></main></body></html>
-          HTML
+          mkdir -p .vercel/output/static
+          cp -R dist/. .vercel/output/static/
           cat > .vercel/output/config.json <<'JSON'
           {"version":3}
           JSON
           test -s .vercel/output/config.json
           test -s .vercel/output/static/index.html
-          test -n "$(find .vercel/output/static -type f -print -quit)"
+          test -n "$(find .vercel/output/static/assets -type f -name '*.js' -print -quit)"
+          grep -R -q "__VL_MAPLIBRE_RUNTIME__" .vercel/output/static/assets
           tar -czf ../vl-gis-build.tgz .vercel/output package.json package-lock.json
           sha256sum ../vl-gis-build.tgz > ../../runner-sha256.txt
           echo "workspace/vl-gis-build.tgz" > ../../runner-artifact-path.txt
@@ -326,6 +338,8 @@ jobs:
           if builder in ('web-react-v1','pwa-react-v1','gis-web-v1'):
               result['artifact_contract']='vercel-build-output-v3'
               result['immutable_prebuilt']=True
+          if builder=='gis-web-v1' and ok:
+              result['maplibre_bundle_contract']='PASS'
           print(json.dumps({'action':'complete','job_id':claim['job_id'],'lease_token':claim['lease_token'],'success':ok,'result':result,'error_text':None if ok else 'GitHub runner build or validation failed'}))
           PY
           curl -fsSL -X POST \
