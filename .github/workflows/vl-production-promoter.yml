@@ -1,0 +1,112 @@
+name: VL Production Promoter
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/5 * * * *'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/vl-production-promoter.yml'
+
+permissions:
+  contents: read
+  actions: read
+  id-token: write
+
+concurrency:
+  group: vl-production-promoter
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get promotion OIDC token
+        shell: bash
+        run: |
+          set -euo pipefail
+          RAW=$(curl -fsSL -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=vrs-production-promoter")
+          TOKEN=$(python3 -c 'import json,sys; print(json.load(sys.stdin)["value"])' <<<"$RAW")
+          echo "::add-mask::$TOKEN"
+          echo "VRS_PROMOTION_TOKEN=$TOKEN" >> "$GITHUB_ENV"
+
+      - name: Claim promotion job
+        id: claim
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL -X POST \
+            -H "Authorization: Bearer ${VRS_PROMOTION_TOKEN}" \
+            -H 'Content-Type: application/json' \
+            'https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vrs-promotion-oidc' \
+            -d '{"action":"claim"}' > claim.json
+          python3 - <<'PY'
+          import json,os
+          d=json.load(open('claim.json'))
+          print(json.dumps({k:d.get(k) for k in ('status','target_adapter','job_id','deployment_id','factory_run_id')},indent=2))
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f:
+              for k in ('status','target_adapter','job_id','lease_token','deployment_id','factory_run_id','source_artifact_name','source_github_run_id','expected_sha256'):
+                  f.write(f"{k}={d.get(k,'')}\n")
+          PY
+
+      - name: No promotion work
+        if: steps.claim.outputs.status != 'leased'
+        run: echo "No approved production promotion job available."
+
+      - name: Download immutable mobile source artifact
+        if: steps.claim.outputs.target_adapter == 'mobile-release-artifact'
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ steps.claim.outputs.source_artifact_name }}
+          path: promoted-source
+          repository: lundus88/fieldgis-reference
+          run-id: ${{ steps.claim.outputs.source_github_run_id }}
+          github-token: ${{ github.token }}
+
+      - name: Verify immutable artifact hash
+        id: verify
+        if: steps.claim.outputs.target_adapter == 'mobile-release-artifact'
+        shell: bash
+        run: |
+          set -euo pipefail
+          FILE=$(find promoted-source -type f | head -n 1)
+          test -n "$FILE"
+          ACTUAL=$(sha256sum "$FILE" | awk '{print $1}')
+          EXPECTED='${{ steps.claim.outputs.expected_sha256 }}'
+          test "$ACTUAL" = "$EXPECTED"
+          echo "file=$FILE" >> "$GITHUB_OUTPUT"
+          echo "sha=$ACTUAL" >> "$GITHUB_OUTPUT"
+          echo "name=vl-production-${{ steps.claim.outputs.deployment_id }}-android" >> "$GITHUB_OUTPUT"
+
+      - name: Publish immutable production release artifact
+        if: steps.verify.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.verify.outputs.name }}
+          path: ${{ steps.verify.outputs.file }}
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Callback VL promotion
+        if: always() && steps.claim.outputs.status == 'leased'
+        shell: bash
+        run: |
+          set -euo pipefail
+          OK=false
+          [ '${{ steps.verify.outcome }}' = 'success' ] && OK=true
+          python3 - <<'PY' > callback.json
+          import json
+          d=json.load(open('claim.json'))
+          ok='${{ steps.verify.outcome }}'=='success'
+          result={'runner':'github-actions-oidc','promotion_adapter':d.get('target_adapter'),'github_run_id':'${{ github.run_id }}','github_sha':'${{ github.sha }}','artifact_name':'${{ steps.verify.outputs.name }}','artifact_sha256':'${{ steps.verify.outputs.sha }}','immutable_no_rebuild':True}
+          print(json.dumps({'action':'complete','job_id':d['job_id'],'lease_token':d['lease_token'],'success':ok,'result':result,'error_text':None if ok else 'Immutable artifact promotion or SHA verification failed'}))
+          PY
+          curl -fsSL -X POST \
+            -H "Authorization: Bearer ${VRS_PROMOTION_TOKEN}" \
+            -H 'Content-Type: application/json' \
+            'https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vrs-promotion-oidc' \
+            --data-binary @callback.json | tee callback-response.json
