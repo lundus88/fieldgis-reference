@@ -1,7 +1,13 @@
 name: VL GIS Web Certification
+run-name: VL GIS Runner ${{ inputs.factory_run_id || github.run_id }}
 
 on:
   workflow_dispatch:
+    inputs:
+      factory_run_id:
+        description: VRS factory run correlation id
+        required: false
+        type: string
   push:
     branches: [main]
     paths:
