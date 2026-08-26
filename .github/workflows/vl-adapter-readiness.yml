@@ -57,20 +57,42 @@ jobs:
           test -n "${SUPABASE_ACCESS_TOKEN:-}" || { echo 'SUPABASE_ACCESS_TOKEN_MISSING'; exit 1; }
           echo 'SUPABASE_ACCESS_TOKEN_PRESENT'
 
-      - name: Verify read-only Supabase Management API access
+      - name: Verify scoped Supabase production project access
         shell: bash
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: zetqezdvupdlrzrlqddq
         run: |
           set -euo pipefail
           curl -fsS \
             -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
-            'https://api.supabase.com/v1/projects' \
-            -o projects.json
+            "https://api.supabase.com/v1/projects/${SUPABASE_PROJECT_REF}" \
+            -o project.json
           python3 - <<'PY'
           import json
-          d=json.load(open('projects.json'))
-          if not isinstance(d,list):
-              raise SystemExit('unexpected Supabase projects response')
-          print('SUPABASE_MANAGEMENT_READ_ACCESS_PASS')
+          d=json.load(open('project.json'))
+          assert d.get('ref')=='zetqezdvupdlrzrlqddq', 'unexpected Supabase project ref'
+          assert d.get('name')=='vl-api-production', 'unexpected Supabase project name'
+          print('SUPABASE_SCOPED_PROJECT_READ_ACCESS_PASS')
+          PY
+
+      - name: Verify scoped Supabase API-key read access
+        shell: bash
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: zetqezdvupdlrzrlqddq
+        run: |
+          set -euo pipefail
+          curl -fsS \
+            -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+            "https://api.supabase.com/v1/projects/${SUPABASE_PROJECT_REF}/api-keys?reveal=true" \
+            -o api-keys.json
+          python3 - <<'PY'
+          import json
+          d=json.load(open('api-keys.json'))
+          items=d if isinstance(d,list) else d.get('keys',[])
+          assert isinstance(items,list) and items, 'no API keys returned'
+          anon=[x for x in items if str(x.get('name') or x.get('type') or '').lower()=='anon']
+          assert anon, 'legacy anon key unavailable'
+          print('SUPABASE_API_KEY_READ_ACCESS_PASS')
           PY
