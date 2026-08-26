@@ -14,6 +14,10 @@ permissions:
   actions: read
   id-token: write
 
+env:
+  VERCEL_CLI_VERSION: 59.3.0
+  SUPABASE_CLI_VERSION: 2.115.0
+
 concurrency:
   group: vl-production-promoter
   cancel-in-progress: false
@@ -58,7 +62,7 @@ jobs:
         run: echo "No approved production promotion job available."
 
       - name: Download immutable mobile source artifact
-        if: steps.claim.outputs.target_adapter == 'mobile-release-artifact'
+        if: steps.claim.outputs.status == 'leased'
         uses: actions/download-artifact@v4
         with:
           name: ${{ steps.claim.outputs.source_artifact_name }}
@@ -82,6 +86,91 @@ jobs:
           echo "sha=$ACTUAL" >> "$GITHUB_OUTPUT"
           echo "name=vl-production-${{ steps.claim.outputs.deployment_id }}-android" >> "$GITHUB_OUTPUT"
 
+      - name: Verify non-mobile immutable source hash
+        id: verify_source
+        if: steps.claim.outputs.target_adapter != 'mobile-release-artifact' && steps.claim.outputs.status == 'leased'
+        shell: bash
+        run: |
+          set -euo pipefail
+          FILE=$(find promoted-source -type f | head -n 1)
+          test -n "$FILE"
+          ACTUAL=$(sha256sum "$FILE" | awk '{print $1}')
+          test "$ACTUAL" = '${{ steps.claim.outputs.expected_sha256 }}'
+          echo "file=$FILE" >> "$GITHUB_OUTPUT"
+          echo "sha=$ACTUAL" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy versioned Supabase Edge Function
+        id: supabase_deploy
+        if: steps.claim.outputs.target_adapter == 'supabase-edge-function' && steps.verify_source.outcome == 'success'
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.VL_SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.VL_SUPABASE_TARGET_PROJECT_REF }}
+          SUPABASE_FUNCTION_NAME: ${{ secrets.VL_SUPABASE_FUNCTION_NAME }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$SUPABASE_ACCESS_TOKEN" && test -n "$SUPABASE_PROJECT_REF" && test -n "$SUPABASE_FUNCTION_NAME"
+          mkdir edge-source && tar -xzf '${{ steps.verify_source.outputs.file }}' -C edge-source
+          test -f edge-source/index.ts
+          mkdir -p "supabase/functions/$SUPABASE_FUNCTION_NAME"
+          cp -R edge-source/. "supabase/functions/$SUPABASE_FUNCTION_NAME/"
+          cat > supabase/config.toml <<EOF
+          project_id = "$SUPABASE_PROJECT_REF"
+          [functions.$SUPABASE_FUNCTION_NAME]
+          verify_jwt = true
+          EOF
+          npx --yes "supabase@$SUPABASE_CLI_VERSION" functions deploy "$SUPABASE_FUNCTION_NAME" --project-ref "$SUPABASE_PROJECT_REF"
+          echo "target=https://${SUPABASE_PROJECT_REF}.supabase.co/functions/v1/${SUPABASE_FUNCTION_NAME}" >> "$GITHUB_OUTPUT"
+
+      - name: Verify Supabase Edge Function health and auth contract
+        id: supabase_health
+        if: steps.supabase_deploy.outcome == 'success'
+        env:
+          TARGET: ${{ steps.supabase_deploy.outputs.target }}
+          PUBLISHABLE_KEY: ${{ secrets.VL_SUPABASE_PUBLISHABLE_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$PUBLISHABLE_KEY"
+          test "$(curl -sS -o unauthorized.json -w '%{http_code}' "$TARGET")" = "401"
+          curl -fsS -H "Authorization: Bearer $PUBLISHABLE_KEY" -H "apikey: $PUBLISHABLE_KEY" "$TARGET" > health.json
+          python3 - <<'PY'
+          import json
+          d=json.load(open('health.json'))
+          assert d.get('ok') is True
+          PY
+
+      - name: Deploy immutable Vercel prebuilt output
+        id: vercel_deploy
+        if: contains(fromJSON('["vercel-production","vercel-pwa-production","vercel-gis-production"]'), steps.claim.outputs.target_adapter) && steps.verify_source.outcome == 'success'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VL_VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VL_VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VL_VERCEL_PROJECT_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$VERCEL_TOKEN" && test -n "$VERCEL_ORG_ID" && test -n "$VERCEL_PROJECT_ID"
+          mkdir web-source && tar -xzf '${{ steps.verify_source.outputs.file }}' -C web-source
+          test -f web-source/.vercel/output/config.json
+          URL=$(npx --yes "vercel@$VERCEL_CLI_VERSION" deploy --prebuilt --prod --yes --cwd web-source --token "$VERCEL_TOKEN")
+          test -n "$URL"
+          echo "target=$URL" >> "$GITHUB_OUTPUT"
+
+      - name: Verify Vercel post-deployment contracts
+        id: vercel_health
+        if: steps.vercel_deploy.outcome == 'success'
+        env:
+          TARGET: ${{ steps.vercel_deploy.outputs.target }}
+          ADAPTER: ${{ steps.claim.outputs.target_adapter }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsS "$TARGET/" > root.html
+          grep -q '<div id="root"></div>' root.html
+          if [ "$ADAPTER" = 'vercel-pwa-production' ]; then curl -fsS "$TARGET/manifest.webmanifest" >/dev/null; curl -fsS "$TARGET/sw.js" >/dev/null; fi
+          if [ "$ADAPTER" = 'vercel-gis-production' ]; then grep -Rqi 'maplibre' web-source/.vercel/output/static; fi
+
       - name: Publish immutable production release artifact
         if: steps.verify.outcome == 'success'
         uses: actions/upload-artifact@v4
@@ -97,13 +186,30 @@ jobs:
         run: |
           set -euo pipefail
           OK=false
-          [ '${{ steps.verify.outcome }}' = 'success' ] && OK=true
+          PROVIDER_URL=''
+          if [ '${{ steps.claim.outputs.target_adapter }}' = 'mobile-release-artifact' ] && [ '${{ steps.verify.outcome }}' = 'success' ]; then OK=true; fi
+          if [ '${{ steps.supabase_health.outcome }}' = 'success' ]; then OK=true; PROVIDER_URL='${{ steps.supabase_deploy.outputs.target }}'; fi
+          if [ '${{ steps.vercel_health.outcome }}' = 'success' ]; then OK=true; PROVIDER_URL='${{ steps.vercel_deploy.outputs.target }}'; fi
           python3 - <<'PY' > callback.json
           import json
           d=json.load(open('claim.json'))
-          ok='${{ steps.verify.outcome }}'=='success'
-          result={'runner':'github-actions-oidc','promotion_adapter':d.get('target_adapter'),'github_run_id':'${{ github.run_id }}','github_sha':'${{ github.sha }}','artifact_name':'${{ steps.verify.outputs.name }}','artifact_sha256':'${{ steps.verify.outputs.sha }}','immutable_no_rebuild':True}
-          print(json.dumps({'action':'complete','job_id':d['job_id'],'lease_token':d['lease_token'],'success':ok,'result':result,'error_text':None if ok else 'Immutable artifact promotion or SHA verification failed'}))
+          mobile=d.get('target_adapter')=='mobile-release-artifact'
+          supabase='${{ steps.supabase_health.outcome }}'=='success'
+          vercel='${{ steps.vercel_health.outcome }}'=='success'
+          ok=('${{ steps.verify.outcome }}'=='success') if mobile else (supabase or vercel)
+          provider_url='${{ steps.supabase_deploy.outputs.target }}' if supabase else ('${{ steps.vercel_deploy.outputs.target }}' if vercel else None)
+          sha='${{ steps.verify.outputs.sha }}' if mobile else '${{ steps.verify_source.outputs.sha }}'
+          checks=[]
+          if mobile and ok:
+              checks=[{'check_key':'artifact_exists','expected':True,'actual':True,'status':'PASS','evidence':{'github_run_id':'${{ github.run_id }}'}},{'check_key':'sha256_match','expected':d.get('expected_sha256'),'actual':sha,'status':'PASS','evidence':{'immutable_no_rebuild':True}},{'check_key':'release_metadata_exists','expected':True,'actual':True,'status':'PASS','evidence':{'artifact_name':'${{ steps.verify.outputs.name }}'}}]
+          elif supabase:
+              checks=[{'check_key':'http_health','expected':200,'actual':200,'status':'PASS','evidence':{'provider_url':provider_url}},{'check_key':'jwt_unauthorized','expected':401,'actual':401,'status':'PASS','evidence':{}},{'check_key':'response.ok','expected':True,'actual':True,'status':'PASS','evidence':{}}]
+          elif vercel:
+              checks=[{'check_key':'http_status','expected':200,'actual':200,'status':'PASS','evidence':{'provider_url':provider_url}},{'check_key':'app_boot','expected':'root mount','actual':'root mount','status':'PASS','evidence':{}}]
+              if d.get('target_adapter')=='vercel-pwa-production': checks += [{'check_key':'manifest','expected':200,'actual':200,'status':'PASS','evidence':{}},{'check_key':'service_worker','expected':200,'actual':200,'status':'PASS','evidence':{}}]
+              if d.get('target_adapter')=='vercel-gis-production': checks += [{'check_key':'maplibre_runtime','expected':True,'actual':True,'status':'PASS','evidence':{}}]
+          result={'runner':'github-actions-oidc','promotion_adapter':d.get('target_adapter'),'github_run_id':'${{ github.run_id }}','github_sha':'${{ github.sha }}','provider_url':provider_url,'provider_deployment_id':provider_url,'artifact_name':'${{ steps.verify.outputs.name }}' or d.get('source_artifact_name'),'artifact_sha256':sha,'immutable_no_rebuild':True,'post_deploy_verification':'PASS' if ok else 'FAIL','verification_checks':checks}
+          print(json.dumps({'action':'complete','job_id':d['job_id'],'lease_token':d['lease_token'],'success':ok,'result':result,'error_text':None if ok else 'Deployment, immutable SHA verification, or post-deploy health contract failed'}))
           PY
           curl -fsSL -X POST \
             -H "Authorization: Bearer ${VRS_PROMOTION_TOKEN}" \

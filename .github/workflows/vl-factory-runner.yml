@@ -210,7 +210,12 @@ jobs:
           npm install --ignore-scripts 2>&1 | tee ../../runner-web.log
           npm run build 2>&1 | tee -a ../../runner-web.log
           if [ '${{ steps.claim.outputs.builder_key }}' = 'pwa-react-v1' ]; then test -f dist/manifest.webmanifest && test -f dist/sw.js; fi
-          tar -czf ../vl-web-build.tgz dist package.json package-lock.json
+          mkdir -p .vercel/output/static
+          cp -R dist/. .vercel/output/static/
+          cat > .vercel/output/config.json <<'JSON'
+          {"version":3,"routes":[{"handle":"filesystem"},{"src":"/.*","dest":"/index.html"}]}
+          JSON
+          tar -czf ../vl-web-build.tgz .vercel/output package.json package-lock.json
           sha256sum ../vl-web-build.tgz > ../../runner-sha256.txt
           echo "workspace/vl-web-build.tgz" > ../../runner-artifact-path.txt
 
