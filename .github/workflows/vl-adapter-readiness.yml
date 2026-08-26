@@ -1,0 +1,45 @@
+name: VL Adapter Readiness
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/vl-adapter-readiness.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  vercel-readiness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify Vercel credential is configured
+        shell: bash
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}" || { echo 'VERCEL_TOKEN_MISSING'; exit 1; }
+          echo 'VERCEL_TOKEN_PRESENT'
+
+      - name: Verify read-only Vercel project access
+        shell: bash
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: prj_ek0PFcc5mJpTOnL6xL7lgVQDWLpg
+          VERCEL_TEAM_ID: team_tV4WIIVgvU5VybM7PIhiuVNO
+        run: |
+          set -euo pipefail
+          curl -fsS \
+            -H "Authorization: Bearer ${VERCEL_TOKEN}" \
+            "https://api.vercel.com/v9/projects/${VERCEL_PROJECT_ID}?teamId=${VERCEL_TEAM_ID}" \
+            -o project.json
+          python3 - <<'PY'
+          import json
+          d=json.load(open('project.json'))
+          assert d.get('id')=='prj_ek0PFcc5mJpTOnL6xL7lgVQDWLpg', 'unexpected Vercel project id'
+          assert d.get('name')=='fieldgis-reference', 'unexpected Vercel project name'
+          print('VERCEL_READ_ACCESS_PASS')
+          PY
