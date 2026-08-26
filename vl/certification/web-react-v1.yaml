@@ -4,7 +4,7 @@ framework: react+vite
 role: official-web-builder-candidate
 status: experimental
 certification:
-  state: awaiting_lifecycle_validation
+  state: technical_pass_awaiting_human_approval
   activation_policy: certification-approved-only
   direct_activation_allowed: false
   required_gates:
@@ -26,7 +26,7 @@ certification:
     javascript_bundle_present: passed
     immutable_artifact_packaging: passed
     artifact_upload: passed
-    release_validator_pass: pending
+    release_validator_pass: passed
     reproducible_build: passed
     human_approval: pending
   evidence:
@@ -39,7 +39,16 @@ certification:
     artifact_id: 9622746429
     artifact_name: vl-web-react-v1-cert-evidence
     artifact_digest: sha256:091b87fb0150470ec02ce5fdaa408a5fa9aa70fabb73389a1d0a5e382f34d698
-    lifecycle_note: release_validator_pass requires evidence from an actual VL release-validation lifecycle; certification harness success alone does not satisfy this gate
+    lifecycle_factory_run_id: b8ca6bc7-18dd-43df-8428-afd093b4fc87
+    lifecycle_release_gates:
+      database_security: passed
+      qa_regression: passed
+      rollback_contract: passed
+      web_compile_test: passed
+    certification_engine_decision: certified
+    certification_engine_score: 1.0
+    certification_engine_missing_evidence: []
+    activation_requested: false
 activation:
   target_status: active
   allowed_when: certification.state == approved
