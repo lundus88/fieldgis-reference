@@ -1,0 +1,37 @@
+builder_id: api-service-v1
+platform: api
+framework: deno
+role: official-api-builder-candidate
+status: experimental
+certification:
+  state: pending
+  activation_policy: certification-approved-only
+  direct_activation_allowed: false
+  required_gates:
+    - source_generation
+    - deno_check
+    - serve_handler_present
+    - health_contract
+    - immutable_artifact_packaging
+    - artifact_upload
+    - release_validator_pass
+    - reproducible_build
+    - human_approval
+  gate_status:
+    source_generation: pending
+    deno_check: pending
+    serve_handler_present: pending
+    health_contract: pending
+    immutable_artifact_packaging: pending
+    artifact_upload: pending
+    release_validator_pass: pending
+    reproducible_build: pending
+    human_approval: pending
+  evidence:
+    reference_repo: lundus88/fieldgis-reference
+    workflow: .github/workflows/vl-api-service-cert.yml
+    release_validator: .github/workflows/vl-release-validator.yml
+activation:
+  target_status: active
+  allowed_when: certification.state == approved
+  rollback_status: experimental
