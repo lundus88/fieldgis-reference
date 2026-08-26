@@ -43,3 +43,34 @@ jobs:
           assert d.get('name')=='fieldgis-reference', 'unexpected Vercel project name'
           print('VERCEL_READ_ACCESS_PASS')
           PY
+
+  supabase-readiness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify Supabase management credential is configured
+        shell: bash
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_ACCESS_TOKEN:-}" || { echo 'SUPABASE_ACCESS_TOKEN_MISSING'; exit 1; }
+          echo 'SUPABASE_ACCESS_TOKEN_PRESENT'
+
+      - name: Verify read-only Supabase Management API access
+        shell: bash
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          set -euo pipefail
+          curl -fsS \
+            -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+            'https://api.supabase.com/v1/projects' \
+            -o projects.json
+          python3 - <<'PY'
+          import json
+          d=json.load(open('projects.json'))
+          if not isinstance(d,list):
+              raise SystemExit('unexpected Supabase projects response')
+          print('SUPABASE_MANAGEMENT_READ_ACCESS_PASS')
+          PY
