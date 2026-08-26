@@ -1,0 +1,68 @@
+name: VL Factory Preflight Smoke
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/vl-factory-preflight-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get GitHub OIDC token
+        id: oidc
+        shell: bash
+        run: |
+          set -euo pipefail
+          resp=$(curl -sS -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=vrs-factory-preflight")
+          token=$(printf '%s' "$resp" | python3 -c 'import sys,json; print(json.load(sys.stdin)["value"])')
+          echo "token=$token" >> "$GITHUB_OUTPUT"
+
+      - name: Verify unauthenticated request is rejected
+        shell: bash
+        run: |
+          set -euo pipefail
+          code=$(curl -sS -o /tmp/noauth.json -w '%{http_code}' -X POST \
+            'https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vrs-preflight-oidc' \
+            -H 'content-type: application/json' \
+            --data '{"action":"preflight","app_spec_id":"e8a1e8c6-9395-49e3-a725-761927c8f835"}')
+          test "$code" = "401"
+
+      - name: Verify FieldGIS is ready and production remains locked
+        env:
+          OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          code=$(curl -sS -o /tmp/preflight.json -w '%{http_code}' -X POST \
+            'https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vrs-preflight-oidc' \
+            -H "Authorization: Bearer $OIDC_TOKEN" \
+            -H 'content-type: application/json' \
+            --data '{"action":"preflight","app_spec_id":"e8a1e8c6-9395-49e3-a725-761927c8f835"}')
+          cat /tmp/preflight.json
+          test "$code" = "200"
+          python3 - <<'PY'
+          import json
+          d=json.load(open('/tmp/preflight.json'))
+          assert d['read_only'] is True
+          assert d['ready'] is True
+          assert d['decision']=='READY_FOR_FACTORY'
+          assert d['production_locked'] is True
+          assert d['blocker_count']==0
+          modules={x['module'] for x in d['adapter_plan']}
+          assert 'database' in modules
+          assert 'auth' in modules
+          PY
+
+      - name: Record scope
+        run: |
+          echo 'Read-only preflight only.'
+          echo 'No workflow or factory run created.'
+          echo 'No production action performed.'
