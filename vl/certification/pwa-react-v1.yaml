@@ -4,7 +4,7 @@ framework: react+vite+pwa
 role: official-pwa-builder-candidate
 status: experimental
 certification:
-  state: awaiting_lifecycle_validation
+  state: technical_pass_awaiting_human_approval
   activation_policy: certification-approved-only
   direct_activation_allowed: false
   required_gates:
@@ -28,7 +28,7 @@ certification:
     installability_contract: passed
     immutable_artifact_packaging: passed
     artifact_upload: passed
-    release_validator_pass: pending
+    release_validator_pass: passed
     reproducible_build: passed
     human_approval: pending
   evidence:
@@ -41,7 +41,18 @@ certification:
     artifact_id: 9622752726
     artifact_name: vl-pwa-react-v1-cert-evidence
     artifact_digest: sha256:932d2b5ba57f39b4ccb512fd6014a606a5bf498db5e2b560f880192d3bf1177a
-    lifecycle_note: release_validator_pass requires evidence from an actual VL release-validation lifecycle; certification harness success alone does not satisfy this gate
+    lifecycle_factory_run_id: 5c67a8f8-bb82-4455-9143-41b0de3f5f96
+    lifecycle_release_gates:
+      database_security: passed
+      offline_pwa_contract: passed
+      pwa_runtime_contract: passed
+      qa_regression: passed
+      rollback_contract: passed
+      web_compile_test: passed
+    certification_engine_decision: certified
+    certification_engine_score: 1.0
+    certification_engine_missing_evidence: []
+    activation_requested: false
 activation:
   target_status: active
   allowed_when: certification.state == approved
