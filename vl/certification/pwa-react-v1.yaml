@@ -4,7 +4,7 @@ framework: react+vite+pwa
 role: official-pwa-builder-candidate
 status: experimental
 certification:
-  state: pending
+  state: awaiting_lifecycle_validation
   activation_policy: certification-approved-only
   direct_activation_allowed: false
   required_gates:
@@ -20,21 +20,28 @@ certification:
     - reproducible_build
     - human_approval
   gate_status:
-    source_generation: pending
-    dependency_install: pending
-    vite_build: pending
-    manifest_present: pending
-    service_worker_present: pending
-    installability_contract: pending
-    immutable_artifact_packaging: pending
-    artifact_upload: pending
+    source_generation: passed
+    dependency_install: passed
+    vite_build: passed
+    manifest_present: passed
+    service_worker_present: passed
+    installability_contract: passed
+    immutable_artifact_packaging: passed
+    artifact_upload: passed
     release_validator_pass: pending
-    reproducible_build: pending
+    reproducible_build: passed
     human_approval: pending
   evidence:
     reference_repo: lundus88/fieldgis-reference
     workflow: .github/workflows/vl-pwa-react-cert.yml
     release_validator: .github/workflows/vl-release-validator.yml
+    workflow_run_id: 33011625929
+    workflow_run_conclusion: success
+    workflow_head_sha: 122f55ee55e2cdd1821f0ce505b3f3b9e8d709cf
+    artifact_id: 9622752726
+    artifact_name: vl-pwa-react-v1-cert-evidence
+    artifact_digest: sha256:932d2b5ba57f39b4ccb512fd6014a606a5bf498db5e2b560f880192d3bf1177a
+    lifecycle_note: release_validator_pass requires evidence from an actual VL release-validation lifecycle; certification harness success alone does not satisfy this gate
 activation:
   target_status: active
   allowed_when: certification.state == approved
