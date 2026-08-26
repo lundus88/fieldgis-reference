@@ -1,0 +1,41 @@
+name: VL Resend Sandbox Readiness
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/vl-resend-sandbox-readiness.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fail-closed-readiness:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify unauthenticated send is rejected or credential-blocked
+        shell: bash
+        run: |
+          set -euo pipefail
+          code=$(curl -sS -o /tmp/send.json -w '%{http_code}' -X POST \
+            'https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vl-resend-send-sandbox' \
+            -H 'content-type: application/json' \
+            --data '{"to":"delivered@resend.dev","subject":"VL readiness","html":"<p>readiness</p>","idempotency_key":"vl-readiness-noauth"}')
+          test "$code" = "401" -o "$code" = "503"
+
+      - name: Verify webhook blocks without signing secret
+        shell: bash
+        run: |
+          set -euo pipefail
+          code=$(curl -sS -o /tmp/webhook.json -w '%{http_code}' -X POST \
+            'https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vl-resend-webhook-sandbox' \
+            -H 'content-type: application/json' \
+            --data '{"type":"email.delivered","data":{"email_id":"readiness-test"}}')
+          test "$code" = "503" -o "$code" = "401"
+
+      - name: Record readiness scope
+        run: |
+          echo 'No valid Resend API credential supplied by CI.'
+          echo 'No production email sent.'
+          echo 'No delivery gate marked PASS by this readiness test.'
