@@ -1,0 +1,85 @@
+name: VL PWA React Certification
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/vl-pwa-react-cert.yml'
+      - 'vl/certification/pwa-react-v1.yaml'
+
+permissions:
+  contents: read
+
+jobs:
+  certify-pwa-react:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Create reference PWA harness
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf cert-work && mkdir -p cert-work/src cert-work/public
+          cat > cert-work/package.json <<'JSON'
+          {"name":"vl-pwa-react-cert","private":true,"version":"1.0.0","type":"module","scripts":{"build":"vite build"},"dependencies":{"react":"19.2.8","react-dom":"19.2.8"},"devDependencies":{"vite":"8.2.2"}}
+          JSON
+          cat > cert-work/index.html <<'HTML'
+          <!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="manifest" href="/manifest.webmanifest"><title>VL PWA Cert</title></head><body><div id="root"></div><script type="module" src="/src/main.jsx"></script></body></html>
+          HTML
+          cat > cert-work/src/main.jsx <<'JS'
+          import React from 'react';
+          import {createRoot} from 'react-dom/client';
+          function App(){return <main data-vl-cert="pwa-react-v1"><h1>VL PWA Builder</h1></main>}
+          createRoot(document.getElementById('root')).render(<App/>);
+          if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js'))}
+          JS
+          cat > cert-work/public/manifest.webmanifest <<'JSON'
+          {"name":"VL PWA Certification","short_name":"VL PWA","start_url":"/","display":"standalone","background_color":"#ffffff","theme_color":"#111111","icons":[]}
+          JSON
+          cat > cert-work/public/sw.js <<'JS'
+          self.addEventListener('install',()=>self.skipWaiting());
+          self.addEventListener('activate',event=>event.waitUntil(self.clients.claim()));
+          self.addEventListener('fetch',()=>{});
+          JS
+      - name: Install and build
+        working-directory: cert-work
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --ignore-scripts
+          npm run build
+          test -s dist/index.html
+          test -s dist/manifest.webmanifest
+          test -s dist/sw.js
+          test -n "$(find dist/assets -type f -name '*.js' -print -quit)"
+          grep -q '"display":"standalone"' dist/manifest.webmanifest
+          grep -R -q 'serviceWorker.register' dist/assets
+      - name: Verify reproducible build
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner -C cert-work -cf build-a.tar dist package.json package-lock.json
+          sha256sum build-a.tar | awk '{print $1}' > hash-a.txt
+          rm -rf cert-work/dist
+          (cd cert-work && npm run build)
+          tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner -C cert-work -cf build-b.tar dist package.json package-lock.json
+          sha256sum build-b.tar | awk '{print $1}' > hash-b.txt
+          diff -u hash-a.txt hash-b.txt
+      - name: Package certification evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          cp hash-a.txt evidence/artifact-sha256.txt
+          printf 'builder_id=pwa-react-v1\nstatus=passed\ngithub_run_id=%s\ngithub_sha=%s\n' '${{ github.run_id }}' '${{ github.sha }}' > evidence/result.txt
+          tar -czf vl-pwa-react-v1-cert-evidence.tgz evidence cert-work/dist cert-work/package.json cert-work/package-lock.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vl-pwa-react-v1-cert-evidence
+          path: vl-pwa-react-v1-cert-evidence.tgz
+          if-no-files-found: error
