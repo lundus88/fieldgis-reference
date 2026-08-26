@@ -4,7 +4,7 @@ framework: deno
 role: official-api-builder-candidate
 status: experimental
 certification:
-  state: pending
+  state: awaiting_lifecycle_validation
   activation_policy: certification-approved-only
   direct_activation_allowed: false
   required_gates:
@@ -18,19 +18,26 @@ certification:
     - reproducible_build
     - human_approval
   gate_status:
-    source_generation: pending
-    deno_check: pending
-    serve_handler_present: pending
-    health_contract: pending
-    immutable_artifact_packaging: pending
-    artifact_upload: pending
+    source_generation: passed
+    deno_check: passed
+    serve_handler_present: passed
+    health_contract: passed
+    immutable_artifact_packaging: passed
+    artifact_upload: passed
     release_validator_pass: pending
-    reproducible_build: pending
+    reproducible_build: passed
     human_approval: pending
   evidence:
     reference_repo: lundus88/fieldgis-reference
     workflow: .github/workflows/vl-api-service-cert.yml
     release_validator: .github/workflows/vl-release-validator.yml
+    workflow_run_id: 33011640630
+    workflow_run_conclusion: success
+    workflow_head_sha: 1be44a918f0fee00226bfd5fcbd672ab568b0d88
+    artifact_id: 9622755056
+    artifact_name: vl-api-service-v1-cert-evidence
+    artifact_digest: sha256:ea54c29d311df8ae880f33d06a85499ee50367a11e34dccd85b687ae9da51fde
+    lifecycle_note: release_validator_pass requires evidence from an actual VL release-validation lifecycle; certification harness success alone does not satisfy this gate
 activation:
   target_status: active
   allowed_when: certification.state == approved
