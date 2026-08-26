@@ -1,0 +1,48 @@
+{
+  "contract_version": "1.0.0",
+  "adapter_key": "payment-gateway-v1",
+  "adapter_type": "payment",
+  "provider": "unbound",
+  "status": "experimental",
+  "production": {
+    "live_charge_allowed": false,
+    "human_production_approval_required": true,
+    "production_credentials_required": true,
+    "fail_closed_if_provider_unbound": true
+  },
+  "capabilities": {
+    "checkout_session": true,
+    "webhook": true,
+    "signature_verification": true,
+    "idempotency": true,
+    "payment_status_sync": true,
+    "refund": true,
+    "reconciliation": true
+  },
+  "required_gates": [
+    "payment_checkout_sandbox",
+    "payment_webhook_signature",
+    "payment_idempotency",
+    "payment_success_path",
+    "payment_failure_path",
+    "payment_refund_path",
+    "payment_reconciliation"
+  ],
+  "canonical_states": [
+    "created",
+    "pending",
+    "paid",
+    "failed",
+    "cancelled",
+    "refunded",
+    "partially_refunded"
+  ],
+  "invariants": [
+    "A client callback alone must never mark an order paid.",
+    "Only verified provider evidence may transition pending to paid.",
+    "Duplicate webhooks must not duplicate fulfillment or credits.",
+    "Amounts and currency must be verified against the server-side order.",
+    "Refunds must preserve the original immutable payment reference.",
+    "Production activation requires explicit human approval and production credentials."
+  ]
+}
