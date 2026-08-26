@@ -1,0 +1,42 @@
+name: VL Billplz Sandbox Readiness
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/vl-billplz-sandbox-readiness.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fail-closed-readiness:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify unauthenticated create endpoint is rejected
+        shell: bash
+        run: |
+          set -euo pipefail
+          code=$(curl -sS -o /tmp/create.json -w '%{http_code}' -X POST \
+            'https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vl-billplz-create-sandbox' \
+            -H 'content-type: application/json' \
+            --data '{"amount_minor":100,"email":"sandbox@example.com","name":"VL Sandbox"}')
+          test "$code" = "401"
+
+      - name: Verify webhook blocks when sandbox X Signature key is absent
+        shell: bash
+        run: |
+          set -euo pipefail
+          code=$(curl -sS -o /tmp/webhook.json -w '%{http_code}' -X POST \
+            'https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vl-billplz-webhook-sandbox' \
+            -H 'content-type: application/x-www-form-urlencoded' \
+            --data 'id=readiness-test&paid=true&state=paid&amount=100&x_signature=invalid')
+          test "$code" = "503"
+          grep -q 'blocked' /tmp/webhook.json
+
+      - name: Record readiness scope
+        run: |
+          echo 'No sandbox credentials used.'
+          echo 'No Billplz bill created.'
+          echo 'No live charge executed.'
