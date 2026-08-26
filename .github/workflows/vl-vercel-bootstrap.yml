@@ -40,14 +40,7 @@ jobs:
                 -H 'Content-Type: application/json' \
                 "https://api.vercel.com/v11/projects?teamId=${VERCEL_TEAM_ID}" \
                 -d "{\"name\":\"${NAME}\"}" > "/tmp/${NAME}.json"
-              python3 - "$NAME" <<'PY'
-import json,sys
-name=sys.argv[1]
-d=json.load(open(f'/tmp/{name}.json'))
-assert d.get('id','').startswith('prj_'), d
-assert d.get('name')==name, d
-print(f'CREATED {name} {d["id"]}')
-PY
+              python3 -c "import json,sys; n=sys.argv[1]; d=json.load(open('/tmp/'+n+'.json')); assert str(d.get('id','')).startswith('prj_'), d; assert d.get('name')==n, d; print('CREATED',n,d['id'])" "$NAME"
             else
               echo "Unexpected Vercel status $STATUS for $NAME"
               cat /tmp/project.json || true
@@ -61,12 +54,4 @@ PY
           set -euo pipefail
           curl -fsS -H "Authorization: Bearer ${VERCEL_TOKEN}" \
             "https://api.vercel.com/v9/projects?teamId=${VERCEL_TEAM_ID}&limit=50" > /tmp/projects.json
-          python3 - <<'PY'
-import json
-p=json.load(open('/tmp/projects.json')).get('projects',[])
-by={x.get('name'):x.get('id') for x in p}
-for name in ('vl-pwa-production','vl-gis-production'):
-    pid=by.get(name)
-    assert pid and pid.startswith('prj_'), (name,pid)
-    print(f'VERIFIED {name} {pid}')
-PY
+          python3 -c "import json; p=json.load(open('/tmp/projects.json')).get('projects',[]); by={x.get('name'):x.get('id') for x in p}; [(_ for _ in ()).throw(AssertionError((n,by.get(n)))) if not (by.get(n) and str(by.get(n)).startswith('prj_')) else print('VERIFIED',n,by[n]) for n in ('vl-pwa-production','vl-gis-production')]"
