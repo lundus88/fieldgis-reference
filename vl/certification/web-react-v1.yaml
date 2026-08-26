@@ -4,7 +4,7 @@ framework: react+vite
 role: official-web-builder-candidate
 status: experimental
 certification:
-  state: pending
+  state: awaiting_lifecycle_validation
   activation_policy: certification-approved-only
   direct_activation_allowed: false
   required_gates:
@@ -19,20 +19,27 @@ certification:
     - reproducible_build
     - human_approval
   gate_status:
-    source_generation: pending
-    dependency_install: pending
-    vite_build: pending
-    index_html_present: pending
-    javascript_bundle_present: pending
-    immutable_artifact_packaging: pending
-    artifact_upload: pending
+    source_generation: passed
+    dependency_install: passed
+    vite_build: passed
+    index_html_present: passed
+    javascript_bundle_present: passed
+    immutable_artifact_packaging: passed
+    artifact_upload: passed
     release_validator_pass: pending
-    reproducible_build: pending
+    reproducible_build: passed
     human_approval: pending
   evidence:
     reference_repo: lundus88/fieldgis-reference
     workflow: .github/workflows/vl-web-react-cert.yml
     release_validator: .github/workflows/vl-release-validator.yml
+    workflow_run_id: 33011608403
+    workflow_run_conclusion: success
+    workflow_head_sha: b5845e06221d82c548ba991168839a92a37db122
+    artifact_id: 9622746429
+    artifact_name: vl-web-react-v1-cert-evidence
+    artifact_digest: sha256:091b87fb0150470ec02ce5fdaa408a5fa9aa70fabb73389a1d0a5e382f34d698
+    lifecycle_note: release_validator_pass requires evidence from an actual VL release-validation lifecycle; certification harness success alone does not satisfy this gate
 activation:
   target_status: active
   allowed_when: certification.state == approved
