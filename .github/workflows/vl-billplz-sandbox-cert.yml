@@ -1,0 +1,63 @@
+name: VL Billplz Sandbox Certification
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/vl-billplz-sandbox-cert.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  sandbox-cert:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Billplz sandbox OIDC token
+        id: oidc
+        shell: bash
+        run: |
+          set -euo pipefail
+          resp=$(curl -sS -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=vrs-billplz-sandbox-cert")
+          token=$(printf '%s' "$resp" | python3 -c 'import sys,json; print(json.load(sys.stdin)["value"])')
+          echo "token=$token" >> "$GITHUB_OUTPUT"
+
+      - name: Verify endpoint fails closed without OIDC
+        shell: bash
+        run: |
+          set -euo pipefail
+          code=$(curl -sS -o /tmp/noauth.json -w '%{http_code}' -X POST \
+            'https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vl-billplz-ci-sandbox')
+          test "$code" = "401"
+
+      - name: Create, reconcile and cancel sandbox bill
+        id: cert
+        env:
+          OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          code=$(curl -sS -o /tmp/result.json -w '%{http_code}' -X POST \
+            'https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vl-billplz-ci-sandbox' \
+            -H "Authorization: Bearer $OIDC_TOKEN")
+          cat /tmp/result.json
+          test "$code" = "200"
+          python3 - <<'PY'
+          import json
+          d=json.load(open('/tmp/result.json'))
+          assert d['ok'] is True
+          assert d['environment']=='sandbox'
+          assert d['checkout_created'] is True
+          assert d['reconciliation_pass'] is True
+          assert d['due_bill_cancelled'] is True
+          assert d['live_charge'] is False
+          PY
+
+      - name: Record certification scope
+        run: |
+          echo 'PASS scope: sandbox bill create + GET reconciliation + due bill cancellation.'
+          echo 'NOT tested: paid callback, duplicate callback, refund/disbursement.'
+          echo 'No live charge executed.'
