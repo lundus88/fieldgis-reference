@@ -1,0 +1,72 @@
+name: VL Vercel Bootstrap
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/vl-vercel-bootstrap.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_TEAM_ID: team_tV4WIIVgvU5VybM7PIhiuVNO
+    steps:
+      - name: Verify credential
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}" || { echo 'VERCEL_TOKEN_MISSING'; exit 1; }
+
+      - name: Ensure dedicated VL projects exist
+        shell: bash
+        run: |
+          set -euo pipefail
+          for NAME in vl-pwa-production vl-gis-production; do
+            STATUS=$(curl -sS -o /tmp/project.json -w '%{http_code}' \
+              -H "Authorization: Bearer ${VERCEL_TOKEN}" \
+              "https://api.vercel.com/v9/projects/${NAME}?teamId=${VERCEL_TEAM_ID}")
+            if [ "$STATUS" = "200" ]; then
+              echo "$NAME already exists"
+            elif [ "$STATUS" = "404" ]; then
+              curl -fsS -X POST \
+                -H "Authorization: Bearer ${VERCEL_TOKEN}" \
+                -H 'Content-Type: application/json' \
+                "https://api.vercel.com/v11/projects?teamId=${VERCEL_TEAM_ID}" \
+                -d "{\"name\":\"${NAME}\"}" > "/tmp/${NAME}.json"
+              python3 - "$NAME" <<'PY'
+import json,sys
+name=sys.argv[1]
+d=json.load(open(f'/tmp/{name}.json'))
+assert d.get('id','').startswith('prj_'), d
+assert d.get('name')==name, d
+print(f'CREATED {name} {d["id"]}')
+PY
+            else
+              echo "Unexpected Vercel status $STATUS for $NAME"
+              cat /tmp/project.json || true
+              exit 1
+            fi
+          done
+
+      - name: Verify project inventory
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsS -H "Authorization: Bearer ${VERCEL_TOKEN}" \
+            "https://api.vercel.com/v9/projects?teamId=${VERCEL_TEAM_ID}&limit=50" > /tmp/projects.json
+          python3 - <<'PY'
+import json
+p=json.load(open('/tmp/projects.json')).get('projects',[])
+by={x.get('name'):x.get('id') for x in p}
+for name in ('vl-pwa-production','vl-gis-production'):
+    pid=by.get(name)
+    assert pid and pid.startswith('prj_'), (name,pid)
+    print(f'VERIFIED {name} {pid}')
+PY
