@@ -39,6 +39,13 @@ jobs:
           set -euo pipefail
           rm -rf app
           mkdir -p app/dist app/src-tauri/src app/src-tauri/capabilities
+          cat > app/app-icon.svg <<'SVG'
+          <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+            <rect width="512" height="512" rx="96" fill="#111827"/>
+            <circle cx="256" cy="256" r="150" fill="#ffffff"/>
+            <path d="M180 170h55l21 70 21-70h55l-55 172h-42z" fill="#111827"/>
+          </svg>
+          SVG
           cat > app/dist/index.html <<'HTML'
           <!doctype html><html><head><meta charset="utf-8"><title>VL Desktop Graduation</title></head><body><main><h1>VL Desktop Tauri Graduation</h1><p>Offline production-graduation fixture.</p></main></body></html>
           HTML
@@ -93,6 +100,16 @@ jobs:
           }
           JSON
 
+      - name: Generate official Tauri native icon set
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd app
+          npx --yes @tauri-apps/cli@2.11.4 icon app-icon.svg
+          test -f src-tauri/icons/icon.png
+          test -f src-tauri/icons/icon.ico
+          test -f src-tauri/icons/icon.icns
+
       - name: Generate locked Rust dependency graph
         shell: bash
         run: |
@@ -123,15 +140,12 @@ jobs:
           case "$RUNNER_OS" in
             Linux)
               find "$BUNDLE_ROOT/deb" -type f -name '*.deb' | grep .
-              EVIDENCE_TYPE=tauri_linux_bundle
               ;;
             Windows)
               find "$BUNDLE_ROOT/nsis" -type f -name '*.exe' | grep .
-              EVIDENCE_TYPE=tauri_windows_bundle
               ;;
             macOS)
               find "$BUNDLE_ROOT/macos" -type d -name '*.app' | grep .
-              EVIDENCE_TYPE=tauri_macos_bundle
               ;;
           esac
           tar -czf "vl-tauri-${RUNNER_OS}.tgz" -C app/src-tauri/target/release bundle
@@ -141,7 +155,7 @@ jobs:
           const p=`vl-tauri-${os}.tgz`;
           const h=crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex');
           const map={Linux:'tauri_linux_bundle',Windows:'tauri_windows_bundle',macOS:'tauri_macos_bundle'};
-          fs.writeFileSync('graduation-evidence.json',JSON.stringify({builder_key:'desktop-tauri-v1',evidence_type:map[os],status:'PASS',runner_os:os,artifact_sha256:h,tauri_cli:'2.11.4',build_boundary:'no-id-token',code_signing:'not_production_signed'},null,2));
+          fs.writeFileSync('graduation-evidence.json',JSON.stringify({builder_key:'desktop-tauri-v1',evidence_type:map[os],status:'PASS',runner_os:os,artifact_sha256:h,tauri_cli:'2.11.4',build_boundary:'no-id-token',icon_generation:'tauri-cli',code_signing:'not_production_signed'},null,2));
           NODE
 
       - name: Upload graduation evidence
