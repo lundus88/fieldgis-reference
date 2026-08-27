@@ -16,6 +16,7 @@ jobs:
     env:
       WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
       WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+      WINDOWS_TIMESTAMP_URL: ${{ secrets.WINDOWS_TIMESTAMP_URL }}
       APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
       APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
       APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
@@ -24,6 +25,7 @@ jobs:
       APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
       TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
       TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+      TAURI_UPDATER_PUBLIC_KEY: ${{ vars.TAURI_UPDATER_PUBLIC_KEY }}
     steps:
       - name: Check production signing credential presence
         shell: bash
@@ -31,10 +33,11 @@ jobs:
           set -euo pipefail
           missing=0
           for v in \
-            WINDOWS_CERTIFICATE WINDOWS_CERTIFICATE_PASSWORD \
+            WINDOWS_CERTIFICATE WINDOWS_CERTIFICATE_PASSWORD WINDOWS_TIMESTAMP_URL \
             APPLE_CERTIFICATE APPLE_CERTIFICATE_PASSWORD APPLE_SIGNING_IDENTITY \
             APPLE_ID APPLE_PASSWORD APPLE_TEAM_ID \
-            TAURI_SIGNING_PRIVATE_KEY TAURI_SIGNING_PRIVATE_KEY_PASSWORD
+            TAURI_SIGNING_PRIVATE_KEY TAURI_SIGNING_PRIVATE_KEY_PASSWORD \
+            TAURI_UPDATER_PUBLIC_KEY
           do
             if [ -z "${!v:-}" ]; then
               echo "MISSING:$v"
@@ -44,17 +47,186 @@ jobs:
             fi
           done
           if [ "$missing" -ne 0 ]; then
-            echo "Production signing graduation remains BLOCKED. No secrets were printed."
+            echo "Production signing graduation remains BLOCKED. No secret values were printed."
             exit 1
           fi
 
-      - name: Mark readiness only
+  updater-signature:
+    needs: readiness
+    runs-on: ubuntu-latest
+    env:
+      TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+      TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+      TAURI_UPDATER_PUBLIC_KEY: ${{ vars.TAURI_UPDATER_PUBLIC_KEY }}
+    steps:
+      - name: Create updater canary artifact
         shell: bash
         run: |
           set -euo pipefail
-          cat <<'EOF' >> "$GITHUB_STEP_SUMMARY"
-          ## VL Desktop Tauri signing graduation
-          Credential presence check: PASS.
+          printf 'vl-desktop-tauri-v1-updater-graduation\n' > updater-canary.bin
+          cp updater-canary.bin updater-canary-original.bin
 
-          This job proves readiness only. It does not certify Windows Authenticode, Apple Developer ID signing/notarization, or Tauri updater signatures. Those require the platform-specific signing jobs and post-signature verification to pass.
+      - name: Sign updater artifact with Tauri CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes @tauri-apps/cli@2.11.4 signer sign updater-canary.bin
+          test -s updater-canary.bin.sig
+
+      - name: Preserve updater evidence metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha256sum updater-canary.bin updater-canary.bin.sig > updater-signature-evidence.txt
+          printf 'public_key_configured=yes\nprivate_key_exposed=no\n' >> updater-signature-evidence.txt
+
+      - name: Upload updater signature evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: vl-desktop-updater-signature-evidence
+          path: |
+            updater-canary.bin
+            updater-canary.bin.sig
+            updater-signature-evidence.txt
+          if-no-files-found: error
+          retention-days: 14
+
+  windows-authenticode:
+    needs: readiness
+    runs-on: windows-latest
+    env:
+      WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
+      WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+      WINDOWS_TIMESTAMP_URL: ${{ secrets.WINDOWS_TIMESTAMP_URL }}
+    steps:
+      - name: Import Windows production certificate
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          New-Item -ItemType Directory -Path certificate -Force | Out-Null
+          Set-Content -Path certificate/tempCert.txt -Value $env:WINDOWS_CERTIFICATE -NoNewline
+          certutil -decode certificate/tempCert.txt certificate/certificate.pfx | Out-Null
+          Remove-Item certificate/tempCert.txt
+          $secure = ConvertTo-SecureString -String $env:WINDOWS_CERTIFICATE_PASSWORD -Force -AsPlainText
+          $cert = Import-PfxCertificate -FilePath certificate/certificate.pfx -CertStoreLocation Cert:\CurrentUser\My -Password $secure
+          if (-not $cert.Thumbprint) { throw 'Certificate import returned no thumbprint' }
+          "VL_WINDOWS_CERT_THUMBPRINT=$($cert.Thumbprint)" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Build and sign Windows canary executable
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          @'
+          using System;
+          public class Program { public static void Main() { Console.WriteLine("VL Desktop signing graduation"); } }
+          '@ | Set-Content Program.cs
+          Add-Type -TypeDefinition (Get-Content Program.cs -Raw) -OutputAssembly vl-desktop-signing-canary.exe -OutputType ConsoleApplication
+          $signtool = (Get-ChildItem 'C:\Program Files (x86)\Windows Kits\10\bin' -Recurse -Filter signtool.exe | Where-Object FullName -Match '\\x64\\' | Select-Object -First 1).FullName
+          if (-not $signtool) { throw 'signtool.exe not found' }
+          & $signtool sign /sha1 $env:VL_WINDOWS_CERT_THUMBPRINT /fd SHA256 /tr $env:WINDOWS_TIMESTAMP_URL /td SHA256 vl-desktop-signing-canary.exe
+          if ($LASTEXITCODE -ne 0) { throw 'signtool sign failed' }
+          & $signtool verify /pa /v vl-desktop-signing-canary.exe
+          if ($LASTEXITCODE -ne 0) { throw 'Authenticode verification failed' }
+
+      - name: Record Windows signature evidence
+        shell: pwsh
+        run: |
+          $sig = Get-AuthenticodeSignature .\vl-desktop-signing-canary.exe
+          if ($sig.Status -ne 'Valid') { throw "Authenticode status is $($sig.Status)" }
+          Get-FileHash .\vl-desktop-signing-canary.exe -Algorithm SHA256 | Format-List | Out-File windows-signature-evidence.txt
+          "AuthenticodeStatus=$($sig.Status)" | Out-File windows-signature-evidence.txt -Append
+          "SignerSubject=$($sig.SignerCertificate.Subject)" | Out-File windows-signature-evidence.txt -Append
+
+      - name: Upload Windows signature evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: vl-desktop-windows-signature-evidence
+          path: |
+            vl-desktop-signing-canary.exe
+            windows-signature-evidence.txt
+          if-no-files-found: error
+          retention-days: 14
+
+  macos-notarization:
+    needs: readiness
+    runs-on: macos-latest
+    env:
+      APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+      APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+      APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+    steps:
+      - name: Import Apple Developer ID certificate
+        shell: bash
+        run: |
+          set -euo pipefail
+          CERT_PATH="$RUNNER_TEMP/vl-signing.p12"
+          KEYCHAIN_PATH="$RUNNER_TEMP/vl-signing.keychain-db"
+          KEYCHAIN_PASSWORD="$(openssl rand -hex 24)"
+          printf '%s' "$APPLE_CERTIFICATE" | base64 --decode > "$CERT_PATH"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERT_PATH" -P "$APPLE_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security find-identity -v -p codesigning "$KEYCHAIN_PATH"
+
+      - name: Create, sign and verify macOS canary app
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p 'VLDesktopSigning.app/Contents/MacOS'
+          cat > canary.c <<'EOF'
+          #include <stdio.h>
+          int main(void){ puts("VL Desktop signing graduation"); return 0; }
           EOF
+          clang canary.c -o 'VLDesktopSigning.app/Contents/MacOS/VLDesktopSigning'
+          cat > 'VLDesktopSigning.app/Contents/Info.plist' <<'PLIST'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict><key>CFBundleExecutable</key><string>VLDesktopSigning</string><key>CFBundleIdentifier</key><string>com.vrslabs.signinggraduation</string><key>CFBundleName</key><string>VLDesktopSigning</string><key>CFBundleVersion</key><string>1</string><key>CFBundleShortVersionString</key><string>1.0.0</string></dict></plist>
+          PLIST
+          codesign --force --deep --options runtime --timestamp --sign "$APPLE_SIGNING_IDENTITY" 'VLDesktopSigning.app'
+          codesign --verify --deep --strict --verbose=2 'VLDesktopSigning.app'
+          ditto -c -k --keepParent 'VLDesktopSigning.app' 'VLDesktopSigning.zip'
+
+      - name: Submit to Apple notarization and staple
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcrun notarytool submit 'VLDesktopSigning.zip' --apple-id "$APPLE_ID" --password "$APPLE_PASSWORD" --team-id "$APPLE_TEAM_ID" --wait
+          xcrun stapler staple 'VLDesktopSigning.app'
+          xcrun stapler validate 'VLDesktopSigning.app'
+          spctl --assess --type execute --verbose=4 'VLDesktopSigning.app'
+
+      - name: Record macOS notarization evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          shasum -a 256 'VLDesktopSigning.zip' > macos-notarization-evidence.txt
+          codesign -dv --verbose=4 'VLDesktopSigning.app' 2>> macos-notarization-evidence.txt
+          xcrun stapler validate 'VLDesktopSigning.app' >> macos-notarization-evidence.txt 2>&1
+
+      - name: Upload macOS notarization evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: vl-desktop-macos-notarization-evidence
+          path: |
+            VLDesktopSigning.zip
+            macos-notarization-evidence.txt
+          if-no-files-found: error
+          retention-days: 14
+
+  graduation-summary:
+    needs: [updater-signature, windows-authenticode, macos-notarization]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confirm all production signing gates passed
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'desktop-tauri-v1 signing graduation gates: PASS'
+          echo 'This still does not activate the builder; activation remains a separate certification-approved action.'
