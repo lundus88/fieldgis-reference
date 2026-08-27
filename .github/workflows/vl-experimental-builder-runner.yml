@@ -184,7 +184,8 @@ jobs:
           [ -f runner-artifact-path.txt ] && PATH_VALUE=$(cat runner-artifact-path.txt)
           python3 - <<PY
           import json
-          json.dump({'success':${OK},'builder_key':'${BUILDER}','artifact_sha256':'${SHA}','artifact_path':'${PATH_VALUE}','github_run_id':'${{ github.run_id }}','github_sha':'${{ github.sha }}','build_boundary':'no-id-token'},open('build-result.json','w'))
+          ok='${OK}'=='true'
+          json.dump({'success':ok,'builder_key':'${BUILDER}','artifact_sha256':'${SHA}','artifact_path':'${PATH_VALUE}','github_run_id':'${{ github.run_id }}','github_sha':'${{ github.sha }}','build_boundary':'no-id-token'},open('build-result.json','w'))
           PY
 
       - name: Upload experimental build result
