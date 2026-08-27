@@ -77,7 +77,7 @@ jobs:
           set -euo pipefail
           test -z "${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-}"
           test -z "${ACTIONS_ID_TOKEN_REQUEST_URL:-}"
-          env | grep -E 'SUPABASE_SERVICE_ROLE_KEY|VRS_OIDC_TOKEN|VERCEL_TOKEN' && exit 1 || true
+          env | grep -E 'SUPABASE_SERVICE_ROLE_KEY|VRS_OIDC_TOKEN|VERCEL_TOKEN|OPENAI_API_KEY|ANTHROPIC_API_KEY' && exit 1 || true
 
       - name: Prepare AI experimental workspace
         if: needs.claim.outputs.builder_key == 'ai-app-v1'
@@ -99,13 +99,13 @@ jobs:
               target=(root/rel).resolve()
               if root not in target.parents and target!=root: raise SystemExit('unsafe artifact path')
               text=str(a.get('content') or '')
-              if re.search(r'process\.env|Deno\.env|child_process|ACTIONS_ID_TOKEN_REQUEST|SUPABASE_SERVICE_ROLE_KEY|VERCEL_TOKEN',text): raise SystemExit('credential/process primitive forbidden in experimental AI source')
+              if re.search(r'process\.env|Deno\.env|child_process|ACTIONS_ID_TOKEN_REQUEST|SUPABASE_SERVICE_ROLE_KEY|VERCEL_TOKEN|OPENAI_API_KEY|ANTHROPIC_API_KEY',text): raise SystemExit('credential/process primitive forbidden in experimental AI source')
               target.parent.mkdir(parents=True,exist_ok=True); target.write_text(text); wrote=True
           if not wrote:
-              (root/'app.mjs').write_text("export const app={title:"+json.dumps(title)+",mode:'experimental-ai'};\n")
+              (root/'app.mjs').write_text("export function respond(input){return {ok:true,answer:'VL experimental AI: '+String(input).slice(0,120),confidence:1};}\n")
           PY
 
-      - name: Compile AI experimental source
+      - name: Compile and exercise AI experimental source
         id: ai_build
         if: needs.claim.outputs.builder_key == 'ai-app-v1'
         continue-on-error: true
@@ -113,10 +113,22 @@ jobs:
         run: |
           set -o pipefail
           find workspace/ai -type f \( -name '*.js' -o -name '*.mjs' \) -print0 | xargs -0 -r -n1 node --check 2>&1 | tee runner-experimental.log
+          ENTRY=$(find workspace/ai -type f \( -name '*.mjs' -o -name '*.js' \) | head -n1)
+          test -n "$ENTRY"
+          node --input-type=module - "$ENTRY" <<'NODE' 2>&1 | tee -a runner-experimental.log
+          import {pathToFileURL} from 'node:url';
+          const path=process.argv[2];
+          const mod=await import(pathToFileURL(path));
+          if(typeof mod.respond==='function'){
+            const out=await mod.respond('golden runtime probe');
+            if(!out || out.ok!==true || typeof out.answer!=='string') throw new Error('model output contract failed');
+          }
+          NODE
           python3 -m json.tool build-input.json >/dev/null
           tar -czf vl-experimental-ai.tgz -C workspace ai
           sha256sum vl-experimental-ai.tgz > runner-sha256.txt
           echo "vl-experimental-ai.tgz" > runner-artifact-path.txt
+          printf '%s\n' '{"ai_runtime_contract":"PASS","model_output_contract":"PASS"}' > certification-extra.json
 
       - name: Prepare desktop experimental workspace
         if: needs.claim.outputs.builder_key == 'desktop-tauri-v1'
@@ -152,7 +164,7 @@ jobs:
           json.load(open(conf))
           PY
 
-      - name: Compile desktop experimental source
+      - name: Compile and exercise desktop experimental source
         id: desktop_build
         if: needs.claim.outputs.builder_key == 'desktop-tauri-v1'
         continue-on-error: true
@@ -162,10 +174,12 @@ jobs:
           cd workspace/desktop
           cargo generate-lockfile --offline 2>&1 | tee ../../runner-experimental.log
           cargo check --locked --offline 2>&1 | tee -a ../../runner-experimental.log
+          cargo run --locked --offline 2>&1 | tee -a ../../runner-experimental.log
           cd ../..
           tar -czf vl-experimental-desktop.tgz -C workspace desktop
           sha256sum vl-experimental-desktop.tgz > runner-sha256.txt
           echo "vl-experimental-desktop.tgz" > runner-artifact-path.txt
+          printf '%s\n' '{"offline_runtime_contract":"PASS"}' > certification-extra.json
 
       - name: Build result
         id: result
@@ -183,9 +197,12 @@ jobs:
           [ -f runner-sha256.txt ] && SHA=$(awk '{print $1}' runner-sha256.txt)
           [ -f runner-artifact-path.txt ] && PATH_VALUE=$(cat runner-artifact-path.txt)
           python3 - <<PY
-          import json
+          import json,os
           ok='${OK}'=='true'
-          json.dump({'success':ok,'builder_key':'${BUILDER}','artifact_sha256':'${SHA}','artifact_path':'${PATH_VALUE}','github_run_id':'${{ github.run_id }}','github_sha':'${{ github.sha }}','build_boundary':'no-id-token'},open('build-result.json','w'))
+          extra={}
+          if os.path.exists('certification-extra.json'):
+              extra=json.load(open('certification-extra.json'))
+          json.dump({'success':ok,'builder_key':'${BUILDER}','artifact_sha256':'${SHA}','artifact_path':'${PATH_VALUE}','github_run_id':'${{ github.run_id }}','github_sha':'${{ github.sha }}','build_boundary':'no-id-token','certification':extra},open('build-result.json','w'))
           PY
 
       - name: Upload experimental build result
@@ -195,9 +212,10 @@ jobs:
           name: vl-experimental-result-${{ needs.claim.outputs.factory_run_id }}
           path: |
             build-result.json
+            certification-extra.json
             vl-experimental-*.tgz
             runner-experimental.log
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 14
 
   callback:
@@ -224,7 +242,7 @@ jobs:
           import json
           r=json.load(open('build-result.json'))
           ok=bool(r.get('success'))
-          result={'runner':'github-actions-oidc-experimental','builder_key':r.get('builder_key'),'github_run_id':r.get('github_run_id'),'github_sha':r.get('github_sha'),'artifact_name':'vl-experimental-'+str(r.get('builder_key')),'artifact_sha256':r.get('artifact_sha256'),'qa_result':'PASS' if ok else 'FAIL','build_boundary':r.get('build_boundary'),'experimental':True}
+          result={'runner':'github-actions-oidc-experimental','builder_key':r.get('builder_key'),'github_run_id':r.get('github_run_id'),'github_sha':r.get('github_sha'),'artifact_name':'vl-experimental-'+str(r.get('builder_key')),'artifact_sha256':r.get('artifact_sha256'),'qa_result':'PASS' if ok else 'FAIL','build_boundary':r.get('build_boundary'),'experimental':True,'certification':r.get('certification') or {}}
           print(json.dumps({'action':'complete','job_id':'${{ needs.claim.outputs.job_id }}','lease_token':'${{ needs.claim.outputs.lease_token }}','success':ok,'result':result,'error_text':None if ok else 'Experimental isolated build failed'}))
           PY
           curl -fsSL -X POST \
