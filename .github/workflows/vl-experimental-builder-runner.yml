@@ -1,0 +1,233 @@
+name: VL Experimental Builder Runner
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/10 * * * *'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/vl-experimental-builder-runner.yml'
+
+concurrency:
+  group: vl-experimental-builder-runner
+  cancel-in-progress: false
+
+jobs:
+  claim:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      status: ${{ steps.claim.outputs.status }}
+      job_id: ${{ steps.claim.outputs.job_id }}
+      lease_token: ${{ steps.claim.outputs.lease_token }}
+      factory_run_id: ${{ steps.claim.outputs.factory_run_id }}
+      builder_key: ${{ steps.claim.outputs.builder_key }}
+    steps:
+      - name: Claim experimental VL job
+        id: claim
+        shell: bash
+        run: |
+          set -euo pipefail
+          RAW=$(curl -fsSL -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=vrs-experimental-runner")
+          TOKEN=$(python3 -c 'import json,sys; print(json.load(sys.stdin)["value"])' <<<"$RAW")
+          echo "::add-mask::$TOKEN"
+          curl -fsSL -X POST \
+            -H "Authorization: Bearer ${TOKEN}" \
+            -H 'Content-Type: application/json' \
+            'https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vrs-experimental-runner-oidc' \
+            -d '{"action":"claim"}' > claim.json
+          python3 - <<'PY'
+          import json,os
+          d=json.load(open('claim.json'))
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f:
+              for k in ('status','job_id','lease_token','factory_run_id','builder_key'):
+                  f.write(f"{k}={d.get(k,'')}\n")
+          if d.get('status')=='leased':
+              safe={k:d.get(k) for k in ('status','factory_run_id','builder_key','attempt','max_attempts','app_spec','generated_artifacts','target_environment','production_locked','experimental')}
+              json.dump(safe,open('build-input.json','w'))
+          PY
+
+      - name: Upload sanitized build input
+        if: steps.claim.outputs.status == 'leased'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: vl-experimental-build-input-${{ steps.claim.outputs.factory_run_id }}
+          path: build-input.json
+          if-no-files-found: error
+          retention-days: 1
+
+  build:
+    needs: claim
+    if: needs.claim.outputs.status == 'leased'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Download sanitized build input
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: vl-experimental-build-input-${{ needs.claim.outputs.factory_run_id }}
+
+      - name: Confirm unprivileged build boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-}"
+          test -z "${ACTIONS_ID_TOKEN_REQUEST_URL:-}"
+          env | grep -E 'SUPABASE_SERVICE_ROLE_KEY|VRS_OIDC_TOKEN|VERCEL_TOKEN' && exit 1 || true
+
+      - name: Prepare AI experimental workspace
+        if: needs.claim.outputs.builder_key == 'ai-app-v1'
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf workspace && mkdir -p workspace/ai
+          python3 - <<'PY'
+          import json,pathlib,re
+          d=json.load(open('build-input.json')); root=pathlib.Path('workspace/ai').resolve()
+          title=((d.get('app_spec') or {}).get('title') or 'VL Experimental AI App')
+          wrote=False
+          for a in d.get('generated_artifacts') or []:
+              p=str(a.get('path') or '')
+              if not p.startswith('ai/'): continue
+              rel=p[3:]
+              if rel in ('package.json','package-lock.json','pnpm-lock.yaml','yarn.lock'): raise SystemExit('generated package manifests are forbidden')
+              if pathlib.Path(rel).suffix not in ('.js','.mjs','.json','.md'): continue
+              target=(root/rel).resolve()
+              if root not in target.parents and target!=root: raise SystemExit('unsafe artifact path')
+              text=str(a.get('content') or '')
+              if re.search(r'process\.env|Deno\.env|child_process|ACTIONS_ID_TOKEN_REQUEST|SUPABASE_SERVICE_ROLE_KEY|VERCEL_TOKEN',text): raise SystemExit('credential/process primitive forbidden in experimental AI source')
+              target.parent.mkdir(parents=True,exist_ok=True); target.write_text(text); wrote=True
+          if not wrote:
+              (root/'app.mjs').write_text("export const app={title:"+json.dumps(title)+",mode:'experimental-ai'};\n")
+          PY
+
+      - name: Compile AI experimental source
+        id: ai_build
+        if: needs.claim.outputs.builder_key == 'ai-app-v1'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          find workspace/ai -type f \( -name '*.js' -o -name '*.mjs' \) -print0 | xargs -0 -r -n1 node --check 2>&1 | tee runner-experimental.log
+          python3 -m json.tool build-input.json >/dev/null
+          tar -czf vl-experimental-ai.tgz -C workspace ai
+          sha256sum vl-experimental-ai.tgz > runner-sha256.txt
+          echo "vl-experimental-ai.tgz" > runner-artifact-path.txt
+
+      - name: Prepare desktop experimental workspace
+        if: needs.claim.outputs.builder_key == 'desktop-tauri-v1'
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf workspace && mkdir -p workspace/desktop/src
+          cat > workspace/desktop/Cargo.toml <<'TOML'
+          [package]
+          name = "vl_experimental_desktop"
+          version = "0.1.0"
+          edition = "2021"
+          [dependencies]
+          TOML
+          python3 - <<'PY'
+          import json,pathlib,re
+          d=json.load(open('build-input.json')); root=pathlib.Path('workspace/desktop').resolve(); wrote=False
+          for a in d.get('generated_artifacts') or []:
+              p=str(a.get('path') or '')
+              if not p.startswith('desktop/'): continue
+              rel=p[len('desktop/'):]
+              if rel in ('Cargo.toml','Cargo.lock','build.rs'): raise SystemExit('generated build manifests/scripts are forbidden')
+              if not (rel.startswith('src/') and rel.endswith('.rs')) and rel!='tauri.conf.json': continue
+              target=(root/rel).resolve()
+              if root not in target.parents and target!=root: raise SystemExit('unsafe artifact path')
+              text=str(a.get('content') or '')
+              if re.search(r'std::process|Command::new|env::var|ACTIONS_ID_TOKEN_REQUEST|SUPABASE_SERVICE_ROLE_KEY',text): raise SystemExit('process/credential primitive forbidden in experimental desktop source')
+              target.parent.mkdir(parents=True,exist_ok=True); target.write_text(text)
+              if rel.endswith('.rs'): wrote=True
+          if not wrote: (root/'src/main.rs').write_text('fn main(){println!("VL experimental desktop");}\n')
+          conf=root/'tauri.conf.json'
+          if not conf.exists(): conf.write_text(json.dumps({'productName':'VL Experimental Desktop','version':'0.1.0','identifier':'com.vrslabs.experimental'}))
+          json.load(open(conf))
+          PY
+
+      - name: Compile desktop experimental source
+        id: desktop_build
+        if: needs.claim.outputs.builder_key == 'desktop-tauri-v1'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          cd workspace/desktop
+          cargo generate-lockfile --offline 2>&1 | tee ../../runner-experimental.log
+          cargo check --locked --offline 2>&1 | tee -a ../../runner-experimental.log
+          cd ../..
+          tar -czf vl-experimental-desktop.tgz -C workspace desktop
+          sha256sum vl-experimental-desktop.tgz > runner-sha256.txt
+          echo "vl-experimental-desktop.tgz" > runner-artifact-path.txt
+
+      - name: Build result
+        id: result
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          BUILDER='${{ needs.claim.outputs.builder_key }}'
+          OK=false
+          case "$BUILDER" in
+            ai-app-v1) [ '${{ steps.ai_build.outcome }}' = 'success' ] && OK=true ;;
+            desktop-tauri-v1) [ '${{ steps.desktop_build.outcome }}' = 'success' ] && OK=true ;;
+          esac
+          SHA=''; PATH_VALUE=''
+          [ -f runner-sha256.txt ] && SHA=$(awk '{print $1}' runner-sha256.txt)
+          [ -f runner-artifact-path.txt ] && PATH_VALUE=$(cat runner-artifact-path.txt)
+          python3 - <<PY
+          import json
+          json.dump({'success':${OK},'builder_key':'${BUILDER}','artifact_sha256':'${SHA}','artifact_path':'${PATH_VALUE}','github_run_id':'${{ github.run_id }}','github_sha':'${{ github.sha }}','build_boundary':'no-id-token'},open('build-result.json','w'))
+          PY
+
+      - name: Upload experimental build result
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: vl-experimental-result-${{ needs.claim.outputs.factory_run_id }}
+          path: |
+            build-result.json
+            vl-experimental-*.tgz
+            runner-experimental.log
+          if-no-files-found: error
+          retention-days: 14
+
+  callback:
+    needs: [claim, build]
+    if: always() && needs.claim.outputs.status == 'leased'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Download experimental result
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: vl-experimental-result-${{ needs.claim.outputs.factory_run_id }}
+
+      - name: Callback VL experimental runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          RAW=$(curl -fsSL -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=vrs-experimental-runner")
+          TOKEN=$(python3 -c 'import json,sys; print(json.load(sys.stdin)["value"])' <<<"$RAW")
+          echo "::add-mask::$TOKEN"
+          python3 - <<'PY' > callback.json
+          import json
+          r=json.load(open('build-result.json'))
+          ok=bool(r.get('success'))
+          result={'runner':'github-actions-oidc-experimental','builder_key':r.get('builder_key'),'github_run_id':r.get('github_run_id'),'github_sha':r.get('github_sha'),'artifact_name':'vl-experimental-'+str(r.get('builder_key')),'artifact_sha256':r.get('artifact_sha256'),'qa_result':'PASS' if ok else 'FAIL','build_boundary':r.get('build_boundary'),'experimental':True}
+          print(json.dumps({'action':'complete','job_id':'${{ needs.claim.outputs.job_id }}','lease_token':'${{ needs.claim.outputs.lease_token }}','success':ok,'result':result,'error_text':None if ok else 'Experimental isolated build failed'}))
+          PY
+          curl -fsSL -X POST \
+            -H "Authorization: Bearer ${TOKEN}" \
+            -H 'Content-Type: application/json' \
+            'https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vrs-experimental-runner-oidc' \
+            --data-binary @callback.json | tee callback-response.json
