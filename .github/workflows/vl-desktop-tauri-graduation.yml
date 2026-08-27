@@ -1,0 +1,157 @@
+name: VL Desktop Tauri Graduation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/vl-desktop-tauri-graduation.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  tauri-bundle-matrix:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Confirm unprivileged graduation boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-}"
+          test -z "${ACTIONS_ID_TOKEN_REQUEST_URL:-}"
+          env | grep -E 'SUPABASE_SERVICE_ROLE_KEY|VRS_OIDC_TOKEN|VERCEL_TOKEN|TAURI_SIGNING_PRIVATE_KEY|APPLE_CERTIFICATE|WINDOWS_CERTIFICATE' && exit 1 || true
+
+      - name: Install Linux Tauri prerequisites
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev patchelf libfuse2
+
+      - name: Scaffold real Tauri v2 fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf app
+          mkdir -p app/dist app/src-tauri/src app/src-tauri/capabilities
+          cat > app/dist/index.html <<'HTML'
+          <!doctype html><html><head><meta charset="utf-8"><title>VL Desktop Graduation</title></head><body><main><h1>VL Desktop Tauri Graduation</h1><p>Offline production-graduation fixture.</p></main></body></html>
+          HTML
+          cat > app/src-tauri/Cargo.toml <<'TOML'
+          [package]
+          name = "vl_desktop_tauri_graduation"
+          version = "0.1.0"
+          description = "VL Desktop Tauri production-graduation fixture"
+          edition = "2021"
+
+          [lib]
+          name = "vl_desktop_tauri_graduation_lib"
+          crate-type = ["staticlib", "cdylib", "rlib"]
+
+          [build-dependencies]
+          tauri-build = { version = "2", features = [] }
+
+          [dependencies]
+          tauri = { version = "2", features = [] }
+          serde = { version = "1", features = ["derive"] }
+          serde_json = "1"
+          TOML
+          cat > app/src-tauri/build.rs <<'RS'
+          fn main() { tauri_build::build() }
+          RS
+          cat > app/src-tauri/src/main.rs <<'RS'
+          fn main() { vl_desktop_tauri_graduation_lib::run(); }
+          RS
+          cat > app/src-tauri/src/lib.rs <<'RS'
+          #[cfg_attr(mobile, tauri::mobile_entry_point)]
+          pub fn run() {
+            tauri::Builder::default()
+              .run(tauri::generate_context!())
+              .expect("error while running VL Tauri graduation app");
+          }
+          RS
+          cat > app/src-tauri/capabilities/default.json <<'JSON'
+          {"identifier":"default","description":"Minimal graduation capability","windows":["main"],"permissions":["core:default"]}
+          JSON
+          cat > app/src-tauri/tauri.conf.json <<'JSON'
+          {
+            "$schema": "https://schema.tauri.app/config/2",
+            "productName": "VL Desktop Graduation",
+            "version": "0.1.0",
+            "identifier": "com.vrslabs.desktop.graduation",
+            "build": {"frontendDist": "../dist"},
+            "app": {
+              "windows": [{"label":"main","title":"VL Desktop Graduation","width":800,"height":600}],
+              "security": {"csp":"default-src 'self'; img-src 'self' asset:; style-src 'self' 'unsafe-inline'"}
+            },
+            "bundle": {"active":true,"createUpdaterArtifacts":false}
+          }
+          JSON
+
+      - name: Generate locked Rust dependency graph
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd app/src-tauri
+          cargo generate-lockfile
+          cargo metadata --locked --format-version 1 > ../../cargo-metadata.json
+
+      - name: Build real Tauri bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd app
+          case "$RUNNER_OS" in
+            Linux) BUNDLES=deb ;;
+            Windows) BUNDLES=nsis ;;
+            macOS) BUNDLES=app ;;
+            *) exit 2 ;;
+          esac
+          npx --yes @tauri-apps/cli@2.11.4 build --ci --bundles "$BUNDLES"
+
+      - name: Verify native bundle and produce evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          BUNDLE_ROOT="app/src-tauri/target/release/bundle"
+          test -d "$BUNDLE_ROOT"
+          case "$RUNNER_OS" in
+            Linux)
+              find "$BUNDLE_ROOT/deb" -type f -name '*.deb' | grep .
+              EVIDENCE_TYPE=tauri_linux_bundle
+              ;;
+            Windows)
+              find "$BUNDLE_ROOT/nsis" -type f -name '*.exe' | grep .
+              EVIDENCE_TYPE=tauri_windows_bundle
+              ;;
+            macOS)
+              find "$BUNDLE_ROOT/macos" -type d -name '*.app' | grep .
+              EVIDENCE_TYPE=tauri_macos_bundle
+              ;;
+          esac
+          tar -czf "vl-tauri-${RUNNER_OS}.tgz" -C app/src-tauri/target/release bundle
+          node - <<'NODE'
+          const fs=require('fs'), crypto=require('crypto');
+          const os=process.env.RUNNER_OS;
+          const p=`vl-tauri-${os}.tgz`;
+          const h=crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex');
+          const map={Linux:'tauri_linux_bundle',Windows:'tauri_windows_bundle',macOS:'tauri_macos_bundle'};
+          fs.writeFileSync('graduation-evidence.json',JSON.stringify({builder_key:'desktop-tauri-v1',evidence_type:map[os],status:'PASS',runner_os:os,artifact_sha256:h,tauri_cli:'2.11.4',build_boundary:'no-id-token',code_signing:'not_production_signed'},null,2));
+          NODE
+
+      - name: Upload graduation evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: vl-desktop-tauri-graduation-${{ runner.os }}
+          path: |
+            graduation-evidence.json
+            vl-tauri-*.tgz
+            app/src-tauri/Cargo.lock
+            cargo-metadata.json
+          if-no-files-found: error
+          retention-days: 14
