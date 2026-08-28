@@ -286,7 +286,6 @@ jobs:
           set -o pipefail
           deno check index.ts 2>&1 | tee ../../runner-api.log
           tar -czf ../vl-api-build.tgz .
-          sha256sum ../runner-sha256.txt 2>/dev/null || true
           sha256sum ../vl-api-build.tgz > ../../runner-sha256.txt
           echo "workspace/vl-api-build.tgz" > ../../runner-artifact-path.txt
 
