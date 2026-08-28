@@ -286,6 +286,7 @@ jobs:
           set -o pipefail
           deno check index.ts 2>&1 | tee ../../runner-api.log
           tar -czf ../vl-api-build.tgz .
+          sha256sum ../runner-sha256.txt 2>/dev/null || true
           sha256sum ../vl-api-build.tgz > ../../runner-sha256.txt
           echo "workspace/vl-api-build.tgz" > ../../runner-artifact-path.txt
 
@@ -319,7 +320,7 @@ jobs:
           name: ${{ steps.result.outputs.name }}
           path: ${{ steps.result.outputs.path }}
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 90
 
       - name: Callback VL
         if: always() && steps.claim.outputs.status == 'leased'
