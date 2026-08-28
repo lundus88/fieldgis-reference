@@ -29,7 +29,7 @@ jobs:
           r=$(curl -sS -H "Authorization: Bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=vrs-resend-sandbox")
           t=$(printf '%s' "$r" | python3 -c 'import sys,json;print(json.load(sys.stdin)["value"])')
           echo "token=$t" >> "$GITHUB_OUTPUT"
-      - name: Send controlled Resend test email
+      - name: Send and reconcile controlled Resend test email
         env:
           TOKEN: ${{ steps.oidc.outputs.token }}
           INPUT_SCENARIO: ${{ inputs.scenario }}
@@ -53,6 +53,10 @@ jobs:
           assert d['scenario'] in ('delivered','bounced')
           assert d['provider_message_id']
           assert d['idempotency_key']
+          r=d.get('reconciliation') or {}
+          assert r.get('matched') is True, r
+          assert r.get('provider_last_event') == d['scenario'], r
+          assert r.get('local_status') == d['scenario'], r
           PY
       - name: Scope guard
         run: echo 'RESEND TEST ADDRESSES ONLY. No production recipient or production promotion.'
