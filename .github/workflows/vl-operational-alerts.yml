@@ -41,10 +41,4 @@ jobs:
             'https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vrs-operational-alerts-oidc' \
             -d '{}')
           echo "$RESP"
-          python3 - <<'PY' <<<"$RESP"
-          import json,sys
-          d=json.load(sys.stdin)
-          if d.get('error'):
-              raise SystemExit(d['error'])
-          print('operational alert status:', d.get('status','unknown'))
-          PY
+          ALERT_RESP="$RESP" python3 -c 'import json,os; d=json.loads(os.environ["ALERT_RESP"]); err=d.get("error"); (_ for _ in ()).throw(SystemExit(err)) if err else None; print("operational alert status:", d.get("status","unknown"))'
