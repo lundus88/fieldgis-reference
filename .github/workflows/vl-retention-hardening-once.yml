@@ -1,0 +1,47 @@
+name: VL Retention Hardening Once
+
+on:
+  push:
+    branches: [vl/artifact-retention-hardening]
+    paths:
+      - '.github/workflows/vl-retention-hardening-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-retention:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: vl/artifact-retention-hardening
+          fetch-depth: 0
+
+      - name: Patch factory artifact retention only
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('.github/workflows/vl-factory-runner.yml')
+          s=p.read_text()
+          old='          retention-days: 14\n'
+          count=s.count(old)
+          if count != 1:
+              raise SystemExit(f'expected exactly one production runner retention-days: 14, found {count}')
+          p.write_text(s.replace(old,'          retention-days: 90\n',1))
+          PY
+          git diff --check
+          git diff -- .github/workflows/vl-factory-runner.yml
+
+      - name: Commit controlled retention change
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .github/workflows/vl-factory-runner.yml
+          git diff --cached --quiet && exit 0
+          git commit -m 'VL: extend factory release artifact retention to 90 days'
+          git push origin HEAD:vl/artifact-retention-hardening
