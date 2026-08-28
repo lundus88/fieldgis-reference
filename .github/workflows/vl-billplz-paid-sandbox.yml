@@ -1,0 +1,57 @@
+name: VL Billplz Paid Sandbox
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - vl/golden-transaction-payment-notification
+    paths:
+      - .github/workflows/vl-billplz-paid-sandbox.yml
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  create-paid-sandbox-checkout:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get paid sandbox OIDC token
+        id: oidc
+        shell: bash
+        run: |
+          set -euo pipefail
+          resp=$(curl -sS -H "Authorization: Bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=vrs-billplz-paid-sandbox")
+          token=$(printf '%s' "$resp" | python3 -c 'import sys,json; print(json.load(sys.stdin)["value"])')
+          echo "token=$token" >> "$GITHUB_OUTPUT"
+
+      - name: Create RM1 Billplz sandbox checkout
+        env:
+          OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          code=$(curl -sS -o /tmp/paid.json -w '%{http_code}' -X POST \
+            'https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vl-billplz-paid-sandbox-oidc' \
+            -H "Authorization: Bearer ${OIDC_TOKEN}")
+          cat /tmp/paid.json
+          test "$code" = "200"
+          python3 - <<'PY'
+          import json
+          d=json.load(open('/tmp/paid.json'))
+          assert d['ok'] is True
+          assert d['environment']=='sandbox'
+          assert d['amount_minor']==100
+          assert d['currency']=='MYR'
+          assert d['live_charge'] is False
+          assert d['production_action'] is False
+          assert d['requires_human_sandbox_payment'] is True
+          assert d['checkout_url'].startswith('https://')
+          print('CHECKOUT_URL='+d['checkout_url'])
+          print('PROVIDER_BILL_ID='+d['provider_bill_id'])
+          PY
+
+      - name: Scope guard
+        run: |
+          echo 'SANDBOX ONLY: creates RM1 Billplz sandbox bill; does not mark paid, fulfill, notify, or promote production.'
