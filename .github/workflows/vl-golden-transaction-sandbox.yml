@@ -44,9 +44,14 @@ jobs:
           assert d['reconciliation_pass'] is True
           assert d['due_bill_cancelled'] is True
           assert d['live_charge'] is False
+          # Fail-closed unpaid path: provider reconciliation proves the bill
+          # remained due/unpaid before cancellation; no payment/fulfillment occurs.
+          assert d.get('provider_paid_before_cancel') is False
+          assert d.get('provider_state_before_cancel') == 'due'
+          assert d.get('fulfillment_state') == 'unfulfilled'
           PY
       - name: Scope guard
         run: |
           echo 'Sandbox only. No live charge. No production promotion.'
-          echo 'This gate proves provider connectivity/create/reconcile/cancel only.'
+          echo 'This gate proves provider connectivity/create/reconcile/unpaid fail-closed/cancel.'
           echo 'Paid callback + fulfillment + notification remain separate evidence gates.'
