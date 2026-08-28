@@ -1,0 +1,238 @@
+name: VL Production Rollback
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/10 * * * *'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/vl-production-rollback.yml'
+
+permissions:
+  contents: read
+  actions: read
+  id-token: write
+
+concurrency:
+  group: vl-production-rollback
+  cancel-in-progress: false
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get rollback OIDC token
+        shell: bash
+        run: |
+          set -euo pipefail
+          RAW=$(curl -fsSL -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=vrs-production-rollback")
+          TOKEN=$(python3 -c 'import json,sys; print(json.load(sys.stdin)["value"])' <<<"$RAW")
+          echo "::add-mask::$TOKEN"
+          echo "VRS_ROLLBACK_TOKEN=$TOKEN" >> "$GITHUB_ENV"
+
+      - name: Claim rollback job
+        id: claim
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL -X POST \
+            -H "Authorization: Bearer ${VRS_ROLLBACK_TOKEN}" \
+            -H 'Content-Type: application/json' \
+            'https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vrs-rollback-oidc' \
+            -d '{"action":"claim"}' > claim.json
+          python3 - <<'PY'
+          import json,os
+          d=json.load(open('claim.json'))
+          print(json.dumps({k:d.get(k) for k in ('status','rollback_audit_id','target_adapter','deployment_id','previous_deployment_id')},indent=2))
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f:
+              for k in ('status','rollback_audit_id','lease_token','target_adapter','deployment_id','previous_deployment_id','source_artifact_name','source_github_run_id','expected_sha256'):
+                  f.write(f"{k}={d.get(k,'')}\n")
+          PY
+
+      - name: No rollback work
+        if: steps.claim.outputs.status != 'leased'
+        run: echo "No production rollback job available."
+
+      - name: Download immutable rollback artifact
+        if: steps.claim.outputs.status == 'leased'
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ steps.claim.outputs.source_artifact_name }}
+          path: rollback-source
+          repository: lundus88/fieldgis-reference
+          run-id: ${{ steps.claim.outputs.source_github_run_id }}
+          github-token: ${{ github.token }}
+
+      - name: Verify rollback artifact SHA-256
+        id: source_verify
+        if: steps.claim.outputs.status == 'leased'
+        shell: bash
+        run: |
+          set -euo pipefail
+          FILE=$(find rollback-source -type f | head -n 1)
+          test -n "$FILE"
+          ACTUAL=$(sha256sum "$FILE" | awk '{print $1}')
+          EXPECTED='${{ steps.claim.outputs.expected_sha256 }}'
+          test -n "$EXPECTED"
+          test "$ACTUAL" = "$EXPECTED"
+          echo "file=$FILE" >> "$GITHUB_OUTPUT"
+          echo "sha=$ACTUAL" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare adapter configuration
+        id: cfg
+        if: steps.source_verify.outcome == 'success'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json,os
+          d=json.load(open('claim.json')); cfg=d.get('adapter_configuration') or {}; disc=cfg.get('discovery') or {}; target=cfg.get('target') or {}
+          vals={
+            'vercel_project_id':str(disc.get('project_id') or ''),
+            'vercel_org_id':str(disc.get('team_id') or ''),
+            'supabase_project_ref':str(target.get('project_ref') or ''),
+            'supabase_function_name':str(target.get('function_name') or ''),
+          }
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f:
+            for k,v in vals.items(): f.write(f'{k}={v}\n')
+          PY
+
+      - name: Restore Vercel immutable artifact
+        id: vercel_restore
+        if: (steps.claim.outputs.target_adapter == 'vercel-production' || steps.claim.outputs.target_adapter == 'vercel-pwa-production' || steps.claim.outputs.target_adapter == 'vercel-gis-production') && steps.source_verify.outcome == 'success'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}"
+          test -n '${{ steps.cfg.outputs.vercel_project_id }}'
+          test -n '${{ steps.cfg.outputs.vercel_org_id }}'
+          rm -rf rollback-vercel && mkdir -p rollback-vercel
+          tar -xzf '${{ steps.source_verify.outputs.file }}' -C rollback-vercel
+          test -s rollback-vercel/.vercel/output/config.json
+          mkdir -p rollback-vercel/.vercel
+          printf '{"projectId":"%s","orgId":"%s"}\n' '${{ steps.cfg.outputs.vercel_project_id }}' '${{ steps.cfg.outputs.vercel_org_id }}' > rollback-vercel/.vercel/project.json
+          npm install --global vercel@59.5.0
+          cd rollback-vercel
+          URL=$(vercel deploy --prebuilt --prod --yes --token="$VERCEL_TOKEN" | tail -n 1 | tr -d '\r')
+          case "$URL" in https://*) ;; *) exit 1 ;; esac
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+
+      - name: Verify Vercel rollback
+        id: vercel_verify
+        if: steps.vercel_restore.outcome == 'success'
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL='${{ steps.vercel_restore.outputs.url }}'
+          curl -fsSL --retry 5 --retry-delay 3 --retry-all-errors -o /tmp/index "$URL/"
+          test -s /tmp/index
+          ADAPTER='${{ steps.claim.outputs.target_adapter }}'
+          if [ "$ADAPTER" = 'vercel-pwa-production' ]; then
+            curl -fsSL -o /tmp/manifest "$URL/manifest.webmanifest"
+            curl -fsSL -o /tmp/sw "$URL/sw.js"
+            test -s /tmp/manifest && test -s /tmp/sw
+          fi
+          echo "provider_url=$URL" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare Supabase rollback source
+        id: supabase_prepare
+        if: steps.claim.outputs.target_adapter == 'supabase-edge-function' && steps.source_verify.outcome == 'success'
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_FUNCTION_SMOKE_JWT: ${{ secrets.SUPABASE_FUNCTION_SMOKE_JWT }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_ACCESS_TOKEN:-}" && test -n "${SUPABASE_FUNCTION_SMOKE_JWT:-}"
+          test -n '${{ steps.cfg.outputs.supabase_project_ref }}' && test -n '${{ steps.cfg.outputs.supabase_function_name }}'
+          rm -rf rollback-supabase && mkdir -p rollback-supabase/source rollback-supabase/supabase/functions/'${{ steps.cfg.outputs.supabase_function_name }}'
+          tar -xzf '${{ steps.source_verify.outputs.file }}' -C rollback-supabase/source
+          test -s rollback-supabase/source/index.ts
+          cp rollback-supabase/source/* rollback-supabase/supabase/functions/'${{ steps.cfg.outputs.supabase_function_name }}'/
+          printf '[functions.%s]\nverify_jwt = true\n' '${{ steps.cfg.outputs.supabase_function_name }}' > rollback-supabase/supabase/config.toml
+
+      - name: Set up Supabase CLI
+        if: steps.supabase_prepare.outcome == 'success'
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.115.0
+
+      - name: Restore Supabase Edge Function artifact
+        id: supabase_restore
+        if: steps.supabase_prepare.outcome == 'success'
+        working-directory: rollback-supabase
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase functions deploy '${{ steps.cfg.outputs.supabase_function_name }}' --project-ref '${{ steps.cfg.outputs.supabase_project_ref }}'
+          echo "url=https://${{ steps.cfg.outputs.supabase_project_ref }}.supabase.co/functions/v1/${{ steps.cfg.outputs.supabase_function_name }}" >> "$GITHUB_OUTPUT"
+
+      - name: Verify Supabase rollback
+        id: supabase_verify
+        if: steps.supabase_restore.outcome == 'success'
+        env:
+          SUPABASE_FUNCTION_SMOKE_JWT: ${{ secrets.SUPABASE_FUNCTION_SMOKE_JWT }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL='${{ steps.supabase_restore.outputs.url }}'
+          CODE=$(curl -sS -o /tmp/unauth -w '%{http_code}' "$URL")
+          test "$CODE" = '401'
+          curl -fsS --retry 5 --retry-delay 2 --retry-all-errors -H "Authorization: Bearer ${SUPABASE_FUNCTION_SMOKE_JWT}" -H "apikey: ${SUPABASE_FUNCTION_SMOKE_JWT}" "$URL" -o /tmp/auth
+          test -s /tmp/auth
+          echo "provider_url=$URL" >> "$GITHUB_OUTPUT"
+
+      - name: Restore mobile immutable artifact
+        id: mobile_restore
+        if: steps.claim.outputs.target_adapter == 'mobile-release-artifact' && steps.source_verify.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: vl-rollback-${{ steps.claim.outputs.rollback_audit_id }}-android
+          path: ${{ steps.source_verify.outputs.file }}
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Build rollback result
+        id: result
+        if: always() && steps.claim.outputs.status == 'leased'
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json,os
+          adapter='${{ steps.claim.outputs.target_adapter }}'
+          sha='${{ steps.source_verify.outputs.sha }}'
+          ok=False; url=''; checks=[]
+          if adapter.startswith('vercel-'):
+            ok='${{ steps.vercel_verify.outcome }}'=='success'; url='${{ steps.vercel_verify.outputs.provider_url }}'; checks=[{'check_key':'http_status','status':'pass' if ok else 'fail'}]
+            if adapter=='vercel-pwa-production': checks += [{'check_key':'manifest','status':'pass' if ok else 'fail'},{'check_key':'service_worker','status':'pass' if ok else 'fail'}]
+          elif adapter=='supabase-edge-function':
+            ok='${{ steps.supabase_verify.outcome }}'=='success'; url='${{ steps.supabase_verify.outputs.provider_url }}'; checks=[{'check_key':'jwt_contract','status':'pass' if ok else 'fail'},{'check_key':'authenticated_smoke','status':'pass' if ok else 'fail'}]
+          elif adapter=='mobile-release-artifact':
+            ok='${{ steps.mobile_restore.outcome }}'=='success'; checks=[{'check_key':'artifact_republished','status':'pass' if ok else 'fail'},{'check_key':'sha256_match','status':'pass' if ok else 'fail'}]
+          result={'artifact_sha256':sha,'provider_url':url or None,'post_rollback_verification':'PASS' if ok else 'FAIL','verification_checks':checks,'immutable_no_rebuild':True,'github_run_id':'${{ github.run_id }}','github_sha':'${{ github.sha }}'}
+          json.dump({'success':ok,'result':result},open('rollback-result.json','w'))
+          PY
+
+      - name: Complete rollback job
+        if: always() && steps.claim.outputs.status == 'leased'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY' > complete.json
+          import json
+          r=json.load(open('rollback-result.json'))
+          print(json.dumps({'action':'complete','rollback_audit_id':'${{ steps.claim.outputs.rollback_audit_id }}','lease_token':'${{ steps.claim.outputs.lease_token }}','success':r['success'],'result':r['result'],'error_text':None if r['success'] else 'Production rollback execution or verification failed'}))
+          PY
+          curl -fsSL -X POST \
+            -H "Authorization: Bearer ${VRS_ROLLBACK_TOKEN}" \
+            -H 'Content-Type: application/json' \
+            'https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vrs-rollback-oidc' \
+            --data-binary @complete.json | tee rollback-complete.json
