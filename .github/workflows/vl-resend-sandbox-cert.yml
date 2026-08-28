@@ -37,7 +37,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [ "$EVENT_NAME" = "push" ]; then scenario="bounced"; else scenario="${INPUT_SCENARIO:-delivered}"; fi
+          if [ "$EVENT_NAME" = "push" ]; then scenario="delivered"; else scenario="${INPUT_SCENARIO:-delivered}"; fi
           label="run-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           export scenario label
           body=$(python3 -c 'import json,os;print(json.dumps({"scenario":os.environ["scenario"],"label":os.environ["label"]}))')
