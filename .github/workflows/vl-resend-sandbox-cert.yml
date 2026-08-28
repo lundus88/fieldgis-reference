@@ -33,12 +33,14 @@ jobs:
         env:
           TOKEN: ${{ steps.oidc.outputs.token }}
           INPUT_SCENARIO: ${{ inputs.scenario }}
+          EVENT_NAME: ${{ github.event_name }}
         shell: bash
         run: |
           set -euo pipefail
-          scenario="${INPUT_SCENARIO:-delivered}"
+          if [ "$EVENT_NAME" = "push" ]; then scenario="bounced"; else scenario="${INPUT_SCENARIO:-delivered}"; fi
           label="run-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
-          body=$(python3 -c 'import json,os;print(json.dumps({"scenario":os.environ["scenario"],"label":os.environ["label"]}))' 2>/dev/null) || body="{\"scenario\":\"${scenario}\",\"label\":\"${label}\"}"
+          export scenario label
+          body=$(python3 -c 'import json,os;print(json.dumps({"scenario":os.environ["scenario"],"label":os.environ["label"]}))')
           code=$(curl -sS -o /tmp/r.json -w '%{http_code}' -X POST 'https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vl-resend-ci-sandbox' -H "Authorization: Bearer ${TOKEN}" -H 'content-type: application/json' --data "$body")
           cat /tmp/r.json
           test "$code" = 200
