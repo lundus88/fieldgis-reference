@@ -319,7 +319,7 @@ jobs:
           name: ${{ steps.result.outputs.name }}
           path: ${{ steps.result.outputs.path }}
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 90
 
       - name: Callback VL
         if: always() && steps.claim.outputs.status == 'leased'
