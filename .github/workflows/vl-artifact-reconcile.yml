@@ -1,0 +1,138 @@
+name: VL Artifact Provenance Reconciliation
+
+on:
+  workflow_run:
+    workflows: ["VL Factory Runner"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "VL Factory Runner run ID to reconcile"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+  id-token: write
+
+concurrency:
+  group: vl-artifact-reconcile-${{ github.event.workflow_run.id || inputs.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Resolve source run
+        id: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            RUN_ID='${{ github.event.workflow_run.id }}'
+            HEAD_SHA='${{ github.event.workflow_run.head_sha }}'
+          else
+            RUN_ID='${{ inputs.run_id }}'
+            HEAD_SHA=''
+          fi
+          test -n "$RUN_ID"
+          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+          echo "head_sha=$HEAD_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Read immutable GitHub artifact metadata
+        id: artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ steps.source.outputs.run_id }}
+          EVENT_HEAD_SHA: ${{ steps.source.outputs.head_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os, re, urllib.request
+
+          repo=os.environ['GITHUB_REPOSITORY']
+          run_id=os.environ['RUN_ID']
+          req=urllib.request.Request(
+              f"https://api.github.com/repos/{repo}/actions/runs/{run_id}/artifacts?per_page=100",
+              headers={
+                  'Authorization':f"Bearer {os.environ['GH_TOKEN']}",
+                  'Accept':'application/vnd.github+json',
+                  'X-GitHub-Api-Version':'2022-11-28',
+              },
+          )
+          with urllib.request.urlopen(req) as r:
+              data=json.load(r)
+          rows=[]
+          for a in data.get('artifacts',[]):
+              name=str(a.get('name') or '')
+              m=re.match(r'^vl-factory-([0-9a-fA-F-]{36})-.+$',name)
+              if not m:
+                  continue
+              digest=str(a.get('digest') or '')
+              artifact_id=str(a.get('id') or '')
+              expires=str(a.get('expires_at') or '')
+              if a.get('expired') is True:
+                  raise SystemExit(f'artifact already expired: {name}')
+              if not re.fullmatch(r'sha256:[0-9a-fA-F]{64}',digest):
+                  raise SystemExit(f'missing/invalid GitHub artifact digest: {name}')
+              if not artifact_id.isdigit() or not expires:
+                  raise SystemExit(f'missing physical artifact identity: {name}')
+              wr=a.get('workflow_run') or {}
+              head_sha=str(wr.get('head_sha') or os.environ.get('EVENT_HEAD_SHA') or '')
+              if not re.fullmatch(r'[0-9a-fA-F]{40}',head_sha):
+                  raise SystemExit(f'missing/invalid workflow head SHA: {name}')
+              rows.append({
+                  'factory_run_id':m.group(1),
+                  'github_run_id':run_id,
+                  'github_artifact_id':artifact_id,
+                  'github_artifact_digest':digest.lower(),
+                  'github_head_sha':head_sha.lower(),
+                  'github_artifact_expires_at':expires,
+                  'artifact_name':name,
+              })
+          if not rows:
+              print('No VL factory artifacts found for source run.')
+          with open('artifact-provenance.json','w') as f:
+              json.dump(rows,f,indent=2)
+          print(json.dumps(rows,indent=2))
+          PY
+
+      - name: Get reconciliation OIDC token
+        shell: bash
+        run: |
+          set -euo pipefail
+          RAW=$(curl -fsSL -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=vrs-artifact-reconcile")
+          TOKEN=$(python3 -c 'import json,sys; print(json.load(sys.stdin)["value"])' <<<"$RAW")
+          echo "::add-mask::$TOKEN"
+          echo "VRS_RECONCILE_OIDC_TOKEN=$TOKEN" >> "$GITHUB_ENV"
+
+      - name: Reconcile physical provenance into VL
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os, subprocess
+          rows=json.load(open('artifact-provenance.json'))
+          for row in rows:
+              p=subprocess.run([
+                  'curl','-fsSL','-X','POST',
+                  '-H',f"Authorization: Bearer {os.environ['VRS_RECONCILE_OIDC_TOKEN']}",
+                  '-H','Content-Type: application/json',
+                  'https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vrs-artifact-reconcile-oidc',
+                  '--data-binary',json.dumps(row),
+              ],text=True,capture_output=True)
+              if p.returncode != 0:
+                  raise SystemExit(p.stderr or p.stdout or 'reconciliation request failed')
+              data=json.loads(p.stdout)
+              if data.get('decision') not in ('reconciled','already_reconciled'):
+                  raise SystemExit(f"unexpected reconciliation response: {data}")
+              print(json.dumps({
+                  'factory_run_id':row['factory_run_id'],
+                  'artifact_name':row['artifact_name'],
+                  'decision':data.get('decision'),
+              }))
+          PY
