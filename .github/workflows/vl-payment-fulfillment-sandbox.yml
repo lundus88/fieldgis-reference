@@ -1,0 +1,61 @@
+name: VL Payment Fulfillment Sandbox
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [vl/golden-transaction-payment-notification]
+    paths: [.github/workflows/vl-payment-fulfillment-sandbox.yml]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  verified-fulfillment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get fulfillment OIDC token
+        id: oidc
+        shell: bash
+        run: |
+          set -euo pipefail
+          r=$(curl -sS -H "Authorization: Bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=vrs-payment-fulfillment-sandbox")
+          t=$(printf '%s' "$r" | python3 -c 'import sys,json;print(json.load(sys.stdin)["value"])')
+          echo "token=$t" >> "$GITHUB_OUTPUT"
+      - name: Fulfill verified RM1 sandbox payment
+        env:
+          TOKEN: ${{ steps.oidc.outputs.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          body='{"order_id":"acb5a908-b1c1-45c2-b435-d822c1fbf8e5","action_key":"golden-paid-b4de7b222314c45c"}'
+          code=$(curl -sS -o /tmp/f.json -w '%{http_code}' -X POST 'https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vl-payment-fulfill-sandbox-oidc' -H "Authorization: Bearer ${TOKEN}" -H 'content-type: application/json' --data "$body")
+          cat /tmp/f.json
+          test "$code" = 200
+          python3 - <<'PY'
+          import json
+          d=json.load(open('/tmp/f.json'))
+          assert d['ok'] is True
+          assert d['environment']=='sandbox'
+          assert d['production_action'] is False
+          assert d['result']['ok'] is True
+          assert d['result']['status']=='fulfilled'
+          PY
+      - name: Repeat same action key and require idempotency
+        env:
+          TOKEN: ${{ steps.oidc.outputs.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          body='{"order_id":"acb5a908-b1c1-45c2-b435-d822c1fbf8e5","action_key":"golden-paid-b4de7b222314c45c"}'
+          curl -fsS -o /tmp/d.json -X POST 'https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vl-payment-fulfill-sandbox-oidc' -H "Authorization: Bearer ${TOKEN}" -H 'content-type: application/json' --data "$body"
+          cat /tmp/d.json
+          python3 - <<'PY'
+          import json
+          d=json.load(open('/tmp/d.json'))
+          assert d['result']['ok'] is True
+          assert d['result']['duplicate'] is True
+          assert d['result']['status']=='fulfilled'
+          PY
+      - name: Scope guard
+        run: echo 'SANDBOX ONLY. No production action or promotion.'
