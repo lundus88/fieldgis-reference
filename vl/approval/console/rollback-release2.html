@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VL Release 2 Rollback Authorization</title>
+<style>
+:root{color-scheme:dark;font-family:Inter,system-ui,sans-serif}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0b1020;color:#e8eefc}.card{width:min(92vw,700px);background:#11182c;border:1px solid #26314f;border-radius:18px;padding:24px;box-shadow:0 20px 70px #0008}h1{margin:0 0 8px;font-size:1.35rem}p{color:#aeb9d4;line-height:1.5}label{display:block;margin:14px 0 6px;font-weight:600}input,textarea,button{width:100%;box-sizing:border-box;border-radius:10px;border:1px solid #33415f;background:#0d1425;color:#fff;padding:12px;font:inherit}textarea{min-height:90px;resize:vertical}button{margin-top:14px;cursor:pointer;background:#a82626;border-color:#a82626;font-weight:700}button.secondary{background:#1769e0;border-color:#1769e0}button:disabled{opacity:.5;cursor:not-allowed}.meta{margin-top:18px;padding:12px;border-radius:10px;background:#0d1425;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.84rem;overflow-wrap:anywhere}.ok{color:#72e6a6}.hidden{display:none}
+</style>
+</head>
+<body>
+<main class="card">
+<h1>VL Release 2 Rollback Authorization</h1>
+<p>Explicit human authorization to rehearse a real production rollback. This page uses your authenticated Supabase session and calls the fail-closed rollback RPC directly. No service-role key is embedded.</p>
+<section id="loginPanel">
+<label for="email">Email</label><input id="email" type="email" autocomplete="username">
+<label for="password">Password</label><input id="password" type="password" autocomplete="current-password">
+<button id="loginBtn" class="secondary">Sign in</button>
+</section>
+<section id="rollbackPanel" class="hidden">
+<div class="meta">Current deployment: <b>48922f00-c901-4bee-ac16-cce4981e853c</b><br>Current release: <b>vl-20260828131438-5d0cb635</b><br>Rollback target: <b>6a5f15f6-19af-471b-91ad-6dc2ff7a3a63</b><br>Target release: <b>vl-20260827121208-09d2c2aa</b><br>Target artifact SHA-256: <b>09d2c2aa46e4d408f9a1851e9a4ab42c4d13ef533c54d8558dfc952a77becf5a</b></div>
+<label for="reason">Rollback reason</label>
+<textarea id="reason">Explicit human authorization for controlled production rollback rehearsal from Release 2 to verified Release 1.</textarea>
+<button id="rollbackBtn">Authorize R2 → R1 Rollback</button>
+<button id="logoutBtn" class="secondary">Sign out</button>
+</section>
+<div id="status" class="meta">Not signed in.</div>
+</main>
+<script type="module">
+import{createClient}from'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+const U='https://wczelfmnqpgzfdszxubl.supabase.co',K='sb_publishable_lWy0g5rcNuhg52xpI9w7Og_2bGXLiOR',D='48922f00-c901-4bee-ac16-cce4981e853c';
+const sb=createClient(U,K,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}}),$=id=>document.getElementById(id);
+function setStatus(msg,ok=false){$('status').textContent=msg;$('status').className='meta '+(ok?'ok':'')}
+async function render(){const{data:{session}}=await sb.auth.getSession(),on=!!session?.access_token;$('loginPanel').classList.toggle('hidden',on);$('rollbackPanel').classList.toggle('hidden',!on);setStatus(on?'Signed in as '+session.user.email+'. Rollback authorization is ready.':'Not signed in.',on)}
+$('loginBtn').onclick=async()=>{$('loginBtn').disabled=true;setStatus('Signing in...');const{error}=await sb.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});$('loginBtn').disabled=false;if(error)return setStatus('Sign-in failed: '+error.message);await render()};
+$('rollbackBtn').onclick=async()=>{if(!confirm('AUTHORIZE REAL PRODUCTION ROLLBACK from Release 2 to Release 1?'))return;$('rollbackBtn').disabled=true;setStatus('Submitting authenticated rollback authorization...');try{const{data:{session}}=await sb.auth.getSession();if(!session?.access_token)throw new Error('No authenticated session');const r=await fetch(U+'/rest/v1/rpc/request_vrs_production_rollback',{method:'POST',headers:{Authorization:'Bearer '+session.access_token,apikey:K,'Content-Type':'application/json'},body:JSON.stringify({p_deployment_id:D,p_reason:$('reason').value.trim()})});const p=await r.json().catch(()=>({}));if(!r.ok)throw new Error(JSON.stringify(p));setStatus('ROLLBACK AUTHORIZED: '+JSON.stringify(p),true)}catch(e){setStatus('Rollback authorization failed: '+(e.message||e))}finally{$('rollbackBtn').disabled=false}};
+$('logoutBtn').onclick=async()=>{await sb.auth.signOut();await render()};await render();
+</script>
+</body>
+</html>
