@@ -1,0 +1,50 @@
+name: VL Operational Alerts
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/5 * * * *'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/vl-operational-alerts.yml'
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: vl-operational-alerts
+  cancel-in-progress: false
+
+jobs:
+  alert:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get operational alerts OIDC token
+        shell: bash
+        run: |
+          set -euo pipefail
+          RAW=$(curl -fsSL -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=vrs-operational-alerts")
+          TOKEN=$(python3 -c 'import json,sys; print(json.load(sys.stdin)["value"])' <<<"$RAW")
+          echo "::add-mask::$TOKEN"
+          echo "VRS_ALERT_TOKEN=$TOKEN" >> "$GITHUB_ENV"
+      - name: Dispatch operational alert
+        shell: bash
+        run: |
+          set -euo pipefail
+          RESP=$(curl -fsSL -X POST \
+            -H "Authorization: Bearer ${VRS_ALERT_TOKEN}" \
+            -H 'Content-Type: application/json' \
+            'https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vrs-operational-alerts-oidc' \
+            -d '{}')
+          echo "$RESP"
+          python3 - <<'PY' <<<"$RESP"
+          import json,sys
+          d=json.load(sys.stdin)
+          if d.get('error'):
+              raise SystemExit(d['error'])
+          print('operational alert status:', d.get('status','unknown'))
+          PY
