@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
       - name: Get GitHub OIDC token
         shell: bash
@@ -59,14 +59,14 @@ jobs:
       # ---------- Mobile Flutter ----------
       - name: Set up Java 21
         if: steps.claim.outputs.builder_key == 'mobile-flutter-v1'
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
         with:
           distribution: temurin
           java-version: '21'
 
       - name: Set up Flutter
         if: steps.claim.outputs.builder_key == 'mobile-flutter-v1'
-        uses: subosito/flutter-action@v2
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
         with:
           flutter-version: '3.38.1'
           channel: stable
@@ -118,7 +118,7 @@ jobs:
       # ---------- Node builders ----------
       - name: Set up Node 22
         if: steps.claim.outputs.builder_key == 'gis-web-v1' || steps.claim.outputs.builder_key == 'web-react-v1' || steps.claim.outputs.builder_key == 'pwa-react-v1'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '22'
 
@@ -251,7 +251,7 @@ jobs:
       # ---------- API builder ----------
       - name: Set up Deno
         if: steps.claim.outputs.builder_key == 'api-service-v1'
-        uses: denoland/setup-deno@v2
+        uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed
         with:
           deno-version: v2.x
 
@@ -314,7 +314,7 @@ jobs:
 
       - name: Upload runner artifact
         if: steps.result.outputs.ok == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: ${{ steps.result.outputs.name }}
           path: ${{ steps.result.outputs.path }}
