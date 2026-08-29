@@ -1,0 +1,34 @@
+name: VL Release Validator Drain
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/vl-release-validator-drain.yml'
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  dispatch-validator:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Dispatch bounded validator drain
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for i in 1 2 3 4; do
+            gh api --method POST \
+              -H 'Accept: application/vnd.github+json' \
+              repos/lundus88/fieldgis-reference/actions/workflows/vl-release-validator.yml/dispatches \
+              -f ref=main
+            echo "validator dispatch $i/4 submitted"
+            sleep 2
+          done
+      - name: Scope guard
+        run: echo 'Dispatch-only drain; validator remains OIDC fail-closed and production approval is untouched.'
