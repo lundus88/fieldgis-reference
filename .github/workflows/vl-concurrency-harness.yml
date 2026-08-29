@@ -1,0 +1,156 @@
+name: VL Concurrency Lease Harness
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - vl/concurrency-harness-20260829
+    paths:
+      - .github/workflows/vl-concurrency-harness.yml
+
+permissions:
+  contents: read
+
+jobs:
+  lease-race:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: vltest
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d vltest"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: vltest
+    steps:
+      - name: Create isolated lease model
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -v ON_ERROR_STOP=1 <<'SQL'
+          create extension if not exists pgcrypto;
+          create table jobs(
+            id uuid primary key default gen_random_uuid(),
+            state text not null default 'queued',
+            attempts int not null default 0,
+            max_attempts int not null default 3,
+            lease_token uuid,
+            leased_at timestamptz,
+            lease_expires_at timestamptz,
+            finished_at timestamptz
+          );
+          insert into jobs default values;
+
+          create or replace function claim_job(p_worker text, p_hold_seconds int default 0)
+          returns jsonb language plpgsql as $$
+          declare j jobs%rowtype; tok uuid:=gen_random_uuid();
+          begin
+            select * into j from jobs
+             where (state='queued' or (state='leased' and lease_expires_at<now()))
+               and attempts<max_attempts
+             order by id
+             for update skip locked
+             limit 1;
+            if not found then return jsonb_build_object('status','idle','worker',p_worker); end if;
+            if p_hold_seconds>0 then perform pg_sleep(p_hold_seconds); end if;
+            update jobs set state='leased',attempts=attempts+1,lease_token=tok,
+              leased_at=now(),lease_expires_at=now()+interval '20 minutes'
+              where id=j.id returning * into j;
+            return jsonb_build_object('status','leased','worker',p_worker,'job_id',j.id,'lease_token',tok,'attempt',j.attempts);
+          end $$;
+
+          create or replace function complete_job(p_job_id uuid,p_lease_token uuid)
+          returns jsonb language plpgsql as $$
+          declare j jobs%rowtype;
+          begin
+            select * into j from jobs where id=p_job_id for update;
+            if not found then raise exception 'job not found'; end if;
+            if j.state<>'leased' or j.lease_token is distinct from p_lease_token then raise exception 'invalid lease'; end if;
+            if j.lease_expires_at<now() then raise exception 'lease expired'; end if;
+            update jobs set state='succeeded',finished_at=now() where id=j.id;
+            return jsonb_build_object('status','recorded','decision','succeeded');
+          end $$;
+          SQL
+
+      - name: Run two simultaneous claim workers
+        shell: bash
+        run: |
+          set -euo pipefail
+          (psql -Atqc "select claim_job('worker-a',3)" > /tmp/a.json) &
+          A=$!
+          sleep 0.5
+          (psql -Atqc "select claim_job('worker-b',0)" > /tmp/b.json) &
+          B=$!
+          wait "$A"
+          wait "$B"
+          echo "worker-a=$(cat /tmp/a.json)"
+          echo "worker-b=$(cat /tmp/b.json)"
+
+      - name: Assert exactly one lease and one idle result
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          a=json.load(open('/tmp/a.json'))
+          b=json.load(open('/tmp/b.json'))
+          statuses=sorted([a['status'],b['status']])
+          assert statuses == ['idle','leased'], (a,b)
+          leased=a if a['status']=='leased' else b
+          assert leased['attempt']==1, leased
+          open('/tmp/job_id','w').write(leased['job_id'])
+          open('/tmp/lease_token','w').write(leased['lease_token'])
+          print('PASS: exactly one worker leased the job; concurrent worker skipped the locked row')
+          PY
+          test "$(psql -Atqc 'select attempts from jobs')" = "1"
+          test "$(psql -Atqc 'select state from jobs')" = "leased"
+
+      - name: Reject wrong lease token
+        shell: bash
+        run: |
+          set -euo pipefail
+          JOB=$(cat /tmp/job_id)
+          WRONG=$(python3 - <<'PY'
+          import uuid
+          print(uuid.uuid4())
+          PY
+          )
+          if psql -v ON_ERROR_STOP=1 -Atqc "select complete_job('$JOB','$WRONG')" >/tmp/wrong.out 2>/tmp/wrong.err; then
+            echo 'ERROR: wrong lease token was accepted'
+            exit 1
+          fi
+          grep -q 'invalid lease' /tmp/wrong.err
+          test "$(psql -Atqc 'select state from jobs')" = "leased"
+          echo 'PASS: wrong lease token rejected without state mutation'
+
+      - name: Complete once and reject duplicate completion
+        shell: bash
+        run: |
+          set -euo pipefail
+          JOB=$(cat /tmp/job_id)
+          TOKEN=$(cat /tmp/lease_token)
+          psql -v ON_ERROR_STOP=1 -Atqc "select complete_job('$JOB','$TOKEN')" | tee /tmp/complete.json
+          test "$(psql -Atqc 'select state from jobs')" = "succeeded"
+          if psql -v ON_ERROR_STOP=1 -Atqc "select complete_job('$JOB','$TOKEN')" >/tmp/dup.out 2>/tmp/dup.err; then
+            echo 'ERROR: duplicate completion was accepted'
+            exit 1
+          fi
+          grep -q 'invalid lease' /tmp/dup.err
+          test "$(psql -Atqc 'select attempts from jobs')" = "1"
+          echo 'PASS: completion applied once; duplicate completion rejected'
+
+      - name: Scope guard
+        run: |
+          echo 'ISOLATED TEST ONLY: local PostgreSQL service container; no production credentials, jobs, deployments, payments, or rollback actions.'
