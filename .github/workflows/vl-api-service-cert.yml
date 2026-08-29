@@ -16,8 +16,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: denoland/setup-deno@v2
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed
         with:
           deno-version: v2.x
       - name: Create reference API harness
@@ -62,7 +62,7 @@ jobs:
           cp hash-a.txt evidence/artifact-sha256.txt
           printf 'builder_id=api-service-v1\nstatus=passed\ngithub_run_id=%s\ngithub_sha=%s\n' '${{ github.run_id }}' '${{ github.sha }}' > evidence/result.txt
           tar -czf vl-api-service-v1-cert-evidence.tgz evidence cert-work
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: vl-api-service-v1-cert-evidence
           path: vl-api-service-v1-cert-evidence.tgz
