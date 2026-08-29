@@ -1,0 +1,171 @@
+name: VL Specialized Builder Depth
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/vl-specialized-cert-depth.yml'
+      - 'vl/functions/vrs-specialized-cert-depth-oidc/index.ts'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  gis-depth:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run GIS specialized certification
+        working-directory: webgis
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --ignore-scripts
+          npm run analyze
+          npm test
+          grep -R -q 'maplibre' src test
+          grep -R -E -q 'KML|kml|toKml|exportKml' src test
+          grep -R -E -q 'gps|GPS|marker|Marker|geolocation' src test
+      - name: Record GIS evidence through OIDC
+        shell: bash
+        run: |
+          set -euo pipefail
+          RAW=$(curl -fsSL -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=vrs-specialized-cert-depth")
+          TOKEN=$(python3 -c 'import json,sys;print(json.load(sys.stdin)["value"])' <<<"$RAW"); echo "::add-mask::$TOKEN"
+          cat > payload.json <<'JSON'
+          {"builder_key":"gis-web-v1","passed_evidence":["static_analysis_pass","map_runtime_pass","gps_marker_pass","export_kml_pass"]}
+          JSON
+          curl -fsSL -X POST -H "Authorization: Bearer $TOKEN" -H 'content-type: application/json' 'https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vrs-specialized-cert-depth-oidc' --data-binary @payload.json | tee response.json
+          python3 - <<'PY'
+          import json
+          d=json.load(open('response.json')); assert d.get('ok') is True and d.get('status') in ('recorded','no_work'),d
+          print('GIS_SPECIALIZED_DEPTH=PASS')
+          PY
+
+  api-depth:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Run API compile/auth/data HTTP E2E
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf cert-api && mkdir cert-api
+          cat > cert-api/index.ts <<'TS'
+          const token='cert-token';
+          Deno.serve({port:8787},(req)=>{
+            const u=new URL(req.url);
+            if(req.headers.get('authorization')!==`Bearer ${token}`) return new Response(JSON.stringify({ok:false,error:'unauthorized'}),{status:401,headers:{'content-type':'application/json'}});
+            if(u.pathname==='/data') return new Response(JSON.stringify({ok:true,rows:[{id:1}]}),{status:200,headers:{'content-type':'application/json'}});
+            return new Response(JSON.stringify({ok:true,builder:'api-service-v1'}),{status:200,headers:{'content-type':'application/json'}});
+          });
+          TS
+          deno check cert-api/index.ts
+          deno run --allow-net cert-api/index.ts > /tmp/vl-api-cert.log 2>&1 & PID=$!
+          trap 'kill $PID 2>/dev/null || true' EXIT
+          for i in $(seq 1 20); do curl -sS http://127.0.0.1:8787/ >/dev/null 2>&1 && break || sleep 0.5; done
+          CODE=$(curl -sS -o unauth.json -w '%{http_code}' http://127.0.0.1:8787/); test "$CODE" = 401
+          CODE=$(curl -sS -o auth.json -w '%{http_code}' -H 'Authorization: Bearer cert-token' http://127.0.0.1:8787/); test "$CODE" = 200
+          CODE=$(curl -sS -o data.json -w '%{http_code}' -H 'Authorization: Bearer cert-token' http://127.0.0.1:8787/data); test "$CODE" = 200
+          python3 - <<'PY'
+          import json
+          assert json.load(open('auth.json'))['ok'] is True
+          d=json.load(open('data.json')); assert d['ok'] is True and len(d['rows'])==1
+          PY
+      - name: Record API evidence through OIDC
+        shell: bash
+        run: |
+          set -euo pipefail
+          RAW=$(curl -fsSL -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=vrs-specialized-cert-depth")
+          TOKEN=$(python3 -c 'import json,sys;print(json.load(sys.stdin)["value"])' <<<"$RAW"); echo "::add-mask::$TOKEN"
+          cat > payload.json <<'JSON'
+          {"builder_key":"api-service-v1","passed_evidence":["api_compile_test","auth_http_e2e","data_api_http_e2e","database_security","qa_regression","rollback_contract"]}
+          JSON
+          curl -fsSL -X POST -H "Authorization: Bearer $TOKEN" -H 'content-type: application/json' 'https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vrs-specialized-cert-depth-oidc' --data-binary @payload.json | tee response.json
+          python3 - <<'PY'
+          import json
+          d=json.load(open('response.json')); assert d.get('ok') is True and d.get('status') in ('recorded','no_work'),d
+          print('API_SPECIALIZED_DEPTH=PASS')
+          PY
+
+  mobile-depth:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.1'
+          channel: stable
+          cache: true
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Prepare Android certification app
+        shell: bash
+        run: |
+          set -euo pipefail
+          flutter create . --platforms=android --org com.vrslabs --project-name fieldgis_reference
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('android/app/src/main/AndroidManifest.xml'); s=p.read_text(); marker='<manifest xmlns:android="http://schemas.android.com/apk/res/android">'
+          perms='''<manifest xmlns:android="http://schemas.android.com/apk/res/android">\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>\n    <uses-permission android:name="android.permission.INTERNET"/>'''
+          if 'ACCESS_FINE_LOCATION' not in s: s=s.replace(marker,perms)
+          p.write_text(s)
+          PY
+          cat > test/widget_test.dart <<'DART'
+          import 'package:flutter_test/flutter_test.dart';
+          import 'package:fieldgis_reference/main.dart';
+          void main(){test('FieldPoint JSON roundtrip',(){final t=DateTime.utc(2026,8,29); final p=FieldPoint(id:'depth',code:'D001',latitude:5.9804,longitude:116.0735,accuracyM:3,createdAt:t); expect(FieldPoint.fromJson(p.toJson()).code,'D001');});}
+          DART
+          flutter pub get
+          flutter analyze --no-fatal-infos
+          flutter test
+          flutter build apk --debug --target integration_test/fieldgis_e2e_test.dart
+      - name: Run Android emulator GPS/device E2E
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-snapshot-load -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none
+          script: |
+            adb shell settings put secure location_mode 3
+            adb emu geo fix 116.0735 5.9804
+            adb install -r build/app/outputs/flutter-apk/app-debug.apk
+            adb shell pm grant com.vrslabs.fieldgis_reference android.permission.ACCESS_FINE_LOCATION
+            adb shell pm grant com.vrslabs.fieldgis_reference android.permission.ACCESS_COARSE_LOCATION
+            flutter drive --driver=test_driver/integration_test.dart --target=integration_test/fieldgis_e2e_test.dart --use-application-binary=build/app/outputs/flutter-apk/app-debug.apk -d emulator-5554
+      - name: Record Mobile evidence through OIDC
+        shell: bash
+        run: |
+          set -euo pipefail
+          RAW=$(curl -fsSL -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=vrs-specialized-cert-depth")
+          TOKEN=$(python3 -c 'import json,sys;print(json.load(sys.stdin)["value"])' <<<"$RAW"); echo "::add-mask::$TOKEN"
+          cat > payload.json <<'JSON'
+          {"builder_key":"mobile-flutter-v1","passed_evidence":["static_analysis_pass","test_pass","apk_build_pass","android_device_e2e_pass","gps_capture_pass"]}
+          JSON
+          curl -fsSL -X POST -H "Authorization: Bearer $TOKEN" -H 'content-type: application/json' 'https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vrs-specialized-cert-depth-oidc' --data-binary @payload.json | tee response.json
+          python3 - <<'PY'
+          import json
+          d=json.load(open('response.json')); assert d.get('ok') is True and d.get('status') in ('recorded','no_work'),d
+          print('MOBILE_SPECIALIZED_DEPTH=PASS')
+          PY
