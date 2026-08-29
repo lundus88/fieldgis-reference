@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Validate critical release governance
         shell: bash
@@ -50,23 +50,28 @@ jobs:
           rollback=read('.github/workflows/vl-production-rollback.yml')
           reconcile=read('.github/workflows/vl-artifact-reconcile.yml')
           alerts=read('.github/workflows/vl-operational-alerts.yml')
+          supply_chain=read('.github/workflows/vl-supply-chain-attestation.yml')
           approval=read('vl/approval/vrs-production-approval/index.ts')
 
           checks=[
               ('factory artifact retention must be 90 days', 'retention-days: 90' in runner),
-              ('factory runner must use upload-artifact v4', 'actions/upload-artifact@v4' in runner),
+              ('factory runner must use upload-artifact v4-compatible action', 'actions/upload-artifact@' in runner),
               ('factory runner must use OIDC', 'audience=vrs-factory-runner' in runner),
               ('production promoter must use OIDC', 'audience=vrs-production-promoter' in promoter),
-              ('production promoter must download immutable artifact', 'actions/download-artifact@v4' in promoter),
+              ('production promoter must download immutable artifact', 'actions/download-artifact@' in promoter),
               ('production promoter must verify SHA-256', 'sha256sum' in promoter and 'expected_sha256' in promoter),
               ('production rollback must use OIDC', 'audience=vrs-production-rollback' in rollback),
-              ('production rollback must download previous immutable artifact', 'actions/download-artifact@v4' in rollback),
+              ('production rollback must download previous immutable artifact', 'actions/download-artifact@' in rollback),
               ('production rollback must verify SHA-256', 'sha256sum' in rollback and 'expected_sha256' in rollback),
               ('artifact reconciliation must exist', bool(reconcile)),
               ('artifact reconciliation must use OIDC', 'id-token: write' in reconcile),
               ('operational alerts workflow must exist', bool(alerts)),
               ('operational alerts must use OIDC', 'audience=vrs-operational-alerts' in alerts and 'id-token: write' in alerts),
               ('operational alerts must call guarded dispatcher', 'vrs-operational-alerts-oidc' in alerts),
+              ('supply-chain attestation workflow must exist', bool(supply_chain)),
+              ('supply-chain attestation must use OIDC', 'audience=vrs-supply-chain-attestation' in supply_chain and 'id-token: write' in supply_chain),
+              ('supply-chain attestation must verify provenance', 'gh attestation verify' in supply_chain),
+              ('supply-chain attestation must verify SPDX SBOM', 'https://spdx.dev/Document/v2.3' in supply_chain),
               ('production approval endpoint source must exist', bool(approval)),
               ('production approval endpoint must forward caller bearer token', 'Authorization: auth' in approval),
               ('production approval endpoint must use official approval RPC', 'approve_vrs_production_release' in approval),
@@ -75,12 +80,24 @@ jobs:
           for label, ok in checks:
               if not ok: errors.append(label)
 
+          # Supply-chain signing workflow must be immutable at the action level.
+          # Every `uses:` reference in this workflow must resolve to a full 40-hex commit SHA.
+          for lineno,line in enumerate(supply_chain.splitlines(),1):
+              m=re.search(r'\buses:\s*([^\s#]+)', line)
+              if not m: continue
+              ref=m.group(1)
+              if ref.startswith('./'):
+                  continue
+              if '@' not in ref or not re.fullmatch(r'[^@]+@[0-9a-fA-F]{40}', ref):
+                  errors.append(f'supply-chain action is not commit-SHA pinned at line {lineno}: {ref}')
+
           critical={
               'factory runner': runner,
               'production promoter': promoter,
               'production rollback': rollback,
               'artifact reconcile': reconcile,
               'operational alerts': alerts,
+              'supply-chain attestation': supply_chain,
           }
           for name,text in critical.items():
               if re.search(r'(?m)^\s*contents:\s*write\s*$', text):
