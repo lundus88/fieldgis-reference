@@ -7,7 +7,10 @@ const ISSUER = "https://token.actions.githubusercontent.com";
 const AUDIENCE = "vrs-supply-chain-attestation";
 const REPOSITORY = "lundus88/fieldgis-reference";
 const MAIN_REF = "refs/heads/main";
-const ALLOWED_WORKFLOW = "lundus88/fieldgis-reference/.github/workflows/vl-supply-chain-attestation.yml@refs/heads/main";
+const ALLOWED_WORKFLOWS = new Set([
+  "lundus88/fieldgis-reference/.github/workflows/vl-supply-chain-attestation.yml@refs/heads/main",
+  "lundus88/fieldgis-reference/.github/workflows/vl-supply-chain-backfill.yml@refs/heads/main",
+]);
 const sb = createClient(SUPABASE_URL, SERVICE_ROLE, { auth: { persistSession: false } });
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
@@ -27,7 +30,7 @@ async function verifyOidc(jwt: string) {
   const header = JSON.parse(new TextDecoder().decode(b64url(parts[0])));
   const payload = JSON.parse(new TextDecoder().decode(b64url(parts[1])));
   const workflowRef = String(payload.job_workflow_ref || payload.workflow_ref || "");
-  if (payload.iss !== ISSUER || payload.aud !== AUDIENCE || payload.repository !== REPOSITORY || payload.ref !== MAIN_REF || workflowRef !== ALLOWED_WORKFLOW) {
+  if (payload.iss !== ISSUER || payload.aud !== AUDIENCE || payload.repository !== REPOSITORY || payload.ref !== MAIN_REF || !ALLOWED_WORKFLOWS.has(workflowRef)) {
     throw new Error("OIDC identity not allowed");
   }
   const jwks = await (await fetch(`${ISSUER}/.well-known/jwks`)).json();
