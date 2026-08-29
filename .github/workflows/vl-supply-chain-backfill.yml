@@ -1,0 +1,129 @@
+name: VL Supply Chain Backfill
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/vl-supply-chain-backfill.yml'
+
+permissions:
+  contents: read
+  actions: read
+  id-token: write
+  attestations: write
+
+jobs:
+  attest-backfill:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - factory_run_id: '1787e19a-f430-4e45-b4c7-26af3a8b5314'
+            builder_key: 'web-react-v1'
+            artifact_id: '9713351902'
+            build_run_id: '33159413911'
+          - factory_run_id: 'a362151f-9ce5-4b42-b102-4de3c0c1eecb'
+            builder_key: 'gis-web-v1'
+            artifact_id: '9713508644'
+            build_run_id: '33172303007'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Download exact immutable Factory Runner artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT_ID: ${{ matrix.artifact_id }}
+          FACTORY_RUN_ID: ${{ matrix.factory_run_id }}
+          BUILDER_KEY: ${{ matrix.builder_key }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          META=$(gh api "repos/lundus88/fieldgis-reference/actions/artifacts/$ARTIFACT_ID")
+          NAME=$(printf '%s' "$META" | python3 -c 'import json,sys;print(json.load(sys.stdin)["name"])')
+          EXPIRED=$(printf '%s' "$META" | python3 -c 'import json,sys;print(str(json.load(sys.stdin)["expired"]).lower())')
+          test "$EXPIRED" = 'false'
+          test "$NAME" = "vl-factory-${FACTORY_RUN_ID}-${BUILDER_KEY}"
+          mkdir -p source-artifact
+          gh api "repos/lundus88/fieldgis-reference/actions/artifacts/$ARTIFACT_ID/zip" > source.zip
+          unzip -q source.zip -d source-artifact
+          mapfile -t FILES < <(find source-artifact -type f)
+          test "${#FILES[@]}" -eq 1
+          FILE="${FILES[0]}"
+          echo "ARTIFACT_PATH=$FILE" >> "$GITHUB_ENV"
+          echo "ARTIFACT_SHA=$(sha256sum "$FILE" | awk '{print $1}')" >> "$GITHUB_ENV"
+
+      - name: Generate SPDX 2.3 SBOM
+        env:
+          BUILDER_KEY: ${{ matrix.builder_key }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json,os,uuid
+          digest=os.environ['ARTIFACT_SHA']; builder=os.environ['BUILDER_KEY']
+          doc={
+            'spdxVersion':'SPDX-2.3','dataLicense':'CC0-1.0','SPDXID':'SPDXRef-DOCUMENT',
+            'name':f'VL {builder} artifact SBOM backfill',
+            'documentNamespace':f'https://github.com/lundus88/fieldgis-reference/spdx/{uuid.uuid4()}',
+            'creationInfo':{'created':'2026-08-29T00:00:00Z','creators':['Tool: VL-Supply-Chain-Backfill']},
+            'packages':[{'name':f'vl-artifact-{builder}','SPDXID':'SPDXRef-Package-VLArtifact','versionInfo':os.environ.get('GITHUB_SHA','unknown'),'downloadLocation':'NOASSERTION','filesAnalyzed':False,'checksums':[{'algorithm':'SHA256','checksumValue':digest}],'licenseConcluded':'NOASSERTION','licenseDeclared':'NOASSERTION','copyrightText':'NOASSERTION'}],
+            'relationships':[{'spdxElementId':'SPDXRef-DOCUMENT','relationshipType':'DESCRIBES','relatedSpdxElement':'SPDXRef-Package-VLArtifact'}]
+          }
+          json.dump(doc,open('sbom.spdx.json','w'),indent=2)
+          PY
+          echo "SBOM_SHA=$(sha256sum sbom.spdx.json | awk '{print $1}')" >> "$GITHUB_ENV"
+
+      - name: Generate signed provenance attestation
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: ${{ env.ARTIFACT_PATH }}
+
+      - name: Generate signed SPDX SBOM attestation
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: ${{ env.ARTIFACT_PATH }}
+          sbom-path: sbom.spdx.json
+
+      - name: Cryptographically verify provenance and SBOM
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh attestation verify "$ARTIFACT_PATH" -R lundus88/fieldgis-reference --format json > provenance-verify.json
+          gh attestation verify "$ARTIFACT_PATH" -R lundus88/fieldgis-reference --predicate-type https://spdx.dev/Document/v2.3 --format json > sbom-verify.json
+          python3 - <<'PY'
+          import hashlib,json,os
+          p=json.load(open('provenance-verify.json')); s=json.load(open('sbom-verify.json'))
+          assert p and s
+          pred=s[0]['verificationResult']['statement']['predicate']
+          assert pred.get('spdxVersion')=='SPDX-2.3'
+          actual=hashlib.sha256(open(os.environ['ARTIFACT_PATH'],'rb').read()).hexdigest()
+          declared=pred['packages'][0]['checksums'][0]['checksumValue']
+          assert actual==declared==os.environ['ARTIFACT_SHA']
+          PY
+
+      - name: Record mandatory gate through scoped OIDC authority
+        env:
+          FACTORY_RUN_ID: ${{ matrix.factory_run_id }}
+          BUILD_RUN_ID: ${{ matrix.build_run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          RAW=$(curl -fsSL -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=vrs-supply-chain-attestation")
+          TOKEN=$(python3 -c 'import json,sys;print(json.load(sys.stdin)["value"])' <<<"$RAW")
+          echo "::add-mask::$TOKEN"
+          python3 - <<'PY' > gate.json
+          import json,os
+          print(json.dumps({'factory_run_id':os.environ['FACTORY_RUN_ID'],'artifact_sha256':os.environ['ARTIFACT_SHA'],'build_workflow_run_id':os.environ['BUILD_RUN_ID'],'provenance_verified':True,'sbom_verified':True,'sbom_sha256':os.environ['SBOM_SHA']}))
+          PY
+          curl -fsSL -X POST -H "Authorization: Bearer $TOKEN" -H 'content-type: application/json' 'https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vrs-supply-chain-oidc' --data-binary @gate.json | tee gate-response.json
+          python3 - <<'PY'
+          import json
+          d=json.load(open('gate-response.json'))
+          assert d.get('ok') is True and d.get('mandatory') is True and (d.get('result') or {}).get('status')=='pass',d
+          PY
+
+      - name: Scope guard
+        run: echo 'Temporary certification-depth attestation backfill only; no approval or promotion.'
