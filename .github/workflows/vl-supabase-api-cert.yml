@@ -20,9 +20,9 @@ jobs:
       VL_SUPABASE_URL: https://wczelfmnqpgzfdszxubl.supabase.co
       VL_SUPABASE_PUBLISHABLE_KEY: sb_publishable_lWy0g5rcNuhg52xpI9w7Og_2bGXLiOR
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
         with:
           flutter-version: '3.38.1'
           channel: stable
