@@ -1,0 +1,23 @@
+name: VL Action Pinning Audit
+
+on:
+  push:
+    branches:
+      - vl/pin-critical-actions-20260830
+    paths:
+      - '.github/workflows/**'
+      - 'vl/scripts/check_action_pinning.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout immutable action
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Scan workflow action references
+        run: python3 vl/scripts/check_action_pinning.py
