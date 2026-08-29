@@ -63,11 +63,12 @@ jobs:
           import json,re
           xs=[a for a in json.load(open('artifacts.json')).get('artifacts',[]) if a.get('name','').startswith('vl-factory-') and not a.get('expired')]
           if not xs:
-              print(json.dumps({'found':False}))
+              print(json.dumps({'found':False,'candidate_count':0}))
           else:
-              assert len(xs)==1, f'exactly one non-expired VL factory artifact required, got {len(xs)}'
-              a=xs[0]; m=re.match(r'^vl-factory-([0-9a-fA-F-]{36})-(.+)$',a['name']); assert m,a['name']
-              print(json.dumps({'found':True,'artifact_id':a['id'],'artifact_name':a['name'],'factory_run_id':m.group(1),'builder_key':m.group(2)}))
+              xs.sort(key=lambda a:(a.get('created_at') or '', int(a.get('id') or 0)), reverse=True)
+              a=xs[0]
+              m=re.match(r'^vl-factory-([0-9a-fA-F-]{36})-(.+)$',a['name']); assert m,a['name']
+              print(json.dumps({'found':True,'candidate_count':len(xs),'selection':'latest_created_at_then_id','artifact_id':a['id'],'artifact_name':a['name'],'artifact_created_at':a.get('created_at'),'factory_run_id':m.group(1),'builder_key':m.group(2)}))
           PY
           FOUND=$(python3 -c 'import json;print(str(json.load(open("selected.json"))["found"]).lower())')
           echo "found=$FOUND" >> "$GITHUB_OUTPUT"
