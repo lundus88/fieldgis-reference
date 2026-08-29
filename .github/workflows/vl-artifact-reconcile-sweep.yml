@@ -32,65 +32,85 @@ jobs:
           echo "::add-mask::$TOKEN"
           echo "VRS_RECONCILE_OIDC_TOKEN=$TOKEN" >> "$GITHUB_ENV"
 
-      - name: Reconcile recent VL factory artifacts
+      - name: Reconcile non-expired VL factory artifacts
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import datetime, json, os, re, subprocess, urllib.request
+          import datetime, json, os, re, subprocess, urllib.parse, urllib.request
 
           repo=os.environ['GITHUB_REPOSITORY']
-          req=urllib.request.Request(
-              f'https://api.github.com/repos/{repo}/actions/artifacts?per_page=100',
-              headers={
-                  'Authorization':f"Bearer {os.environ['GH_TOKEN']}",
-                  'Accept':'application/vnd.github+json',
-                  'X-GitHub-Api-Version':'2022-11-28',
-              },
-          )
-          with urllib.request.urlopen(req) as r:
-              data=json.load(r)
-          cutoff=datetime.datetime.now(datetime.timezone.utc)-datetime.timedelta(hours=24)
+          now=datetime.datetime.now(datetime.timezone.utc)
+          cutoff=now-datetime.timedelta(days=14)
           rows=[]
-          for a in data.get('artifacts',[]):
-              name=str(a.get('name') or '')
-              m=re.match(r'^vl-factory-([0-9a-fA-F-]{36})-.+$',name)
-              if not m or a.get('expired') is True:
-                  continue
-              created=str(a.get('created_at') or '')
-              try:
-                  created_at=datetime.datetime.fromisoformat(created.replace('Z','+00:00'))
-              except ValueError:
-                  continue
-              if created_at < cutoff:
-                  continue
-              digest=str(a.get('digest') or '')
-              artifact_id=str(a.get('id') or '')
-              expires=str(a.get('expires_at') or '')
-              wr=a.get('workflow_run') or {}
-              run_id=str(wr.get('id') or '')
-              head_sha=str(wr.get('head_sha') or '')
-              if not run_id.isdigit():
-                  raise SystemExit(f'missing workflow run id: {name}')
-              if not artifact_id.isdigit() or not expires:
-                  raise SystemExit(f'missing artifact identity: {name}')
-              if not re.fullmatch(r'sha256:[0-9a-fA-F]{64}',digest):
-                  raise SystemExit(f'invalid artifact digest: {name}')
-              if not re.fullmatch(r'[0-9a-fA-F]{40}',head_sha):
-                  raise SystemExit(f'invalid workflow head SHA: {name}')
-              rows.append({
-                  'factory_run_id':m.group(1),
-                  'github_run_id':run_id,
-                  'github_artifact_id':artifact_id,
-                  'github_artifact_digest':digest.lower(),
-                  'github_head_sha':head_sha.lower(),
-                  'github_artifact_expires_at':expires,
-                  'artifact_name':name,
-              })
+          seen_ids=set()
+          max_pages=10
+
+          for page in range(1,max_pages+1):
+              qs=urllib.parse.urlencode({'per_page':100,'page':page})
+              req=urllib.request.Request(
+                  f'https://api.github.com/repos/{repo}/actions/artifacts?{qs}',
+                  headers={
+                      'Authorization':f"Bearer {os.environ['GH_TOKEN']}",
+                      'Accept':'application/vnd.github+json',
+                      'X-GitHub-Api-Version':'2022-11-28',
+                  },
+              )
+              with urllib.request.urlopen(req) as r:
+                  data=json.load(r)
+              artifacts=data.get('artifacts',[])
+              if not artifacts:
+                  break
+              for a in artifacts:
+                  name=str(a.get('name') or '')
+                  m=re.match(r'^vl-factory-([0-9a-fA-F-]{36})-.+$',name)
+                  if not m or a.get('expired') is True:
+                      continue
+                  created=str(a.get('created_at') or '')
+                  try:
+                      created_at=datetime.datetime.fromisoformat(created.replace('Z','+00:00'))
+                  except ValueError:
+                      continue
+                  if created_at < cutoff:
+                      continue
+                  digest=str(a.get('digest') or '')
+                  artifact_id=str(a.get('id') or '')
+                  expires=str(a.get('expires_at') or '')
+                  wr=a.get('workflow_run') or {}
+                  run_id=str(wr.get('id') or '')
+                  head_sha=str(wr.get('head_sha') or '')
+                  if artifact_id in seen_ids:
+                      continue
+                  if not run_id.isdigit():
+                      raise SystemExit(f'missing workflow run id: {name}')
+                  if not artifact_id.isdigit() or not expires:
+                      raise SystemExit(f'missing artifact identity: {name}')
+                  if not re.fullmatch(r'sha256:[0-9a-fA-F]{64}',digest):
+                      raise SystemExit(f'invalid artifact digest: {name}')
+                  if not re.fullmatch(r'[0-9a-fA-F]{40}',head_sha):
+                      raise SystemExit(f'invalid workflow head SHA: {name}')
+                  expires_at=datetime.datetime.fromisoformat(expires.replace('Z','+00:00'))
+                  if expires_at <= now:
+                      continue
+                  seen_ids.add(artifact_id)
+                  rows.append({
+                      'factory_run_id':m.group(1),
+                      'github_run_id':run_id,
+                      'github_artifact_id':artifact_id,
+                      'github_artifact_digest':digest.lower(),
+                      'github_head_sha':head_sha.lower(),
+                      'github_artifact_expires_at':expires,
+                      'artifact_name':name,
+                  })
+              if len(artifacts) < 100:
+                  break
+
           if not rows:
-              print('No recent VL factory artifacts to reconcile.')
+              print('No non-expired VL factory artifacts in reconciliation horizon.')
+          reconciled=0
+          already=0
           for row in rows:
               p=subprocess.run([
                   'curl','-fsSL','-X','POST',
@@ -102,7 +122,11 @@ jobs:
               if p.returncode != 0:
                   raise SystemExit(p.stderr or p.stdout or 'reconciliation request failed')
               out=json.loads(p.stdout)
-              if out.get('decision') not in ('reconciled','already_reconciled'):
+              decision=out.get('decision')
+              if decision not in ('reconciled','already_reconciled'):
                   raise SystemExit(f'unexpected reconciliation response: {out}')
-              print(json.dumps({'factory_run_id':row['factory_run_id'],'artifact_name':row['artifact_name'],'decision':out.get('decision')}))
+              reconciled += decision == 'reconciled'
+              already += decision == 'already_reconciled'
+              print(json.dumps({'factory_run_id':row['factory_run_id'],'artifact_name':row['artifact_name'],'decision':decision}))
+          print(json.dumps({'scanned_candidates':len(rows),'reconciled':reconciled,'already_reconciled':already,'horizon_days':14,'max_pages':max_pages}))
           PY
