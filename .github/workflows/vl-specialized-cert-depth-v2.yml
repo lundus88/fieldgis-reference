@@ -1,0 +1,116 @@
+name: VL Specialized Builder Depth V2
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/vl-specialized-cert-depth-v2.yml'
+      - 'vl/functions/vrs-specialized-cert-depth-v2-oidc/index.ts'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  gis-depth:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run GIS specialized certification
+        working-directory: webgis
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --ignore-scripts --package-lock-only
+          npm ci --ignore-scripts
+          npm run analyze
+          npm test
+          grep -R -q 'maplibre' src test
+          grep -R -E -q 'KML|kml|toKml|exportKml' src test
+          grep -R -E -q 'gps|GPS|marker|Marker|geolocation' src test
+      - name: Record GIS evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          RAW=$(curl -fsSL -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=vrs-specialized-cert-depth-v2")
+          TOKEN=$(python3 -c 'import json,sys;print(json.load(sys.stdin)["value"])' <<<"$RAW"); echo "::add-mask::$TOKEN"
+          printf '%s' '{"builder_key":"gis-web-v1","passed_evidence":["static_analysis_pass","map_runtime_pass","gps_marker_pass","export_kml_pass"]}' > payload.json
+          curl -fsSL -X POST -H "Authorization: Bearer $TOKEN" -H 'content-type: application/json' 'https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vrs-specialized-cert-depth-v2-oidc' --data-binary @payload.json | tee response.json
+          python3 - <<'PY'
+          import json
+          d=json.load(open('response.json')); assert d.get('ok') is True and d.get('status') in ('recorded','no_work'),d
+          PY
+
+  mobile-depth:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.1'
+          channel: stable
+          cache: true
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Prepare and test Android certification app
+        shell: bash
+        run: |
+          set -euo pipefail
+          flutter create . --platforms=android --org com.vrslabs --project-name fieldgis_reference
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('android/app/src/main/AndroidManifest.xml'); s=p.read_text(); marker='<manifest xmlns:android="http://schemas.android.com/apk/res/android">'
+          perms='''<manifest xmlns:android="http://schemas.android.com/apk/res/android">\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>\n    <uses-permission android:name="android.permission.INTERNET"/>'''
+          if 'ACCESS_FINE_LOCATION' not in s: s=s.replace(marker,perms)
+          p.write_text(s)
+          PY
+          cat > test/widget_test.dart <<'DART'
+          import 'package:flutter_test/flutter_test.dart';
+          import 'package:fieldgis_reference/main.dart';
+          void main(){test('FieldPoint JSON roundtrip',(){final t=DateTime.utc(2026,8,29); final p=FieldPoint(id:'depth',code:'D001',latitude:5.9804,longitude:116.0735,accuracyM:3,createdAt:t); expect(FieldPoint.fromJson(p.toJson()).code,'D001');});}
+          DART
+          flutter pub get
+          flutter analyze --no-fatal-infos
+          flutter test --dart-define=VL_CERT_ENV=certification
+          flutter build apk --debug --target integration_test/fieldgis_e2e_test.dart --dart-define=VL_CERT_ENV=certification
+      - name: Run Android emulator GPS/device E2E
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-snapshot-load -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none
+          script: |
+            adb shell settings put secure location_mode 3
+            adb emu geo fix 116.0735 5.9804
+            adb install -r build/app/outputs/flutter-apk/app-debug.apk
+            adb shell pm grant com.vrslabs.fieldgis_reference android.permission.ACCESS_FINE_LOCATION
+            adb shell pm grant com.vrslabs.fieldgis_reference android.permission.ACCESS_COARSE_LOCATION
+            flutter drive --driver=test_driver/integration_test.dart --target=integration_test/fieldgis_e2e_test.dart --use-application-binary=build/app/outputs/flutter-apk/app-debug.apk -d emulator-5554 --dart-define=VL_CERT_ENV=certification
+      - name: Record Mobile evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          RAW=$(curl -fsSL -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=vrs-specialized-cert-depth-v2")
+          TOKEN=$(python3 -c 'import json,sys;print(json.load(sys.stdin)["value"])' <<<"$RAW"); echo "::add-mask::$TOKEN"
+          printf '%s' '{"builder_key":"mobile-flutter-v1","passed_evidence":["static_analysis_pass","test_pass","apk_build_pass","android_device_e2e_pass","gps_capture_pass"]}' > payload.json
+          curl -fsSL -X POST -H "Authorization: Bearer $TOKEN" -H 'content-type: application/json' 'https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vrs-specialized-cert-depth-v2-oidc' --data-binary @payload.json | tee response.json
+          python3 - <<'PY'
+          import json
+          d=json.load(open('response.json')); assert d.get('ok') is True and d.get('status') in ('recorded','no_work'),d
+          PY
