@@ -1,0 +1,1 @@
+Apply repository migrations through the governed Supabase migration path only. `20260829_mandatory_supply_chain_attestation.sql` must be applied together with deployment of `vrs-supply-chain-oidc` after the corresponding GitHub workflow is merged to `main`, so the control plane fails closed without creating an unserviceable gate window.
