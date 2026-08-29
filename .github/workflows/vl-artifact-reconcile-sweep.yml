@@ -47,6 +47,7 @@ jobs:
           rows=[]
           seen_ids=set()
           max_pages=10
+          bundle_re=re.compile(r'^vl-factory-([0-9a-fA-F-]{36})-(web-react-v1|pwa-react-v1|mobile-flutter-v1|gis-web-v1|api-service-v1)$')
 
           for page in range(1,max_pages+1):
               qs=urllib.parse.urlencode({'per_page':100,'page':page})
@@ -65,7 +66,7 @@ jobs:
                   break
               for a in artifacts:
                   name=str(a.get('name') or '')
-                  m=re.match(r'^vl-factory-([0-9a-fA-F-]{36})-.+$',name)
+                  m=bundle_re.match(name)
                   if not m or a.get('expired') is True:
                       continue
                   created=str(a.get('created_at') or '')
