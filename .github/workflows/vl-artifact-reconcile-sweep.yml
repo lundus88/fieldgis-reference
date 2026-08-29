@@ -107,26 +107,46 @@ jobs:
               if len(artifacts) < 100:
                   break
 
-          if not rows:
-              print('No non-expired VL factory artifacts in reconciliation horizon.')
           reconciled=0
           already=0
+          rejected=[]
           for row in rows:
               p=subprocess.run([
-                  'curl','-fsSL','-X','POST',
+                  'curl','-sS','-X','POST',
                   '-H',f"Authorization: Bearer {os.environ['VRS_RECONCILE_OIDC_TOKEN']}",
                   '-H','Content-Type: application/json',
+                  '-o','/tmp/reconcile-response.json',
+                  '-w','%{http_code}',
                   'https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vrs-artifact-reconcile-oidc',
                   '--data-binary',json.dumps(row),
               ],text=True,capture_output=True)
-              if p.returncode != 0:
-                  raise SystemExit(p.stderr or p.stdout or 'reconciliation request failed')
-              out=json.loads(p.stdout)
+              body=''
+              try:
+                  body=open('/tmp/reconcile-response.json').read()
+              except FileNotFoundError:
+                  pass
+              try:
+                  out=json.loads(body) if body else {}
+              except json.JSONDecodeError:
+                  out={'raw':body[:500]}
+              code=p.stdout.strip()
+              if p.returncode != 0 or not code.startswith('2'):
+                  rejected.append({'factory_run_id':row['factory_run_id'],'artifact_name':row['artifact_name'],'http_status':code or None,'response':out})
+                  print(json.dumps({'factory_run_id':row['factory_run_id'],'artifact_name':row['artifact_name'],'decision':'rejected','http_status':code or None,'response':out}))
+                  continue
               decision=out.get('decision')
               if decision not in ('reconciled','already_reconciled'):
-                  raise SystemExit(f'unexpected reconciliation response: {out}')
+                  rejected.append({'factory_run_id':row['factory_run_id'],'artifact_name':row['artifact_name'],'http_status':code,'response':out})
+                  print(json.dumps({'factory_run_id':row['factory_run_id'],'artifact_name':row['artifact_name'],'decision':'rejected','http_status':code,'response':out}))
+                  continue
               reconciled += decision == 'reconciled'
               already += decision == 'already_reconciled'
               print(json.dumps({'factory_run_id':row['factory_run_id'],'artifact_name':row['artifact_name'],'decision':decision}))
-          print(json.dumps({'scanned_candidates':len(rows),'reconciled':reconciled,'already_reconciled':already,'horizon_days':14,'max_pages':max_pages}))
+
+          summary={'scanned_candidates':len(rows),'reconciled':reconciled,'already_reconciled':already,'rejected':len(rejected),'horizon_days':14,'max_pages':max_pages}
+          print(json.dumps(summary))
+          if rejected:
+              print('RECONCILIATION_REJECTIONS='+json.dumps(rejected,separators=(',',':')))
+              raise SystemExit(1)
+          print('ARTIFACT_RECONCILIATION_SWEEP=PASS')
           PY
