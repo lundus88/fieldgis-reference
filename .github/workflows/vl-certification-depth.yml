@@ -1,0 +1,72 @@
+name: VL Certification Depth Driver
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/vl-certification-depth.yml'
+      - 'vl/functions/vrs-certification-depth-oidc/index.ts'
+      - 'vl/migrations/20260829_certification_depth_driver.sql'
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: vl-certification-depth-driver
+  cancel-in-progress: false
+
+jobs:
+  enqueue-current-policy-runs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      max-parallel: 1
+      matrix:
+        builder:
+          - web-react-v1
+          - pwa-react-v1
+          - mobile-flutter-v1
+          - gis-web-v1
+          - api-service-v1
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Get certification-depth OIDC token
+        shell: bash
+        run: |
+          set -euo pipefail
+          RAW=$(curl -fsSL -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=vrs-certification-depth")
+          TOKEN=$(python3 -c 'import json,sys;print(json.load(sys.stdin)["value"])' <<<"$RAW")
+          echo "::add-mask::$TOKEN"
+          echo "CERT_DEPTH_TOKEN=$TOKEN" >> "$GITHUB_ENV"
+
+      - name: Enqueue two locked staging certification runs
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL -X POST \
+            -H "Authorization: Bearer ${CERT_DEPTH_TOKEN}" \
+            -H 'content-type: application/json' \
+            'https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vrs-certification-depth-oidc' \
+            -d '{"builder_key":"${{ matrix.builder }}","run_count":2}' | tee result.json
+          python3 - <<'PY'
+          import json
+          d=json.load(open('result.json'))
+          assert d.get('ok') is True,d
+          assert d.get('production_locked') is True,d
+          r=d.get('result') or {}
+          assert r.get('run_count')==2,r
+          assert r.get('production_approval_performed') is False,r
+          assert r.get('production_promotion_performed') is False,r
+          for x in r.get('runs') or []:
+              assert x.get('target_environment')=='staging',x
+              assert x.get('production_locked') is True,x
+          print('CERTIFICATION_DEPTH_ENQUEUE=PASS')
+          PY
+
+      - name: Scope guard
+        run: |
+          echo 'Golden certification depth only.'
+          echo 'No production approval, no production promotion, no live payment.'
