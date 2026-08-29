@@ -75,3 +75,5 @@ jobs:
           echo 'No Resend API call made.'
           echo 'No factory run created.'
           echo 'No production action performed.'
+
+# no-op: refresh production Billplz readiness probe
