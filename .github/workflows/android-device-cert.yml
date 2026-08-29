@@ -83,10 +83,10 @@ jobs:
         run: flutter analyze --no-fatal-infos
 
       - name: Test
-        run: flutter test
+        run: flutter test --dart-define=VL_CERT_ENV=certification
 
       - name: Build ARM64 debug APK
-        run: flutter build apk --debug --split-per-abi
+        run: flutter build apk --debug --split-per-abi --dart-define=VL_CERT_ENV=certification
 
       - name: Upload ARM64 device-cert artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

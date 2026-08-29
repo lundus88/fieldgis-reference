@@ -26,6 +26,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          npm install --ignore-scripts --package-lock-only
           npm ci --ignore-scripts
           npm run analyze
           npm test
@@ -136,8 +137,8 @@ jobs:
           DART
           flutter pub get
           flutter analyze --no-fatal-infos
-          flutter test
-          flutter build apk --debug --target integration_test/fieldgis_e2e_test.dart
+          flutter test --dart-define=VL_CERT_ENV=certification
+          flutter build apk --debug --target integration_test/fieldgis_e2e_test.dart --dart-define=VL_CERT_ENV=certification
       - name: Run Android emulator GPS/device E2E
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
         with:
@@ -153,7 +154,7 @@ jobs:
             adb install -r build/app/outputs/flutter-apk/app-debug.apk
             adb shell pm grant com.vrslabs.fieldgis_reference android.permission.ACCESS_FINE_LOCATION
             adb shell pm grant com.vrslabs.fieldgis_reference android.permission.ACCESS_COARSE_LOCATION
-            flutter drive --driver=test_driver/integration_test.dart --target=integration_test/fieldgis_e2e_test.dart --use-application-binary=build/app/outputs/flutter-apk/app-debug.apk -d emulator-5554
+            flutter drive --driver=test_driver/integration_test.dart --target=integration_test/fieldgis_e2e_test.dart --use-application-binary=build/app/outputs/flutter-apk/app-debug.apk -d emulator-5554 --dart-define=VL_CERT_ENV=certification
       - name: Record Mobile evidence through OIDC
         shell: bash
         run: |
