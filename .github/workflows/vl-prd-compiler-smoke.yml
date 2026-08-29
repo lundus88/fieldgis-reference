@@ -19,7 +19,7 @@ jobs:
       COMPILER_URL: https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vrs-compiler-oidc
       FIELDGIS_APP_SPEC_ID: e8a1e8c6-9395-49e3-a725-761927c8f835
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
       - name: Get compiler OIDC token
         shell: bash
@@ -98,7 +98,7 @@ jobs:
           printf 'status=passed\ngithub_run_id=%s\ngithub_sha=%s\napp_spec_id=%s\nidentity=github-actions-oidc\nmode=read-only\nproduction_locked=true\n' '${{ github.run_id }}' '${{ github.sha }}' "$FIELDGIS_APP_SPEC_ID" > evidence/result.txt
           tar -czf vl-prd-compiler-smoke-evidence.tgz evidence
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: vl-prd-compiler-smoke-evidence
           path: vl-prd-compiler-smoke-evidence.tgz
