@@ -39,6 +39,10 @@ jobs:
         id: source
         env:
           GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          ATTEMPT_STARTED_AT: ${{ github.event.workflow_run.run_started_at || '' }}
+          ATTEMPT_UPDATED_AT: ${{ github.event.workflow_run.updated_at || '' }}
+          RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt || '' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -60,20 +64,63 @@ jobs:
           test "$(printf '%s' "$RUN_JSON" | python3 -c 'import json,sys;print(json.load(sys.stdin).get("conclusion") or "")')" = 'success'
           gh api "repos/lundus88/fieldgis-reference/actions/runs/$RUN_ID/artifacts?per_page=100" > artifacts.json
           python3 - <<'PY' > selected.json
-          import json,re
+          import datetime,json,os,re
+
+          def dt(value):
+              if not value:
+                  return None
+              return datetime.datetime.fromisoformat(value.replace('Z','+00:00'))
+
           xs=[a for a in json.load(open('artifacts.json')).get('artifacts',[]) if a.get('name','').startswith('vl-factory-') and not a.get('expired')]
-          if not xs:
-              print(json.dumps({'found':False,'candidate_count':0}))
+          event_name=os.environ.get('EVENT_NAME','')
+          selection='latest_created_at_then_id'
+          candidates=xs
+
+          if event_name=='workflow_run':
+              started=dt(os.environ.get('ATTEMPT_STARTED_AT'))
+              updated=dt(os.environ.get('ATTEMPT_UPDATED_AT'))
+              assert started and updated and updated >= started, 'workflow_run attempt timestamps required'
+              candidates=[]
+              for a in xs:
+                  created=dt(a.get('created_at'))
+                  if created and started <= created <= updated:
+                      candidates.append(a)
+              selection='workflow_run_attempt_window'
+              assert len(candidates) <= 1, f'ambiguous factory artifacts within one workflow attempt: {len(candidates)}'
+
+          if not candidates:
+              print(json.dumps({
+                  'found':False,
+                  'candidate_count':len(xs),
+                  'attempt_candidate_count':0 if event_name=='workflow_run' else len(candidates),
+                  'selection':selection,
+                  'run_attempt':os.environ.get('RUN_ATTEMPT') or None,
+                  'attempt_started_at':os.environ.get('ATTEMPT_STARTED_AT') or None,
+                  'attempt_updated_at':os.environ.get('ATTEMPT_UPDATED_AT') or None
+              }))
           else:
-              xs.sort(key=lambda a:(a.get('created_at') or '', int(a.get('id') or 0)), reverse=True)
-              a=xs[0]
+              candidates.sort(key=lambda a:(a.get('created_at') or '', int(a.get('id') or 0)), reverse=True)
+              a=candidates[0]
               m=re.match(r'^vl-factory-([0-9a-fA-F-]{36})-(.+)$',a['name']); assert m,a['name']
-              print(json.dumps({'found':True,'candidate_count':len(xs),'selection':'latest_created_at_then_id','artifact_id':a['id'],'artifact_name':a['name'],'artifact_created_at':a.get('created_at'),'factory_run_id':m.group(1),'builder_key':m.group(2)}))
+              print(json.dumps({
+                  'found':True,
+                  'candidate_count':len(xs),
+                  'attempt_candidate_count':len(candidates),
+                  'selection':selection,
+                  'run_attempt':os.environ.get('RUN_ATTEMPT') or None,
+                  'attempt_started_at':os.environ.get('ATTEMPT_STARTED_AT') or None,
+                  'attempt_updated_at':os.environ.get('ATTEMPT_UPDATED_AT') or None,
+                  'artifact_id':a['id'],
+                  'artifact_name':a['name'],
+                  'artifact_created_at':a.get('created_at'),
+                  'factory_run_id':m.group(1),
+                  'builder_key':m.group(2)
+              }))
           PY
           FOUND=$(python3 -c 'import json;print(str(json.load(open("selected.json"))["found"]).lower())')
           echo "found=$FOUND" >> "$GITHUB_OUTPUT"
           echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
-          if [ "$FOUND" != 'true' ]; then echo 'Factory Runner completed with no build artifact; no attestation work.'; exit 0; fi
+          if [ "$FOUND" != 'true' ]; then echo 'Factory Runner attempt completed with no build artifact; no attestation work.'; exit 0; fi
           ART_ID=$(python3 -c 'import json;print(json.load(open("selected.json"))["artifact_id"])')
           FACTORY_RUN_ID=$(python3 -c 'import json;print(json.load(open("selected.json"))["factory_run_id"])')
           BUILDER=$(python3 -c 'import json;print(json.load(open("selected.json"))["builder_key"])')
