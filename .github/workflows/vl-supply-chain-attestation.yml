@@ -1,0 +1,220 @@
+name: VL Supply Chain Attestation
+
+on:
+  workflow_run:
+    workflows: ["VL Factory Runner"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      build_run_id:
+        description: "Factory Runner GitHub run ID to attest"
+        required: true
+        type: string
+  push:
+    branches:
+      - vl/provenance-sbom-20260829
+    paths:
+      - '.github/workflows/vl-supply-chain-attestation.yml'
+      - 'vl/functions/vrs-supply-chain-oidc/index.ts'
+      - 'vl/migrations/20260829_mandatory_supply_chain_attestation.sql'
+
+permissions:
+  contents: read
+  actions: read
+  id-token: write
+  attestations: write
+
+concurrency:
+  group: vl-supply-chain-${{ github.event.workflow_run.id || inputs.build_run_id || github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  attest:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve Factory Runner source run
+        id: source_run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            RUN_ID='${{ github.event.workflow_run.id }}'
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            RUN_ID='${{ inputs.build_run_id }}'
+          else
+            RUN_ID=$(gh run list -R lundus88/fieldgis-reference --workflow 'VL Factory Runner' --status success --limit 1 --json databaseId --jq '.[0].databaseId')
+          fi
+          test -n "$RUN_ID"
+          RUN_JSON=$(gh api "repos/lundus88/fieldgis-reference/actions/runs/$RUN_ID")
+          NAME=$(printf '%s' "$RUN_JSON" | python3 -c 'import json,sys; print(json.load(sys.stdin)["name"])')
+          CONCLUSION=$(printf '%s' "$RUN_JSON" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("conclusion") or "")')
+          test "$NAME" = 'VL Factory Runner'
+          test "$CONCLUSION" = 'success'
+          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Download immutable Factory Runner artifact
+        id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ steps.source_run.outputs.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/lundus88/fieldgis-reference/actions/runs/$RUN_ID/artifacts?per_page=100" > artifacts.json
+          python3 - <<'PY' > selected.json
+          import json,re
+          d=json.load(open('artifacts.json'))
+          xs=[a for a in d.get('artifacts',[]) if a.get('name','').startswith('vl-factory-') and not a.get('expired')]
+          assert len(xs)==1, f'exactly one non-expired VL factory artifact required, got {len(xs)}'
+          a=xs[0]
+          m=re.match(r'^vl-factory-([0-9a-fA-F-]{36})-(.+)$',a['name'])
+          assert m, a['name']
+          print(json.dumps({'artifact_id':a['id'],'artifact_name':a['name'],'factory_run_id':m.group(1),'builder_key':m.group(2)}))
+          PY
+          ART_ID=$(python3 -c 'import json;print(json.load(open("selected.json"))["artifact_id"])')
+          ART_NAME=$(python3 -c 'import json;print(json.load(open("selected.json"))["artifact_name"])')
+          FACTORY_RUN_ID=$(python3 -c 'import json;print(json.load(open("selected.json"))["factory_run_id"])')
+          BUILDER=$(python3 -c 'import json;print(json.load(open("selected.json"))["builder_key"])')
+          rm -rf source-artifact && mkdir source-artifact
+          gh api "repos/lundus88/fieldgis-reference/actions/artifacts/$ART_ID/zip" > source.zip
+          unzip -q source.zip -d source-artifact
+          mapfile -t FILES < <(find source-artifact -type f)
+          test "${#FILES[@]}" -eq 1
+          FILE="${FILES[0]}"
+          SHA=$(sha256sum "$FILE" | awk '{print $1}')
+          echo "path=$FILE" >> "$GITHUB_OUTPUT"
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          echo "factory_run_id=$FACTORY_RUN_ID" >> "$GITHUB_OUTPUT"
+          echo "builder_key=$BUILDER" >> "$GITHUB_OUTPUT"
+          echo "artifact_name=$ART_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Generate SPDX 2.3 SBOM bound to immutable artifact
+        id: sbom
+        env:
+          ARTIFACT_PATH: ${{ steps.source.outputs.path }}
+          ARTIFACT_SHA: ${{ steps.source.outputs.sha }}
+          BUILDER_KEY: ${{ steps.source.outputs.builder_key }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib,json,os,re,tarfile,uuid
+          path=os.environ['ARTIFACT_PATH']; digest=os.environ['ARTIFACT_SHA']; builder=os.environ['BUILDER_KEY']
+          packages=[{
+            'name':f'vl-artifact-{builder}', 'SPDXID':'SPDXRef-Package-VLArtifact',
+            'versionInfo':os.environ.get('GITHUB_SHA','unknown'), 'downloadLocation':'NOASSERTION',
+            'filesAnalyzed':False, 'checksums':[{'algorithm':'SHA256','checksumValue':digest}],
+            'licenseConcluded':'NOASSERTION','licenseDeclared':'NOASSERTION','copyrightText':'NOASSERTION'
+          }]
+          relationships=[{'spdxElementId':'SPDXRef-DOCUMENT','relationshipType':'DESCRIBES','relatedSpdxElement':'SPDXRef-Package-VLArtifact'}]
+          try:
+            if tarfile.is_tarfile(path):
+              with tarfile.open(path,'r:*') as tf:
+                lock=next((m for m in tf.getmembers() if m.name.endswith('package-lock.json')),None)
+                if lock:
+                  raw=tf.extractfile(lock).read(); data=json.loads(raw)
+                  seen=set()
+                  for k,v in (data.get('packages') or {}).items():
+                    name=(v or {}).get('name'); version=(v or {}).get('version')
+                    if not name or not version: continue
+                    key=(name,version)
+                    if key in seen: continue
+                    seen.add(key)
+                    sid='SPDXRef-Dep-'+re.sub(r'[^A-Za-z0-9.-]','-',f'{name}-{version}')[:180]
+                    packages.append({'name':name,'SPDXID':sid,'versionInfo':version,'downloadLocation':'NOASSERTION','filesAnalyzed':False,'licenseConcluded':'NOASSERTION','licenseDeclared':str((v or {}).get('license') or 'NOASSERTION'),'copyrightText':'NOASSERTION'})
+                    relationships.append({'spdxElementId':'SPDXRef-Package-VLArtifact','relationshipType':'DEPENDS_ON','relatedSpdxElement':sid})
+          except Exception as e:
+            print(f'dependency extraction note: {e}')
+          doc={'spdxVersion':'SPDX-2.3','dataLicense':'CC0-1.0','SPDXID':'SPDXRef-DOCUMENT','name':f'VL {builder} artifact SBOM','documentNamespace':f'https://github.com/lundus88/fieldgis-reference/spdx/{uuid.uuid4()}','creationInfo':{'created':'2026-08-29T00:00:00Z','creators':['Tool: VL-Supply-Chain-Attestation']},'packages':packages,'relationships':relationships}
+          json.dump(doc,open('sbom.spdx.json','w'),indent=2)
+          print(f'SBOM packages={len(packages)} artifact_sha256={digest}')
+          PY
+          SBOM_SHA=$(sha256sum sbom.spdx.json | awk '{print $1}')
+          echo "sha=$SBOM_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Generate signed provenance attestation
+        uses: actions/attest@v4
+        with:
+          subject-path: ${{ steps.source.outputs.path }}
+
+      - name: Generate signed SPDX SBOM attestation
+        uses: actions/attest@v4
+        with:
+          subject-path: ${{ steps.source.outputs.path }}
+          sbom-path: sbom.spdx.json
+
+      - name: Cryptographically verify provenance and SBOM
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT_PATH: ${{ steps.source.outputs.path }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh attestation verify "$ARTIFACT_PATH" -R lundus88/fieldgis-reference --format json > provenance-verify.json
+          gh attestation verify "$ARTIFACT_PATH" -R lundus88/fieldgis-reference --predicate-type https://spdx.dev/Document/v2.3 --format json > sbom-verify.json
+          python3 - <<'PY'
+          import hashlib,json,os
+          p=json.load(open('provenance-verify.json')); s=json.load(open('sbom-verify.json'))
+          assert p, 'no provenance attestation returned'
+          assert s, 'no SPDX attestation returned'
+          pred=s[0]['verificationResult']['statement']['predicate']
+          assert pred.get('spdxVersion')=='SPDX-2.3', pred
+          actual=hashlib.sha256(open(os.environ['ARTIFACT_PATH'],'rb').read()).hexdigest()
+          declared=pred['packages'][0]['checksums'][0]['checksumValue']
+          assert actual==declared, (actual,declared)
+          print('SUPPLY_CHAIN_CRYPTO_VERIFY=PASS')
+          PY
+
+      - name: Record mandatory release gate through OIDC authority
+        if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_run'
+        env:
+          FACTORY_RUN_ID: ${{ steps.source.outputs.factory_run_id }}
+          ARTIFACT_SHA: ${{ steps.source.outputs.sha }}
+          SBOM_SHA: ${{ steps.sbom.outputs.sha }}
+          BUILD_RUN_ID: ${{ steps.source_run.outputs.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          RAW=$(curl -fsSL -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=vrs-supply-chain-attestation")
+          TOKEN=$(python3 -c 'import json,sys;print(json.load(sys.stdin)["value"])' <<<"$RAW")
+          echo "::add-mask::$TOKEN"
+          export FACTORY_RUN_ID ARTIFACT_SHA SBOM_SHA BUILD_RUN_ID
+          python3 - <<'PY' > gate.json
+          import json,os
+          print(json.dumps({'factory_run_id':os.environ['FACTORY_RUN_ID'],'artifact_sha256':os.environ['ARTIFACT_SHA'],'build_workflow_run_id':os.environ['BUILD_RUN_ID'],'provenance_verified':True,'sbom_verified':True,'sbom_sha256':os.environ['SBOM_SHA']}))
+          PY
+          curl -fsSL -X POST \
+            -H "Authorization: Bearer $TOKEN" \
+            -H 'content-type: application/json' \
+            'https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vrs-supply-chain-oidc' \
+            --data-binary @gate.json | tee gate-response.json
+          python3 - <<'PY'
+          import json
+          d=json.load(open('gate-response.json'))
+          assert d.get('ok') is True, d
+          assert d.get('mandatory') is True, d
+          assert (d.get('result') or {}).get('status')=='pass', d
+          print('MANDATORY_SUPPLY_CHAIN_GATE=PASS')
+          PY
+
+      - name: Upload supply-chain evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: vl-supply-chain-evidence-${{ steps.source.outputs.factory_run_id }}-${{ github.run_id }}
+          path: |
+            selected.json
+            sbom.spdx.json
+            provenance-verify.json
+            sbom-verify.json
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Scope guard
+        run: |
+          echo 'Supply-chain gate only: no production promotion, no rollback, no payment, no customer-data mutation.'
