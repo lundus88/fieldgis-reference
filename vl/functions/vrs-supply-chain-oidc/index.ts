@@ -9,7 +9,6 @@ const REPOSITORY = "lundus88/fieldgis-reference";
 const MAIN_REF = "refs/heads/main";
 const ALLOWED_WORKFLOWS = new Set([
   "lundus88/fieldgis-reference/.github/workflows/vl-supply-chain-attestation.yml@refs/heads/main",
-  "lundus88/fieldgis-reference/.github/workflows/vl-supply-chain-backfill.yml@refs/heads/main",
 ]);
 const sb = createClient(SUPABASE_URL, SERVICE_ROLE, { auth: { persistSession: false } });
 
