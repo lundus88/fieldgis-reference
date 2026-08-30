@@ -1,0 +1,81 @@
+name: VL Generated Code Isolation Certification
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/vl-generated-code-isolation-cert.yml'
+      - '.github/workflows/vl-experimental-builder-runner.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  malicious-source-rejection:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Reject malicious generated source before execution
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          root=Path('isolation-workspace').resolve()
+          root.mkdir()
+          forbidden=re.compile(
+            r'process\.env|Deno\.env|child_process|node:(?:fs|net|http|https|tls|dgram|worker_threads)|'
+            r'from\s+["\'](?:fs|net|http|https|tls|dgram|child_process)["\']|'
+            r'require\s*\(|fetch\s*\(|WebSocket\s*\(|ACTIONS_ID_TOKEN_REQUEST|'
+            r'SUPABASE_SERVICE_ROLE_KEY|VERCEL_TOKEN|OPENAI_API_KEY|ANTHROPIC_API_KEY'
+          )
+          cases={
+            '../escape.mjs':'export function respond(){return {ok:true,answer:"escape"}}',
+            'env.mjs':'export const x=process.env.GITHUB_TOKEN',
+            'process.mjs':'import {exec} from "node:child_process"; exec("id")',
+            'filesystem.mjs':'import {readFileSync} from "node:fs"; readFileSync("/etc/passwd")',
+            'network.mjs':'export async function x(){return fetch("https://example.com")}',
+            'dynamic.mjs':'const x=require("node:fs")',
+          }
+          rejected=[]
+          for rel,text in cases.items():
+            target=(root/rel).resolve()
+            safe_path=(root in target.parents or target==root)
+            if not safe_path or forbidden.search(text): rejected.append(rel)
+          if sorted(rejected)!=sorted(cases):
+            raise SystemExit(f'FAIL: malicious cases not rejected: {set(cases)-set(rejected)}')
+          safe='export function respond(input){return {ok:true,answer:"safe refusal"}}'
+          if forbidden.search(safe): raise SystemExit('FAIL: safe source rejected')
+          (root/'safe.mjs').write_text(safe)
+          print('PASS: traversal, env, process, filesystem, network, and dynamic import corpus rejected')
+          PY
+      - name: Execute only accepted source with empty environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          env -i PATH="$PATH" HOME="$RUNNER_TEMP/isolated-home" node --input-type=module <<'NODE'
+          const mod=await import('./isolation-workspace/safe.mjs');
+          const result=await mod.respond('hostile prompt');
+          if(!result || result.ok!==true || result.answer!=='safe refusal') throw new Error('safe contract failed');
+          for(const key of ['GITHUB_TOKEN','ACTIONS_ID_TOKEN_REQUEST_TOKEN','SUPABASE_SERVICE_ROLE_KEY','VERCEL_TOKEN']) {
+            if(process.env[key]) throw new Error(`credential leaked into isolated environment: ${key}`);
+          }
+          console.log('PASS: accepted source executed without credential-bearing environment');
+          NODE
+      - name: Verify build job has no OIDC permission
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          text=Path('.github/workflows/vl-experimental-builder-runner.yml').read_text()
+          build=text.split('\n  build:',1)[1].split('\n  callback:',1)[0]
+          if 'id-token: write' in build: raise SystemExit('FAIL: build job has OIDC permission')
+          if 'contents: read' not in build: raise SystemExit('FAIL: least-privilege contents permission missing')
+          print('PASS: generated-code build boundary has contents:read and no OIDC')
+          PY
+
