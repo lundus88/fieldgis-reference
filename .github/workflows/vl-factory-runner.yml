@@ -1,349 +1,117 @@
 name: VL Factory Runner
-
 on:
   workflow_dispatch:
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '0,5,10,15,20,25,30,35,40,45,50,55 * * * *'
   push:
     branches: [main]
-    paths:
-      - '.github/workflows/vl-factory-runner.yml'
-
+    paths: ['.github/workflows/vl-factory-runner.yml', 'vl/runner/**']
 permissions:
   contents: read
-  id-token: write
-
-concurrency:
-  group: vl-factory-runner
-  cancel-in-progress: false
-
+concurrency: {group: vl-factory-runner, cancel-in-progress: false}
 jobs:
-  run-factory-job:
+  claim:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 5
+    permissions: {contents: read, id-token: write}
+    outputs:
+      status: ${{ steps.c.outputs.status }}
+      builder_key: ${{ steps.c.outputs.builder_key }}
+      factory_run_id: ${{ steps.c.outputs.factory_run_id }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-
-      - name: Get GitHub OIDC token
+        with: {persist-credentials: false}
+      - id: c
         shell: bash
         run: |
           set -euo pipefail
-          RAW=$(curl -fsSL -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=vrs-factory-runner")
-          TOKEN=$(python3 -c 'import json,sys; print(json.load(sys.stdin)["value"])' <<<"$RAW")
-          echo "::add-mask::$TOKEN"
-          echo "VRS_OIDC_TOKEN=$TOKEN" >> "$GITHUB_ENV"
-
-      - name: Claim VL factory job
-        id: claim
-        shell: bash
-        run: |
-          set -euo pipefail
-          curl -fsSL -X POST \
-            -H "Authorization: Bearer ${VRS_OIDC_TOKEN}" \
-            -H 'Content-Type: application/json' \
-            'https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vrs-runner-oidc' \
-            -d '{"action":"claim"}' > claim.json
+          R=$(curl -fsSL -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=vrs-factory-runner")
+          T=$(python3 -c 'import json,sys;print(json.load(sys.stdin)["value"])' <<<"$R"); echo "::add-mask::$T"
+          curl -fsSL -X POST -H "Authorization: Bearer $T" -H 'Content-Type: application/json' 'https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vrs-runner-oidc' -d '{"action":"claim"}' > claim.json
           python3 - <<'PY'
           import json,os
           d=json.load(open('claim.json'))
-          print(json.dumps({k:d.get(k) for k in ('status','builder_key','job_id','factory_run_id','attempt')},indent=2))
           with open(os.environ['GITHUB_OUTPUT'],'a') as f:
-              for k in ('status','builder_key','job_id','lease_token','factory_run_id'):
-                  f.write(f"{k}={d.get(k,'')}\n")
+           for k in ('status','builder_key','factory_run_id'): f.write(f"{k}={d.get(k,'')}\n")
+          if d.get('status')=='leased':
+           s={k:d.get(k) for k in ('factory_run_id','builder_key','app_spec','generated_artifacts')};s['schema_version']=1
+           json.dump(s,open('raw.json','w'));json.dump({'job_id':d['job_id'],'lease_token':d['lease_token'],'factory_run_id':d['factory_run_id']},open('control.json','w'))
           PY
-
-      - name: No queued work
-        if: steps.claim.outputs.status != 'leased'
-        run: echo "No VL factory job available."
-
-      # ---------- Mobile Flutter ----------
-      - name: Set up Java 21
-        if: steps.claim.outputs.builder_key == 'mobile-flutter-v1'
-        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
-        with:
-          distribution: temurin
-          java-version: '21'
-
-      - name: Set up Flutter
-        if: steps.claim.outputs.builder_key == 'mobile-flutter-v1'
-        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
-        with:
-          flutter-version: '3.38.1'
-          channel: stable
-          cache: true
-
-      - name: Prepare Android workspace
-        if: steps.claim.outputs.builder_key == 'mobile-flutter-v1'
-        shell: bash
-        run: |
-          set -euo pipefail
-          rm -rf workspace && mkdir -p workspace
-          flutter create workspace/mobile --platforms=android --org com.vrslabs --project-name vl_generated_app
-          rm -f workspace/mobile/test/widget_test.dart
-          python3 - <<'PY'
-          import json,pathlib,re
-          d=json.load(open('claim.json')); root=pathlib.Path('workspace/mobile').resolve()
-          title=((d.get('app_spec') or {}).get('title') or 'VL Generated App').replace("'",'')
-          def normalize(text,path):
-              if path.endswith(('.dart','.ts','.tsx','.js','.jsx')):
-                  text=re.sub(r'\\n(?=(?:import|export|class|void|String|Future|Widget|const|final|var|enum|typedef|extension|mixin)\b)','\n',text)
-              return text
-          for a in d.get('generated_artifacts') or []:
-              p=str(a.get('path') or '')
-              if p.startswith('mobile/flutter/'): p=p[len('mobile/flutter/'):]
-              elif p.startswith('mobile/'): p=p[len('mobile/'):]
-              else: continue
-              target=(root/p).resolve()
-              if root not in target.parents and target!=root: raise SystemExit('unsafe artifact path')
-              target.parent.mkdir(parents=True,exist_ok=True); target.write_text(normalize(str(a.get('content') or ''),p))
-          main=root/'lib/main.dart'
-          if not main.exists() or not main.read_text().strip():
-              main.write_text("import 'package:flutter/material.dart';\nvoid main()=>runApp(const App());\nclass App extends StatelessWidget{const App({super.key});@override Widget build(BuildContext c)=>MaterialApp(home:Scaffold(appBar:AppBar(title:const Text('"+title+"')),body:const Center(child:Text('Generated by VL Software Factory'))));}\n")
-          PY
-
-      - name: Build Android artifact
-        id: mobile_build
-        if: steps.claim.outputs.builder_key == 'mobile-flutter-v1'
-        continue-on-error: true
-        working-directory: workspace/mobile
-        shell: bash
-        run: |
-          set -o pipefail
-          flutter pub get 2>&1 | tee ../../runner-mobile.log
-          flutter analyze --no-fatal-infos 2>&1 | tee -a ../../runner-mobile.log
-          flutter build apk --debug 2>&1 | tee -a ../../runner-mobile.log
-          sha256sum build/app/outputs/flutter-apk/app-debug.apk > ../../runner-sha256.txt
-          echo "workspace/mobile/build/app/outputs/flutter-apk/app-debug.apk" > ../../runner-artifact-path.txt
-
-      # ---------- Node builders ----------
-      - name: Set up Node 22
-        if: steps.claim.outputs.builder_key == 'gis-web-v1' || steps.claim.outputs.builder_key == 'web-react-v1' || steps.claim.outputs.builder_key == 'pwa-react-v1'
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
-        with:
-          node-version: '22'
-
-      - name: Prepare Web GIS workspace
-        if: steps.claim.outputs.builder_key == 'gis-web-v1'
-        shell: bash
-        run: |
-          set -euo pipefail
-          rm -rf workspace && mkdir -p workspace/gis/src
-          cat > workspace/gis/package.json <<'JSON'
-          {"name":"vl-generated-gis","private":true,"version":"0.0.0","type":"module","scripts":{"build":"vite build"},"dependencies":{"maplibre-gl":"6.6.0"},"devDependencies":{"typescript":"5.8.3","vite":"8.2.2"}}
-          JSON
-          cat > workspace/gis/index.html <<'HTML'
-          <!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VL GIS Build</title><style>html,body,#map{height:100%;width:100%;margin:0}body{overflow:hidden}</style></head><body><div id="map" aria-label="Interactive GIS map"></div><script type="module" src="/src/main.ts"></script></body></html>
-          HTML
-          cat > workspace/gis/src/main.ts <<'TS'
-          import * as maplibregl from 'maplibre-gl';
-          import 'maplibre-gl/dist/maplibre-gl.css';
-          const map = new maplibregl.Map({
-            container: 'map',
-            style: 'https://demotiles.maplibre.org/style.json',
-            center: [116.0735, 5.9804],
-            zoom: 10
-          });
-          map.addControl(new maplibregl.NavigationControl(), 'top-right');
-          (globalThis as any).__VL_MAPLIBRE_RUNTIME__ = { version: maplibregl.version ?? 'unknown', booted: true };
-          TS
-          python3 - <<'PY'
-          import json,pathlib,re
-          d=json.load(open('claim.json')); root=pathlib.Path('workspace/gis').resolve()
-          for a in d.get('generated_artifacts') or []:
-              p=str(a.get('path') or '')
-              if not p.startswith('gis/'): continue
-              rel=p[len('gis/'):]
-              if rel in ('package.json','index.html','src/main.ts'): continue
-              target=(root/rel).resolve()
-              if root not in target.parents and target!=root: raise SystemExit('unsafe artifact path')
-              target.parent.mkdir(parents=True,exist_ok=True)
-              text=re.sub(r'\\n(?=(?:import|export|class|function|const|let|var|interface|type)\b)','\n',str(a.get('content') or ''))
-              target.write_text(text)
-          PY
-
-      - name: Build immutable Web GIS artifact
-        id: gis_build
-        if: steps.claim.outputs.builder_key == 'gis-web-v1'
-        continue-on-error: true
-        working-directory: workspace/gis
-        shell: bash
-        run: |
-          set -o pipefail
-          npm install --ignore-scripts 2>&1 | tee ../../runner-gis.log
-          npm run build 2>&1 | tee -a ../../runner-gis.log
-          test -s dist/index.html
-          test -n "$(find dist/assets -type f -name '*.js' -print -quit)"
-          grep -R -q "__VL_MAPLIBRE_RUNTIME__" dist/assets
-          rm -rf .vercel/output
-          mkdir -p .vercel/output/static
-          cp -R dist/. .vercel/output/static/
-          cat > .vercel/output/config.json <<'JSON'
-          {"version":3}
-          JSON
-          test -s .vercel/output/config.json
-          test -s .vercel/output/static/index.html
-          test -n "$(find .vercel/output/static/assets -type f -name '*.js' -print -quit)"
-          grep -R -q "__VL_MAPLIBRE_RUNTIME__" .vercel/output/static/assets
-          tar -czf ../vl-gis-build.tgz .vercel/output package.json package-lock.json
-          sha256sum ../vl-gis-build.tgz > ../../runner-sha256.txt
-          echo "workspace/vl-gis-build.tgz" > ../../runner-artifact-path.txt
-
-      - name: Prepare React Web or PWA workspace
-        if: steps.claim.outputs.builder_key == 'web-react-v1' || steps.claim.outputs.builder_key == 'pwa-react-v1'
-        shell: bash
-        run: |
-          set -euo pipefail
-          rm -rf workspace && mkdir -p workspace/web/src workspace/web/public
-          cat > workspace/web/package.json <<'JSON'
-          {"name":"vl-generated-web","private":true,"version":"0.0.0","type":"module","scripts":{"build":"vite build"},"dependencies":{"react":"19.2.8","react-dom":"19.2.8"},"devDependencies":{"vite":"8.2.2"}}
-          JSON
-          cat > workspace/web/index.html <<'HTML'
-          <!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="manifest" href="/manifest.webmanifest"></head><body><div id="root"></div><script type="module" src="/src/main.tsx"></script></body></html>
-          HTML
-          python3 - <<'PY'
-          import json,pathlib,re
-          d=json.load(open('claim.json')); root=pathlib.Path('workspace/web').resolve(); builder=d.get('builder_key')
-          title=((d.get('app_spec') or {}).get('title') or 'VL Generated Web').replace('<','').replace('>','')
-          for a in d.get('generated_artifacts') or []:
-              p=str(a.get('path') or '')
-              if not p.startswith('web/'): continue
-              target=(root/p[len('web/'):]).resolve()
-              if root not in target.parents and target!=root: raise SystemExit('unsafe artifact path')
-              target.parent.mkdir(parents=True,exist_ok=True)
-              text=re.sub(r'\\n(?=(?:import|export|class|function|const|let|var|interface|type)\b)','\n',str(a.get('content') or ''))
-              target.write_text(text)
-          app=root/'src/App.tsx'; main=root/'src/main.tsx'
-          if not app.exists(): app.write_text("import React from 'react';\nexport default function App(){return <main><h1>"+title+"</h1><p>Generated by VL Software Factory</p></main>}\n")
-          if not main.exists(): main.write_text("import React from 'react';\nimport {createRoot} from 'react-dom/client';\nimport App from './App';\ncreateRoot(document.getElementById('root')!).render(<React.StrictMode><App/></React.StrictMode>);\n")
-          if builder=='pwa-react-v1':
-              manifest=root/'public/manifest.webmanifest'
-              if not manifest.exists(): manifest.write_text(json.dumps({'name':title,'short_name':title[:20],'start_url':'/','display':'standalone','background_color':'#ffffff','theme_color':'#111111'}))
-              sw=root/'public/sw.js'
-              if not sw.exists(): sw.write_text("self.addEventListener('install',()=>self.skipWaiting());\nself.addEventListener('fetch',()=>{});\n")
-              main.write_text(main.read_text()+"\nif('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js'));}\n")
-          PY
-
-      - name: Build immutable React Web or PWA artifact
-        id: web_build
-        if: steps.claim.outputs.builder_key == 'web-react-v1' || steps.claim.outputs.builder_key == 'pwa-react-v1'
-        continue-on-error: true
-        working-directory: workspace/web
-        shell: bash
-        run: |
-          set -o pipefail
-          npm install --ignore-scripts 2>&1 | tee ../../runner-web.log
-          npm run build 2>&1 | tee -a ../../runner-web.log
-          if [ '${{ steps.claim.outputs.builder_key }}' = 'pwa-react-v1' ]; then test -f dist/manifest.webmanifest && test -f dist/sw.js; fi
-          rm -rf .vercel/output
-          mkdir -p .vercel/output/static
-          cp -R dist/. .vercel/output/static/
-          cat > .vercel/output/config.json <<'JSON'
-          {"version":3}
-          JSON
-          test -s .vercel/output/config.json
-          test -s .vercel/output/static/index.html
-          test -n "$(find .vercel/output/static -type f -print -quit)"
-          if [ '${{ steps.claim.outputs.builder_key }}' = 'pwa-react-v1' ]; then test -s .vercel/output/static/manifest.webmanifest && test -s .vercel/output/static/sw.js; fi
-          tar -czf ../vl-web-build.tgz .vercel/output package.json package-lock.json
-          sha256sum ../vl-web-build.tgz > ../../runner-sha256.txt
-          echo "workspace/vl-web-build.tgz" > ../../runner-artifact-path.txt
-
-      # ---------- API builder ----------
-      - name: Set up Deno
-        if: steps.claim.outputs.builder_key == 'api-service-v1'
-        uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed
-        with:
-          deno-version: v2.x
-
-      - name: Prepare API workspace
-        if: steps.claim.outputs.builder_key == 'api-service-v1'
-        shell: bash
-        run: |
-          set -euo pipefail
-          rm -rf workspace && mkdir -p workspace/api
-          python3 - <<'PY'
-          import json,pathlib,re
-          d=json.load(open('claim.json')); root=pathlib.Path('workspace/api').resolve()
-          for a in d.get('generated_artifacts') or []:
-              p=str(a.get('path') or '')
-              if not p.startswith('api/'): continue
-              target=(root/p[len('api/'):]).resolve()
-              if root not in target.parents and target!=root: raise SystemExit('unsafe artifact path')
-              target.parent.mkdir(parents=True,exist_ok=True)
-              text=re.sub(r'\\n(?=(?:import|export|class|function|const|let|var|interface|type|Deno)\b)','\n',str(a.get('content') or ''))
-              target.write_text(text)
-          entry=root/'index.ts'
-          if not entry.exists(): entry.write_text("Deno.serve(()=>new Response(JSON.stringify({ok:true}),{headers:{'content-type':'application/json'}}));\n")
-          PY
-
-      - name: Validate API artifact
-        id: api_build
-        if: steps.claim.outputs.builder_key == 'api-service-v1'
-        continue-on-error: true
-        working-directory: workspace/api
-        shell: bash
-        run: |
-          set -o pipefail
-          deno check index.ts 2>&1 | tee ../../runner-api.log
-          tar -czf ../vl-api-build.tgz .
-          sha256sum ../vl-api-build.tgz > ../../runner-sha256.txt
-          echo "workspace/vl-api-build.tgz" > ../../runner-artifact-path.txt
-
-      # ---------- Result + artifact ----------
-      - name: Determine runner result
-        id: result
-        if: always() && steps.claim.outputs.status == 'leased'
-        shell: bash
-        run: |
-          BUILDER='${{ steps.claim.outputs.builder_key }}'
-          OK=false
-          case "$BUILDER" in
-            mobile-flutter-v1) [ '${{ steps.mobile_build.outcome }}' = 'success' ] && OK=true ;;
-            gis-web-v1) [ '${{ steps.gis_build.outcome }}' = 'success' ] && OK=true ;;
-            web-react-v1|pwa-react-v1) [ '${{ steps.web_build.outcome }}' = 'success' ] && OK=true ;;
-            api-service-v1) [ '${{ steps.api_build.outcome }}' = 'success' ] && OK=true ;;
-          esac
-          SHA=''; PATH_VALUE=''
-          [ -f runner-sha256.txt ] && SHA=$(awk '{print $1}' runner-sha256.txt)
-          [ -f runner-artifact-path.txt ] && PATH_VALUE=$(cat runner-artifact-path.txt)
-          NAME="vl-factory-${{ steps.claim.outputs.factory_run_id }}-${BUILDER}"
-          echo "ok=$OK" >> "$GITHUB_OUTPUT"
-          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
-          echo "path=$PATH_VALUE" >> "$GITHUB_OUTPUT"
-          echo "name=$NAME" >> "$GITHUB_OUTPUT"
-
-      - name: Upload runner artifact
-        if: steps.result.outputs.ok == 'true'
+          if [ "$(python3 -c "import json;print(json.load(open('claim.json')).get('status',''))")" = leased ]; then python3 vl/runner/validate-build-contract.py raw.json build-contract.json; fi
+      - if: steps.c.outputs.status == 'leased'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: ${{ steps.result.outputs.name }}
-          path: ${{ steps.result.outputs.path }}
-          if-no-files-found: error
-          retention-days: 90
-
-      - name: Callback VL
-        if: always() && steps.claim.outputs.status == 'leased'
+        with: {name: 'vl-contract-${{ steps.c.outputs.factory_run_id }}', path: build-contract.json, if-no-files-found: error, retention-days: 1}
+      - if: steps.c.outputs.status == 'leased'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with: {name: 'vl-harness-${{ steps.c.outputs.factory_run_id }}', path: 'vl/runner/', if-no-files-found: error, retention-days: 1}
+      - if: steps.c.outputs.status == 'leased'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with: {name: 'vl-control-${{ steps.c.outputs.factory_run_id }}', path: control.json, if-no-files-found: error, retention-days: 1}
+  build:
+    needs: claim
+    if: needs.claim.outputs.status == 'leased'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    permissions: {contents: read}
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with: {name: 'vl-contract-${{ needs.claim.outputs.factory_run_id }}'}
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with: {name: 'vl-harness-${{ needs.claim.outputs.factory_run_id }}', path: vl-harness}
+      - shell: bash
+        run: |
+          chmod +x vl-harness/*.sh vl-harness/*.py
+          test -z "${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-}" && test -z "${ACTIONS_ID_TOKEN_REQUEST_URL:-}"
+          ! env | grep -E 'SUPABASE_SERVICE_ROLE_KEY|VRS_OIDC_TOKEN|VERCEL_TOKEN|OPENAI_API_KEY|ANTHROPIC_API_KEY'
+      - if: needs.claim.outputs.builder_key == 'mobile-flutter-v1'
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with: {distribution: temurin, java-version: '21'}
+      - if: needs.claim.outputs.builder_key == 'mobile-flutter-v1'
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
+        with: {flutter-version: '3.38.1', channel: stable, cache: true}
+      - if: contains(fromJSON('["gis-web-v1","web-react-v1","pwa-react-v1"]'), needs.claim.outputs.builder_key)
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: {node-version: '22', registry-url: 'https://registry.npmjs.org'}
+      - if: needs.claim.outputs.builder_key == 'api-service-v1'
+        uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed
+        with: {deno-version: v2.x}
+      - id: b
+        continue-on-error: true
+        run: python3 vl-harness/run-build.py build-contract.json
+      - id: r
+        if: always()
         shell: bash
         run: |
+          if [ '${{ steps.b.outcome }}' != success ] || [ ! -f build-result.json ]; then python3 vl-harness/result-contract.py failure; fi
+          python3 vl-harness/result-contract.py outputs
+      - if: steps.r.outputs.ok == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with: {name: 'vl-factory-${{ needs.claim.outputs.factory_run_id }}-${{ needs.claim.outputs.builder_key }}', path: '${{ steps.r.outputs.path }}', if-no-files-found: error, retention-days: 90}
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with: {name: 'vl-result-${{ needs.claim.outputs.factory_run_id }}', path: build-result.json, if-no-files-found: error, retention-days: 90}
+  callback:
+    needs: [claim, build]
+    if: always() && needs.claim.outputs.status == 'leased'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {contents: read, id-token: write}
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with: {name: 'vl-result-${{ needs.claim.outputs.factory_run_id }}'}
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with: {name: 'vl-control-${{ needs.claim.outputs.factory_run_id }}'}
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with: {name: 'vl-harness-${{ needs.claim.outputs.factory_run_id }}', path: vl-harness}
+      - shell: bash
+        env:
+          VL_ARTIFACT_NAME: vl-factory-${{ needs.claim.outputs.factory_run_id }}-${{ needs.claim.outputs.builder_key }}
+          VL_FACTORY_RUN_ID: ${{ needs.claim.outputs.factory_run_id }}
+          VL_BUILDER_KEY: ${{ needs.claim.outputs.builder_key }}
+        run: |
           set -euo pipefail
-          RAW=$(curl -fsSL -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=vrs-factory-runner")
-          CALLBACK_TOKEN=$(python3 -c 'import json,sys; print(json.load(sys.stdin)["value"])' <<<"$RAW")
-          echo "::add-mask::$CALLBACK_TOKEN"
-          python3 - <<'PY' > callback.json
-          import json
-          claim=json.load(open('claim.json'))
-          ok='${{ steps.result.outputs.ok }}'=='true'
-          builder='${{ steps.claim.outputs.builder_key }}'
-          result={'runner':'github-actions-oidc','builder_key':builder,'github_run_id':'${{ github.run_id }}','github_sha':'${{ github.sha }}','artifact_name':'${{ steps.result.outputs.name }}','artifact_sha256':'${{ steps.result.outputs.sha }}','qa_result':'PASS' if ok else 'FAIL'}
-          if builder in ('web-react-v1','pwa-react-v1','gis-web-v1'):
-              result['artifact_contract']='vercel-build-output-v3'
-              result['immutable_prebuilt']=True
-          if builder=='gis-web-v1' and ok:
-              result['maplibre_bundle_contract']='PASS'
-          print(json.dumps({'action':'complete','job_id':claim['job_id'],'lease_token':claim['lease_token'],'success':ok,'result':result,'error_text':None if ok else 'GitHub runner build or validation failed'}))
-          PY
-          curl -fsSL -X POST \
-            -H "Authorization: Bearer ${CALLBACK_TOKEN}" \
-            -H 'Content-Type: application/json' \
-            'https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vrs-runner-oidc' \
-            --data-binary @callback.json | tee callback-response.json
+          chmod +x vl-harness/result-contract.py
+          R=$(curl -fsSL -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=vrs-factory-runner")
+          T=$(python3 -c 'import json,sys;print(json.load(sys.stdin)["value"])' <<<"$R"); echo "::add-mask::$T"
+          python3 vl-harness/result-contract.py callback > callback.json
+          curl -fsSL -X POST -H "Authorization: Bearer $T" -H 'Content-Type: application/json' 'https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vrs-runner-oidc' --data-binary @callback.json

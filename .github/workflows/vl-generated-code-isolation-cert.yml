@@ -4,78 +4,87 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - '.github/workflows/vl-factory-runner.yml'
       - '.github/workflows/vl-generated-code-isolation-cert.yml'
       - '.github/workflows/vl-experimental-builder-runner.yml'
+      - 'vl/runner/**'
+      - 'vl/adversarial/generated-code/**'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  malicious-source-rejection:
+  adversarial-isolation:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-      - name: Reject malicious generated source before execution
+        with:
+          persist-credentials: false
+      - name: Verify active runner separation
         shell: bash
         run: |
           set -euo pipefail
+          : > isolation-evidence.log
           python3 - <<'PY'
           from pathlib import Path
-          import re
-
-          root=Path('isolation-workspace').resolve()
-          root.mkdir()
-          forbidden=re.compile(
-            r'process\.env|Deno\.env|child_process|node:(?:fs|net|http|https|tls|dgram|worker_threads)|'
-            r'from\s+["\'](?:fs|net|http|https|tls|dgram|child_process)["\']|'
-            r'require\s*\(|fetch\s*\(|WebSocket\s*\(|ACTIONS_ID_TOKEN_REQUEST|'
-            r'SUPABASE_SERVICE_ROLE_KEY|VERCEL_TOKEN|OPENAI_API_KEY|ANTHROPIC_API_KEY'
-          )
-          cases={
-            '../escape.mjs':'export function respond(){return {ok:true,answer:"escape"}}',
-            'env.mjs':'export const x=process.env.GITHUB_TOKEN',
-            'process.mjs':'import {exec} from "node:child_process"; exec("id")',
-            'filesystem.mjs':'import {readFileSync} from "node:fs"; readFileSync("/etc/passwd")',
-            'network.mjs':'export async function x(){return fetch("https://example.com")}',
-            'dynamic.mjs':'const x=require("node:fs")',
-          }
-          rejected=[]
-          for rel,text in cases.items():
-            target=(root/rel).resolve()
-            safe_path=(root in target.parents or target==root)
-            if not safe_path or forbidden.search(text): rejected.append(rel)
-          if sorted(rejected)!=sorted(cases):
-            raise SystemExit(f'FAIL: malicious cases not rejected: {set(cases)-set(rejected)}')
-          safe='export function respond(input){return {ok:true,answer:"safe refusal"}}'
-          if forbidden.search(safe): raise SystemExit('FAIL: safe source rejected')
-          (root/'safe.mjs').write_text(safe)
-          print('PASS: traversal, env, process, filesystem, network, and dynamic import corpus rejected')
+          p=Path('.github/workflows/vl-factory-runner.yml').read_text()
+          for job in ('claim:','build:','callback:'):
+              if '\n  '+job not in p: raise SystemExit(f'missing split job: {job}')
+          build=p.split('\n  build:',1)[1].split('\n  callback:',1)[0]
+          if 'id-token: write' in build: raise SystemExit('build job has OIDC')
+          if 'vl-control-' in build or 'control.json' in build: raise SystemExit('control-plane lease artifact enters build job')
+          if 'Authorization: Bearer' in build: raise SystemExit('build job performs authenticated control-plane call')
+          if 'run-build.py' not in build: raise SystemExit('active build does not invoke trusted sandbox harness')
+          harness=Path('vl/runner/run-build.py').read_text()
+          if 'sandbox=True' not in harness or 'sandbox-exec.sh' not in harness: raise SystemExit('harness does not invoke sandbox')
+          print('PASS: active claim/build/callback boundary is credential-separated')
           PY
-      - name: Execute only accepted source with empty environment
+      - name: Reject malformed and traversal contracts
         shell: bash
         run: |
           set -euo pipefail
-          env -i PATH="$PATH" HOME="$RUNNER_TEMP/isolated-home" node --input-type=module <<'NODE'
-          const mod=await import('./isolation-workspace/safe.mjs');
-          const result=await mod.respond('hostile prompt');
-          if(!result || result.ok!==true || result.answer!=='safe refusal') throw new Error('safe contract failed');
-          for(const key of ['GITHUB_TOKEN','ACTIONS_ID_TOKEN_REQUEST_TOKEN','SUPABASE_SERVICE_ROLE_KEY','VERCEL_TOKEN']) {
-            if(process.env[key]) throw new Error(`credential leaked into isolated environment: ${key}`);
-          }
-          console.log('PASS: accepted source executed without credential-bearing environment');
-          NODE
-      - name: Verify build job has no OIDC permission
+          mkdir -p isolation-contracts
+          printf '%s' '{"schema_version":1,"factory_run_id":"00000000-0000-0000-0000-000000000001","builder_key":"web-react-v1","app_spec":{},"generated_artifacts":[{"path":"web/src/App.tsx","content":"safe"}]}' > isolation-contracts/safe.json
+          python3 vl/runner/validate-build-contract.py isolation-contracts/safe.json isolation-contracts/out.json
+          for path in '../escape' 'web/../../escape' '/tmp/escape' 'web/package.json'; do
+            python3 - "$path" <<'PY'
+          import json,sys
+          d=json.load(open('isolation-contracts/safe.json')); d['generated_artifacts'][0]['path']=sys.argv[1]
+          json.dump(d,open('isolation-contracts/bad.json','w'))
+          PY
+            if python3 vl/runner/validate-build-contract.py isolation-contracts/bad.json isolation-contracts/rejected.json; then
+              echo "unsafe path accepted: $path" >&2; exit 1
+            fi
+          done
+          echo 'PASS: traversal and generated dependency manifests rejected' | tee -a isolation-evidence.log
+      - name: Run hostile fixture in production sandbox
         shell: bash
+        env:
+          VL_ISOLATION_CANARY: must-not-cross-sandbox
+          SUPABASE_SERVICE_ROLE_KEY: must-not-cross-sandbox
+          VERCEL_TOKEN: must-not-cross-sandbox
         run: |
           set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-          text=Path('.github/workflows/vl-experimental-builder-runner.yml').read_text()
-          build=text.split('\n  build:',1)[1].split('\n  callback:',1)[0]
-          if 'id-token: write' in build: raise SystemExit('FAIL: build job has OIDC permission')
-          if 'contents: read' not in build: raise SystemExit('FAIL: least-privilege contents permission missing')
-          print('PASS: generated-code build boundary has contents:read and no OIDC')
-          PY
-
+          mkdir -p run-a run-b
+          cp vl/adversarial/generated-code/attack.sh run-a/attack.sh
+          chmod +x run-a/attack.sh vl/runner/sandbox-exec.sh
+          timeout 90 vl/runner/sandbox-exec.sh "$PWD/run-a" ./attack.sh | tee isolation-evidence.log
+          test ! -e cross-run-marker
+          test ! -e run-b/cross-run-marker
+          test "$(du -sm run-a | cut -f1)" -le 16
+          printf '%s\n' \
+            'PASS: OIDC/control-plane environment absent' \
+            'PASS: network namespace denied egress' \
+            'PASS: host and sibling-run writes denied' \
+            'PASS: memory/CPU/process/file-size/wall-clock controls active' \
+            'PASS: cross-run workspace unaffected' | tee -a isolation-evidence.log
+      - name: Archive actual adversarial evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: vl-generated-code-isolation-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: isolation-evidence.log
+          if-no-files-found: error
+          retention-days: 90
