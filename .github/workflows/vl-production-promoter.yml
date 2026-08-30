@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
       - name: Get promotion OIDC token
         shell: bash
@@ -59,7 +59,7 @@ jobs:
 
       - name: Download immutable source artifact
         if: steps.claim.outputs.status == 'leased'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
           name: ${{ steps.claim.outputs.source_artifact_name }}
           path: promoted-source
@@ -94,7 +94,7 @@ jobs:
       - name: Publish immutable mobile production artifact
         id: mobile_publish
         if: steps.mobile_prepare.outcome == 'success'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: ${{ steps.mobile_prepare.outputs.name }}
           path: ${{ steps.source_verify.outputs.file }}
@@ -214,7 +214,7 @@ jobs:
 
       - name: Set up pinned Supabase CLI
         if: steps.supabase_prepare.outcome == 'success'
-        uses: supabase/setup-cli@v1
+        uses: supabase/setup-cli@ab058987d8d6c725971f6cf9d0b5c98467e30bd1
         with:
           version: 2.115.0
 
