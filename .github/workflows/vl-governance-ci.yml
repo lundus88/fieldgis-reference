@@ -10,6 +10,7 @@ on:
       - 'supabase/**'
       - 'vl/approval/**'
       - 'vl/public/**'
+      - 'vl/product-alignment/**'
       - '**/*.sql'
   workflow_dispatch:
 
@@ -22,6 +23,12 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Validate product alignment contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 vl/product-alignment/run_regression_tests.py
 
       - name: Validate critical release governance
         shell: bash
@@ -46,6 +53,8 @@ jobs:
           alerts=read('.github/workflows/vl-operational-alerts.yml')
           supply_chain=read('.github/workflows/vl-supply-chain-attestation.yml')
           approval=read('vl/approval/vrs-production-approval/index.ts')
+          alignment_validator=read('vl/product-alignment/validate_product_alignment.py')
+          alignment_schema=read('vl/product-alignment/product-alignment.schema.json')
 
           checks=[
               ('factory artifact retention must be 90 days', 'retention-days: 90' in runner),
@@ -70,6 +79,11 @@ jobs:
               ('production approval endpoint must forward caller bearer token', 'Authorization: auth' in approval),
               ('production approval endpoint must use official approval RPC', 'approve_vrs_production_release' in approval),
               ('production approval endpoint must not use service-role key', 'SERVICE_ROLE' not in approval and 'service_role' not in approval),
+              ('product alignment validator must exist', bool(alignment_validator)),
+              ('product alignment schema must exist', bool(alignment_schema)),
+              ('product alignment validator must require human decision boundaries', 'human_decision_boundaries' in alignment_validator),
+              ('product alignment validator must reject unresolved contradictions', 'unresolved contradictory requirements present' in alignment_validator),
+              ('product alignment validator must enforce P0 acceptance test mapping', 'P0 requirement' in alignment_validator and 'acceptance test' in alignment_validator),
           ]
           for label, ok in checks:
               if not ok: errors.append(label)
