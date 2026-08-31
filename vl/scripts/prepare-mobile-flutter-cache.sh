@@ -44,6 +44,9 @@ docker run --rm \
   --env GRADLE_USER_HOME=/workspace/.gradle \
   --env CI=true \
   --env FLUTTER_SUPPRESS_ANALYTICS=true \
+  --env GIT_CONFIG_COUNT=1 \
+  --env GIT_CONFIG_KEY_0=safe.directory \
+  --env GIT_CONFIG_VALUE_0=/sdks/flutter \
   "$IMAGE" /bin/bash -lc 'set -euo pipefail; flutter --no-version-check pub get; flutter --no-version-check build apk --debug --no-pub'
 
 # Do not allow the trusted warm-up artifact to be mistaken for a generated build.
