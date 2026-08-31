@@ -44,6 +44,9 @@ docker run --rm \
   --env CI=true \
   --env FLUTTER_SUPPRESS_ANALYTICS=true \
   --env FLUTTER_ALREADY_LOCKED=true \
+  --env GIT_CONFIG_COUNT=1 \
+  --env GIT_CONFIG_KEY_0=safe.directory \
+  --env GIT_CONFIG_VALUE_0=/sdks/flutter \
   "$IMAGE" /bin/bash -lc 'set -euo pipefail; flutter --no-version-check pub get --offline; flutter --no-version-check analyze --no-fatal-infos --no-pub; flutter --no-version-check build apk --debug --no-pub'
 
 APK="$ROOT/build/app/outputs/flutter-apk/app-debug.apk"
