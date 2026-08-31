@@ -32,9 +32,14 @@ if [ ! -d "$ROOT" ]; then
   exit 66
 fi
 
+HOST_UID="$(id -u)"
+HOST_GID="$(id -g)"
+
 # Do not pass --env-file, host env, sockets, credentials or home directories.
-# /workspace is the only writable host mount.
+# /workspace is the only writable host mount. Run as the caller's numeric UID/GID
+# so files can be written without granting root or extra capabilities in-container.
 exec docker run --rm \
+  --user "${HOST_UID}:${HOST_GID}" \
   --network none \
   --cap-drop ALL \
   --security-opt no-new-privileges:true \
