@@ -48,6 +48,7 @@ jobs:
           test -s sandbox-mobile/.android-sdk-components/ndk/28.2.13676358/source.properties
           test -x sandbox-mobile/.android-sdk-components/build-tools/35.0.0/aapt2
           test -s sandbox-mobile/.android-sdk-components/platforms/android-36/android.jar
+          test -x sandbox-mobile/.android-sdk-components/cmake/3.22.1/bin/cmake
 
       - name: Inject generated-code adversarial Gradle probe after cache preparation
         shell: bash
@@ -142,12 +143,15 @@ jobs:
           grep -q -- '.android-sdk-components/ndk,dst=/opt/android-sdk-linux/ndk,readonly' vl/scripts/build-mobile-flutter-sandbox.sh
           grep -q -- '.android-sdk-components/build-tools,dst=/opt/android-sdk-linux/build-tools,readonly' vl/scripts/build-mobile-flutter-sandbox.sh
           grep -q -- '.android-sdk-components/platforms,dst=/opt/android-sdk-linux/platforms,readonly' vl/scripts/build-mobile-flutter-sandbox.sh
+          grep -q -- '.android-sdk-components/cmake,dst=/opt/android-sdk-linux/cmake,readonly' vl/scripts/build-mobile-flutter-sandbox.sh
           grep -q -- '--network none' vl/scripts/prepare-mobile-flutter-cache.sh
           grep -q -- '--read-only' vl/scripts/prepare-mobile-flutter-cache.sh
           grep -q -- "NDK_VERSION='28.2.13676358'" vl/scripts/prepare-mobile-flutter-cache.sh
           grep -q -- "BUILD_TOOLS_VERSION='35.0.0'" vl/scripts/prepare-mobile-flutter-cache.sh
           grep -q -- "COMPILE_SDK='36'" vl/scripts/prepare-mobile-flutter-cache.sh
+          grep -q -- "CMAKE_VERSION='3.22.1'" vl/scripts/prepare-mobile-flutter-cache.sh
           grep -q -- "'build-tools;\$BUILD_TOOLS_VERSION'" vl/scripts/prepare-mobile-flutter-cache.sh
           grep -q -- "'platforms;android-\$COMPILE_SDK'" vl/scripts/prepare-mobile-flutter-cache.sh
+          grep -q -- "'cmake;\$CMAKE_VERSION'" vl/scripts/prepare-mobile-flutter-cache.sh
           grep -q -- '/workspace/.flutter-sdk/bin/flutter' vl/scripts/prepare-mobile-flutter-cache.sh
           ! grep -q -- '/sdks/flutter/bin/flutter' vl/scripts/build-mobile-flutter-sandbox.sh
