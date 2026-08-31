@@ -26,6 +26,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 SANDBOX="$SCRIPT_DIR/run-untrusted-sandbox.sh"
 [ -x "$SANDBOX" ] || { echo "sandbox runner not executable" >&2; exit 68; }
 
+# --cached-only is the network boundary: every import must already be in the workspace cache.
 "$SANDBOX" denoland/deno:2.5.6 "$ROOT" -- env DENO_DIR=/workspace/.deno-cache deno check --cached-only index.ts
 
 OUT="$ROOT/../vl-api-build.tgz"
