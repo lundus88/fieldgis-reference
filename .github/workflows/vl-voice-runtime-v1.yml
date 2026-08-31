@@ -1,0 +1,56 @@
+name: VL Voice Runtime V1
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/public/voice.html'
+      - 'vl/public/index.html'
+      - 'contracts/voice-input-v1.json'
+      - '.github/workflows/vl-voice-runtime-v1.yml'
+  push:
+    branches: ['feature/voice-runtime-v1', main]
+    paths:
+      - 'vl/public/voice.html'
+      - 'vl/public/index.html'
+      - 'contracts/voice-input-v1.json'
+      - '.github/workflows/vl-voice-runtime-v1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  voice-runtime-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Validate governed voice runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+
+          html=Path('vl/public/voice.html').read_text()
+          contract=json.loads(Path('contracts/voice-input-v1.json').read_text())
+
+          assert 'SpeechRecognition' in html and 'webkitSpeechRecognition' in html
+          assert 'transcript' in html
+          assert 'user_confirmed:true' in html
+          assert "status:'draft'" in html
+          assert 'production_locked:true' in html
+          assert '/rest/v1/app_specs' in html
+          assert 'service_role' not in html.lower()
+          assert 'SERVICE_ROLE' not in html
+          assert 'plan_build' not in html
+          assert 'production-promot' not in html.lower()
+          assert 'vrs-production' not in html.lower()
+          assert 'factory_runs' not in html
+          assert contract['requirements']['direct_factory_execution_allowed'] is False
+          assert contract['requirements']['direct_production_execution_allowed'] is False
+          assert contract['governance']['required_terminal_gate']=='human-approval'
+          print('PASS: Voice Runtime V1 creates confirmed draft App Specs only and exposes no factory/production action.')
+          PY
