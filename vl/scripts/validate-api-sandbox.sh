@@ -4,6 +4,7 @@ set -euo pipefail
 # Production wrapper for VL api-service-v1 generated validation.
 # Generated Deno code is checked only inside the credential-free sandbox.
 # Network remains disabled; unresolved dependencies fail closed.
+# Dependency resolution is prepared host-side without executing generated code.
 #
 # Usage:
 #   validate-api-sandbox.sh <workspace> <builder_key>
