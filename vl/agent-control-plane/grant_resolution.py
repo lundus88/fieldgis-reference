@@ -60,7 +60,6 @@ def _budget_not_wider(child: Mapping[str, Any], parent: Mapping[str, Any]) -> bo
         if child_value is None:
             continue
         if parent_value is None:
-            # Parent with no ceiling may delegate a bounded child value.
             continue
         if child_value > parent_value:
             return False
@@ -75,11 +74,7 @@ def resolve_grant(
     now: datetime | None = None,
     max_depth: int = 16,
 ) -> ResolvedGrant:
-    """Resolve a persisted grant and prove monotonic-restrictive delegation.
-
-    The input is deliberately storage-agnostic: callers must load rows from the
-    authoritative private grant store. Missing/invalid policy evidence fails closed.
-    """
+    """Resolve a persisted grant and prove monotonic-restrictive delegation."""
     now = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
     if not grant_id or not isinstance(grants_by_id, Mapping):
         raise GrantResolutionError("DENY_POLICY_UNAVAILABLE")
@@ -90,18 +85,18 @@ def resolve_grant(
     current_id: str | None = grant_id
 
     while current_id is not None:
-        if current_id in seen:
-            raise GrantResolutionError("DENY_DELEGATION_ESCALATION")
-        if len(chain_rows) >= max_depth:
+        if current_id in seen or len(chain_rows) >= max_depth:
             raise GrantResolutionError("DENY_DELEGATION_ESCALATION")
         seen.add(current_id)
-
         row = grants_by_id.get(current_id)
         if not isinstance(row, Mapping):
             raise GrantResolutionError("DENY_POLICY_UNAVAILABLE")
         if str(row.get("grant_id") or current_id) != current_id:
             raise GrantResolutionError("DENY_POLICY_UNAVAILABLE")
         if row.get("revoked_at") is not None:
+            raise GrantResolutionError("DENY_POLICY_UNAVAILABLE")
+        valid_from = row.get("valid_from")
+        if valid_from is not None and _utc(valid_from) > now:
             raise GrantResolutionError("DENY_POLICY_UNAVAILABLE")
         valid_until = row.get("valid_until")
         if valid_until is not None and _utc(valid_until) <= now:
