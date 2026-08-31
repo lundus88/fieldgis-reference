@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Callable
 
-from grant_resolution import GrantResolutionError, resolve_grant_chain
+from grant_resolution import GrantResolutionError, resolve_grant
 from runtime_policy import evaluate_runtime
 
 
@@ -42,10 +42,10 @@ def execute_guarded_transition(
         return TransitionResult(False, decision)
 
     try:
-        grant = resolve_grant_chain(
-            grants_by_id,
+        resolved = resolve_grant(
             leaf_grant_id,
-            expected_principal_id=str(action.get("actor_id") or ""),
+            grants_by_id,
+            expected_agent_id=str(action.get("actor_id") or ""),
             now=now,
         )
     except GrantResolutionError as exc:
@@ -60,7 +60,7 @@ def execute_guarded_transition(
 
     decision = evaluate_runtime(
         action,
-        grant,
+        resolved.as_runtime_grant(),
         replay_record=replay_record,
         now=now,
         policy_available=True,
