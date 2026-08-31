@@ -9,6 +9,7 @@
 -- - revocation is limited to agent grants.
 -- - audit evidence is appended atomically by the same transaction.
 -- - generic/arbitrary audit-write RPC is intentionally not exposed.
+-- - exact replay is idempotent; changed-input replay fails closed.
 
 create or replace function private.acp_admin_event_id(
   p_action_id text,
@@ -36,8 +37,17 @@ begin
      or coalesce(p_evidence->>'workflow_ref', '') = ''
      or coalesce(p_evidence->>'run_id', '') = ''
      or coalesce(p_evidence->>'sha', '') = ''
+     or coalesce(p_evidence->>'ref', '') = ''
      or coalesce(p_evidence->>'actor', '') = '' then
     raise exception 'ACP actor evidence incomplete';
+  end if;
+
+  if p_evidence->>'repository' <> 'lundus88/fieldgis-reference'
+     or p_evidence->>'workflow_ref' <> 'lundus88/fieldgis-reference/.github/workflows/vl-agent-control-plane-admin.yml@refs/heads/main'
+     or p_evidence->>'ref' <> 'refs/heads/main'
+     or p_evidence->>'sha' !~ '^[0-9a-f]{40}$'
+     or p_evidence->>'run_id' !~ '^[0-9]+$' then
+    raise exception 'ACP actor evidence identity not allowed';
   end if;
 
   if p_evidence::text ~* '(authorization|access_token|refresh_token|service_role_key|supabase_service_role_key|api_key|password|private_key|bearer_token|github_token|actions_id_token_request_token)' then
@@ -71,6 +81,7 @@ declare
   v_next_seq integer;
   v_recorded_at timestamptz := clock_timestamp();
   v_requester jsonb;
+  v_metadata jsonb;
   v_payload jsonb;
   v_event_digest text;
 begin
@@ -90,6 +101,7 @@ begin
   end if;
 
   v_event_id := private.acp_admin_event_id(p_action_id, p_event_type);
+  v_metadata := p_metadata || jsonb_build_object('actor_evidence', p_actor_evidence);
   perform pg_advisory_xact_lock(hashtextextended(p_action_id, 0));
 
   select * into v_existing
@@ -106,7 +118,7 @@ begin
        and v_existing.reason_code is not distinct from p_reason_code
        and v_existing.execution_status is not distinct from p_execution_status
        and v_existing.result_digest is not distinct from p_result_digest
-       and v_existing.metadata = p_metadata then
+       and v_existing.metadata = v_metadata then
       return v_existing.event_digest;
     end if;
     raise exception 'ACP deterministic audit event conflicts with existing evidence';
@@ -144,7 +156,7 @@ begin
     'execution_status', p_execution_status,
     'result_digest', p_result_digest,
     'previous_event_digest', v_prior_digest,
-    'metadata', p_metadata || jsonb_build_object('actor_evidence', p_actor_evidence)
+    'metadata', v_metadata
   );
 
   v_event_digest := 'sha256:' || encode(
@@ -161,7 +173,7 @@ begin
     v_event_id, '1.0', p_action_id, v_next_seq, p_event_type, v_recorded_at,
     v_requester, '[]'::jsonb, p_capability, p_scope, p_input_digest, p_decision,
     p_reason_code, p_execution_status, p_result_digest, v_prior_digest,
-    v_event_digest, p_metadata || jsonb_build_object('actor_evidence', p_actor_evidence)
+    v_event_digest, v_metadata
   );
 
   return v_event_digest;
@@ -188,6 +200,8 @@ set search_path = pg_catalog, private, extensions
 as $$
 declare
   v_event_id text;
+  v_existing_event_id text;
+  v_existing_input_digest text;
   v_existing_grant_id uuid;
   v_grant_id uuid;
   v_created_by text;
@@ -221,17 +235,42 @@ begin
   if jsonb_typeof(p_budget) <> 'object' then
     raise exception 'ACP delegated budget must be object';
   end if;
-  if p_valid_until is null or p_valid_until <= p_valid_from then
+  if p_valid_from is null or p_valid_until is null or p_valid_until <= p_valid_from then
     raise exception 'ACP bounded delegated validity required';
   end if;
+
+  v_input_payload := jsonb_build_object(
+    'parent_grant_id', p_parent_grant_id,
+    'agent_id', p_agent_id,
+    'agent_version', p_agent_version,
+    'role_name', p_role_name,
+    'capabilities', to_jsonb(p_capabilities),
+    'scope', p_scope,
+    'budget', p_budget,
+    'valid_from', p_valid_from,
+    'valid_until', p_valid_until
+  );
+  v_input_digest := 'sha256:' || encode(
+    extensions.digest(convert_to(v_input_payload::text, 'UTF8'), 'sha256'), 'hex'
+  );
 
   v_event_id := private.acp_admin_event_id(p_action_id, 'delegation_recorded');
   perform pg_advisory_xact_lock(hashtextextended(p_action_id, 0));
 
-  select nullif(metadata->>'grant_id', '')::uuid into v_existing_grant_id
+  select event_id, input_digest, nullif(metadata->>'grant_id', '')::uuid
+    into v_existing_event_id, v_existing_input_digest, v_existing_grant_id
   from private.agent_control_audit_events
-  where event_id = v_event_id;
+  where action_id = p_action_id
+  order by event_seq
+  limit 1;
+
   if found then
+    if v_existing_event_id <> v_event_id then
+      raise exception 'ACP action_id already consumed by different operation';
+    end if;
+    if v_existing_input_digest <> v_input_digest then
+      raise exception 'ACP replay input digest mismatch';
+    end if;
     if v_existing_grant_id is null then
       raise exception 'ACP delegation replay evidence missing grant id';
     end if;
@@ -249,20 +288,6 @@ begin
     p_scope, p_budget, p_parent_grant_id, p_valid_from, p_valid_until, v_created_by
   );
 
-  v_input_payload := jsonb_build_object(
-    'parent_grant_id', p_parent_grant_id,
-    'agent_id', p_agent_id,
-    'agent_version', p_agent_version,
-    'role_name', p_role_name,
-    'capabilities', to_jsonb(p_capabilities),
-    'scope', p_scope,
-    'budget', p_budget,
-    'valid_from', p_valid_from,
-    'valid_until', p_valid_until
-  );
-  v_input_digest := 'sha256:' || encode(
-    extensions.digest(convert_to(v_input_payload::text, 'UTF8'), 'sha256'), 'hex'
-  );
   v_result_digest := 'sha256:' || encode(
     extensions.digest(convert_to(v_grant_id::text, 'UTF8'), 'sha256'), 'hex'
   );
@@ -298,28 +323,44 @@ set search_path = pg_catalog, private, extensions
 as $$
 declare
   v_event_id text;
+  v_existing_event_id text;
+  v_existing_input_digest text;
   v_scope jsonb;
   v_input_payload jsonb;
   v_input_digest text;
   v_result_digest text;
-  v_existing boolean;
 begin
   perform private.acp_assert_actor_evidence(p_actor_evidence);
 
   if p_action_id is null or length(p_action_id) < 16 or length(p_action_id) > 160 then
     raise exception 'ACP action_id invalid';
   end if;
-  if p_grant_id is null or length(trim(coalesce(p_reason, ''))) < 8 then
-    raise exception 'ACP revocation requires grant id and reason';
+  if p_grant_id is null or length(trim(coalesce(p_reason, ''))) < 8 or length(p_reason) > 500 then
+    raise exception 'ACP revocation requires grant id and bounded reason';
   end if;
+
+  v_input_payload := jsonb_build_object('grant_id', p_grant_id, 'reason', p_reason);
+  v_input_digest := 'sha256:' || encode(
+    extensions.digest(convert_to(v_input_payload::text, 'UTF8'), 'sha256'), 'hex'
+  );
 
   v_event_id := private.acp_admin_event_id(p_action_id, 'policy_decided');
   perform pg_advisory_xact_lock(hashtextextended(p_action_id, 0));
 
-  select true into v_existing
+  select event_id, input_digest
+    into v_existing_event_id, v_existing_input_digest
   from private.agent_control_audit_events
-  where event_id = v_event_id;
+  where action_id = p_action_id
+  order by event_seq
+  limit 1;
+
   if found then
+    if v_existing_event_id <> v_event_id then
+      raise exception 'ACP action_id already consumed by different operation';
+    end if;
+    if v_existing_input_digest <> v_input_digest then
+      raise exception 'ACP replay input digest mismatch';
+    end if;
     return true;
   end if;
 
@@ -339,10 +380,6 @@ begin
   where grant_id = p_grant_id
     and principal_type = 'agent';
 
-  v_input_payload := jsonb_build_object('grant_id', p_grant_id, 'reason', p_reason);
-  v_input_digest := 'sha256:' || encode(
-    extensions.digest(convert_to(v_input_payload::text, 'UTF8'), 'sha256'), 'hex'
-  );
   v_result_digest := 'sha256:' || encode(
     extensions.digest(convert_to('revoked:' || p_grant_id::text, 'UTF8'), 'sha256'), 'hex'
   );
