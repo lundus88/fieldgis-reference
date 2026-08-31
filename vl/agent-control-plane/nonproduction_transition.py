@@ -26,14 +26,17 @@ def execute_guarded_transition(
     """ACP enforcement boundary for selected non-production transitions.
 
     The state-changing callback is invoked only after authoritative grant-chain
-    resolution and runtime policy return an explicit allow. Any missing/invalid
-    policy evidence fails closed. Production capabilities are never executed here.
+    resolution and runtime policy return an explicit allow. Identical replays are
+    treated as idempotent success evidence and never invoke the transition again.
+    Production capabilities are never executed here.
     """
     capability = str(action.get("capability") or "")
+    action_id = str(action.get("action_id") or "")
+
     if capability.startswith("production."):
         decision = {
             "schema_version": "1.0",
-            "action_id": str(action.get("action_id") or ""),
+            "action_id": action_id,
             "decision": "require_human_approval",
             "reason_code": "REQUIRE_HUMAN_PRODUCTION_APPROVAL",
             "effective_capabilities": [],
@@ -41,17 +44,28 @@ def execute_guarded_transition(
         }
         return TransitionResult(False, decision)
 
+    requester = action.get("requester")
+    if not isinstance(requester, dict) or not requester.get("agent_id"):
+        decision = {
+            "schema_version": "1.0",
+            "action_id": action_id,
+            "decision": "deny",
+            "reason_code": "DENY_POLICY_UNAVAILABLE",
+            "effective_capabilities": [],
+        }
+        return TransitionResult(False, decision)
+
     try:
         resolved = resolve_grant(
             leaf_grant_id,
             grants_by_id,
-            expected_agent_id=str(action.get("actor_id") or ""),
+            expected_agent_id=str(requester.get("agent_id") or ""),
             now=now,
         )
     except GrantResolutionError as exc:
         decision = {
             "schema_version": "1.0",
-            "action_id": str(action.get("action_id") or ""),
+            "action_id": action_id,
             "decision": "deny",
             "reason_code": exc.reason_code,
             "effective_capabilities": [],
@@ -67,5 +81,8 @@ def execute_guarded_transition(
     )
     if decision.get("decision") != "allow":
         return TransitionResult(False, decision)
+
+    if decision.get("replayed") is True:
+        return TransitionResult(False, decision, {"idempotent_replay": True})
 
     return TransitionResult(True, decision, transition(action))
