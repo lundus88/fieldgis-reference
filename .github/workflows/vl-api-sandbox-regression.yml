@@ -28,11 +28,17 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Set up Deno 2.5.6 for dependency cache preparation
+        uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed
+        with:
+          deno-version: v2.5.6
+
       - name: Prepare generated API fixture
         shell: bash
         run: |
           set -euo pipefail
           cp -R vl/adversarial/api-sandbox-fixture sandbox-api
+          DENO_DIR="$PWD/sandbox-api/.deno-cache" deno cache --no-check sandbox-api/index.ts
           docker pull denoland/deno:2.5.6
 
       - name: Probe credential isolation with generated Deno code
@@ -54,6 +60,7 @@ jobs:
           test -s sandbox-api/.vl-api-sandbox-env.json
           test -s vl-api-build.tgz
           sha256sum -c sandbox-sha256.txt
+          grep -q -- '--cached-only' vl/scripts/validate-api-sandbox.sh
           python3 - <<'PY'
           import json
           d=json.load(open('sandbox-api/.vl-api-sandbox-env.json'))
