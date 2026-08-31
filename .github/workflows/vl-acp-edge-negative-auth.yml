@@ -1,0 +1,62 @@
+name: VL ACP Edge Negative Auth
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/vl-acp-edge-negative-auth.yml'
+      - '.github/workflows/vl-agent-control-plane-admin.yml'
+      - 'vl/functions/vrs-agent-control-oidc/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  negative-auth:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      ACP_EDGE_URL: https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vrs-agent-control-oidc
+    steps:
+      - name: Prove unauthenticated request is rejected
+        shell: bash
+        run: |
+          set -euo pipefail
+          body="$(mktemp)"
+          code="$(curl -sS -o "$body" -w '%{http_code}' \
+            -X POST "$ACP_EDGE_URL" \
+            -H 'content-type: application/json' \
+            --data '{"operation":"delegate_grant"}')"
+          test "$code" = "401"
+          python3 - "$body" <<'PY'
+          import json, sys
+          payload=json.load(open(sys.argv[1]))
+          assert payload.get('blocked') is True
+          assert payload.get('ok') is False
+          PY
+
+      - name: Prove malformed bearer token is rejected
+        shell: bash
+        run: |
+          set -euo pipefail
+          body="$(mktemp)"
+          code="$(curl -sS -o "$body" -w '%{http_code}' \
+            -X POST "$ACP_EDGE_URL" \
+            -H 'content-type: application/json' \
+            -H 'authorization: Bearer not-a-jwt' \
+            --data '{"operation":"delegate_grant"}')"
+          test "$code" = "401"
+          python3 - "$body" <<'PY'
+          import json, sys
+          payload=json.load(open(sys.argv[1]))
+          assert payload.get('blocked') is True
+          assert payload.get('ok') is False
+          PY
+
+      - name: Assert test workflow has no OIDC authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "${ACTIONS_ID_TOKEN_REQUEST_URL:-}"
+          test -z "${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-}"
