@@ -1,0 +1,54 @@
+name: VL Generated Code Sandbox Certification
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/scripts/run-untrusted-sandbox.sh'
+      - 'vl/adversarial/generated_code_sandbox_probe.sh'
+      - '.github/workflows/vl-generated-code-sandbox-cert.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sandbox-cert:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - name: Prepare adversarial workspace
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p sandbox-workspace
+          cp vl/adversarial/generated_code_sandbox_probe.sh sandbox-workspace/probe.sh
+          chmod +x sandbox-workspace/probe.sh vl/scripts/run-untrusted-sandbox.sh
+
+      - name: Run malicious probe inside credential-free sandbox
+        shell: bash
+        env:
+          # Deliberately seed fake sensitive values in the host job. The sandbox
+          # must not inherit them.
+          VRS_OIDC_TOKEN: host-secret-must-not-leak
+          SUPABASE_SERVICE_ROLE_KEY: host-secret-must-not-leak
+        run: |
+          set -euo pipefail
+          docker pull ubuntu:24.04
+          vl/scripts/run-untrusted-sandbox.sh ubuntu:24.04 sandbox-workspace -- /bin/bash /workspace/probe.sh
+          test -f sandbox-workspace/.vl-sandbox-write-test
+          grep -qx 'sandbox-ok' sandbox-workspace/.vl-sandbox-write-test
+
+      - name: Assert sandbox contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q -- '--network none' vl/scripts/run-untrusted-sandbox.sh
+          grep -q -- '--cap-drop ALL' vl/scripts/run-untrusted-sandbox.sh
+          grep -q -- 'no-new-privileges:true' vl/scripts/run-untrusted-sandbox.sh
+          grep -q -- '--read-only' vl/scripts/run-untrusted-sandbox.sh
+          grep -q -- '--pids-limit' vl/scripts/run-untrusted-sandbox.sh
+          grep -q -- '--memory' vl/scripts/run-untrusted-sandbox.sh
+          grep -q -- '--cpus' vl/scripts/run-untrusted-sandbox.sh
