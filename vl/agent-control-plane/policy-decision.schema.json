@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vrs-labs.local/schemas/agent-control-plane/policy-decision-v1.json",
+  "title": "VL Agent Control Plane Policy Decision V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "action_id",
+    "decision",
+    "reason_code",
+    "decided_at",
+    "policy_version"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "action_id": { "type": "string", "minLength": 16, "maxLength": 200 },
+    "decision": { "enum": ["allow", "deny", "require_human_approval"] },
+    "reason_code": {
+      "enum": [
+        "ALLOW_POLICY_MATCH",
+        "DENY_UNKNOWN_CAPABILITY",
+        "DENY_CAPABILITY_NOT_GRANTED",
+        "DENY_SCOPE_MISMATCH",
+        "DENY_DELEGATION_ESCALATION",
+        "DENY_EXPIRED_ACTION",
+        "DENY_REPLAY",
+        "DENY_MISSING_PROVENANCE",
+        "DENY_POLICY_UNAVAILABLE",
+        "REQUIRE_HUMAN_PRODUCTION_APPROVAL"
+      ]
+    },
+    "decided_at": { "type": "string", "format": "date-time" },
+    "policy_version": { "type": "string", "minLength": 1, "maxLength": 64 },
+    "effective_capabilities": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1, "maxLength": 200 },
+      "uniqueItems": true
+    },
+    "audit_ref": { "type": ["string", "null"], "maxLength": 200 },
+    "human_approval_required": { "type": "boolean" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "decision": { "const": "require_human_approval" } } },
+      "then": {
+        "required": ["human_approval_required"],
+        "properties": { "human_approval_required": { "const": true } }
+      }
+    }
+  ]
+}
