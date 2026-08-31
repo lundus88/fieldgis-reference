@@ -15,10 +15,11 @@ The Agent Control Plane (ACP) governs every autonomous or delegated agent action
 5. Generated/untrusted code never receives ACP credentials or connector credentials.
 6. Externally effective actions require deterministic idempotency/replay protection.
 7. Every request, decision, execution result and delegation edge emits immutable audit evidence without secret values.
+8. Persisted grants are authoritative only after successful grant-chain resolution; unresolved, revoked, expired, cyclic or widened delegation fails closed.
 
 ## Action lifecycle
 
-Agent request -> validate envelope -> resolve effective capabilities -> validate delegation chain -> validate resource scope -> evaluate policy -> ALLOW / DENY / REQUIRE_HUMAN_APPROVAL -> execute bounded action -> record immutable result.
+Agent request -> validate envelope -> load authoritative persisted grant -> resolve delegation chain -> validate effective capabilities/scope/budget/expiry -> evaluate policy -> ALLOW / DENY / REQUIRE_HUMAN_APPROVAL -> execute bounded action -> record immutable result.
 
 Execution MUST NOT begin before a machine-readable policy decision exists.
 
@@ -69,7 +70,17 @@ Delegation is monotonic-restrictive:
 
 `child_effective_capabilities ⊆ parent_effective_capabilities`
 
-A child action cannot escape the parent's project/resource scope, extend expiry, increase retry/spend/time budgets, or introduce a new connector. Any violation is `DENY`.
+A child grant cannot escape the parent's project/resource scope, extend expiry, increase retry/spend/time budgets, or introduce a new connector. Any violation is `DENY`.
+
+The runtime grant resolver must also reject:
+- missing parent grant evidence;
+- revoked grants anywhere in the chain;
+- expired grants anywhere in the chain;
+- delegation cycles;
+- delegation depth beyond the configured bound;
+- agent identity mismatch for the leaf grant.
+
+Grant resolution is storage-agnostic in code, but the authoritative persistence contract is `private.agent_capability_grants`. Runtime callers must load persisted grant rows from that private store before policy evaluation. The resolver itself never reads ambient credentials.
 
 ## Decision outcomes
 
@@ -115,7 +126,7 @@ Audit events must record:
 - execution result/status
 - timestamps
 
-Never record bearer tokens, service-role keys, API secrets, raw connector credentials or other secret material.
+Audit persistence is append-only/tamper-evident by contract. UPDATE and DELETE must be rejected at the datastore boundary. Never record bearer tokens, service-role keys, API secrets, raw connector credentials or other secret material.
 
 ## Integration with existing VL lifecycle
 
@@ -132,9 +143,13 @@ The implementation must prove fail-closed behavior for:
 2. ungranted capability;
 3. project/resource scope escape;
 4. forged or widened delegation;
-5. expired action;
+5. expired action/grant;
 6. replay with changed inputs;
-7. missing provenance;
-8. attempt by an agent to approve production.
+7. missing provenance or missing grant-chain evidence;
+8. revoked grant;
+9. delegation cycle/depth escape;
+10. attempt by an agent to approve production.
 
-No multi-agent swarm should be considered production-ready until these controls have machine-readable regression evidence.
+Current PR implementation includes contract schemas, pure runtime evaluator, grant-chain resolver, persistence migration contract and regression suites. It is not yet wired into state-changing production execution and the persistence migration is not yet applied to Supabase production.
+
+No multi-agent swarm should be considered production-ready until end-to-end enforcement has machine-readable evidence.
