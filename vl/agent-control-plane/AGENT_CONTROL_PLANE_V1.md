@@ -1,6 +1,6 @@
 # VL Agent Control Plane V1
 
-Status: Draft implementation contract for Issue #95.
+Status: Repository contracts merged; narrow live write boundary under review for Issue #95. No ACP production migration or edge deployment has occurred.
 
 ## Purpose
 
@@ -126,7 +126,29 @@ Audit events must record:
 - execution result/status
 - timestamps
 
-Audit persistence is append-only/tamper-evident by contract. UPDATE and DELETE must be rejected at the datastore boundary. Never record bearer tokens, service-role keys, API secrets, raw connector credentials or other secret material.
+Audit persistence is append-only/tamper-evident by contract. UPDATE, DELETE and TRUNCATE are rejected at the datastore boundary. Never record bearer tokens, service-role keys, API secrets, raw connector credentials or other secret material.
+
+## Narrow live write boundary
+
+The first live-write candidate is deliberately smaller than the full ACP runtime surface.
+
+Allowed operations:
+- delegate an **agent** grant from an existing parent grant;
+- revoke an existing **agent** grant.
+
+Hard boundaries:
+- no runtime root-grant creation;
+- no `production.approve` or `production.promote` delegation;
+- delegated target environment must be `development` or `staging`;
+- database triggers independently enforce parent capability/scope/budget/validity restrictions;
+- `service_role` has no direct DML on the ACP private tables;
+- only two service-role-executable `SECURITY DEFINER` RPCs exist for this rollout;
+- state mutation and its immutable audit evidence are committed atomically;
+- no generic public/service-role audit writer exists;
+- the OIDC edge candidate is bound to one exact repository, branch, audience and dedicated admin workflow reference;
+- authentication failures are separated from request, policy/database, and internal failures.
+
+The dedicated admin workflow is intentionally not part of the initial boundary PR. Without that separately reviewed workflow, the OIDC boundary remains fail-closed even if deployed accidentally.
 
 ## Integration with existing VL lifecycle
 
@@ -150,6 +172,6 @@ The implementation must prove fail-closed behavior for:
 9. delegation cycle/depth escape;
 10. attempt by an agent to approve production.
 
-Current PR implementation includes contract schemas, pure runtime evaluator, grant-chain resolver, persistence migration contract and regression suites. It is not yet wired into state-changing production execution and the persistence migration is not yet applied to Supabase production.
+Repository implementation now includes contract schemas, runtime evaluator, grant-chain resolver, hardened persistence contract, guarded non-production transition boundary, narrow live-write candidate, OIDC boundary candidate, and regression suites. It is still **not** a production ACP deployment: the ACP migrations are not applied, the edge function is not deployed, no root/parent grant is bootstrapped, and no live ACP admin workflow exists.
 
 No multi-agent swarm should be considered production-ready until end-to-end enforcement has machine-readable evidence.
