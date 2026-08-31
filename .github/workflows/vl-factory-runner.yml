@@ -170,21 +170,7 @@ jobs:
         run: |
           set -o pipefail
           npm install --ignore-scripts 2>&1 | tee ../../runner-gis.log
-          npm run build 2>&1 | tee -a ../../runner-gis.log
-          test -s dist/index.html
-          test -n "$(find dist/assets -type f -name '*.js' -print -quit)"
-          grep -R -q "__VL_MAPLIBRE_RUNTIME__" dist/assets
-          rm -rf .vercel/output
-          mkdir -p .vercel/output/static
-          cp -R dist/. .vercel/output/static/
-          cat > .vercel/output/config.json <<'JSON'
-          {"version":3}
-          JSON
-          test -s .vercel/output/config.json
-          test -s .vercel/output/static/index.html
-          test -n "$(find .vercel/output/static/assets -type f -name '*.js' -print -quit)"
-          grep -R -q "__VL_MAPLIBRE_RUNTIME__" .vercel/output/static/assets
-          tar -czf ../vl-gis-build.tgz .vercel/output package.json package-lock.json
+          ../../vl/scripts/build-gis-web-sandbox.sh . '${{ steps.claim.outputs.builder_key }}' 2>&1 | tee -a ../../runner-gis.log
           sha256sum ../vl-gis-build.tgz > ../../runner-sha256.txt
           echo "workspace/vl-gis-build.tgz" > ../../runner-artifact-path.txt
 
