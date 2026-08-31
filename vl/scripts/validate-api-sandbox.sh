@@ -25,7 +25,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 SANDBOX="$SCRIPT_DIR/run-untrusted-sandbox.sh"
 [ -x "$SANDBOX" ] || { echo "sandbox runner not executable" >&2; exit 68; }
 
-"$SANDBOX" denoland/deno:2.5.6 "$ROOT" -- check index.ts
+"$SANDBOX" denoland/deno:2.5.6 "$ROOT" -- deno check index.ts
 
 OUT="$ROOT/../vl-api-build.tgz"
 tar -C "$ROOT" -czf "$OUT" .
