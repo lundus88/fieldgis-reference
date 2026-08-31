@@ -93,15 +93,15 @@ jobs:
           import json,pathlib,re
           d=json.load(open('claim.json')); root=pathlib.Path('workspace/mobile').resolve()
           title=((d.get('app_spec') or {}).get('title') or 'VL Generated App').replace("'",'')
-          reserved_exact={'.vl-mobile-cache-prepared'}
-          reserved_prefixes=(
-              '.flutter-sdk/',
-              '.android-sdk-components/',
-              '.gradle/',
-              '.home/',
-              '.pub-cache/',
-              'build/',
-          )
+          reserved_marker=(root/'.vl-mobile-cache-prepared').resolve()
+          reserved_dirs=tuple((root/name).resolve() for name in (
+              '.flutter-sdk',
+              '.android-sdk-components',
+              '.gradle',
+              '.home',
+              '.pub-cache',
+              'build',
+          ))
           def normalize(text,path):
               if path.endswith(('.dart','.ts','.tsx','.js','.jsx')):
                   text=re.sub(r'\\n(?=(?:import|export|class|void|String|Future|Widget|const|final|var|enum|typedef|extension|mixin)\b)','\n',text)
@@ -111,10 +111,11 @@ jobs:
               if p.startswith('mobile/flutter/'): p=p[len('mobile/flutter/'):]
               elif p.startswith('mobile/'): p=p[len('mobile/'):]
               else: continue
-              if not p or p in reserved_exact or p.startswith(reserved_prefixes):
-                  raise SystemExit(f'reserved mobile artifact path: {p}')
+              if not p: raise SystemExit('empty mobile artifact path')
               target=(root/p).resolve()
               if root not in target.parents and target!=root: raise SystemExit('unsafe artifact path')
+              if target==root or target==reserved_marker or any(target==r or r in target.parents for r in reserved_dirs):
+                  raise SystemExit(f'reserved mobile artifact path: {p}')
               target.parent.mkdir(parents=True,exist_ok=True)
               target.write_text(normalize(str(a.get('content') or ''),p))
           main=root/'lib/main.dart'
