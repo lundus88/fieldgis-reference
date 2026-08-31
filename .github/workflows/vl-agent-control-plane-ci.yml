@@ -41,6 +41,8 @@ jobs:
         run: python3 vl/agent-control-plane/check_persistence_contract.py
       - name: Validate narrow live write boundary
         run: python3 vl/agent-control-plane/check_live_write_boundary.py
+      - name: Validate production rollout runbook
+        run: python3 vl/agent-control-plane/check_production_rollout_runbook.py
 
       - name: Validate audit and runtime invariants
         shell: bash
@@ -51,7 +53,7 @@ jobs:
           import json, sys
           errors=[]
           root=Path('vl/agent-control-plane')
-          required=['action-envelope.schema.json','policy-decision.schema.json','audit-event.schema.json','runtime_policy.py','run_runtime_policy_tests.py','grant_resolution.py','run_grant_resolution_tests.py','nonproduction_transition.py','run_nonproduction_transition_tests.py','check_persistence_contract.py','check_live_write_boundary.py']
+          required=['action-envelope.schema.json','policy-decision.schema.json','audit-event.schema.json','runtime_policy.py','run_runtime_policy_tests.py','grant_resolution.py','run_grant_resolution_tests.py','nonproduction_transition.py','run_nonproduction_transition_tests.py','check_persistence_contract.py','check_live_write_boundary.py','ACP_PRODUCTION_ROLLOUT_RUNBOOK.md','check_production_rollout_runbook.py']
           for name in required:
               if not (root/name).exists(): errors.append(f'missing ACP contract: {name}')
           migration=Path('vl/migrations/20260831_agent_control_plane_store.sql')
