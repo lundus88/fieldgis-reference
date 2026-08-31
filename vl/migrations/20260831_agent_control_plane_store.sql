@@ -36,6 +36,7 @@ create index if not exists agent_capability_grants_parent_idx
 
 create table if not exists private.agent_control_audit_events (
   event_id text primary key check (length(event_id) between 16 and 200),
+  schema_version text not null default '1.0' check (schema_version = '1.0'),
   action_id text not null check (length(action_id) between 16 and 200),
   event_seq integer not null check (event_seq > 0),
   event_type text not null check (event_type in (
