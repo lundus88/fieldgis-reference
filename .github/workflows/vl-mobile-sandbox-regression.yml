@@ -45,6 +45,7 @@ jobs:
           test -f sandbox-mobile/.vl-mobile-cache-prepared
           test -x sandbox-mobile/.flutter-sdk/bin/flutter
           test -s sandbox-mobile/.flutter-sdk/bin/cache/engine.stamp
+          test -s sandbox-mobile/.android-ndk/28.2.13676358/source.properties
 
       - name: Inject generated-code adversarial Gradle probe after cache preparation
         shell: bash
@@ -136,7 +137,10 @@ jobs:
           grep -q -- '--memory' vl/scripts/build-mobile-flutter-sandbox.sh
           grep -q -- '--cpus' vl/scripts/build-mobile-flutter-sandbox.sh
           grep -q -- '/workspace/.flutter-sdk/bin/flutter' vl/scripts/build-mobile-flutter-sandbox.sh
+          grep -q -- '.android-ndk,dst=/opt/android-sdk-linux/ndk,readonly' vl/scripts/build-mobile-flutter-sandbox.sh
           grep -q -- '--network none' vl/scripts/prepare-mobile-flutter-cache.sh
           grep -q -- '--read-only' vl/scripts/prepare-mobile-flutter-cache.sh
+          grep -q -- "NDK_VERSION='28.2.13676358'" vl/scripts/prepare-mobile-flutter-cache.sh
+          grep -q -- '.android-ndk,dst=/opt/android-sdk-linux/ndk,readonly' vl/scripts/prepare-mobile-flutter-cache.sh
           grep -q -- '/workspace/.flutter-sdk/bin/flutter' vl/scripts/prepare-mobile-flutter-cache.sh
           ! grep -q -- '/sdks/flutter/bin/flutter' vl/scripts/build-mobile-flutter-sandbox.sh
