@@ -26,28 +26,15 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Run adversarial contract suite
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 vl/agent-control-plane/run_adversarial_tests.py
-
+        run: python3 vl/agent-control-plane/run_adversarial_tests.py
       - name: Run runtime policy suite
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 vl/agent-control-plane/run_runtime_policy_tests.py
-
+        run: python3 vl/agent-control-plane/run_runtime_policy_tests.py
       - name: Run grant resolution suite
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 vl/agent-control-plane/run_grant_resolution_tests.py
-
+        run: python3 vl/agent-control-plane/run_grant_resolution_tests.py
+      - name: Run guarded non-production transition suite
+        run: python3 vl/agent-control-plane/run_nonproduction_transition_tests.py
       - name: Validate persistence contract
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 vl/agent-control-plane/check_persistence_contract.py
+        run: python3 vl/agent-control-plane/check_persistence_contract.py
 
       - name: Validate audit and runtime invariants
         shell: bash
@@ -56,68 +43,31 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           import json, sys
-
           errors=[]
           root=Path('vl/agent-control-plane')
-          required=[
-              'action-envelope.schema.json',
-              'policy-decision.schema.json',
-              'audit-event.schema.json',
-              'runtime_policy.py',
-              'run_runtime_policy_tests.py',
-              'grant_resolution.py',
-              'run_grant_resolution_tests.py',
-              'check_persistence_contract.py',
-          ]
+          required=['action-envelope.schema.json','policy-decision.schema.json','audit-event.schema.json','runtime_policy.py','run_runtime_policy_tests.py','grant_resolution.py','run_grant_resolution_tests.py','nonproduction_transition.py','run_nonproduction_transition_tests.py','check_persistence_contract.py']
           for name in required:
-              if not (root/name).exists():
-                  errors.append(f'missing ACP contract: {name}')
-
+              if not (root/name).exists(): errors.append(f'missing ACP contract: {name}')
           migration=Path('vl/migrations/20260831_agent_control_plane_store.sql')
-          if not migration.exists():
-              errors.append('missing ACP persistence migration')
-
+          if not migration.exists(): errors.append('missing ACP persistence migration')
           try:
               audit=json.loads((root/'audit-event.schema.json').read_text())
               required_fields=set(audit.get('required') or [])
               for field in ('event_id','action_id','event_type','recorded_at','input_digest','event_digest'):
-                  if field not in required_fields:
-                      errors.append(f'audit schema missing required field: {field}')
-          except Exception as exc:
-              errors.append(f'audit schema invalid JSON: {exc}')
-
-          runtime=(root/'runtime_policy.py').read_text() if (root/'runtime_policy.py').exists() else ''
-          for marker in (
-              'DENY_POLICY_UNAVAILABLE',
-              'DENY_UNKNOWN_CAPABILITY',
-              'DENY_CAPABILITY_NOT_GRANTED',
-              'DENY_SCOPE_MISMATCH',
-              'DENY_DELEGATION_ESCALATION',
-              'DENY_EXPIRED_ACTION',
-              'DENY_REPLAY',
-              'DENY_MISSING_PROVENANCE',
-              'REQUIRE_HUMAN_PRODUCTION_APPROVAL',
-          ):
-              if marker not in runtime:
-                  errors.append(f'runtime policy missing fail-closed marker: {marker}')
-
-          grant=(root/'grant_resolution.py').read_text() if (root/'grant_resolution.py').exists() else ''
-          for marker in (
-              'DENY_POLICY_UNAVAILABLE',
-              'DENY_SCOPE_MISMATCH',
-              'DENY_DELEGATION_ESCALATION',
-              'DENY_EXPIRED_ACTION',
-              'delegated_from_grant_id',
-              'max_depth',
-          ):
-              if marker not in grant:
-                  errors.append(f'grant resolver missing enforcement marker: {marker}')
-
-          forbidden=('SUPABASE_SERVICE_ROLE_KEY','GITHUB_TOKEN','ACTIONS_ID_TOKEN_REQUEST_TOKEN','production.approve" in KNOWN_CAPABILITIES')
+                  if field not in required_fields: errors.append(f'audit schema missing required field: {field}')
+          except Exception as exc: errors.append(f'audit schema invalid JSON: {exc}')
+          runtime=(root/'runtime_policy.py').read_text()
+          grant=(root/'grant_resolution.py').read_text()
+          transition=(root/'nonproduction_transition.py').read_text()
+          for marker in ('DENY_POLICY_UNAVAILABLE','DENY_UNKNOWN_CAPABILITY','DENY_CAPABILITY_NOT_GRANTED','DENY_SCOPE_MISMATCH','DENY_DELEGATION_ESCALATION','DENY_EXPIRED_ACTION','DENY_REPLAY','DENY_MISSING_PROVENANCE','REQUIRE_HUMAN_PRODUCTION_APPROVAL'):
+              if marker not in runtime: errors.append(f'runtime policy missing fail-closed marker: {marker}')
+          for marker in ('DENY_POLICY_UNAVAILABLE','DENY_SCOPE_MISMATCH','DENY_DELEGATION_ESCALATION','DENY_EXPIRED_ACTION','delegated_from_grant_id','max_depth'):
+              if marker not in grant: errors.append(f'grant resolver missing enforcement marker: {marker}')
+          for marker in ('resolve_grant','evaluate_runtime','decision.get("decision") != "allow"','capability.startswith("production.")'):
+              if marker not in transition: errors.append(f'transition boundary missing marker: {marker}')
+          forbidden=('SUPABASE_SERVICE_ROLE_KEY','GITHUB_TOKEN','ACTIONS_ID_TOKEN_REQUEST_TOKEN')
           for marker in forbidden:
-              if marker in runtime or marker in grant:
-                  errors.append(f'ACP runtime contains forbidden authority marker: {marker}')
-
+              if marker in runtime or marker in grant or marker in transition: errors.append(f'ACP runtime contains forbidden authority marker: {marker}')
           if errors:
               print('VL AGENT CONTROL PLANE CI: FAIL')
               for e in errors: print(f'- {e}')
