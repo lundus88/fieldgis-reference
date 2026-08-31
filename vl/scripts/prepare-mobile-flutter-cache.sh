@@ -24,6 +24,7 @@ IMAGE='ghcr.io/cirruslabs/flutter:3.38.1@sha256:01cf49cb0586bd9ece557683b0fd5ce4
 NDK_VERSION='28.2.13676358'
 BUILD_TOOLS_VERSION='35.0.0'
 COMPILE_SDK='36'
+CMAKE_VERSION='3.22.1'
 
 command -v docker >/dev/null 2>&1 || { echo "docker is required" >&2; exit 70; }
 command -v tar >/dev/null 2>&1 || { echo "tar is required" >&2; exit 71; }
@@ -63,9 +64,9 @@ fi
 [ "$(stat -c '%u' "$ROOT/.flutter-sdk/bin/flutter")" = "$HOST_UID" ] || { echo "Flutter SDK is not runner-owned" >&2; exit 72; }
 
 # Flutter 3.38.1 requires compileSdk 36 and NDK 28.2.13676358; the current AGP
-# toolchain also requests Build Tools 35.0.0. Install those exact components only
-# inside an ephemeral trusted container, then stream just their SDK directories to
-# stdout. No host path or secret is visible during this network-enabled bootstrap.
+# toolchain also requests Build Tools 35.0.0 and CMake 3.22.1. Install those exact
+# components only inside an ephemeral trusted container, then stream just their SDK
+# directories to stdout. No host path or secret is visible during this network-enabled bootstrap.
 ANDROID_READY="$ROOT/.android-sdk-components/.vl-android-components-ready"
 if [ ! -f "$ANDROID_READY" ]; then
   find "$ROOT/.android-sdk-components" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +
@@ -85,18 +86,21 @@ if [ ! -f "$ANDROID_READY" ]; then
       \"\$sdkmanager_path\" --sdk_root=/opt/android-sdk-linux \
         'ndk;$NDK_VERSION' \
         'build-tools;$BUILD_TOOLS_VERSION' \
-        'platforms;android-$COMPILE_SDK' >&2
+        'platforms;android-$COMPILE_SDK' \
+        'cmake;$CMAKE_VERSION' >&2
       /bin/tar -C /opt/android-sdk-linux -cf - \
         'ndk/$NDK_VERSION' \
         'build-tools/$BUILD_TOOLS_VERSION' \
-        'platforms/android-$COMPILE_SDK'" \
+        'platforms/android-$COMPILE_SDK' \
+        'cmake/$CMAKE_VERSION'" \
     | tar -C "$ROOT/.android-sdk-components" -xf - --no-same-owner
-  printf '%s\n' "ndk=$NDK_VERSION build-tools=$BUILD_TOOLS_VERSION platform=android-$COMPILE_SDK" > "$ANDROID_READY"
+  printf '%s\n' "ndk=$NDK_VERSION build-tools=$BUILD_TOOLS_VERSION platform=android-$COMPILE_SDK cmake=$CMAKE_VERSION" > "$ANDROID_READY"
 fi
 
 [ -s "$ROOT/.android-sdk-components/ndk/$NDK_VERSION/source.properties" ] || { echo "required Android NDK missing" >&2; exit 73; }
 [ -x "$ROOT/.android-sdk-components/build-tools/$BUILD_TOOLS_VERSION/aapt2" ] || { echo "required Android Build Tools missing" >&2; exit 74; }
 [ -s "$ROOT/.android-sdk-components/platforms/android-$COMPILE_SDK/android.jar" ] || { echo "required Android platform missing" >&2; exit 75; }
+[ -x "$ROOT/.android-sdk-components/cmake/$CMAKE_VERSION/bin/cmake" ] || { echo "required Android CMake missing" >&2; exit 77; }
 [ "$(stat -c '%u' "$ROOT/.android-sdk-components/ndk/$NDK_VERSION/source.properties")" = "$HOST_UID" ] || { echo "Android components are not runner-owned" >&2; exit 76; }
 
 # Trusted pristine-template warm-up. Generated files do not exist yet. Flutter
@@ -114,6 +118,7 @@ docker run --rm \
   --mount "type=bind,src=${ROOT}/.android-sdk-components/ndk,dst=/opt/android-sdk-linux/ndk,readonly" \
   --mount "type=bind,src=${ROOT}/.android-sdk-components/build-tools,dst=/opt/android-sdk-linux/build-tools,readonly" \
   --mount "type=bind,src=${ROOT}/.android-sdk-components/platforms,dst=/opt/android-sdk-linux/platforms,readonly" \
+  --mount "type=bind,src=${ROOT}/.android-sdk-components/cmake,dst=/opt/android-sdk-linux/cmake,readonly" \
   --env HOME=/workspace/.home \
   --env PUB_CACHE=/workspace/.pub-cache \
   --env GRADLE_USER_HOME=/workspace/.gradle \
@@ -127,4 +132,4 @@ docker run --rm \
 
 # Do not allow the trusted warm-up artifact to be mistaken for a generated build.
 rm -rf "$ROOT/build"
-printf '%s\n' 'trusted-template-toolchain-prepared-v6' > "$ROOT/.vl-mobile-cache-prepared"
+printf '%s\n' 'trusted-template-toolchain-prepared-v7' > "$ROOT/.vl-mobile-cache-prepared"
