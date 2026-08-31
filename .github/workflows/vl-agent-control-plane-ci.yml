@@ -37,6 +37,12 @@ jobs:
           set -euo pipefail
           python3 vl/agent-control-plane/run_runtime_policy_tests.py
 
+      - name: Run grant resolution suite
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 vl/agent-control-plane/run_grant_resolution_tests.py
+
       - name: Validate persistence contract
         shell: bash
         run: |
@@ -59,6 +65,8 @@ jobs:
               'audit-event.schema.json',
               'runtime_policy.py',
               'run_runtime_policy_tests.py',
+              'grant_resolution.py',
+              'run_grant_resolution_tests.py',
               'check_persistence_contract.py',
           ]
           for name in required:
@@ -93,10 +101,22 @@ jobs:
               if marker not in runtime:
                   errors.append(f'runtime policy missing fail-closed marker: {marker}')
 
+          grant=(root/'grant_resolution.py').read_text() if (root/'grant_resolution.py').exists() else ''
+          for marker in (
+              'DENY_POLICY_UNAVAILABLE',
+              'DENY_SCOPE_MISMATCH',
+              'DENY_DELEGATION_ESCALATION',
+              'DENY_EXPIRED_ACTION',
+              'delegated_from_grant_id',
+              'max_depth',
+          ):
+              if marker not in grant:
+                  errors.append(f'grant resolver missing enforcement marker: {marker}')
+
           forbidden=('SUPABASE_SERVICE_ROLE_KEY','GITHUB_TOKEN','ACTIONS_ID_TOKEN_REQUEST_TOKEN','production.approve" in KNOWN_CAPABILITIES')
           for marker in forbidden:
-              if marker in runtime:
-                  errors.append(f'runtime policy contains forbidden authority marker: {marker}')
+              if marker in runtime or marker in grant:
+                  errors.append(f'ACP runtime contains forbidden authority marker: {marker}')
 
           if errors:
               print('VL AGENT CONTROL PLANE CI: FAIL')
