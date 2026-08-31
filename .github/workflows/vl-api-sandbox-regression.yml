@@ -1,0 +1,62 @@
+name: VL API Sandbox Regression
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/adversarial/api-sandbox-fixture/**'
+      - 'vl/scripts/run-untrusted-sandbox.sh'
+      - 'vl/scripts/validate-api-sandbox.sh'
+      - '.github/workflows/vl-factory-runner.yml'
+      - '.github/workflows/vl-api-sandbox-regression.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  api-sandbox-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      VRS_OIDC_TOKEN: host-secret-must-not-leak
+      SUPABASE_SERVICE_ROLE_KEY: host-secret-must-not-leak
+      ACTIONS_ID_TOKEN_REQUEST_TOKEN: host-secret-must-not-leak
+      ACTIONS_ID_TOKEN_REQUEST_URL: https://example.invalid/oidc
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+
+      - name: Prepare generated API fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp -R vl/adversarial/api-sandbox-fixture sandbox-api
+          docker pull denoland/deno:2.5.6
+
+      - name: Probe credential isolation with generated Deno code
+        shell: bash
+        run: |
+          set -euo pipefail
+          vl/scripts/run-untrusted-sandbox.sh denoland/deno:2.5.6 sandbox-api -- run --allow-env --allow-write=/workspace/.vl-api-sandbox-env.json probe.ts
+
+      - name: Validate generated API inside isolated sandbox
+        shell: bash
+        run: |
+          set -euo pipefail
+          vl/scripts/validate-api-sandbox.sh sandbox-api api-service-v1 > sandbox-sha256.txt
+
+      - name: Assert API artifact and credential isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s sandbox-api/.vl-api-sandbox-env.json
+          test -s vl-api-build.tgz
+          sha256sum -c sandbox-sha256.txt
+          python3 - <<'PY'
+          import json
+          d=json.load(open('sandbox-api/.vl-api-sandbox-env.json'))
+          assert d == {'leaked': False, 'visible': []}, d
+          print('VL API SANDBOX REGRESSION: PASS')
+          PY
