@@ -89,7 +89,6 @@ jobs:
       ACP_EDGE_URL: https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vrs-agent-control-oidc
     steps:
       - name: Validate bounded request
-        id: payload
         shell: bash
         env:
           OPERATION: ${{ inputs.operation }}
@@ -112,46 +111,75 @@ jobs:
           python3 - <<'PY'
           import json, os, re
           from pathlib import Path
+          from datetime import datetime
+
+          UUID_RE=re.compile(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$')
+          ACTION_RE=re.compile(r'^[A-Za-z0-9._:-]{16,160}$')
+
+          def bounded_text(name, min_len=1, max_len=200):
+              value=os.environ.get(name,'').strip()
+              if not (min_len <= len(value) <= max_len):
+                  raise SystemExit(f'invalid {name.lower()}')
+              return value
+
+          def bounded_int(name, minimum, maximum):
+              raw=os.environ.get(name,'').strip()
+              if not re.fullmatch(r'[0-9]+', raw):
+                  raise SystemExit(f'invalid {name.lower()}')
+              value=int(raw)
+              if value < minimum or value > maximum:
+                  raise SystemExit(f'{name.lower()} out of bounds')
+              return value
+
+          def parse_time(name):
+              value=bounded_text(name, 10, 64)
+              try:
+                  return datetime.fromisoformat(value.replace('Z','+00:00')), value
+              except ValueError:
+                  raise SystemExit(f'invalid {name.lower()}')
 
           op=os.environ['OPERATION']
-          action_id=os.environ['ACTION_ID']
-          if not re.fullmatch(r'[A-Za-z0-9._:-]{16,160}', action_id):
+          action_id=os.environ['ACTION_ID'].strip()
+          if not ACTION_RE.fullmatch(action_id):
               raise SystemExit('invalid action_id')
 
           if op == 'delegate_grant':
-              required=['PARENT_GRANT_ID','AGENT_ID','AGENT_VERSION','ROLE_NAME','PROJECT_ID','TARGET_ENVIRONMENT','VALID_FROM','VALID_UNTIL']
-              missing=[k for k in required if not os.environ.get(k,'').strip()]
-              if missing:
-                  raise SystemExit('missing delegate inputs: '+','.join(missing))
-              if os.environ['TARGET_ENVIRONMENT'] not in ('development','staging'):
+              parent=bounded_text('PARENT_GRANT_ID',36,36)
+              if not UUID_RE.fullmatch(parent):
+                  raise SystemExit('invalid parent_grant_id')
+              agent_id=bounded_text('AGENT_ID',1,128)
+              agent_version=bounded_text('AGENT_VERSION',1,64)
+              role_name=bounded_text('ROLE_NAME',1,128)
+              project_id=bounded_text('PROJECT_ID',1,128)
+              target=os.environ.get('TARGET_ENVIRONMENT','').strip()
+              if target not in ('development','staging'):
                   raise SystemExit('production target prohibited')
               caps=json.loads(os.environ.get('CAPABILITIES_JSON') or '[]')
-              if not isinstance(caps,list) or not caps or len(caps)>32 or not all(isinstance(x,str) and x.strip() for x in caps):
+              if not isinstance(caps,list) or not caps or len(caps)>32 or not all(isinstance(x,str) and 1 <= len(x.strip()) <= 200 for x in caps):
                   raise SystemExit('invalid capabilities_json')
+              caps=sorted(set(x.strip() for x in caps))
               if any(x in ('production.approve','production.promote') for x in caps):
                   raise SystemExit('production capability prohibited')
+              timeout=bounded_int('TIMEOUT_SECONDS',1,3600)
+              retries=bounded_int('MAX_RETRIES',0,10)
+              valid_from_dt, valid_from=parse_time('VALID_FROM')
+              valid_until_dt, valid_until=parse_time('VALID_UNTIL')
+              if valid_until_dt <= valid_from_dt:
+                  raise SystemExit('invalid validity window')
               payload={
-                  'operation':'delegate_grant',
-                  'action_id':action_id,
-                  'parent_grant_id':os.environ['PARENT_GRANT_ID'],
-                  'agent_id':os.environ['AGENT_ID'],
-                  'agent_version':os.environ['AGENT_VERSION'],
-                  'role_name':os.environ['ROLE_NAME'],
+                  'operation':'delegate_grant','action_id':action_id,'parent_grant_id':parent,
+                  'agent_id':agent_id,'agent_version':agent_version,'role_name':role_name,
                   'capabilities':caps,
-                  'scope':{'project_id':os.environ['PROJECT_ID'],'target_environment':os.environ['TARGET_ENVIRONMENT']},
-                  'budget':{'timeout_seconds':int(os.environ['TIMEOUT_SECONDS']),'max_retries':int(os.environ['MAX_RETRIES'])},
-                  'valid_from':os.environ['VALID_FROM'],
-                  'valid_until':os.environ['VALID_UNTIL'],
+                  'scope':{'project_id':project_id,'target_environment':target},
+                  'budget':{'timeout_seconds':timeout,'max_retries':retries},
+                  'valid_from':valid_from,'valid_until':valid_until,
               }
           elif op == 'revoke_grant':
-              if not os.environ.get('GRANT_ID','').strip() or len(os.environ.get('REASON','').strip()) < 8:
-                  raise SystemExit('revoke requires grant_id and bounded reason')
-              payload={
-                  'operation':'revoke_grant',
-                  'action_id':action_id,
-                  'grant_id':os.environ['GRANT_ID'],
-                  'reason':os.environ['REASON'].strip(),
-              }
+              grant_id=bounded_text('GRANT_ID',36,36)
+              if not UUID_RE.fullmatch(grant_id):
+                  raise SystemExit('invalid grant_id')
+              reason=bounded_text('REASON',8,500)
+              payload={'operation':'revoke_grant','action_id':action_id,'grant_id':grant_id,'reason':reason}
           else:
               raise SystemExit('unsupported operation')
 
