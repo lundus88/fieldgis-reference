@@ -9,9 +9,11 @@ NOW = datetime(2026, 8, 31, 16, 0, tzinfo=timezone.utc)
 ROOT = {
     "grant_id": "g-root",
     "agent_id": "planner-root",
+    "principal_type": "agent",
     "capabilities": ["factory.plan", "factory.enqueue", "artifact.read"],
     "scope": {"project_id": "11111111-1111-1111-1111-111111111111", "target_environment": "staging"},
     "budget": {"timeout_seconds": 600, "max_retries": 3, "max_cost_minor": 1000},
+    "valid_from": "2026-08-31T15:00:00Z",
     "valid_until": "2026-09-01T00:00:00Z",
     "revoked_at": None,
     "delegated_from_grant_id": None,
@@ -20,9 +22,11 @@ ROOT = {
 CHILD = {
     "grant_id": "g-child",
     "agent_id": "planner-child",
+    "principal_type": "agent",
     "capabilities": ["factory.plan", "artifact.read"],
     "scope": {"project_id": "11111111-1111-1111-1111-111111111111"},
     "budget": {"timeout_seconds": 300, "max_retries": 1, "max_cost_minor": 500},
+    "valid_from": "2026-08-31T15:30:00Z",
     "valid_until": "2026-08-31T23:00:00Z",
     "revoked_at": None,
     "delegated_from_grant_id": "g-root",
@@ -83,6 +87,12 @@ def main():
     bad["valid_until"] = "2026-08-31T15:59:59Z"
     checks["expired_grant_denied"] = expect_error(
         "expired", {"g-root": dict(ROOT), "g-child": bad}, "DENY_EXPIRED_ACTION"
+    )
+
+    bad = dict(CHILD)
+    bad["valid_from"] = "2026-08-31T16:01:00Z"
+    checks["not_yet_active_grant_denied"] = expect_error(
+        "not_yet_active", {"g-root": dict(ROOT), "g-child": bad}, "DENY_POLICY_UNAVAILABLE"
     )
 
     cycle_root = dict(ROOT)
