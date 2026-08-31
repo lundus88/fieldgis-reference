@@ -19,6 +19,7 @@ IMAGE='ghcr.io/cirruslabs/flutter:3.38.1@sha256:01cf49cb0586bd9ece557683b0fd5ce4
 NDK_VERSION='28.2.13676358'
 BUILD_TOOLS_VERSION='35.0.0'
 COMPILE_SDK='36'
+CMAKE_VERSION='3.22.1'
 
 [ "$BUILDER" = 'mobile-flutter-v1' ] || { echo "unsupported builder: $BUILDER" >&2; exit 65; }
 command -v docker >/dev/null 2>&1 || { echo "docker is required" >&2; exit 70; }
@@ -30,6 +31,7 @@ ROOT="$(cd "$WORKSPACE" && pwd -P)"
 [ -s "$ROOT/.android-sdk-components/ndk/$NDK_VERSION/source.properties" ] || { echo "required Android NDK is missing" >&2; exit 72; }
 [ -x "$ROOT/.android-sdk-components/build-tools/$BUILD_TOOLS_VERSION/aapt2" ] || { echo "required Android Build Tools are missing" >&2; exit 73; }
 [ -s "$ROOT/.android-sdk-components/platforms/android-$COMPILE_SDK/android.jar" ] || { echo "required Android platform is missing" >&2; exit 74; }
+[ -x "$ROOT/.android-sdk-components/cmake/$CMAKE_VERSION/bin/cmake" ] || { echo "required Android CMake is missing" >&2; exit 75; }
 
 mkdir -p "$ROOT/.home" "$ROOT/.pub-cache" "$ROOT/.gradle"
 HOST_UID="$(id -u)"
@@ -52,6 +54,7 @@ docker run --rm \
   --mount "type=bind,src=${ROOT}/.android-sdk-components/ndk,dst=/opt/android-sdk-linux/ndk,readonly" \
   --mount "type=bind,src=${ROOT}/.android-sdk-components/build-tools,dst=/opt/android-sdk-linux/build-tools,readonly" \
   --mount "type=bind,src=${ROOT}/.android-sdk-components/platforms,dst=/opt/android-sdk-linux/platforms,readonly" \
+  --mount "type=bind,src=${ROOT}/.android-sdk-components/cmake,dst=/opt/android-sdk-linux/cmake,readonly" \
   --env HOME=/workspace/.home \
   --env PUB_CACHE=/workspace/.pub-cache \
   --env GRADLE_USER_HOME=/workspace/.gradle \
