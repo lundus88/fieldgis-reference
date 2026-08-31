@@ -29,6 +29,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 vl/product-alignment/run_regression_tests.py
+          python3 vl/product-alignment/check_live_enforcement.py
 
       - name: Validate critical release governance
         shell: bash
@@ -55,6 +56,7 @@ jobs:
           approval=read('vl/approval/vrs-production-approval/index.ts')
           alignment_validator=read('vl/product-alignment/validate_product_alignment.py')
           alignment_schema=read('vl/product-alignment/product-alignment.schema.json')
+          live_alignment=read('vl/migrations/20260831_product_alignment_live_gate.sql')
 
           checks=[
               ('factory artifact retention must be 90 days', 'retention-days: 90' in runner),
@@ -84,6 +86,10 @@ jobs:
               ('product alignment validator must require human decision boundaries', 'human_decision_boundaries' in alignment_validator),
               ('product alignment validator must reject unresolved contradictions', 'unresolved contradictory requirements present' in alignment_validator),
               ('product alignment validator must enforce P0 acceptance test mapping', 'P0 requirement' in alignment_validator and 'acceptance test' in alignment_validator),
+              ('live product alignment migration must exist', bool(live_alignment)),
+              ('live product alignment must protect factory run insertion', 'trg_factory_runs_product_alignment' in live_alignment),
+              ('live product alignment must defend runner claim', 'product_alignment_rejected' in live_alignment),
+              ('live product alignment must preserve production lock', "target_environment='production'" in live_alignment and 'production_locked is distinct from true' in live_alignment),
           ]
           for label, ok in checks:
               if not ok: errors.append(label)
