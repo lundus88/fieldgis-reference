@@ -43,6 +43,7 @@ jobs:
           chmod +x vl/scripts/prepare-mobile-flutter-cache.sh vl/scripts/build-mobile-flutter-sandbox.sh
           vl/scripts/prepare-mobile-flutter-cache.sh sandbox-mobile
           test -f sandbox-mobile/.vl-mobile-cache-prepared
+          test -s sandbox-mobile/.flutter-sdk-cache/engine.stamp
 
       - name: Inject generated-code adversarial Gradle probe after cache preparation
         shell: bash
@@ -126,9 +127,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          grep -q -- '--user "${HOST_UID}:${HOST_GID}"' vl/scripts/build-mobile-flutter-sandbox.sh
           grep -q -- '--network none' vl/scripts/build-mobile-flutter-sandbox.sh
           grep -q -- '--cap-drop ALL' vl/scripts/build-mobile-flutter-sandbox.sh
           grep -q -- 'no-new-privileges:true' vl/scripts/build-mobile-flutter-sandbox.sh
           grep -q -- '--pids-limit' vl/scripts/build-mobile-flutter-sandbox.sh
           grep -q -- '--memory' vl/scripts/build-mobile-flutter-sandbox.sh
           grep -q -- '--cpus' vl/scripts/build-mobile-flutter-sandbox.sh
+          grep -q -- '.flutter-sdk-cache,dst=/sdks/flutter/bin/cache' vl/scripts/build-mobile-flutter-sandbox.sh
+          grep -q -- '--network none' vl/scripts/prepare-mobile-flutter-cache.sh
+          grep -q -- '.flutter-sdk-cache,dst=/sdks/flutter/bin/cache' vl/scripts/prepare-mobile-flutter-cache.sh
