@@ -65,14 +65,14 @@ jobs:
                       "ACTIONS_ID_TOKEN_REQUEST_URL"
                   )
                   val leaked = sensitive.any { !System.getenv(it).isNullOrEmpty() }
-                  val dockerSocket = java.io.File("/var/run/docker.sock").exists()
+                  val dockerSocket = rootProject.file("/var/run/docker.sock").exists()
 
                   var network = false
                   try {
-                      val conn = java.net.URL("https://example.com").openConnection()
+                      val conn = project.uri("https://example.com").toURL().openConnection()
                       conn.connectTimeout = 1000
                       conn.readTimeout = 1000
-                      conn.getInputStream().use { it.read() }
+                      conn.getInputStream().use { stream -> stream.read() }
                       network = true
                   } catch (_: Exception) {
                       network = false
@@ -80,10 +80,7 @@ jobs:
 
                   var outsideWrite = false
                   try {
-                      java.nio.file.Files.writeString(
-                          java.nio.file.Paths.get("/etc/vl-mobile-sandbox-probe"),
-                          "should-not-write"
-                      )
+                      rootProject.file("/etc/vl-mobile-sandbox-probe").writeText("should-not-write")
                       outsideWrite = true
                   } catch (_: Exception) {
                       outsideWrite = false
@@ -93,7 +90,7 @@ jobs:
                       ",\"network\":" + network +
                       ",\"docker_socket\":" + dockerSocket +
                       ",\"outside_write\":" + outsideWrite + "}"
-                  java.io.File(rootProject.projectDir.parentFile, ".vl-mobile-sandbox-env.json").writeText(json)
+                  rootProject.projectDir.parentFile.resolve(".vl-mobile-sandbox-env.json").writeText(json)
               }
           }
 
