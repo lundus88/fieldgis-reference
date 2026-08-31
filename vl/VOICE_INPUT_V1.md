@@ -44,6 +44,7 @@ Voice capture -> Speech-to-text -> Transcript review -> Explicit user confirmati
 - CI proves `human-approval` remains the terminal step of the PRD compiler smoke test.
 - No service-role or secret credentials are exposed in public clients.
 - Unsupported browser/device microphone capability degrades safely to text input.
+- All required branch-protection checks must pass on the current PR head before merge.
 
 ## Runtime integration note
 
