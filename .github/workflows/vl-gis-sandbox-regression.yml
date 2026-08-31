@@ -1,0 +1,63 @@
+name: VL GIS Sandbox Regression
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/adversarial/gis-sandbox-fixture/**'
+      - 'vl/scripts/run-untrusted-sandbox.sh'
+      - 'vl/scripts/build-gis-web-sandbox.sh'
+      - '.github/workflows/vl-factory-runner.yml'
+      - '.github/workflows/vl-gis-sandbox-regression.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  gis-sandbox-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      VRS_OIDC_TOKEN: host-secret-must-not-leak
+      SUPABASE_SERVICE_ROLE_KEY: host-secret-must-not-leak
+      ACTIONS_ID_TOKEN_REQUEST_TOKEN: host-secret-must-not-leak
+      ACTIONS_ID_TOKEN_REQUEST_URL: https://example.invalid/oidc
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+
+      - name: Prepare GIS fixture and dependencies without lifecycle scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp -R vl/adversarial/gis-sandbox-fixture sandbox-gis
+          cd sandbox-gis
+          npm install --ignore-scripts
+          cd ..
+          docker pull node:22-bookworm
+
+      - name: Build generated GIS fixture inside isolated sandbox
+        shell: bash
+        run: |
+          set -euo pipefail
+          vl/scripts/build-gis-web-sandbox.sh sandbox-gis gis-web-v1 > sandbox-sha256.txt
+
+      - name: Assert GIS artifact and credential isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s sandbox-gis/dist/index.html
+          test -s sandbox-gis/.vl-gis-sandbox-env.json
+          test -s sandbox-gis/.vercel/output/config.json
+          test -s sandbox-gis/.vercel/output/static/index.html
+          grep -R -q '__VL_MAPLIBRE_RUNTIME__' sandbox-gis/.vercel/output/static/assets
+          test -s vl-gis-build.tgz
+          sha256sum -c sandbox-sha256.txt
+          python3 - <<'PY'
+          import json
+          d=json.load(open('sandbox-gis/.vl-gis-sandbox-env.json'))
+          assert d == {'leaked': False}, d
+          print('VL GIS SANDBOX REGRESSION: PASS')
+          PY
