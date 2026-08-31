@@ -258,7 +258,8 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          ../../vl/scripts/validate-api-sandbox.sh . '${{ steps.claim.outputs.builder_key }}' 2>&1 | tee ../../runner-api.log
+          DENO_DIR="$PWD/.deno-cache" deno cache --no-check index.ts 2>&1 | tee ../../runner-api.log
+          ../../vl/scripts/validate-api-sandbox.sh . '${{ steps.claim.outputs.builder_key }}' 2>&1 | tee -a ../../runner-api.log
           sha256sum ../vl-api-build.tgz > ../../runner-sha256.txt
           echo "workspace/vl-api-build.tgz" > ../../runner-artifact-path.txt
 
