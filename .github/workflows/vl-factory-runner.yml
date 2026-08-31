@@ -232,19 +232,7 @@ jobs:
         run: |
           set -o pipefail
           npm install --ignore-scripts 2>&1 | tee ../../runner-web.log
-          npm run build 2>&1 | tee -a ../../runner-web.log
-          if [ '${{ steps.claim.outputs.builder_key }}' = 'pwa-react-v1' ]; then test -f dist/manifest.webmanifest && test -f dist/sw.js; fi
-          rm -rf .vercel/output
-          mkdir -p .vercel/output/static
-          cp -R dist/. .vercel/output/static/
-          cat > .vercel/output/config.json <<'JSON'
-          {"version":3}
-          JSON
-          test -s .vercel/output/config.json
-          test -s .vercel/output/static/index.html
-          test -n "$(find .vercel/output/static -type f -print -quit)"
-          if [ '${{ steps.claim.outputs.builder_key }}' = 'pwa-react-v1' ]; then test -s .vercel/output/static/manifest.webmanifest && test -s .vercel/output/static/sw.js; fi
-          tar -czf ../vl-web-build.tgz .vercel/output package.json package-lock.json
+          ../../vl/scripts/build-web-pwa-sandbox.sh . '${{ steps.claim.outputs.builder_key }}' 2>&1 | tee -a ../../runner-web.log
           sha256sum ../vl-web-build.tgz > ../../runner-sha256.txt
           echo "workspace/vl-web-build.tgz" > ../../runner-artifact-path.txt
 
