@@ -38,7 +38,8 @@
       "uniqueItems": true
     },
     "audit_ref": { "type": ["string", "null"], "maxLength": 200 },
-    "human_approval_required": { "type": "boolean" }
+    "human_approval_required": { "type": "boolean" },
+    "replayed": { "type": "boolean" }
   },
   "allOf": [
     {
@@ -46,6 +47,12 @@
       "then": {
         "required": ["human_approval_required"],
         "properties": { "human_approval_required": { "const": true } }
+      }
+    },
+    {
+      "if": { "properties": { "replayed": { "const": true } }, "required": ["replayed"] },
+      "then": {
+        "properties": { "decision": { "const": "allow" } }
       }
     }
   ]
