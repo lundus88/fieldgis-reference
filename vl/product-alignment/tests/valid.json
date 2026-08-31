@@ -1,0 +1,38 @@
+{
+  "founder_intent": {
+    "intent_ids": ["FI-USER","FI-OUTCOME","FI-SAFETY"],
+    "primary_user": "SME operator",
+    "core_problem": "Manual quotation work is slow and inconsistent",
+    "desired_outcome": "Create a correct preliminary quotation in under five minutes",
+    "must_have": ["quotation PDF", "customer details"],
+    "must_not": ["auto-approve production release"],
+    "success_metric": "A user can complete and export a quotation in under five minutes",
+    "commercial_model": "subscription",
+    "compliance_constraints": ["protect customer data"],
+    "release_scope": "commercial MVP",
+    "human_decision_boundaries": ["production approval remains human"]
+  },
+  "user_requirements": [
+    {
+      "id": "UR-001",
+      "user": "SME operator",
+      "context": "creating a customer quotation",
+      "expected_outcome": "download a quotation PDF",
+      "priority": "P0",
+      "intent_refs": ["FI-USER","FI-OUTCOME"],
+      "acceptance_test_ids": ["AT-001"]
+    }
+  ],
+  "acceptance_tests": [
+    {
+      "id": "AT-001",
+      "requirement_ids": ["UR-001"],
+      "observable_pass_condition": "Given valid customer and scope data, a non-empty quotation PDF is generated and downloadable"
+    }
+  ],
+  "contradictions": [],
+  "traceability_manifest": {
+    "founder_intent_hash": "fixture-founder-hash",
+    "certification_input_hash": "fixture-certification-hash"
+  }
+}

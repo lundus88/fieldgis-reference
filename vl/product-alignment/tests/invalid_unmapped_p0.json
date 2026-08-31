@@ -1,0 +1,31 @@
+{
+  "founder_intent": {
+    "intent_ids": ["FI-1"],
+    "primary_user": "SME operator",
+    "core_problem": "Manual quotation work is slow",
+    "desired_outcome": "Create quotation quickly",
+    "must_have": ["quotation PDF"],
+    "must_not": ["bypass approval"],
+    "success_metric": "quotation generated",
+    "commercial_model": "subscription",
+    "compliance_constraints": ["protect customer data"],
+    "release_scope": "MVP",
+    "human_decision_boundaries": ["production approval remains human"]
+  },
+  "user_requirements": [
+    {
+      "id": "UR-001",
+      "user": "SME operator",
+      "context": "creating a quotation",
+      "expected_outcome": "download PDF",
+      "priority": "P0",
+      "intent_refs": ["FI-1"],
+      "acceptance_test_ids": []
+    }
+  ],
+  "acceptance_tests": [
+    {"id":"AT-001","requirement_ids":[],"observable_pass_condition":"PDF exists"}
+  ],
+  "contradictions": [],
+  "traceability_manifest": {"founder_intent_hash":"x","certification_input_hash":"y"}
+}
