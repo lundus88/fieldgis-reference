@@ -21,6 +21,7 @@ command -v docker >/dev/null 2>&1 || { echo "docker is required" >&2; exit 70; }
 ROOT="$(cd "$WORKSPACE" && pwd -P)"
 [ -f "$ROOT/pubspec.yaml" ] || { echo "missing pubspec.yaml" >&2; exit 66; }
 [ -f "$ROOT/.vl-mobile-cache-prepared" ] || { echo "trusted mobile cache was not prepared" >&2; exit 67; }
+[ -s "$ROOT/.flutter-sdk-cache/engine.stamp" ] || { echo "writable Flutter SDK cache is missing" >&2; exit 69; }
 
 mkdir -p "$ROOT/.home" "$ROOT/.pub-cache" "$ROOT/.gradle"
 HOST_UID="$(id -u)"
@@ -28,6 +29,8 @@ HOST_GID="$(id -g)"
 
 # No host env, credential file, Docker socket, home directory, or network is
 # exposed. All writable build/cache state is contained inside the workspace.
+# The generated build remains non-root; only Flutter's workspace-local bin/cache
+# is mounted over the root-owned SDK cache required by the upstream image.
 docker run --rm \
   --user "${HOST_UID}:${HOST_GID}" \
   --network none \
@@ -38,6 +41,7 @@ docker run --rm \
   --cpus 2 \
   --workdir /workspace \
   --mount "type=bind,src=${ROOT},dst=/workspace" \
+  --mount "type=bind,src=${ROOT}/.flutter-sdk-cache,dst=/sdks/flutter/bin/cache" \
   --env HOME=/workspace/.home \
   --env PUB_CACHE=/workspace/.pub-cache \
   --env GRADLE_USER_HOME=/workspace/.gradle \
