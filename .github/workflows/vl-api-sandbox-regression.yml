@@ -60,6 +60,7 @@ jobs:
           test -s sandbox-api/.vl-api-sandbox-env.json
           test -s vl-api-build.tgz
           sha256sum -c sandbox-sha256.txt
+          grep -q -- '--cached-only' vl/scripts/validate-api-sandbox.sh
           python3 - <<'PY'
           import json
           d=json.load(open('sandbox-api/.vl-api-sandbox-env.json'))
