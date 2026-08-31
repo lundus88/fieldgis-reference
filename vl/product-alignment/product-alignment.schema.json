@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vrs-labs.local/schemas/product-alignment.schema.json",
+  "title": "VL Product Alignment Contract",
+  "type": "object",
+  "required": ["founder_intent", "user_requirements", "acceptance_tests", "traceability_manifest"],
+  "properties": {
+    "founder_intent": {
+      "type": "object",
+      "required": ["primary_user", "core_problem", "desired_outcome", "must_have", "must_not", "success_metric", "commercial_model", "compliance_constraints", "release_scope", "human_decision_boundaries"],
+      "properties": {
+        "intent_ids": {"type":"array","items":{"type":"string"},"uniqueItems":true},
+        "primary_user": {"type":"string","minLength":1},
+        "core_problem": {"type":"string","minLength":1},
+        "desired_outcome": {"type":"string","minLength":1},
+        "must_have": {"type":"array","minItems":1},
+        "must_not": {"type":"array","minItems":1},
+        "success_metric": {"type":"string","minLength":1},
+        "commercial_model": {"type":"string","minLength":1},
+        "compliance_constraints": {"type":"array","minItems":1},
+        "release_scope": {"type":"string","minLength":1},
+        "human_decision_boundaries": {"type":"array","minItems":1}
+      }
+    },
+    "user_requirements": {
+      "type":"array","minItems":1,
+      "items":{"type":"object","required":["id","user","context","expected_outcome","priority","intent_refs","acceptance_test_ids"]}
+    },
+    "acceptance_tests": {
+      "type":"array","minItems":1,
+      "items":{"type":"object","required":["id","requirement_ids","observable_pass_condition"]}
+    },
+    "contradictions": {"type":"array"},
+    "traceability_manifest": {
+      "type":"object",
+      "required":["founder_intent_hash","certification_input_hash"]
+    }
+  }
+}
