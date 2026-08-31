@@ -1,5 +1,6 @@
 name: VL Factory Runner
 
+# Scheduler registration refresh: no behavior change.
 on:
   workflow_dispatch:
   schedule:
