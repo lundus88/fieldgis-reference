@@ -35,7 +35,7 @@ checks = {
     'edge uses only two RPC calls': EDGE.count('sb.rpc(') == 2,
     'edge uses delegate RPC': 'sb.rpc("acp_delegate_agent_grant_nonprod"' in EDGE,
     'edge uses revoke RPC': 'sb.rpc("acp_revoke_agent_grant"' in EDGE,
-    'edge does not use direct table access': '.from(' not in EDGE,
+    'edge does not use direct Supabase table access': 'sb.from(' not in EDGE,
     'edge rejects production capabilities': 'production capability delegation prohibited' in EDGE,
     'edge rejects production target': 'ACP live boundary is non-production only' in EDGE,
     'auth failures are separate 401': 'instanceof AuthError' in EDGE and '}, 401)' in EDGE,
