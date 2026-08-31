@@ -14,20 +14,29 @@ checks = {
     'grant activation persisted': 'valid_from timestamptz' in SQL,
     'grant expiry persisted': 'valid_until timestamptz' in SQL,
     'grant revocation persisted': 'revoked_at timestamptz' in SQL,
+    'db delegation validation exists': 'validate_agent_capability_grant' in SQL and 'trg_agent_capability_grant_validate' in SQL,
+    'db capability subset enforced': 'new.capabilities <@ parent_row.capabilities' in SQL,
+    'db scope subset enforced': 'parent_row.scope @> new.scope' in SQL,
+    'db validity bound enforced': 'delegated validity exceeds parent' in SQL and 'delegated validity starts before parent' in SQL,
+    'db delegation cycle denied': 'delegation cycle detected' in SQL,
     'audit sequence unique': 'unique (action_id, event_seq)' in SQL,
     'audit chain fields exist': 'previous_event_digest' in SQL and 'event_digest' in SQL,
+    'audit chain validator exists': 'validate_agent_audit_chain' in SQL and 'trg_agent_control_audit_chain' in SQL,
+    'audit chain start enforced': 'must start at sequence 1' in SQL,
+    'audit chain continuity enforced': 'audit sequence is not contiguous' in SQL,
+    'audit previous digest enforced': 'previous digest does not match chain head' in SQL,
     'audit timestamp aligned': 'recorded_at timestamptz' in SQL,
     'audit requester aligned': 'requester jsonb not null' in SQL,
     'audit scope aligned': 'scope jsonb not null' in SQL,
     'audit replay event supported': "'idempotent_replay'" in SQL,
     'audit update blocked': 'trg_agent_control_audit_no_update' in SQL and 'before update' in SQL,
     'audit delete blocked': 'trg_agent_control_audit_no_delete' in SQL and 'before delete' in SQL,
+    'audit truncate blocked': 'trg_agent_control_audit_no_truncate' in SQL and 'before truncate' in SQL,
     'audit mutation trigger fails closed': "raise exception 'agent_control_audit_events is append-only'" in SQL,
-    'tables revoked from exposed roles': 'from public, anon, authenticated' in SQL,
+    'tables revoked from exposed roles and service role': 'from public, anon, authenticated, service_role' in SQL,
     'no security definer introduced': 'security definer' not in SQL.lower(),
 }
 
-# Prevent the machine-readable audit contract and persistence schema from drifting apart.
 required_fields = set(AUDIT_SCHEMA.get('required') or [])
 for field in ('event_id', 'action_id', 'event_type', 'recorded_at', 'requester', 'capability', 'scope', 'input_digest', 'event_digest'):
     checks[f'audit schema requires {field}'] = field in required_fields
