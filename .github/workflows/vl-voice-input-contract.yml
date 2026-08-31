@@ -1,0 +1,53 @@
+name: VL Voice Input V1 Contract
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, 'feature/voice-input-v1']
+    paths:
+      - 'contracts/voice-input-v1.json'
+      - 'vl/VOICE_INPUT_V1.md'
+      - '.github/workflows/vl-voice-input-contract.yml'
+      - '.github/workflows/vl-prd-compiler-smoke.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  voice-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - name: Validate Voice V1 contract and governance invariants
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          p=Path('contracts/voice-input-v1.json')
+          d=json.loads(p.read_text())
+          assert d['contract']=='vl.voice-input/1'
+          assert d['input']['source']=='voice'
+          r=d['requirements']
+          g=d['governance']
+          assert r['authentication_required'] is True
+          assert r['transcript_review_required'] is True
+          assert r['user_confirmation_required'] is True
+          assert r['direct_factory_execution_allowed'] is False
+          assert r['direct_production_execution_allowed'] is False
+          assert r['production_locked'] is True
+          assert g['required_terminal_gate']=='human-approval'
+          assert g['voice_must_not_modify_release_gates'] is True
+          assert g['voice_must_not_create_production_promotion'] is True
+          assert g['fail_closed_on_empty_transcript'] is True
+          assert g['fail_closed_on_unconfirmed_transcript'] is True
+
+          smoke=Path('.github/workflows/vl-prd-compiler-smoke.yml').read_text()
+          assert "if step_keys[-1] != 'human-approval'" in smoke
+          assert "production_locked" in smoke
+          print('PASS: Voice Input V1 is input-only, fail-closed, and human approval remains terminal.')
+          PY
