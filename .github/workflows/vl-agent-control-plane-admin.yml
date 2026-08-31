@@ -1,0 +1,197 @@
+name: VL Agent Control Plane Admin
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: ACP operation
+        required: true
+        type: choice
+        options:
+          - delegate_grant
+          - revoke_grant
+      action_id:
+        description: Stable idempotency key (16-160 chars)
+        required: true
+        type: string
+      parent_grant_id:
+        description: Parent grant UUID (delegate only)
+        required: false
+        type: string
+      agent_id:
+        description: Agent ID (delegate only)
+        required: false
+        type: string
+      agent_version:
+        description: Agent version (delegate only)
+        required: false
+        type: string
+      role_name:
+        description: Agent role (delegate only)
+        required: false
+        type: string
+      capabilities_json:
+        description: JSON array of non-production capabilities (delegate only)
+        required: false
+        default: '[]'
+        type: string
+      project_id:
+        description: Scoped project ID (delegate only)
+        required: false
+        type: string
+      target_environment:
+        description: Non-production target (delegate only)
+        required: false
+        type: choice
+        options:
+          - staging
+          - development
+      timeout_seconds:
+        description: Timeout budget (delegate only)
+        required: false
+        default: '300'
+        type: string
+      max_retries:
+        description: Retry budget (delegate only)
+        required: false
+        default: '0'
+        type: string
+      valid_from:
+        description: RFC3339 activation time (delegate only)
+        required: false
+        type: string
+      valid_until:
+        description: RFC3339 expiry time (delegate only)
+        required: false
+        type: string
+      grant_id:
+        description: Agent grant UUID (revoke only)
+        required: false
+        type: string
+      reason:
+        description: Revocation reason, 8-500 chars (revoke only)
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: vl-agent-control-plane-admin
+  cancel-in-progress: false
+
+jobs:
+  acp-admin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      ACP_EDGE_URL: https://wczelfmnqpgzfdszxubl.supabase.co/functions/v1/vrs-agent-control-oidc
+    steps:
+      - name: Validate bounded request
+        id: payload
+        shell: bash
+        env:
+          OPERATION: ${{ inputs.operation }}
+          ACTION_ID: ${{ inputs.action_id }}
+          PARENT_GRANT_ID: ${{ inputs.parent_grant_id }}
+          AGENT_ID: ${{ inputs.agent_id }}
+          AGENT_VERSION: ${{ inputs.agent_version }}
+          ROLE_NAME: ${{ inputs.role_name }}
+          CAPABILITIES_JSON: ${{ inputs.capabilities_json }}
+          PROJECT_ID: ${{ inputs.project_id }}
+          TARGET_ENVIRONMENT: ${{ inputs.target_environment }}
+          TIMEOUT_SECONDS: ${{ inputs.timeout_seconds }}
+          MAX_RETRIES: ${{ inputs.max_retries }}
+          VALID_FROM: ${{ inputs.valid_from }}
+          VALID_UNTIL: ${{ inputs.valid_until }}
+          GRANT_ID: ${{ inputs.grant_id }}
+          REASON: ${{ inputs.reason }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os, re
+          from pathlib import Path
+
+          op=os.environ['OPERATION']
+          action_id=os.environ['ACTION_ID']
+          if not re.fullmatch(r'[A-Za-z0-9._:-]{16,160}', action_id):
+              raise SystemExit('invalid action_id')
+
+          if op == 'delegate_grant':
+              required=['PARENT_GRANT_ID','AGENT_ID','AGENT_VERSION','ROLE_NAME','PROJECT_ID','TARGET_ENVIRONMENT','VALID_FROM','VALID_UNTIL']
+              missing=[k for k in required if not os.environ.get(k,'').strip()]
+              if missing:
+                  raise SystemExit('missing delegate inputs: '+','.join(missing))
+              if os.environ['TARGET_ENVIRONMENT'] not in ('development','staging'):
+                  raise SystemExit('production target prohibited')
+              caps=json.loads(os.environ.get('CAPABILITIES_JSON') or '[]')
+              if not isinstance(caps,list) or not caps or len(caps)>32 or not all(isinstance(x,str) and x.strip() for x in caps):
+                  raise SystemExit('invalid capabilities_json')
+              if any(x in ('production.approve','production.promote') for x in caps):
+                  raise SystemExit('production capability prohibited')
+              payload={
+                  'operation':'delegate_grant',
+                  'action_id':action_id,
+                  'parent_grant_id':os.environ['PARENT_GRANT_ID'],
+                  'agent_id':os.environ['AGENT_ID'],
+                  'agent_version':os.environ['AGENT_VERSION'],
+                  'role_name':os.environ['ROLE_NAME'],
+                  'capabilities':caps,
+                  'scope':{'project_id':os.environ['PROJECT_ID'],'target_environment':os.environ['TARGET_ENVIRONMENT']},
+                  'budget':{'timeout_seconds':int(os.environ['TIMEOUT_SECONDS']),'max_retries':int(os.environ['MAX_RETRIES'])},
+                  'valid_from':os.environ['VALID_FROM'],
+                  'valid_until':os.environ['VALID_UNTIL'],
+              }
+          elif op == 'revoke_grant':
+              if not os.environ.get('GRANT_ID','').strip() or len(os.environ.get('REASON','').strip()) < 8:
+                  raise SystemExit('revoke requires grant_id and bounded reason')
+              payload={
+                  'operation':'revoke_grant',
+                  'action_id':action_id,
+                  'grant_id':os.environ['GRANT_ID'],
+                  'reason':os.environ['REASON'].strip(),
+              }
+          else:
+              raise SystemExit('unsupported operation')
+
+          Path('/tmp/acp-payload.json').write_text(json.dumps(payload,separators=(',',':')))
+          print('validated bounded ACP admin payload')
+          PY
+
+      - name: Get GitHub OIDC token
+        id: oidc
+        shell: bash
+        run: |
+          set -euo pipefail
+          response="$(curl -fsS \
+            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=vrs-agent-control-plane")"
+          token="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["value"])' <<<"$response")"
+          echo "token=$token" >> "$GITHUB_OUTPUT"
+          echo "::add-mask::$token"
+
+      - name: Invoke ACP boundary
+        shell: bash
+        env:
+          OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
+        run: |
+          set -euo pipefail
+          body="$(mktemp)"
+          code="$(curl -sS -o "$body" -w '%{http_code}' \
+            -X POST "$ACP_EDGE_URL" \
+            -H 'content-type: application/json' \
+            -H "authorization: Bearer $OIDC_TOKEN" \
+            --data-binary @/tmp/acp-payload.json)"
+          cat "$body"
+          echo
+          if [ "$code" -lt 200 ] || [ "$code" -ge 300 ]; then
+            echo "ACP boundary rejected request with HTTP $code" >&2
+            exit 1
+          fi
+          python3 - "$body" <<'PY'
+          import json, sys
+          payload=json.load(open(sys.argv[1]))
+          assert payload.get('ok') is True
+          assert payload.get('operation') in ('delegate_grant','revoke_grant')
+          PY
