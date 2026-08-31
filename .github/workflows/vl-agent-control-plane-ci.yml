@@ -5,11 +5,13 @@ on:
     branches: [main]
     paths:
       - 'vl/agent-control-plane/**'
+      - 'vl/migrations/20260831_agent_control_plane_store.sql'
       - '.github/workflows/vl-agent-control-plane-ci.yml'
   push:
     branches: [main]
     paths:
       - 'vl/agent-control-plane/**'
+      - 'vl/migrations/20260831_agent_control_plane_store.sql'
       - '.github/workflows/vl-agent-control-plane-ci.yml'
   workflow_dispatch:
 
@@ -35,6 +37,12 @@ jobs:
           set -euo pipefail
           python3 vl/agent-control-plane/run_runtime_policy_tests.py
 
+      - name: Validate persistence contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 vl/agent-control-plane/check_persistence_contract.py
+
       - name: Validate audit and runtime invariants
         shell: bash
         run: |
@@ -51,10 +59,15 @@ jobs:
               'audit-event.schema.json',
               'runtime_policy.py',
               'run_runtime_policy_tests.py',
+              'check_persistence_contract.py',
           ]
           for name in required:
               if not (root/name).exists():
                   errors.append(f'missing ACP contract: {name}')
+
+          migration=Path('vl/migrations/20260831_agent_control_plane_store.sql')
+          if not migration.exists():
+              errors.append('missing ACP persistence migration')
 
           try:
               audit=json.loads((root/'audit-event.schema.json').read_text())
