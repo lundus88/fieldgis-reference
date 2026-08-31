@@ -1,0 +1,134 @@
+name: VL Mobile Sandbox Regression
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/scripts/prepare-mobile-flutter-cache.sh'
+      - 'vl/scripts/build-mobile-flutter-sandbox.sh'
+      - '.github/workflows/vl-factory-runner.yml'
+      - '.github/workflows/vl-mobile-sandbox-regression.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mobile-sandbox-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      VRS_OIDC_TOKEN: host-secret-must-not-leak
+      SUPABASE_SERVICE_ROLE_KEY: host-secret-must-not-leak
+      ACTIONS_ID_TOKEN_REQUEST_TOKEN: host-secret-must-not-leak
+      ACTIONS_ID_TOKEN_REQUEST_URL: https://example.invalid/oidc
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+
+      - name: Set up Flutter template tool
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
+        with:
+          flutter-version: '3.38.1'
+          channel: stable
+          cache: true
+
+      - name: Create pristine trusted Android template
+        shell: bash
+        run: |
+          set -euo pipefail
+          flutter create sandbox-mobile --platforms=android --org com.vrslabs --project-name vl_sandbox_probe
+          rm -f sandbox-mobile/test/widget_test.dart
+          chmod +x vl/scripts/prepare-mobile-flutter-cache.sh vl/scripts/build-mobile-flutter-sandbox.sh
+          vl/scripts/prepare-mobile-flutter-cache.sh sandbox-mobile
+          test -f sandbox-mobile/.vl-mobile-cache-prepared
+
+      - name: Inject generated-code adversarial Gradle probe after cache preparation
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat >> sandbox-mobile/android/app/build.gradle.kts <<'KOTLIN'
+
+          val vlSandboxProbe = tasks.register("vlSandboxProbe") {
+              doLast {
+                  val sensitive = listOf(
+                      "VRS_OIDC_TOKEN",
+                      "SUPABASE_SERVICE_ROLE_KEY",
+                      "ACTIONS_ID_TOKEN_REQUEST_TOKEN",
+                      "ACTIONS_ID_TOKEN_REQUEST_URL"
+                  )
+                  val leaked = sensitive.any { !System.getenv(it).isNullOrEmpty() }
+                  val dockerSocket = java.io.File("/var/run/docker.sock").exists()
+
+                  var network = false
+                  try {
+                      val conn = java.net.URL("https://example.com").openConnection()
+                      conn.connectTimeout = 1000
+                      conn.readTimeout = 1000
+                      conn.getInputStream().use { it.read() }
+                      network = true
+                  } catch (_: Exception) {
+                      network = false
+                  }
+
+                  var outsideWrite = false
+                  try {
+                      java.nio.file.Files.writeString(
+                          java.nio.file.Paths.get("/etc/vl-mobile-sandbox-probe"),
+                          "should-not-write"
+                      )
+                      outsideWrite = true
+                  } catch (_: Exception) {
+                      outsideWrite = false
+                  }
+
+                  val json = "{\"leaked\":" + leaked +
+                      ",\"network\":" + network +
+                      ",\"docker_socket\":" + dockerSocket +
+                      ",\"outside_write\":" + outsideWrite + "}"
+                  java.io.File(rootProject.projectDir.parentFile, ".vl-mobile-sandbox-env.json").writeText(json)
+              }
+          }
+
+          tasks.matching { it.name == "preBuild" }.configureEach {
+              dependsOn(vlSandboxProbe)
+          }
+          KOTLIN
+
+      - name: Analyze and build generated Mobile code offline in sandbox
+        shell: bash
+        run: |
+          set -euo pipefail
+          vl/scripts/build-mobile-flutter-sandbox.sh sandbox-mobile mobile-flutter-v1 > mobile-sha256.txt
+
+      - name: Assert Mobile sandbox isolation and artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s sandbox-mobile/.vl-mobile-sandbox-env.json
+          test -s sandbox-mobile/build/app/outputs/flutter-apk/app-debug.apk
+          grep -q 'app-debug.apk' mobile-sha256.txt
+          python3 - <<'PY'
+          import json
+          d=json.load(open('sandbox-mobile/.vl-mobile-sandbox-env.json'))
+          expected={
+              'leaked': False,
+              'network': False,
+              'docker_socket': False,
+              'outside_write': False,
+          }
+          assert d == expected, (d, expected)
+          print('VL MOBILE SANDBOX REGRESSION: PASS')
+          PY
+
+      - name: Assert sandbox contract is explicit
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q -- '--network none' vl/scripts/build-mobile-flutter-sandbox.sh
+          grep -q -- '--cap-drop ALL' vl/scripts/build-mobile-flutter-sandbox.sh
+          grep -q -- 'no-new-privileges:true' vl/scripts/build-mobile-flutter-sandbox.sh
+          grep -q -- '--pids-limit' vl/scripts/build-mobile-flutter-sandbox.sh
+          grep -q -- '--memory' vl/scripts/build-mobile-flutter-sandbox.sh
+          grep -q -- '--cpus' vl/scripts/build-mobile-flutter-sandbox.sh
