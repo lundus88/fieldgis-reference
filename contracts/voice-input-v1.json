@@ -1,0 +1,32 @@
+{
+  "contract": "vl.voice-input/1",
+  "status": "experimental",
+  "purpose": "Normalize voice-derived transcripts into the same software request intake path used by text/PRD inputs without bypassing VL governance.",
+  "input": {
+    "source": "voice",
+    "transcript": "string",
+    "language": "string|null",
+    "confidence": "number|null",
+    "user_confirmed": "boolean"
+  },
+  "requirements": {
+    "authentication_required": true,
+    "transcript_review_required": true,
+    "user_confirmation_required": true,
+    "direct_factory_execution_allowed": false,
+    "direct_production_execution_allowed": false,
+    "production_locked": true
+  },
+  "output": {
+    "type": "software_request_text",
+    "route": "existing_spec_intake",
+    "must_preserve_source": true
+  },
+  "governance": {
+    "required_terminal_gate": "human-approval",
+    "voice_must_not_modify_release_gates": true,
+    "voice_must_not_create_production_promotion": true,
+    "fail_closed_on_empty_transcript": true,
+    "fail_closed_on_unconfirmed_transcript": true
+  }
+}
