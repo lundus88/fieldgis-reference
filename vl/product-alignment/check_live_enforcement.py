@@ -5,6 +5,7 @@ import sys
 MIGRATION = Path('vl/migrations/20260831_product_alignment_live_gate.sql')
 COMPILER_FIX = Path('vl/migrations/20260831_fix_manual_coordinate_routing.sql')
 CAP_ALIAS_FIX = Path('vl/migrations/20260831_fix_web_supabase_capability_alias.sql')
+GPS_NEGATION_FIX = Path('vl/migrations/20260831_fix_gps_negation_routing.sql')
 
 required = {
     'activation policy': 'private.product_alignment_policy',
@@ -21,15 +22,12 @@ required = {
 if not MIGRATION.exists():
     print(f'LIVE PRODUCT ALIGNMENT: FAIL - missing {MIGRATION}')
     raise SystemExit(1)
-
 text = MIGRATION.read_text()
 missing = [label for label, needle in required.items() if needle not in text]
 if missing:
     print('LIVE PRODUCT ALIGNMENT: FAIL')
-    for label in missing:
-        print(f'- missing enforcement invariant: {label}')
+    for label in missing: print(f'- missing enforcement invariant: {label}')
     raise SystemExit(1)
-
 for needle in ("target_environment='production'", 'production_locked is distinct from true'):
     if needle not in text:
         print(f'LIVE PRODUCT ALIGNMENT: FAIL - production lock invariant missing: {needle}')
@@ -67,6 +65,20 @@ for needle in (
         print(f'CAPABILITY ALIAS REGRESSION: FAIL - missing invariant: {needle}')
         raise SystemExit(1)
 
+if not GPS_NEGATION_FIX.exists():
+    print(f'GPS NEGATION REGRESSION: FAIL - missing {GPS_NEGATION_FIX}')
+    raise SystemExit(1)
+negation = GPS_NEGATION_FIX.read_text()
+for needle in (
+    'no gps', 'without gps', 'gps (is )?not required',
+    'no device location', 'no current location',
+    "'compiler_version','1.8'",
+):
+    if needle not in negation:
+        print(f'GPS NEGATION REGRESSION: FAIL - missing negation invariant: {needle}')
+        raise SystemExit(1)
+
 print('LIVE PRODUCT ALIGNMENT: PASS')
 print('COMPILER ROUTING REGRESSION: PASS')
 print('CAPABILITY ALIAS REGRESSION: PASS')
+print('GPS NEGATION REGRESSION: PASS')
