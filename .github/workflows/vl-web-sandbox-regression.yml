@@ -1,0 +1,57 @@
+name: VL Web Sandbox Regression
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/adversarial/web-sandbox-fixture/**'
+      - 'vl/scripts/run-untrusted-sandbox.sh'
+      - '.github/workflows/vl-web-sandbox-regression.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  web-sandbox-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      VRS_OIDC_TOKEN: host-secret-must-not-leak
+      SUPABASE_SERVICE_ROLE_KEY: host-secret-must-not-leak
+      ACTIONS_ID_TOKEN_REQUEST_TOKEN: host-secret-must-not-leak
+      ACTIONS_ID_TOKEN_REQUEST_URL: https://example.invalid/oidc
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+
+      - name: Prepare fixture and dependencies without lifecycle scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp -R vl/adversarial/web-sandbox-fixture sandbox-web
+          cd sandbox-web
+          npm install --ignore-scripts
+          cd ..
+          chmod +x vl/scripts/run-untrusted-sandbox.sh
+          docker pull node:22-bookworm
+
+      - name: Build generated web fixture inside isolated sandbox
+        shell: bash
+        run: |
+          set -euo pipefail
+          vl/scripts/run-untrusted-sandbox.sh node:22-bookworm sandbox-web -- npm run build
+
+      - name: Assert build and credential isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s sandbox-web/dist/index.html
+          test -s sandbox-web/.vl-web-sandbox-env.json
+          python3 - <<'PY'
+          import json
+          d=json.load(open('sandbox-web/.vl-web-sandbox-env.json'))
+          assert d == {'leaked': False}, d
+          print('VL WEB/PWA SANDBOX REGRESSION: PASS')
+          PY
