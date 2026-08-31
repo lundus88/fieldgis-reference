@@ -159,9 +159,40 @@ jobs:
           grep -q -- 'Prepare pristine Android workspace and trusted cache' .github/workflows/vl-factory-runner.yml
           grep -q -- 'vl/scripts/prepare-mobile-flutter-cache.sh workspace/mobile' .github/workflows/vl-factory-runner.yml
           grep -q -- 'Overlay generated Mobile artifacts' .github/workflows/vl-factory-runner.yml
+          grep -q -- "reserved_marker=(root/'.vl-mobile-cache-prepared').resolve()" .github/workflows/vl-factory-runner.yml
+          grep -q -- 'reserved_dirs=tuple((root/name).resolve()' .github/workflows/vl-factory-runner.yml
+          grep -q -- 'any(target==r or r in target.parents for r in reserved_dirs)' .github/workflows/vl-factory-runner.yml
           grep -q -- 'reserved mobile artifact path' .github/workflows/vl-factory-runner.yml
           grep -q -- 'Build Android artifact in generated-code sandbox' .github/workflows/vl-factory-runner.yml
           grep -q -- '../../vl/scripts/build-mobile-flutter-sandbox.sh' .github/workflows/vl-factory-runner.yml
           ! grep -q -- 'flutter pub get 2>&1 | tee ../../runner-mobile.log' .github/workflows/vl-factory-runner.yml
           ! grep -q -- 'flutter analyze --no-fatal-infos 2>&1 | tee -a ../../runner-mobile.log' .github/workflows/vl-factory-runner.yml
           ! grep -q -- 'flutter build apk --debug 2>&1 | tee -a ../../runner-mobile.log' .github/workflows/vl-factory-runner.yml
+
+      - name: Assert canonical reserved-path traversal cases
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import pathlib
+          root=pathlib.Path('sandbox-mobile').resolve()
+          marker=(root/'.vl-mobile-cache-prepared').resolve()
+          reserved=tuple((root/name).resolve() for name in (
+              '.flutter-sdk','.android-sdk-components','.gradle','.home','.pub-cache','build'
+          ))
+          cases=(
+              './.flutter-sdk/bin/flutter',
+              'foo/../.flutter-sdk/bin/flutter',
+              './.gradle/init.gradle',
+              'x/../.android-sdk-components/ndk/28.2.13676358/source.properties',
+              'tmp/../build/app/outputs/flutter-apk/app-debug.apk',
+              'x/../.vl-mobile-cache-prepared',
+          )
+          for raw in cases:
+              target=(root/raw).resolve()
+              blocked=(target==marker or any(target==r or r in target.parents for r in reserved))
+              assert blocked, raw
+          safe=(root/'lib/main.dart').resolve()
+          assert safe!=marker and not any(safe==r or r in safe.parents for r in reserved)
+          print('VL MOBILE CANONICAL PATH GUARD: PASS')
+          PY
