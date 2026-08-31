@@ -6,6 +6,7 @@ MIGRATION = Path('vl/migrations/20260831_product_alignment_live_gate.sql')
 COMPILER_FIX = Path('vl/migrations/20260831_fix_manual_coordinate_routing.sql')
 CAP_ALIAS_FIX = Path('vl/migrations/20260831_fix_web_supabase_capability_alias.sql')
 GPS_NEGATION_FIX = Path('vl/migrations/20260831_fix_gps_negation_routing.sql')
+DEVICE_GPS_NEGATION_FIX = Path('vl/migrations/20260831_fix_device_gps_negation.sql')
 
 required = {
     'activation policy': 'private.product_alignment_policy',
@@ -78,7 +79,20 @@ for needle in (
         print(f'GPS NEGATION REGRESSION: FAIL - missing negation invariant: {needle}')
         raise SystemExit(1)
 
+if not DEVICE_GPS_NEGATION_FIX.exists():
+    print(f'DEVICE GPS NEGATION REGRESSION: FAIL - missing {DEVICE_GPS_NEGATION_FIX}')
+    raise SystemExit(1)
+device_negation = DEVICE_GPS_NEGATION_FIX.read_text()
+for needle in (
+    'no (device )?gps', 'without (device )?gps', '(device )?gps (is )?not required',
+    "'compiler_version','1.9'",
+):
+    if needle not in device_negation:
+        print(f'DEVICE GPS NEGATION REGRESSION: FAIL - missing invariant: {needle}')
+        raise SystemExit(1)
+
 print('LIVE PRODUCT ALIGNMENT: PASS')
 print('COMPILER ROUTING REGRESSION: PASS')
 print('CAPABILITY ALIAS REGRESSION: PASS')
 print('GPS NEGATION REGRESSION: PASS')
+print('DEVICE GPS NEGATION REGRESSION: PASS')
