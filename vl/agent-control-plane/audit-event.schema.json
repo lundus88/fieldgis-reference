@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vrs-labs.local/schemas/agent-control-plane/audit-event-v1.json",
+  "title": "VL Agent Control Plane Audit Event V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "event_id",
+    "event_type",
+    "recorded_at",
+    "action_id",
+    "requester",
+    "capability",
+    "scope",
+    "input_digest",
+    "event_digest"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "event_id": { "type": "string", "minLength": 16, "maxLength": 200 },
+    "event_type": {
+      "enum": [
+        "action_requested",
+        "policy_decided",
+        "execution_started",
+        "execution_completed",
+        "execution_failed",
+        "delegation_recorded",
+        "idempotent_replay"
+      ]
+    },
+    "recorded_at": { "type": "string", "format": "date-time" },
+    "action_id": { "type": "string", "minLength": 16, "maxLength": 200 },
+    "requester": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["agent_id", "agent_version", "role", "principal_type"],
+      "properties": {
+        "agent_id": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "agent_version": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "role": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "principal_type": { "enum": ["agent", "human", "system"] },
+        "delegated_by": { "type": ["string", "null"], "maxLength": 200 }
+      }
+    },
+    "delegator_chain": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1, "maxLength": 200 },
+      "uniqueItems": false
+    },
+    "capability": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "scope": { "type": "object", "minProperties": 1 },
+    "input_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "decision": { "enum": ["allow", "deny", "require_human_approval"] },
+    "reason_code": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "execution_status": { "enum": ["not_started", "running", "succeeded", "failed", "blocked"] },
+    "result_digest": { "type": ["string", "null"], "pattern": "^(sha256:[a-f0-9]{64})?$" },
+    "previous_event_digest": { "type": ["string", "null"], "pattern": "^(sha256:[a-f0-9]{64})?$" },
+    "event_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": {
+        "type": ["string", "number", "integer", "boolean", "null"]
+      }
+    }
+  }
+}
