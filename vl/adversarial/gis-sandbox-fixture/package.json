@@ -1,0 +1,9 @@
+{
+  "name": "vl-gis-sandbox-fixture",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": { "build": "vite build" },
+  "dependencies": { "maplibre-gl": "6.6.0" },
+  "devDependencies": { "typescript": "5.8.3", "vite": "8.2.2" }
+}
