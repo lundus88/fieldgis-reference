@@ -1,0 +1,93 @@
+name: VL Agent Control Plane CI
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/agent-control-plane/**'
+      - '.github/workflows/vl-agent-control-plane-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'vl/agent-control-plane/**'
+      - '.github/workflows/vl-agent-control-plane-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  agent-control-plane:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Run adversarial contract suite
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 vl/agent-control-plane/run_adversarial_tests.py
+
+      - name: Run runtime policy suite
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 vl/agent-control-plane/run_runtime_policy_tests.py
+
+      - name: Validate audit and runtime invariants
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import json, sys
+
+          errors=[]
+          root=Path('vl/agent-control-plane')
+          required=[
+              'action-envelope.schema.json',
+              'policy-decision.schema.json',
+              'audit-event.schema.json',
+              'runtime_policy.py',
+              'run_runtime_policy_tests.py',
+          ]
+          for name in required:
+              if not (root/name).exists():
+                  errors.append(f'missing ACP contract: {name}')
+
+          try:
+              audit=json.loads((root/'audit-event.schema.json').read_text())
+              required_fields=set(audit.get('required') or [])
+              for field in ('event_id','action_id','event_type','recorded_at','input_digest','event_digest'):
+                  if field not in required_fields:
+                      errors.append(f'audit schema missing required field: {field}')
+          except Exception as exc:
+              errors.append(f'audit schema invalid JSON: {exc}')
+
+          runtime=(root/'runtime_policy.py').read_text() if (root/'runtime_policy.py').exists() else ''
+          for marker in (
+              'DENY_POLICY_UNAVAILABLE',
+              'DENY_UNKNOWN_CAPABILITY',
+              'DENY_CAPABILITY_NOT_GRANTED',
+              'DENY_SCOPE_MISMATCH',
+              'DENY_DELEGATION_ESCALATION',
+              'DENY_EXPIRED_ACTION',
+              'DENY_REPLAY',
+              'DENY_MISSING_PROVENANCE',
+              'REQUIRE_HUMAN_PRODUCTION_APPROVAL',
+          ):
+              if marker not in runtime:
+                  errors.append(f'runtime policy missing fail-closed marker: {marker}')
+
+          forbidden=('SUPABASE_SERVICE_ROLE_KEY','GITHUB_TOKEN','ACTIONS_ID_TOKEN_REQUEST_TOKEN','production.approve" in KNOWN_CAPABILITIES')
+          for marker in forbidden:
+              if marker in runtime:
+                  errors.append(f'runtime policy contains forbidden authority marker: {marker}')
+
+          if errors:
+              print('VL AGENT CONTROL PLANE CI: FAIL')
+              for e in errors: print(f'- {e}')
+              sys.exit(1)
+          print('VL AGENT CONTROL PLANE CI: PASS')
+          PY
