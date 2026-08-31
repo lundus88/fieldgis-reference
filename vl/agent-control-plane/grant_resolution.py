@@ -140,10 +140,16 @@ def resolve_grant(
         if not _budget_not_wider(child_budget, parent_budget):
             raise GrantResolutionError("DENY_DELEGATION_ESCALATION")
 
+        child_from = child.get("valid_from")
+        parent_from = parent.get("valid_from")
+        if child_from is not None and parent_from is not None and _utc(child_from) < _utc(parent_from):
+            raise GrantResolutionError("DENY_DELEGATION_ESCALATION")
+
         child_until = child.get("valid_until")
         parent_until = parent.get("valid_until")
-        if child_until is not None and parent_until is not None and _utc(child_until) > _utc(parent_until):
-            raise GrantResolutionError("DENY_DELEGATION_ESCALATION")
+        if parent_until is not None:
+            if child_until is None or _utc(child_until) > _utc(parent_until):
+                raise GrantResolutionError("DENY_DELEGATION_ESCALATION")
 
     return ResolvedGrant(
         grant_id=grant_id,
