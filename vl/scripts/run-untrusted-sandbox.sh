@@ -45,7 +45,7 @@ exec docker run --rm \
   --tmpfs /tmp:rw,noexec,nosuid,size=256m \
   --tmpfs /run:rw,noexec,nosuid,size=64m \
   --workdir /workspace \
-  --mount "type=bind,src=${ROOT},dst=/workspace,rw" \
+  --mount "type=bind,src=${ROOT},dst=/workspace" \
   --env HOME=/tmp \
   --env CI=true \
   "$IMAGE" "$@"
