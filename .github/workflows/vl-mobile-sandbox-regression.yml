@@ -152,3 +152,16 @@ jobs:
           grep -q -- "'cmake;\$CMAKE_VERSION'" vl/scripts/prepare-mobile-flutter-cache.sh
           grep -q -- '/workspace/.flutter-sdk/bin/flutter' vl/scripts/prepare-mobile-flutter-cache.sh
           ! grep -q -- '/sdks/flutter/bin/flutter' vl/scripts/build-mobile-flutter-sandbox.sh
+
+          # The live Factory Runner must prepare trusted state before overlaying
+          # generated artifacts and must execute Mobile build logic only via the
+          # credential-free offline sandbox wrapper.
+          grep -q -- 'Prepare pristine Android workspace and trusted cache' .github/workflows/vl-factory-runner.yml
+          grep -q -- 'vl/scripts/prepare-mobile-flutter-cache.sh workspace/mobile' .github/workflows/vl-factory-runner.yml
+          grep -q -- 'Overlay generated Mobile artifacts' .github/workflows/vl-factory-runner.yml
+          grep -q -- 'reserved mobile artifact path' .github/workflows/vl-factory-runner.yml
+          grep -q -- 'Build Android artifact in generated-code sandbox' .github/workflows/vl-factory-runner.yml
+          grep -q -- '../../vl/scripts/build-mobile-flutter-sandbox.sh' .github/workflows/vl-factory-runner.yml
+          ! grep -q -- 'flutter pub get 2>&1 | tee ../../runner-mobile.log' .github/workflows/vl-factory-runner.yml
+          ! grep -q -- 'flutter analyze --no-fatal-infos 2>&1 | tee -a ../../runner-mobile.log' .github/workflows/vl-factory-runner.yml
+          ! grep -q -- 'flutter build apk --debug 2>&1 | tee -a ../../runner-mobile.log' .github/workflows/vl-factory-runner.yml
