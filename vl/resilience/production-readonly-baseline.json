@@ -1,0 +1,30 @@
+{
+  "schema_version": "vl.gate-d-production-readonly-baseline/1",
+  "observed_date": "2026-09-01",
+  "project_ref": "wczelfmnqpgzfdszxubl",
+  "scope": "read-only production schema/function inspection",
+  "production_mutation": false,
+  "runner": {
+    "factory_run_unique_job": true,
+    "claim_uses_for_update_skip_locked": true,
+    "claim_allows_expired_lease_recovery": true,
+    "lease_duration_minutes": 20,
+    "completion_rejects_invalid_lease": true,
+    "completion_rejects_expired_lease": true,
+    "success_next_state": "validating",
+    "production_execution_forbidden_in_runner_claim": true
+  },
+  "idempotency": {
+    "sandbox_payment_event_key_unique": true,
+    "production_payment_event_key_unique": true,
+    "notification_idempotency_key_unique": true,
+    "notification_adapter_environment_idempotency_unique": true,
+    "runner_factory_run_unique": true
+  },
+  "usage": {
+    "customer_metric_window_unique": true,
+    "used_count_present": true,
+    "limit_count_present": true
+  },
+  "interpretation": "These are production design/schema invariants observed read-only. Runtime stress evidence is supplied separately by the ephemeral Gate D CI harness. Founder/internal policy remains separately gated by issue #70."
+}
