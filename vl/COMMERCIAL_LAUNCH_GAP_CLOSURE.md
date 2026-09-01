@@ -1,6 +1,6 @@
 # VL Commercial Launch Gap Closure
 
-Status: in progress
+Status: blocked — Gate C external merchant onboarding/KYB (Issue #114)
 Scope: close the remaining gap between Controlled Public Beta and full commercial public readiness without weakening production governance.
 
 ## Gate A — Public onboarding
@@ -27,7 +27,7 @@ Experimental builders (`ai-app-v1`, `desktop-tauri-v1`) are explicitly outside t
 - [x] Fulfillment evidence exists.
 - [x] Reconciliation PASS evidence exists.
 - [x] Production payment tables remain isolated from sandbox tests.
-- [ ] First live production payment certification is completed by an explicitly authorized human using the bounded live-test path.
+- [ ] First live production payment certification is completed by an explicitly authorized human using the bounded live-test path. **BLOCKED by external merchant onboarding/KYB (Issue #114):** Billplz production rejected the currently configured production Secret Key with HTTP 401 before Collection ID validation. Billplz production onboarding requires a valid registered organization/merchant identity and organization bank account details. No merchant details will be fabricated and no KYB/KYC bypass is permitted. Read-only DB verification after the failed attempt showed zero production payment orders, zero pending orders and zero paid orders. The controlled RM1 path remains bounded to 100 minor units / MYR and must not be retried until valid production merchant credentials are available.
 - [x] Refund/cancel/duplicate webhook recovery behavior is verified before unrestricted public billing. Evidence: governed payment recovery migration from PR #111 is live. Transactional rollback drill proved `pending -> cancelled`, duplicate cancellation returns `duplicate=true` with no mutation, late `paid` after cancellation returns `terminal_order_not_resurrected`, and `pending -> paid -> fulfilled -> refunded` ends with `fulfillment_state=reversed`. Post-rollback verification showed zero canary order, webhook, or fulfillment rows. No production payment was performed.
 
 ## Gate D — Scale and resilience
@@ -45,7 +45,7 @@ Gate D machine-readable evidence artifact: `vl-gate-d-resilience-evidence`, arti
 - [x] ACP scope/capability escape fails closed.
 - [x] Immutable artifact/provenance reconciliation exists.
 - [x] Production promotion, verification and rollback workflows exist.
-- [ ] Final commercial launch review confirms no open P0 launch blocker.
+- [ ] Final commercial launch review confirms no open P0 launch blocker. **HOLD:** Issue #114 is an open P0 external commercial blocker until Billplz production merchant onboarding/KYB and the bounded live RM1 certification are completed.
 
 ## Decision rule
 Full commercial public launch is GO only when all unchecked items above are supported by fresh machine-readable or independently inspectable evidence. No checklist item may be marked complete solely because a workflow is green; the evidence must prove the intended control.
