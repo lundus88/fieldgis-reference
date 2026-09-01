@@ -1,0 +1,47 @@
+name: VL Assisted Build Contract
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/public/assisted-build.html'
+      - 'vl/public/index.html'
+      - '.github/workflows/vl-assisted-build-contract.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  assisted-build-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+
+      - name: Assert governed draft-only intake contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          F='vl/public/assisted-build.html'
+          test -s "$F"
+          grep -q "vl.assisted-build/1" "$F"
+          grep -q "original_customer_answers" "$F"
+          grep -q "user_confirmed" "$F"
+          grep -q "recommended_builder" "$F"
+          grep -q "pricing_source" "$F"
+          grep -q "status:'draft'" "$F"
+          grep -q "production_locked:true" "$F"
+          grep -q "factory_credit_estimate:null" "$F"
+          grep -q "assisted-build.html" vl/public/index.html
+
+      - name: Assert no privileged or production execution surface
+        shell: bash
+        run: |
+          set -euo pipefail
+          F='vl/public/assisted-build.html'
+          ! grep -Eqi 'service[_-]?role|SUPABASE_SERVICE_ROLE_KEY|production\.approve|production\.promote|vrs-runner-oidc|production_promotion' "$F"
+          ! grep -Eqi '/functions/v1/.*(promot|deploy|runner|approve|payment)' "$F"
+          echo 'VL ASSISTED BUILD CONTRACT: PASS'
