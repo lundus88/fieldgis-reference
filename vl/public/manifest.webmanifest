@@ -1,0 +1,23 @@
+{
+  "id": "/",
+  "name": "VL by VRS Labs",
+  "short_name": "VL",
+  "description": "Governed automated software factory for Web, PWA, GIS, API and Mobile applications.",
+  "lang": "en",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#07111f",
+  "theme_color": "#07111f",
+  "categories": ["business", "productivity", "developer"],
+  "icons": [
+    {"src": "/vl-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"},
+    {"src": "/vl-icon-maskable.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable"}
+  ],
+  "shortcuts": [
+    {"name": "Assisted Build", "short_name": "Build", "url": "/assisted-build.html", "icons": [{"src": "/vl-icon.svg", "sizes": "any", "type": "image/svg+xml"}]},
+    {"name": "Build Status", "short_name": "Status", "url": "/build-status.html", "icons": [{"src": "/vl-icon.svg", "sizes": "any", "type": "image/svg+xml"}]}
+  ]
+}
