@@ -9,7 +9,7 @@ Scope: close the remaining gap between Controlled Public Beta and full commercia
 - [x] Support request path exists.
 - [x] Voice/text input can create draft App Specs only.
 - [x] Assisted Build / Business Interview flow produces a structured, user-confirmed draft App Spec with provenance and assumptions. Evidence: `VL Assisted Build Contract #22` PASS on PR #106 head `04992fc3e325b1a25bd8739a6cd4918d75a2e4c8`.
-- [ ] Customer-facing build status and failure/retry explanation are verified end-to-end.
+- [x] Customer-facing build status and failure/retry explanation are verified end-to-end. Evidence: PR #111 added an authenticated RLS-backed read-only `build-status.html` with explicit state/failure/retry explanations and no factory-state mutation path; `VL Launch Recovery Contract #1` PASS. PR #112 linked the status view from the Pilot Portal; Governance #272, Launch Recovery Contract #2, Assisted Build Contract #24 and Voice Runtime #33 all PASS.
 
 ## Gate B — Active builder isolation
 - [x] web-react-v1 generated build runs in generated-code sandbox.
@@ -28,7 +28,7 @@ Experimental builders (`ai-app-v1`, `desktop-tauri-v1`) are explicitly outside t
 - [x] Reconciliation PASS evidence exists.
 - [x] Production payment tables remain isolated from sandbox tests.
 - [ ] First live production payment certification is completed by an explicitly authorized human using the bounded live-test path.
-- [ ] Refund/cancel/duplicate webhook recovery behavior is verified before unrestricted public billing.
+- [x] Refund/cancel/duplicate webhook recovery behavior is verified before unrestricted public billing. Evidence: governed payment recovery migration from PR #111 is live. Transactional rollback drill proved `pending -> cancelled`, duplicate cancellation returns `duplicate=true` with no mutation, late `paid` after cancellation returns `terminal_order_not_resurrected`, and `pending -> paid -> fulfilled -> refunded` ends with `fulfillment_state=reversed`. Post-rollback verification showed zero canary order, webhook, or fulfillment rows. No production payment was performed.
 
 ## Gate D — Scale and resilience
 - [x] Concurrency test demonstrates bounded queue/lease behavior under representative burst load. Evidence: `VL Gate D Resilience #1` PASS on PR #108: 24 queued jobs + 48 simultaneous claimers produced 24 unique leases, 24 idle results, zero duplicate job IDs, and exactly 24 total attempts. Production schema was inspected read-only and confirms `claim_vrs_runner_job` uses `FOR UPDATE SKIP LOCKED`.
