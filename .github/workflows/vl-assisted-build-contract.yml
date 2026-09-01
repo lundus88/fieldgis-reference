@@ -6,6 +6,7 @@ on:
     paths:
       - 'vl/public/assisted-build.html'
       - 'vl/public/index.html'
+      - 'vl/migrations/20260901_assisted_build_execution_gate.sql'
       - '.github/workflows/vl-assisted-build-contract.yml'
   workflow_dispatch:
 
@@ -21,27 +22,52 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Assert governed draft-only intake contract
+      - name: Assert governed intake and launcher compatibility
         shell: bash
         run: |
           set -euo pipefail
           F='vl/public/assisted-build.html'
+          M='vl/migrations/20260901_assisted_build_execution_gate.sql'
           test -s "$F"
+          test -s "$M"
           grep -q "vl.assisted-build/1" "$F"
           grep -q "original_customer_answers" "$F"
           grep -q "user_confirmed" "$F"
-          grep -q "recommended_builder" "$F"
+          grep -q "confirmed_at" "$F"
+          grep -q "selected_builder:{builder_key:" "$F"
+          grep -q "vl_get_assisted_build_quote" "$F"
+          grep -q "factory_credit_estimate" "$F"
           grep -q "pricing_source" "$F"
           grep -q "status:'draft'" "$F"
           grep -q "production_locked:true" "$F"
-          grep -q "factory_credit_estimate:null" "$F"
           grep -q "assisted-build.html" vl/public/index.html
+
+      - name: Assert authoritative cost and credit gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          M='vl/migrations/20260901_assisted_build_execution_gate.sql'
+          grep -q "private.assisted_build_cost_policy" "$M"
+          grep -q "assisted_build_factory_credits_per_day" "$M"
+          grep -q "pilot_entitlement" "$M"
+          grep -q "verified credit/payment required" "$M"
+          grep -q "customer confirmation required" "$M"
+          grep -q "confirmation timestamp required" "$M"
+          grep -q "selected builder contract required" "$M"
+          grep -q "Factory Credit estimate does not match authoritative policy" "$M"
+          grep -q "daily Factory Credit allowance exceeded" "$M"
+          grep -q "commercial_payment_bypassed',false" "$M"
+          grep -q "production_approval_bypassed',false" "$M"
+          grep -q "production_promotion_bypassed',false" "$M"
+          grep -q "before insert on public.factory_runs" "$M"
 
       - name: Assert no privileged or production execution surface
         shell: bash
         run: |
           set -euo pipefail
           F='vl/public/assisted-build.html'
+          M='vl/migrations/20260901_assisted_build_execution_gate.sql'
           ! grep -Eqi 'service[_-]?role|SUPABASE_SERVICE_ROLE_KEY|production\.approve|production\.promote|vrs-runner-oidc|production_promotion' "$F"
           ! grep -Eqi '/functions/v1/.*(promot|deploy|runner|approve|payment)' "$F"
+          ! grep -Eqi 'approve_production|promote_production|create_production_promotion|production_approval_bypassed.?true|production_promotion_bypassed.?true' "$M"
           echo 'VL ASSISTED BUILD CONTRACT: PASS'
