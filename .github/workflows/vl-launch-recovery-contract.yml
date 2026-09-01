@@ -1,0 +1,57 @@
+name: VL Launch Recovery Contract
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/public/build-status.html'
+      - 'vl/public/index.html'
+      - 'vl/migrations/20260901_payment_recovery_semantics.sql'
+      - '.github/workflows/vl-launch-recovery-contract.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+
+      - name: Validate customer build status is read-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          f=vl/public/build-status.html
+          grep -q "Read-only customer view" "$f"
+          grep -q "requested_by=eq." "$f"
+          grep -q "production_locked" "$f"
+          grep -q "submit a support request" "$f"
+          ! grep -Eq "method:[[:space:]]*['\"](POST|PATCH|PUT|DELETE)['\"]" "$f"
+          ! grep -Eq "/rest/v1/factory_runs[^'\"]*.*(POST|PATCH|PUT|DELETE)" "$f"
+          echo "VL GATE A BUILD STATUS CONTRACT: PASS"
+
+      - name: Validate payment recovery terminal-state semantics
+        shell: bash
+        run: |
+          set -euo pipefail
+          f=vl/migrations/20260901_payment_recovery_semantics.sql
+          grep -q "p_normalized_status not in ('paid','pending','cancelled','refunded')" "$f"
+          grep -q "terminal_order_not_resurrected" "$f"
+          grep -q "where id=v_order.id and status='pending' and fulfillment_state='unfulfilled'" "$f"
+          grep -q "paid_to_refunded_reversed" "$f"
+          grep -q "fulfillment_state='reversed'" "$f"
+          grep -q "duplicate_event" "$f"
+          grep -q "purpose<>'controlled_live_test'" "$f"
+          echo "VL GATE C PAYMENT RECOVERY CONTRACT: PASS"
+
+      - name: Guard production authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          ! grep -Eq "approve_production_release|approve_vrs_production_release|production_promotion_bypassed[^f]|human_production_approval_granted[^f]" vl/public/build-status.html vl/migrations/20260901_payment_recovery_semantics.sql
+          echo "VL PRODUCTION AUTHORITY GUARD: PASS"
