@@ -7,6 +7,7 @@ on:
       - 'vl/public/assisted-build.html'
       - 'vl/public/index.html'
       - 'vl/migrations/20260901_assisted_build_execution_gate.sql'
+      - 'vl/migrations/20260901_assisted_build_product_alignment.sql'
       - '.github/workflows/vl-assisted-build-contract.yml'
   workflow_dispatch:
 
@@ -28,19 +29,41 @@ jobs:
           set -euo pipefail
           F='vl/public/assisted-build.html'
           M='vl/migrations/20260901_assisted_build_execution_gate.sql'
+          A='vl/migrations/20260901_assisted_build_product_alignment.sql'
           test -s "$F"
           test -s "$M"
+          test -s "$A"
           grep -q "vl.assisted-build/1" "$F"
           grep -q "original_customer_answers" "$F"
           grep -q "user_confirmed" "$F"
           grep -q "confirmed_at" "$F"
           grep -q "selected_builder:{builder_key:" "$F"
           grep -q "vl_get_assisted_build_quote" "$F"
+          grep -q "vl_prepare_assisted_build_product_alignment" "$F"
+          grep -q "product_alignment:lastDraft.product_alignment" "$F"
           grep -q "factory_credit_estimate" "$F"
           grep -q "pricing_source" "$F"
           grep -q "status:'draft'" "$F"
           grep -q "production_locked:true" "$F"
           grep -q "assisted-build.html" vl/public/index.html
+
+      - name: Assert canonical product alignment generation
+        shell: bash
+        run: |
+          set -euo pipefail
+          A='vl/migrations/20260901_assisted_build_product_alignment.sql'
+          grep -q "vrs.product-alignment/1" "$A"
+          grep -q "founder_intent" "$A"
+          grep -q "user_requirements" "$A"
+          grep -q "acceptance_tests" "$A"
+          grep -q "traceability_manifest" "$A"
+          grep -q "founder_intent_hash" "$A"
+          grep -q "certification_input_hash" "$A"
+          grep -q "digest(convert_to" "$A"
+          grep -q "private.validate_product_alignment" "$A"
+          grep -q "generated_for_review',true" "$A"
+          grep -q "production_approval_performed',false" "$A"
+          grep -q "production_promotion_performed',false" "$A"
 
       - name: Assert authoritative cost and credit gate
         shell: bash
@@ -67,7 +90,8 @@ jobs:
           set -euo pipefail
           F='vl/public/assisted-build.html'
           M='vl/migrations/20260901_assisted_build_execution_gate.sql'
+          A='vl/migrations/20260901_assisted_build_product_alignment.sql'
           ! grep -Eqi 'service[_-]?role|SUPABASE_SERVICE_ROLE_KEY|production\.approve|production\.promote|vrs-runner-oidc|production_promotion' "$F"
           ! grep -Eqi '/functions/v1/.*(promot|deploy|runner|approve|payment)' "$F"
-          ! grep -Eqi 'approve_production|promote_production|create_production_promotion|production_approval_bypassed.?true|production_promotion_bypassed.?true' "$M"
+          ! grep -Eqi 'approve_production|promote_production|create_production_promotion|production_approval_bypassed.?true|production_promotion_bypassed.?true' "$M" "$A"
           echo 'VL ASSISTED BUILD CONTRACT: PASS'
