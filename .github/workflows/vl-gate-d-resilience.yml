@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'vl/resilience/**'
+      - 'vl/migrations/20260901_founder_internal_usage_guardrails.sql'
       - '.github/workflows/vl-gate-d-resilience.yml'
   workflow_dispatch:
 
@@ -46,6 +47,12 @@ jobs:
           assert u['limit_count_present'] is True
           print('VL GATE D PRODUCTION READ-ONLY BASELINE: PASS')
           PY
+
+      - name: Validate founder/internal usage guardrail contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 vl/resilience/check_founder_internal_guardrails.py
 
       - name: Run ephemeral concurrency, replay, outage and recovery harness
         shell: bash
