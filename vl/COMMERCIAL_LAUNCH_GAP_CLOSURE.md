@@ -31,11 +31,13 @@ Experimental builders (`ai-app-v1`, `desktop-tauri-v1`) are explicitly outside t
 - [ ] Refund/cancel/duplicate webhook recovery behavior is verified before unrestricted public billing.
 
 ## Gate D — Scale and resilience
-- [ ] Staging concurrency test demonstrates bounded queue behavior under representative burst load.
-- [ ] Retry/idempotency test proves duplicate submissions do not create duplicate externally effective actions.
-- [ ] Provider outage drill proves fail-closed behavior for unavailable payment/deployment/notification adapters.
-- [ ] Recovery drill proves stuck leases/jobs can be reconciled without bypassing lifecycle gates.
-- [ ] Cost/rate-limit controls are verified for customer and founder/internal modes.
+- [x] Concurrency test demonstrates bounded queue/lease behavior under representative burst load. Evidence: `VL Gate D Resilience #1` PASS on PR #108: 24 queued jobs + 48 simultaneous claimers produced 24 unique leases, 24 idle results, zero duplicate job IDs, and exactly 24 total attempts. Production schema was inspected read-only and confirms `claim_vrs_runner_job` uses `FOR UPDATE SKIP LOCKED`.
+- [x] Retry/idempotency test proves duplicate submissions do not create duplicate externally effective actions. Evidence: `VL Gate D Resilience #1` PASS: 32 simultaneous attempts for one action key produced exactly 1 recorded action and 31 duplicates; runner completion replay with the same lease was rejected. Production read-only schema confirms unique runner factory-run, payment event-key, and notification idempotency constraints.
+- [ ] Provider outage drill proves fail-closed behavior for unavailable payment/deployment/notification adapters. Ephemeral harness PASS exists and production read-only inspection confirms deployment adapter fail-closed/unconfigured behavior plus notification approval/evidence gates, but a production-equivalent payment/notification outage drill is still required before closing this item.
+- [x] Recovery drill proves stuck/expired leases can be reconciled without bypassing lifecycle gates. Evidence: `VL Gate D Resilience #1` PASS: expired lease reclaimed with a new token, old token rejected, attempt incremented to 2, and successful completion stopped at `validating` rather than approval/production. Production read-only function inspection confirms expired-lease recovery and invalid/expired lease rejection.
+- [ ] Cost/rate-limit controls are verified for customer and founder/internal modes. Ephemeral policy harness PASS proves intended semantics, but production founder/internal implementation remains separately gated by Issue #70 and is not considered closed.
+
+Gate D machine-readable evidence artifact: `vl-gate-d-resilience-evidence`, artifact id `9782061051`, SHA-256 `ee59a7aefd0519d8e1affeede9292d913e480cba1c2ebf56e01b892dc6209c57`, retained 90 days from `VL Gate D Resilience #1`.
 
 ## Gate E — Production governance
 - [x] Explicit human production approval remains mandatory.

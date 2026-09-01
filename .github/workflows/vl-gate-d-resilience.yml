@@ -1,0 +1,92 @@
+name: VL Gate D Resilience
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/resilience/**'
+      - 'vl/migrations/20260901_founder_internal_usage_guardrails.sql'
+      - '.github/workflows/vl-gate-d-resilience.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  gate-d-resilience:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+
+      - name: Validate production read-only baseline contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          p='vl/resilience/production-readonly-baseline.json'
+          d=json.load(open(p))
+          assert d['production_mutation'] is False
+          r=d['runner']
+          assert r['factory_run_unique_job'] is True
+          assert r['claim_uses_for_update_skip_locked'] is True
+          assert r['claim_allows_expired_lease_recovery'] is True
+          assert r['lease_duration_minutes'] == 20
+          assert r['completion_rejects_invalid_lease'] is True
+          assert r['completion_rejects_expired_lease'] is True
+          assert r['success_next_state'] == 'validating'
+          assert r['production_execution_forbidden_in_runner_claim'] is True
+          i=d['idempotency']
+          assert all(i.values())
+          u=d['usage']
+          assert u['customer_metric_window_unique'] is True
+          assert u['used_count_present'] is True
+          assert u['limit_count_present'] is True
+          print('VL GATE D PRODUCTION READ-ONLY BASELINE: PASS')
+          PY
+
+      - name: Validate founder/internal usage guardrail contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 vl/resilience/check_founder_internal_guardrails.py
+
+      - name: Run ephemeral concurrency, replay, outage and recovery harness
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x vl/resilience/run_gate_d_harness.sh
+          vl/resilience/run_gate_d_harness.sh
+
+      - name: Assert machine-readable evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          d=json.load(open('gate-d-evidence.json'))
+          assert d['production_mutation'] is False
+          assert d['burst']['pass'] is True
+          assert d['burst']['duplicate_job_ids'] == 0
+          assert d['replay']['pass'] is True
+          assert d['replay']['effective_action_rows'] == 1
+          assert d['provider_outage']['pass'] is True
+          assert d['provider_outage']['blocked_effective_actions'] == 0
+          assert d['recovery']['pass'] is True
+          assert d['recovery']['post_completion_state'] == 'validating'
+          assert d['recovery']['skipped_human_approval'] is False
+          assert d['cost_rate_limit_policy_harness']['pass'] is True
+          assert d['overall'] == 'PASS'
+          print('VL GATE D MACHINE-READABLE EVIDENCE: PASS')
+          PY
+
+      - name: Upload Gate D evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: vl-gate-d-resilience-evidence
+          path: gate-d-evidence.json
+          if-no-files-found: error
+          retention-days: 90
