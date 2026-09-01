@@ -8,7 +8,7 @@ Scope: close the remaining gap between Controlled Public Beta and full commercia
 - [x] Terms acceptance and account state are recorded.
 - [x] Support request path exists.
 - [x] Voice/text input can create draft App Specs only.
-- [ ] Assisted Build / Business Interview flow produces a structured, user-confirmed draft App Spec with provenance and assumptions.
+- [x] Assisted Build / Business Interview flow produces a structured, user-confirmed draft App Spec with provenance and assumptions. Evidence: `VL Assisted Build Contract #22` PASS on PR #106 head `04992fc3e325b1a25bd8739a6cd4918d75a2e4c8`.
 - [ ] Customer-facing build status and failure/retry explanation are verified end-to-end.
 
 ## Gate B — Active builder isolation
@@ -16,8 +16,8 @@ Scope: close the remaining gap between Controlled Public Beta and full commercia
 - [x] pwa-react-v1 generated build runs in generated-code sandbox.
 - [x] gis-web-v1 generated build runs in generated-code sandbox.
 - [x] api-service-v1 generated validation runs in generated-code sandbox.
-- [ ] mobile-flutter-v1 generated analyze/build path runs in a credential-free sandbox with bounded resources and no network by default.
-- [ ] Mobile adversarial regression proves OIDC, service-role, network and workspace isolation.
+- [x] mobile-flutter-v1 generated analyze/build path runs in a credential-free sandbox with bounded resources and no network by default. Evidence: `VL Mobile Sandbox Regression #27` PASS on PR #106 head `04992fc3e325b1a25bd8739a6cd4918d75a2e4c8`.
+- [x] Mobile adversarial regression proves OIDC, service-role, network and workspace isolation, including canonical reserved-path traversal cases. Evidence: `VL Mobile Sandbox Regression #27` PASS.
 
 Experimental builders (`ai-app-v1`, `desktop-tauri-v1`) are explicitly outside the commercial active-builder guarantee until separately certified and activated.
 
