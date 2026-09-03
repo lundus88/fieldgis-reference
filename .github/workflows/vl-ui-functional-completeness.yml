@@ -1,0 +1,45 @@
+name: VL UI Functional Completeness
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/public/**'
+      - '.github/workflows/vl-ui-functional-completeness.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Assert complete governed customer journey
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'Certification' vl/public/index.html
+          grep -q './voice.html' vl/public/index.html
+          grep -q './prd.html' vl/public/index.html
+          grep -q 'Project Workspace' vl/public/index.html
+          grep -q 'Factory Credit' vl/public/assisted-build.html
+          grep -q 'QA evidence' vl/public/build-status.html
+          grep -q 'Security evidence' vl/public/build-status.html
+          grep -q 'Certification evidence' vl/public/build-status.html
+          grep -q 'Post-deployment controls' vl/public/build-status.html
+          grep -q 'This read-only console cannot initiate rollback' vl/public/build-status.html
+          grep -q 'App Spec review' vl/public/prd.html
+          grep -q 'No review step is skipped' vl/public/prd.html
+      - name: Guard browser production authority and billing
+        shell: bash
+        run: |
+          set -euo pipefail
+          ! grep -Eqi 'approve_production|promote_production|production_promotion_bypassed.?true' vl/public/index.html vl/public/prd.html vl/public/build-status.html
+          ! grep -Eq "method:[[:space:]]*['\"](POST|PATCH|PUT|DELETE)['\"]" vl/public/build-status.html
+          ! grep -Eqi 'checkout|pay now|buy credits|live payment' vl/public/index.html vl/public/prd.html vl/public/build-status.html
+          echo 'VL UI FUNCTIONAL COMPLETENESS: PASS'
