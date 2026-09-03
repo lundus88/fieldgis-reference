@@ -3,7 +3,7 @@
   "name": "VL by VRS Labs",
   "short_name": "VL",
   "description": "Governed automated software factory for Web, PWA, GIS, API and Mobile applications.",
-  "lang": "en",
+  "lang": "ms",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

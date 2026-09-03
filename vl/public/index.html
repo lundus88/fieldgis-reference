@@ -52,5 +52,5 @@ function signupClick(ev){ev&&ev.preventDefault();setMsg('authmsg','Creating acco
 function supportClick(ev){ev&&ev.preventDefault();setMsg('supportmsg','Submitting…','warn');authUser().then(function(user){if(!user)throw new Error('Sign in first.');return getAccount(user).then(function(a){if(!a)throw new Error('Complete onboarding first.');var p={customer_account_id:a.id,opened_by:user.id,severity:severity.value,subject:subject.value.trim(),description:description.value.trim()};if(p.subject.length<3||p.description.length<5)throw new Error('Enter a subject and description.');return fetch(VL_URL+'/rest/v1/support_requests',{method:'POST',headers:makeHeaders(vlSession.access_token,'return=minimal'),body:JSON.stringify(p)}).then(readJson);});}).then(function(){setMsg('supportmsg','Support request submitted.','ok');}).catch(function(e){setMsg('supportmsg',e.message||String(e),'err');});return false;}
 restoreSession();loadAccount();
 if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("./sw.js",{scope:"./"}).catch(function(e){console.warn("VL offline mode unavailable",e);});});}
-</script>
+</script><script src="./vl-i18n.js" defer></script>
 </body></html>

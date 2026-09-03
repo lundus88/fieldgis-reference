@@ -1,5 +1,5 @@
-const CACHE='vl-shell-2026-09-04.1';
-const SHELL=['./','./index.html','./assisted-build.html','./prd.html','./voice.html','./build-status.html','./vl-ui.css','./manifest.webmanifest','./vl-icon.svg','./vl-icon-maskable.svg'];
+const CACHE='vl-shell-2026-09-04.2';
+const SHELL=['./','./index.html','./assisted-build.html','./prd.html','./voice.html','./build-status.html','./vl-ui.css','./vl-i18n.js','./manifest.webmanifest','./vl-icon.svg','./vl-icon-maskable.svg'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL))));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',event=>{

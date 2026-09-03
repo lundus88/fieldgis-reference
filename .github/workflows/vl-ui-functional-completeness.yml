@@ -48,6 +48,18 @@ jobs:
           grep -q "'./manifest.webmanifest'" vl/public/sw.js
           grep -q 'cp -R vl/public/. _site/public/' .github/workflows/vl-approval-pages.yml
           ! grep -Eq 'href="/(manifest|vl-icon)|register\("/sw.js"' vl/public/index.html
+      - name: Assert multilingual customer UI
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s vl/public/vl-i18n.js
+          grep -q "var languages={ms:'Bahasa Melayu',en:'English',zh:'中文（简体）'}" vl/public/vl-i18n.js
+          grep -q "localStorage.getItem(STORE)||'ms'" vl/public/vl-i18n.js
+          grep -q '"lang": "ms"' vl/public/manifest.webmanifest
+          grep -q "'./vl-i18n.js'" vl/public/sw.js
+          for page in index assisted-build prd voice build-status; do
+            grep -q './vl-i18n.js' "vl/public/$page.html"
+          done
       - name: Guard browser production authority and billing
         shell: bash
         run: |

@@ -26,6 +26,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 .muted{font-size:13px!important;color:var(--muted)!important}.ok{color:var(--ok)!important}.warn{color:var(--warn)!important}.err{color:var(--danger)!important}
 .pill{display:inline-flex!important;padding:6px 10px!important;border:1px solid #d7def0!important;border-radius:999px!important;background:#f2f5ff!important;color:#3e5b9b!important}
 pre{max-height:560px;overflow:auto!important;border:1px solid var(--line)!important;background:#f7f9fd!important;color:#243248!important;border-radius:12px!important;padding:15px!important;tab-size:2}
+.vl-language{position:fixed;z-index:50;right:16px;bottom:16px;display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.94);box-shadow:0 10px 30px rgba(15,23,42,.12);backdrop-filter:blur(12px)}.vl-language label{font-size:11px;font-weight:800;color:var(--muted)}.vl-language select{width:auto!important;min-height:36px!important;margin:0!important;padding:6px 30px 6px 9px!important;background:#fff!important;font-size:12px!important}
 @media(max-width:720px){main{width:min(100% - 24px,1040px)!important}.row{grid-template-columns:1fr!important}.card{border-radius:16px!important}h1{font-size:clamp(32px,11vw,44px)!important}button{min-height:48px}textarea{min-height:132px}}
 @media(min-width:721px) and (max-width:1024px){main{width:min(100% - 40px,920px)!important}}
 @media(min-width:1440px){main{max-width:1120px!important}}
