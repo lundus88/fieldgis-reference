@@ -10,6 +10,7 @@ on:
       - 'vl/agent-control-plane/**'
 
 permissions:
+  actions: read
   contents: read
 
 concurrency:
@@ -38,6 +39,14 @@ jobs:
           python3 vl/proof/verify_golden_factory_manifest.py \
             evidence/golden-factory-manifest.json \
             --expected-sha '${{ github.sha }}'
+      - name: Verify recorded DEV sandbox runs through GitHub API
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 vl/proof/verify_dev_sandbox_evidence.py \
+            --evidence vl/proof/dev-sandbox-evidence.json \
+            --output evidence/verified-dev-sandbox-evidence.json
       - name: Prove autonomous production approval remains unavailable
         working-directory: vl/agent-control-plane
         run: |

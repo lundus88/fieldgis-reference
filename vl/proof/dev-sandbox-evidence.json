@@ -1,0 +1,42 @@
+{
+  "schema_version": "vl.dev-sandbox-evidence/1",
+  "tested_sha": "f347ad250deeaeb79f00af45ec008582604bfb4d",
+  "runs": [
+    {
+      "run_id": 33845864693,
+      "proof": "generated-code-isolation",
+      "required_jobs": ["malicious-source-rejection"],
+      "required_steps": ["Reject malicious generated source before execution", "Execute only accepted source with empty environment", "Verify build job has no OIDC permission"]
+    },
+    {
+      "run_id": 33845867811,
+      "proof": "generated-code-sandbox",
+      "required_jobs": ["sandbox-cert"],
+      "required_steps": ["Run malicious probe inside credential-free sandbox", "Assert sandbox contract"]
+    },
+    {
+      "run_id": 33845871111,
+      "proof": "web-and-pwa-builders",
+      "required_jobs": ["web-sandbox-regression (web-react-v1)", "web-sandbox-regression (pwa-react-v1)"],
+      "required_steps": ["Build generated web fixture inside isolated sandbox", "Assert build and credential isolation"]
+    },
+    {
+      "run_id": 33845873614,
+      "proof": "gis-builder",
+      "required_jobs": ["gis-sandbox-regression"],
+      "required_steps": ["Build generated GIS fixture inside isolated sandbox", "Assert GIS artifact and credential isolation"]
+    },
+    {
+      "run_id": 33845876872,
+      "proof": "api-builder",
+      "required_jobs": ["api-sandbox-regression"],
+      "required_steps": ["Validate generated API inside isolated sandbox", "Assert API artifact and credential isolation"]
+    },
+    {
+      "run_id": 33845879970,
+      "proof": "mobile-builder",
+      "required_jobs": ["mobile-sandbox-regression"],
+      "required_steps": ["Analyze and build generated Mobile code offline in sandbox", "Assert Mobile sandbox isolation and artifact", "Assert canonical reserved-path traversal cases"]
+    }
+  ]
+}

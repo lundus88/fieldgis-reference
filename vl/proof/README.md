@@ -10,6 +10,8 @@ Phase one proves deterministic handling of three benchmark classes:
 
 The generated manifest deliberately reports `HOLD`. Intake and routing alone are not sufficient for a `PASS—PROVEN` verdict. The GitHub workflow also ends in failure until current-HEAD evidence is attached for every active builder, isolated execution, QA, certification, protected human DEV approval, DEV rollback, and three clean reproducibility runs.
 
+`dev-sandbox-evidence.json` records the six DEV-only GitHub runs used for the active-builder and isolation baseline. The workflow does not trust this declaration by itself: `verify_dev_sandbox_evidence.py` reads each run and its jobs from the GitHub API, requires the exact tested SHA, and checks that named substantive steps completed successfully.
+
 ## Local phase-one check
 
 ```bash
