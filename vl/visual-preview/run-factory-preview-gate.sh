@@ -6,6 +6,9 @@ ARTIFACT_PATH="${2:?artifact path required}"
 SOURCE_SHA="${3:?source sha required}"
 CLAIM_JSON="${4:-claim.json}"
 
+rm -rf preview-root vl/visual-preview/evidence-factory preview-tools
+mkdir -p preview-root vl/visual-preview/evidence-factory preview-tools
+
 case "$BUILDER" in
   web-react-v1|pwa-react-v1|gis-web-v1) ;;
   *) echo "unsupported preview builder: $BUILDER" >&2; exit 64 ;;
@@ -25,9 +28,6 @@ canonical=json.dumps(spec,sort_keys=True,separators=(',',':'),ensure_ascii=False
 print(hashlib.sha256(canonical.encode('utf-8')).hexdigest())
 PY
 )
-
-rm -rf preview-root vl/visual-preview/evidence-factory preview-tools
-mkdir -p preview-root vl/visual-preview/evidence-factory preview-tools
 
 tar -xzf "$ARTIFACT_PATH" -C preview-root
 STATIC_ROOT="preview-root/.vercel/output/static"
@@ -73,7 +73,7 @@ NODE_PATH="$PWD/preview-tools/node_modules" \
 node vl/visual-preview/verify-factory-preview.mjs
 
 python3 - "$APP_SPEC_SHA256" "$ARTIFACT_SHA256" <<'PY'
-import json,sys
+import json
 p='vl/visual-preview/evidence-factory/evidence.json'
 d=json.load(open(p))
 d['app_spec_hash_algorithm']='sha256(canonical-json-sort-keys-compact-utf8-v1)'
