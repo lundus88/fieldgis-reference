@@ -1,0 +1,40 @@
+name: VL Context Governance Phase 1
+
+on:
+  push:
+    branches: [vl/issue-128-phase1-context-governance]
+    paths:
+      - 'vl/context-governance/**'
+      - '.github/workflows/vl-context-governance-phase1.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/context-governance/**'
+      - '.github/workflows/vl-context-governance-phase1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  context-governance-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Validate default context policy
+        run: python3 vl/context-governance/validate_context_policy.py vl/context-governance/default-context-policy.json
+      - name: Run adversarial context policy tests
+        working-directory: vl/context-governance
+        run: python3 -m unittest -v test_context_policy.py
+      - name: Assert fail-closed contract markers
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q '"default_decision": "deny"' vl/context-governance/default-context-policy.json
+          grep -q '"record_secret_values": false' vl/context-governance/default-context-policy.json
+          grep -q 'deny-production-connector-data' vl/context-governance/default-context-policy.json
+          grep -q "return {'decision': 'deny'" vl/context-governance/validate_context_policy.py
+          echo 'VL CONTEXT GOVERNANCE PHASE 1 CONTRACT: PASS'
