@@ -1,0 +1,39 @@
+name: VL Multi-Agent Governance Phase 7
+
+on:
+  push:
+    branches: [vl/issue-128-phase7-controlled-multi-agent]
+    paths:
+      - 'vl/multi-agent-governance/**'
+      - '.github/workflows/vl-multi-agent-governance-phase7.yml'
+  pull_request:
+    branches: [vl/issue-128-phase6-execution-pools]
+    paths:
+      - 'vl/multi-agent-governance/**'
+      - '.github/workflows/vl-multi-agent-governance-phase7.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  controlled-multi-agent:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Run delegation and orchestration tests
+        working-directory: vl/multi-agent-governance
+        run: python3 -m unittest -v test_delegation_policy.py
+      - name: Assert multi-agent hard locks
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q "CAPABILITY_EXPANSION_BLOCKED" vl/multi-agent-governance/delegation_policy.py
+          grep -q "RESOURCE_SCOPE_EXPANSION_BLOCKED" vl/multi-agent-governance/delegation_policy.py
+          grep -q "BUDGET_EXPANSION_BLOCKED" vl/multi-agent-governance/delegation_policy.py
+          grep -q "SWARM_MODE_FORBIDDEN_BY_DEFAULT" vl/multi-agent-governance/delegation_policy.py
+          grep -q "'production_approval':'HUMAN_ONLY'" vl/multi-agent-governance/delegation_policy.py
+          echo 'VL MULTI-AGENT GOVERNANCE PHASE 7: PASS'
