@@ -28,8 +28,8 @@ jobs:
         run: python3 vl/context-governance/validate_context_policy.py vl/context-governance/default-context-policy.json
       - name: Run adversarial context policy tests
         working-directory: vl/context-governance
-        run: python3 -m unittest -v test_context_policy.py
-      - name: Assert fail-closed contract markers
+        run: python3 -m unittest -v test_context_policy.py test_context_manifest.py
+      - name: Assert fail-closed context filtering markers
         shell: bash
         run: |
           set -euo pipefail
@@ -37,4 +37,6 @@ jobs:
           grep -q '"record_secret_values": false' vl/context-governance/default-context-policy.json
           grep -q 'deny-production-connector-data' vl/context-governance/default-context-policy.json
           grep -q "return {'decision': 'deny'" vl/context-governance/validate_context_policy.py
-          echo 'VL CONTEXT GOVERNANCE PHASE 1 CONTRACT: PASS'
+          grep -q "'secret_values_recorded': False" vl/context-governance/build_context_manifest.py
+          grep -q "if verdict\['decision'\] == 'allow'" vl/context-governance/build_context_manifest.py
+          echo 'VL CONTEXT GOVERNANCE PHASE 1 FILTERING CONTRACT: PASS'
