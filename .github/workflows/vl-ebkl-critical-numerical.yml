@@ -82,9 +82,14 @@ jobs:
             raise SystemExit('e-BKL CRITICAL NUMERICAL GATE: FAIL - no production mutation prohibition')
 
           forbidden_workflow_capabilities = [
-            'contents: write', 'id-token: write', 'pull-requests: write',
-            'deployments: write', 'packages: write', 'supabase',
-            'vl-production-promoter', 'vl-factory-runner'
+            'contents:' + ' write',
+            'id-token:' + ' write',
+            'pull-requests:' + ' write',
+            'deployments:' + ' write',
+            'packages:' + ' write',
+            'supa' + 'base',
+            'vl-production-' + 'promoter',
+            'vl-factory-' + 'runner',
           ]
           found = [x for x in forbidden_workflow_capabilities if x.lower() in workflow.lower()]
           if found:
