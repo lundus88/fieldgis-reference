@@ -87,10 +87,10 @@ jobs:
           device_json="$(xcrun simctl list devices available -j)"
           udid="$(printf '%s' "$device_json" | python3 -c 'import json,sys; d=json.load(sys.stdin); xs=[]; [xs.extend(v) for k,v in d.get("devices",{}).items() if "iOS" in k]; xs=[x for x in xs if x.get("isAvailable", True) and "iPhone" in x.get("name","")]; print(xs[0]["udid"] if xs else "")')"
           test -n "$udid"
-          device_name="$(printf '%s' "$device_json" | python3 -c 'import json,sys,os; d=json.load(sys.stdin); u=os.environ["UDID"]; xs=[]; [xs.extend(v) for k,v in d.get("devices",{}).items() if "iOS" in k]; m=[x for x in xs if x.get("udid")==u]; print(m[0]["name"] if m else "")' UDID="$udid")"
+          device_name="$(printf '%s' "$device_json" | UDID="$udid" python3 -c 'import json,sys,os; d=json.load(sys.stdin); u=os.environ["UDID"]; xs=[]; [xs.extend(v) for k,v in d.get("devices",{}).items() if "iOS" in k]; m=[x for x in xs if x.get("udid")==u]; print(m[0]["name"] if m else "")')"
           printf '%s\n' "$udid" > evidence/simulator-udid.txt
           printf '%s\n' "$device_name" > evidence/simulator-device-name.txt
-          state="$(printf '%s' "$device_json" | python3 -c 'import json,sys,os; d=json.load(sys.stdin); u=os.environ["UDID"]; xs=[]; [xs.extend(v) for v in d.get("devices",{}).values()]; m=[x for x in xs if x.get("udid")==u]; print(m[0].get("state","") if m else "")' UDID="$udid")"
+          state="$(printf '%s' "$device_json" | UDID="$udid" python3 -c 'import json,sys,os; d=json.load(sys.stdin); u=os.environ["UDID"]; xs=[]; [xs.extend(v) for v in d.get("devices",{}).values()]; m=[x for x in xs if x.get("udid")==u]; print(m[0].get("state","") if m else "")')"
           if [ "$state" != "Booted" ]; then
             xcrun simctl boot "$udid"
           fi
