@@ -1,0 +1,69 @@
+name: VL e-BKL Critical Numerical Gate
+
+on:
+  push:
+    branches: [ebkl-critical-numerical-integration]
+    paths:
+      - 'vl/projects/ebkl/**'
+      - '.github/workflows/vl-ebkl-critical-numerical.yml'
+      - 'vl/product-alignment/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/projects/ebkl/**'
+      - '.github/workflows/vl-ebkl-critical-numerical.yml'
+      - 'vl/product-alignment/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ebkl-critical-numerical-policy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Validate e-BKL product alignment contract
+        run: python3 vl/product-alignment/validate_product_alignment.py vl/projects/ebkl/product-alignment.json
+
+      - name: Validate critical numerical hard locks
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import json, sys
+
+          policy = Path('vl/projects/ebkl/CRITICAL_NUMERICAL_POLICY.md').read_text()
+          doc = json.loads(Path('vl/projects/ebkl/product-alignment.json').read_text())
+          text = policy + '\n' + json.dumps(doc)
+
+          required = {
+            'critical project class': 'CRITICAL_NUMERICAL / CADASTRAL',
+            'target repository pinned': 'lundus88/ebkl',
+            'human boundary review': 'HUMAN_REVIEW_REQUIRED',
+            'no automatic main merge': 'Automatic merge',
+            'no automatic production deploy': 'production automatically',
+            'golden regression required': 'Golden Regression',
+            'explicit CRS/datum': 'CRS/datum',
+            'no invented tolerance': 'No invented cadastral formula, tolerance, threshold or regulatory rule',
+            'human production approval': 'explicit human production approval',
+          }
+
+          missing = [name for name, needle in required.items() if needle not in text]
+          if missing:
+            print('e-BKL CRITICAL NUMERICAL GATE: FAIL')
+            for item in missing:
+              print(f'- missing lock: {item}')
+            sys.exit(1)
+
+          must_not = doc['founder_intent']['must_not']
+          if not any('merge' in x.lower() and 'main' in x.lower() for x in must_not):
+            raise SystemExit('e-BKL CRITICAL NUMERICAL GATE: FAIL - no main merge prohibition')
+          if not any('production' in x.lower() and ('deploy' in x.lower() or 'mutate' in x.lower()) for x in must_not):
+            raise SystemExit('e-BKL CRITICAL NUMERICAL GATE: FAIL - no production mutation prohibition')
+
+          print('e-BKL CRITICAL NUMERICAL GATE: PASS')
+          PY
