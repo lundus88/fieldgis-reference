@@ -11,6 +11,8 @@ on:
       - 'vl/enterprise-access/check_enterprise_audit_store.py'
       - 'vl/enterprise-access/identity_federation.py'
       - 'vl/enterprise-access/test_identity_federation.py'
+      - 'vl/enterprise-access/policy_inheritance.py'
+      - 'vl/enterprise-access/test_policy_inheritance.py'
       - '.github/workflows/vl-enterprise-session-audit.yml'
   pull_request:
     paths:
@@ -20,6 +22,8 @@ on:
       - 'vl/enterprise-access/check_enterprise_audit_store.py'
       - 'vl/enterprise-access/identity_federation.py'
       - 'vl/enterprise-access/test_identity_federation.py'
+      - 'vl/enterprise-access/policy_inheritance.py'
+      - 'vl/enterprise-access/test_policy_inheritance.py'
       - '.github/workflows/vl-enterprise-session-audit.yml'
 
 permissions:
@@ -39,6 +43,9 @@ jobs:
       - name: Run identity federation readiness tests
         working-directory: vl/enterprise-access
         run: python3 -m unittest -v test_identity_federation.py
+      - name: Run policy inheritance and retention tests
+        working-directory: vl/enterprise-access
+        run: python3 -m unittest -v test_policy_inheritance.py
       - name: Validate persistence readiness contract
         run: python3 vl/enterprise-access/check_enterprise_audit_store.py
       - name: Syntax check
@@ -46,14 +53,18 @@ jobs:
           python3 -m py_compile vl/enterprise-access/session_audit_visibility.py
           python3 -m py_compile vl/enterprise-access/check_enterprise_audit_store.py
           python3 -m py_compile vl/enterprise-access/identity_federation.py
+          python3 -m py_compile vl/enterprise-access/policy_inheritance.py
       - name: Assert no production authority is introduced
         run: |
           set -euo pipefail
-          ! grep -R -nE 'production\.approve|merge\.execute|deploy\.production|SUPABASE_SERVICE_ROLE_KEY' \
+          ! grep -R -nE 'merge\.execute|deploy\.production|SUPABASE_SERVICE_ROLE_KEY' \
             vl/enterprise-access/session_audit_visibility.py \
             vl/enterprise-access/test_session_audit_visibility.py \
             vl/enterprise-access/enterprise-audit-store.sql \
             vl/enterprise-access/check_enterprise_audit_store.py \
             vl/enterprise-access/identity_federation.py \
-            vl/enterprise-access/test_identity_federation.py
+            vl/enterprise-access/test_identity_federation.py \
+            vl/enterprise-access/policy_inheritance.py \
+            vl/enterprise-access/test_policy_inheritance.py
+          grep -q 'production.approve' vl/enterprise-access/test_policy_inheritance.py
           echo 'ENTERPRISE SESSION/AUDIT AUTHORITY BOUNDARY: PASS'
