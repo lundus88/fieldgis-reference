@@ -1,0 +1,56 @@
+name: VL Governed Orchestration Dry Run
+
+on:
+  push:
+    branches: [vl/issue-128-governed-orchestration-dryrun]
+    paths:
+      - 'vl/orchestration-governance/**'
+      - 'vl/context-governance/**'
+      - 'vl/model-governance/**'
+      - 'vl/completion-governance/**'
+      - 'vl/remediation-governance/**'
+      - 'vl/connector-governance/**'
+      - 'vl/execution-governance/**'
+      - 'vl/multi-agent-governance/**'
+      - '.github/workflows/vl-governed-orchestration-dryrun.yml'
+  pull_request:
+    paths:
+      - 'vl/orchestration-governance/**'
+      - 'vl/context-governance/**'
+      - 'vl/model-governance/**'
+      - 'vl/completion-governance/**'
+      - 'vl/remediation-governance/**'
+      - 'vl/connector-governance/**'
+      - 'vl/execution-governance/**'
+      - 'vl/multi-agent-governance/**'
+      - '.github/workflows/vl-governed-orchestration-dryrun.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  governed-dryrun:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Run governed orchestration integration tests
+        working-directory: vl/orchestration-governance
+        run: python3 -m unittest -v test_governed_dryrun.py
+      - name: Emit dry-run evidence
+        run: python3 vl/orchestration-governance/governed_dryrun.py | tee governed-orchestration-dryrun.json
+      - name: Assert hard authority boundaries
+        run: |
+          set -euo pipefail
+          grep -q '"status": "READY_FOR_NONPRODUCTION_CONTROLLED_EXECUTION"' governed-orchestration-dryrun.json
+          grep -q '"production_locked": true' governed-orchestration-dryrun.json
+          grep -q '"merge_executed": false' governed-orchestration-dryrun.json
+          grep -q '"production_approved": false' governed-orchestration-dryrun.json
+          grep -q '"production_deployed": false' governed-orchestration-dryrun.json
+          grep -q '"live_model_invocation": false' governed-orchestration-dryrun.json
+          grep -q '"live_connector_invocation": false' governed-orchestration-dryrun.json
+          grep -q '"live_execution": false' governed-orchestration-dryrun.json
+          ! grep -q 'NEVER_FORWARD_SECRET' governed-orchestration-dryrun.json
+          echo 'VL GOVERNED ORCHESTRATION DRY-RUN: PASS'
