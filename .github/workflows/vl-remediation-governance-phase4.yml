@@ -1,0 +1,38 @@
+name: VL Remediation Governance Phase 4
+
+on:
+  push:
+    branches: [vl/issue-128-phase4-remediation-loop]
+    paths:
+      - 'vl/remediation-governance/**'
+      - '.github/workflows/vl-remediation-governance-phase4.yml'
+  pull_request:
+    branches: [vl/issue-128-phase3-completion-validator]
+    paths:
+      - 'vl/remediation-governance/**'
+      - '.github/workflows/vl-remediation-governance-phase4.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  remediation-policy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Run remediation governance tests
+        working-directory: vl/remediation-governance
+        run: python3 -m unittest -v test_remediation_policy.py
+      - name: Assert hard exclusions
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q "'merge.execute'" vl/remediation-governance/remediation_policy.py
+          grep -q "'production.approve'" vl/remediation-governance/remediation_policy.py
+          grep -q "MERGE_READY_RECOMMENDATION_ONLY" vl/remediation-governance/remediation_policy.py
+          grep -q "'production_locked': True" vl/remediation-governance/remediation_policy.py
+          echo 'VL REMEDIATION GOVERNANCE PHASE 4: PASS'
