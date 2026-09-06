@@ -1,0 +1,39 @@
+name: VL Enterprise Session & Audit Visibility
+
+on:
+  push:
+    branches:
+      - 'vl/issue-131-session-audit-visibility'
+    paths:
+      - 'vl/enterprise-access/session_audit_visibility.py'
+      - 'vl/enterprise-access/test_session_audit_visibility.py'
+      - '.github/workflows/vl-enterprise-session-audit.yml'
+  pull_request:
+    paths:
+      - 'vl/enterprise-access/session_audit_visibility.py'
+      - 'vl/enterprise-access/test_session_audit_visibility.py'
+      - '.github/workflows/vl-enterprise-session-audit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  session-audit-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Run session and audit visibility tests
+        working-directory: vl/enterprise-access
+        run: python3 -m unittest -v test_session_audit_visibility.py
+      - name: Syntax check
+        run: python3 -m py_compile vl/enterprise-access/session_audit_visibility.py
+      - name: Assert no production authority is introduced
+        run: |
+          set -euo pipefail
+          ! grep -R -nE 'production\.approve|merge\.execute|deploy\.production|service_role|SUPABASE_SERVICE_ROLE_KEY' \
+            vl/enterprise-access/session_audit_visibility.py \
+            vl/enterprise-access/test_session_audit_visibility.py
+          echo 'ENTERPRISE SESSION/AUDIT AUTHORITY BOUNDARY: PASS'
