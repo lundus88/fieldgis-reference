@@ -35,7 +35,10 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
+          ref: ${{ env.VL_PROOF_SHA }}
           persist-credentials: false
+      - name: Confirm checkout is current proof SHA
+        run: test "$(git rev-parse HEAD)" = "$VL_PROOF_SHA"
       - name: Run deterministic natural-language and routing benchmark
         run: |
           set -euo pipefail
@@ -84,6 +87,7 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
+          ref: ${{ env.VL_PROOF_SHA }}
           persist-credentials: false
       - name: Confirm checkout is current PR head
         run: test "$(git rev-parse HEAD)" = "$VL_PROOF_SHA"
@@ -137,6 +141,7 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
+          ref: ${{ env.VL_PROOF_SHA }}
           persist-credentials: false
       - name: Confirm checkout is current PR head
         run: test "$(git rev-parse HEAD)" = "$VL_PROOF_SHA"
@@ -185,6 +190,7 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
+          ref: ${{ env.VL_PROOF_SHA }}
           persist-credentials: false
       - name: Confirm checkout is current PR head
         run: test "$(git rev-parse HEAD)" = "$VL_PROOF_SHA"
@@ -240,6 +246,7 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
+          ref: ${{ env.VL_PROOF_SHA }}
           persist-credentials: false
       - name: Confirm checkout is current PR head
         run: test "$(git rev-parse HEAD)" = "$VL_PROOF_SHA"
