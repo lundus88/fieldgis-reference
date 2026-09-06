@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>VL Visual Preview Pilot</title>
+  <style>
+    :root { font-family: system-ui, sans-serif; color: #17202a; background: #eef2f5; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; }
+    main { width: min(920px, 92vw); background: white; border: 1px solid #c9d2da; border-radius: 12px; padding: 28px; box-shadow: 0 10px 30px rgba(0,0,0,.08); }
+    h1 { margin-top: 0; }
+    .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+    .card { border:1px solid #d8e0e7; border-radius:8px; padding:16px; }
+    .pass { font-weight:700; }
+    @media (max-width:700px){ .grid{grid-template-columns:1fr;} }
+  </style>
+</head>
+<body>
+  <main data-vl-preview-root>
+    <h1>VL Visual Preview Pilot</h1>
+    <p>DEV / SANDBOX ONLY — no production authority.</p>
+    <section class="grid" aria-label="verification inventory">
+      <article class="card"><h2>Preview</h2><p class="pass">READY</p></article>
+      <article class="card"><h2>Browser</h2><p class="pass">VERIFIABLE</p></article>
+      <article class="card"><h2>Production</h2><p>LOCKED</p></article>
+    </section>
+  </main>
+</body>
+</html>
