@@ -1,0 +1,38 @@
+name: VL Connector Governance Phase 5
+
+on:
+  push:
+    branches: [vl/issue-128-phase5-connector-framework]
+    paths:
+      - 'vl/connector-governance/**'
+      - '.github/workflows/vl-connector-governance-phase5.yml'
+  pull_request:
+    branches: [vl/issue-128-phase4-remediation-loop]
+    paths:
+      - 'vl/connector-governance/**'
+      - '.github/workflows/vl-connector-governance-phase5.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  connector-governance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Run connector governance tests
+        working-directory: vl/connector-governance
+        run: python3 -m unittest -v test_connector_policy.py
+      - name: Assert connector hard locks
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q "AMBIENT_CREDENTIALS_FORBIDDEN" vl/connector-governance/connector_policy.py
+          grep -q "HUMAN_APPROVAL_REQUIRED" vl/connector-governance/connector_policy.py
+          grep -q "CONNECTOR_CAPABILITY_NOT_GRANTED" vl/connector-governance/connector_policy.py
+          grep -q "'production_locked': True" vl/connector-governance/connector_policy.py
+          echo 'VL CONNECTOR GOVERNANCE PHASE 5: PASS'
