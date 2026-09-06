@@ -1,0 +1,81 @@
+name: VL Enterprise Session & Audit Visibility
+
+on:
+  push:
+    branches:
+      - 'vl/issue-131-session-audit-visibility'
+    paths:
+      - 'vl/enterprise-access/session_audit_visibility.py'
+      - 'vl/enterprise-access/test_session_audit_visibility.py'
+      - 'vl/enterprise-access/enterprise-audit-store.sql'
+      - 'vl/enterprise-access/check_enterprise_audit_store.py'
+      - 'vl/enterprise-access/identity_federation.py'
+      - 'vl/enterprise-access/test_identity_federation.py'
+      - 'vl/enterprise-access/policy_inheritance.py'
+      - 'vl/enterprise-access/test_policy_inheritance.py'
+      - 'vl/enterprise-access/enterprise_authorization_adapter.py'
+      - 'vl/enterprise-access/test_enterprise_authorization_adapter.py'
+      - '.github/workflows/vl-enterprise-session-audit.yml'
+  pull_request:
+    paths:
+      - 'vl/enterprise-access/session_audit_visibility.py'
+      - 'vl/enterprise-access/test_session_audit_visibility.py'
+      - 'vl/enterprise-access/enterprise-audit-store.sql'
+      - 'vl/enterprise-access/check_enterprise_audit_store.py'
+      - 'vl/enterprise-access/identity_federation.py'
+      - 'vl/enterprise-access/test_identity_federation.py'
+      - 'vl/enterprise-access/policy_inheritance.py'
+      - 'vl/enterprise-access/test_policy_inheritance.py'
+      - 'vl/enterprise-access/enterprise_authorization_adapter.py'
+      - 'vl/enterprise-access/test_enterprise_authorization_adapter.py'
+      - '.github/workflows/vl-enterprise-session-audit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  session-audit-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Run session and audit visibility tests
+        working-directory: vl/enterprise-access
+        run: python3 -m unittest -v test_session_audit_visibility.py
+      - name: Run identity federation readiness tests
+        working-directory: vl/enterprise-access
+        run: python3 -m unittest -v test_identity_federation.py
+      - name: Run policy inheritance and retention tests
+        working-directory: vl/enterprise-access
+        run: python3 -m unittest -v test_policy_inheritance.py
+      - name: Run integrated enterprise authorization adapter tests
+        working-directory: vl/enterprise-access
+        run: python3 -m unittest -v test_enterprise_authorization_adapter.py
+      - name: Validate persistence readiness contract
+        run: python3 vl/enterprise-access/check_enterprise_audit_store.py
+      - name: Syntax check
+        run: |
+          python3 -m py_compile vl/enterprise-access/session_audit_visibility.py
+          python3 -m py_compile vl/enterprise-access/check_enterprise_audit_store.py
+          python3 -m py_compile vl/enterprise-access/identity_federation.py
+          python3 -m py_compile vl/enterprise-access/policy_inheritance.py
+          python3 -m py_compile vl/enterprise-access/enterprise_authorization_adapter.py
+      - name: Assert no production authority is introduced
+        run: |
+          set -euo pipefail
+          ! grep -R -nE 'merge\.execute|deploy\.production|SUPABASE_SERVICE_ROLE_KEY' \
+            vl/enterprise-access/session_audit_visibility.py \
+            vl/enterprise-access/test_session_audit_visibility.py \
+            vl/enterprise-access/enterprise-audit-store.sql \
+            vl/enterprise-access/check_enterprise_audit_store.py \
+            vl/enterprise-access/identity_federation.py \
+            vl/enterprise-access/test_identity_federation.py \
+            vl/enterprise-access/policy_inheritance.py \
+            vl/enterprise-access/test_policy_inheritance.py \
+            vl/enterprise-access/enterprise_authorization_adapter.py \
+            vl/enterprise-access/test_enterprise_authorization_adapter.py
+          grep -q 'production.approve' vl/enterprise-access/test_policy_inheritance.py
+          grep -q 'production_authority.*False' vl/enterprise-access/enterprise_authorization_adapter.py
+          echo 'ENTERPRISE SESSION/AUDIT AUTHORITY BOUNDARY: PASS'
