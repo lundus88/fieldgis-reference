@@ -68,19 +68,34 @@ jobs:
             const visibleIndustryCards = await page.locator('.cap:visible').count();
             const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
             const globe = await page.locator('#vl-globe').count();
-            const toggle = page.locator('[data-industry-toggle]');
-            let toggleWorks = null;
-            if (await toggle.count()) {
-              const beforeVisible = await page.locator('.cap:visible').count();
-              await toggle.click();
-              await page.waitForTimeout(100);
-              const visibleAfter = await page.locator('.cap:visible').count();
-              toggleWorks = visibleAfter > beforeVisible;
+            const toggle = page.locator('#industryToggle');
+            let toggleWorks = true;
+            let expandedIndustryCards = null;
+            let collapsedIndustryCards = null;
+
+            if (isMobile) {
+              const toggleVisible = await toggle.isVisible();
+              const initialExpanded = await toggle.getAttribute('aria-expanded');
+              if (!toggleVisible || visibleIndustryCards !== 6 || initialExpanded !== 'false') {
+                toggleWorks = false;
+              } else {
+                await toggle.click();
+                await page.waitForTimeout(150);
+                expandedIndustryCards = await page.locator('.cap:visible').count();
+                const expandedAria = await toggle.getAttribute('aria-expanded');
+                await toggle.click();
+                await page.waitForTimeout(150);
+                collapsedIndustryCards = await page.locator('.cap:visible').count();
+                const collapsedAria = await toggle.getAttribute('aria-expanded');
+                toggleWorks = expandedIndustryCards === 20 && expandedAria === 'true' && collapsedIndustryCards === 6 && collapsedAria === 'false';
+              }
+            } else {
+              toggleWorks = !(await toggle.isVisible()) && visibleIndustryCards === 20;
             }
 
             await page.screenshot({ path: `${out}/${name}.png`, fullPage: true });
-            const ok = title.includes('VL') && h1.includes('Turn your ideas into') && industryCards === 20 && visibleIndustryCards >= 6 && globe === 1 && !overflow && consoleErrors.length === 0 && pageErrors.length === 0 && failedRequests.length === 0 && toggleWorks !== false;
-            report.checks.push({ name, viewport, title, h1, industryCards, visibleIndustryCards, globe, overflow, toggleWorks, consoleErrors, pageErrors, failedRequests, ok });
+            const ok = title.includes('VL') && h1.includes('Turn your ideas into') && industryCards === 20 && globe === 1 && !overflow && consoleErrors.length === 0 && pageErrors.length === 0 && failedRequests.length === 0 && toggleWorks;
+            report.checks.push({ name, viewport, title, h1, industryCards, visibleIndustryCards, expandedIndustryCards, collapsedIndustryCards, globe, overflow, toggleWorks, consoleErrors, pageErrors, failedRequests, ok });
             if (!ok) failed = true;
             await context.close();
           }
