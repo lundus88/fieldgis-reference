@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'vl/public/**'
+      - '.github/workflows/vl-approval-pages.yml'
       - '.github/workflows/vl-ui-functional-completeness.yml'
   workflow_dispatch:
 
@@ -35,6 +36,30 @@ jobs:
           grep -q 'This read-only console cannot initiate rollback' vl/public/build-status.html
           grep -q 'App Spec review' vl/public/prd.html
           grep -q 'No review step is skipped' vl/public/prd.html
+          grep -q 'vl-ui.css' vl/public/prd.html
+          grep -q 'Factory Credit · shown before execution' vl/public/assisted-build.html
+      - name: Assert subpath-safe PWA shell
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'register("./sw.js",{scope:"./"})' vl/public/index.html
+          grep -q '"start_url": "./index.html"' vl/public/manifest.webmanifest
+          grep -q '"scope": "./"' vl/public/manifest.webmanifest
+          grep -q "'./manifest.webmanifest'" vl/public/sw.js
+          grep -q 'cp -R vl/public/. _site/public/' .github/workflows/vl-approval-pages.yml
+          ! grep -Eq 'href="/(manifest|vl-icon)|register\("/sw.js"' vl/public/index.html
+      - name: Assert multilingual customer UI
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s vl/public/vl-i18n.js
+          grep -q "var languages={ms:'Bahasa Melayu',en:'English',zh:'中文（简体）'}" vl/public/vl-i18n.js
+          grep -q "localStorage.getItem(STORE)||'ms'" vl/public/vl-i18n.js
+          grep -q '"lang": "ms"' vl/public/manifest.webmanifest
+          grep -q "'./vl-i18n.js'" vl/public/sw.js
+          for page in index assisted-build prd voice build-status; do
+            grep -q './vl-i18n.js' "vl/public/$page.html"
+          done
       - name: Guard browser production authority and billing
         shell: bash
         run: |

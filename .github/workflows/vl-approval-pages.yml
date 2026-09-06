@@ -32,7 +32,7 @@ jobs:
           rm -rf _site
           mkdir -p _site/public
           cp vl/approval/console/*.html _site/
-          cp vl/public/*.html _site/public/
+          cp -R vl/public/. _site/public/
       - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b
         with:
           enablement: true
