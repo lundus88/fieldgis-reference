@@ -13,6 +13,8 @@ on:
       - 'vl/enterprise-access/test_identity_federation.py'
       - 'vl/enterprise-access/policy_inheritance.py'
       - 'vl/enterprise-access/test_policy_inheritance.py'
+      - 'vl/enterprise-access/enterprise_authorization_adapter.py'
+      - 'vl/enterprise-access/test_enterprise_authorization_adapter.py'
       - '.github/workflows/vl-enterprise-session-audit.yml'
   pull_request:
     paths:
@@ -24,6 +26,8 @@ on:
       - 'vl/enterprise-access/test_identity_federation.py'
       - 'vl/enterprise-access/policy_inheritance.py'
       - 'vl/enterprise-access/test_policy_inheritance.py'
+      - 'vl/enterprise-access/enterprise_authorization_adapter.py'
+      - 'vl/enterprise-access/test_enterprise_authorization_adapter.py'
       - '.github/workflows/vl-enterprise-session-audit.yml'
 
 permissions:
@@ -46,6 +50,9 @@ jobs:
       - name: Run policy inheritance and retention tests
         working-directory: vl/enterprise-access
         run: python3 -m unittest -v test_policy_inheritance.py
+      - name: Run integrated enterprise authorization adapter tests
+        working-directory: vl/enterprise-access
+        run: python3 -m unittest -v test_enterprise_authorization_adapter.py
       - name: Validate persistence readiness contract
         run: python3 vl/enterprise-access/check_enterprise_audit_store.py
       - name: Syntax check
@@ -54,6 +61,7 @@ jobs:
           python3 -m py_compile vl/enterprise-access/check_enterprise_audit_store.py
           python3 -m py_compile vl/enterprise-access/identity_federation.py
           python3 -m py_compile vl/enterprise-access/policy_inheritance.py
+          python3 -m py_compile vl/enterprise-access/enterprise_authorization_adapter.py
       - name: Assert no production authority is introduced
         run: |
           set -euo pipefail
@@ -65,6 +73,9 @@ jobs:
             vl/enterprise-access/identity_federation.py \
             vl/enterprise-access/test_identity_federation.py \
             vl/enterprise-access/policy_inheritance.py \
-            vl/enterprise-access/test_policy_inheritance.py
+            vl/enterprise-access/test_policy_inheritance.py \
+            vl/enterprise-access/enterprise_authorization_adapter.py \
+            vl/enterprise-access/test_enterprise_authorization_adapter.py
           grep -q 'production.approve' vl/enterprise-access/test_policy_inheritance.py
+          grep -q 'production_authority.*False' vl/enterprise-access/enterprise_authorization_adapter.py
           echo 'ENTERPRISE SESSION/AUDIT AUTHORITY BOUNDARY: PASS'
