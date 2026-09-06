@@ -41,7 +41,7 @@ jobs:
       - name: Verify desktop and Android portrait
         run: |
           mkdir -p artifacts/browser-evidence
-          cat > /tmp/vl-browser-evidence.mjs <<'EOF'
+          cat > ./vl-browser-evidence.mjs <<'EOF'
           import { chromium } from 'playwright';
           import fs from 'node:fs';
 
@@ -49,6 +49,7 @@ jobs:
           const out = 'artifacts/browser-evidence';
           const browser = await chromium.launch({ headless: true });
           const report = { url: base, checks: [], generated_at: new Date().toISOString() };
+          let failed = false;
 
           async function runCase(name, viewport, isMobile = false) {
             const context = await browser.newContext({ viewport, isMobile, deviceScaleFactor: 1 });
@@ -64,31 +65,33 @@ jobs:
             const title = await page.title();
             const h1 = (await page.locator('h1').first().textContent())?.trim() || '';
             const industryCards = await page.locator('.cap').count();
+            const visibleIndustryCards = await page.locator('.cap:visible').count();
             const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
             const globe = await page.locator('#vl-globe').count();
             const toggle = page.locator('[data-industry-toggle]');
             let toggleWorks = null;
             if (await toggle.count()) {
-              const before = await page.locator('.cap').count();
+              const beforeVisible = await page.locator('.cap:visible').count();
               await toggle.click();
               await page.waitForTimeout(100);
               const visibleAfter = await page.locator('.cap:visible').count();
-              toggleWorks = visibleAfter >= before;
+              toggleWorks = visibleAfter > beforeVisible;
             }
 
             await page.screenshot({ path: `${out}/${name}.png`, fullPage: true });
-            const ok = title.includes('VL') && h1.includes('Turn your ideas into') && industryCards >= 6 && globe === 1 && !overflow && consoleErrors.length === 0 && pageErrors.length === 0 && failedRequests.length === 0 && toggleWorks !== false;
-            report.checks.push({ name, viewport, title, h1, industryCards, globe, overflow, toggleWorks, consoleErrors, pageErrors, failedRequests, ok });
+            const ok = title.includes('VL') && h1.includes('Turn your ideas into') && industryCards === 20 && visibleIndustryCards >= 6 && globe === 1 && !overflow && consoleErrors.length === 0 && pageErrors.length === 0 && failedRequests.length === 0 && toggleWorks !== false;
+            report.checks.push({ name, viewport, title, h1, industryCards, visibleIndustryCards, globe, overflow, toggleWorks, consoleErrors, pageErrors, failedRequests, ok });
+            if (!ok) failed = true;
             await context.close();
-            if (!ok) throw new Error(`${name} browser evidence failed`);
           }
 
           await runCase('desktop-1440x1100', { width: 1440, height: 1100 });
           await runCase('android-portrait-412x915', { width: 412, height: 915 }, true);
           fs.writeFileSync(`${out}/report.json`, JSON.stringify(report, null, 2));
           await browser.close();
+          if (failed) process.exit(1);
           EOF
-          node /tmp/vl-browser-evidence.mjs
+          node ./vl-browser-evidence.mjs
 
       - name: Upload browser evidence
         if: always()
