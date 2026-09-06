@@ -1,0 +1,100 @@
+name: VL Cinematic Browser Evidence
+
+on:
+  pull_request:
+    paths:
+      - 'vl/public/cinematic-home*.html'
+      - 'vl/public/vl-cinematic-globe.js'
+      - 'vl/public/vl-malaysia-industries.js'
+      - '.github/workflows/vl-cinematic-browser-evidence.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Playwright
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install --save-dev playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Start static preview server
+        run: |
+          python3 -m http.server 4173 --directory vl/public > /tmp/vl-preview.log 2>&1 &
+          echo $! > /tmp/vl-preview.pid
+          sleep 2
+          curl --fail http://127.0.0.1:4173/cinematic-home-malaysia.html >/dev/null
+
+      - name: Verify desktop and Android portrait
+        run: |
+          mkdir -p artifacts/browser-evidence
+          cat > /tmp/vl-browser-evidence.mjs <<'EOF'
+          import { chromium } from 'playwright';
+          import fs from 'node:fs';
+
+          const base = 'http://127.0.0.1:4173/cinematic-home-malaysia.html';
+          const out = 'artifacts/browser-evidence';
+          const browser = await chromium.launch({ headless: true });
+          const report = { url: base, checks: [], generated_at: new Date().toISOString() };
+
+          async function runCase(name, viewport, isMobile = false) {
+            const context = await browser.newContext({ viewport, isMobile, deviceScaleFactor: 1 });
+            const page = await context.newPage();
+            const consoleErrors = [];
+            const pageErrors = [];
+            const failedRequests = [];
+            page.on('console', msg => { if (msg.type() === 'error') consoleErrors.push(msg.text()); });
+            page.on('pageerror', err => pageErrors.push(String(err)));
+            page.on('requestfailed', req => failedRequests.push(`${req.method()} ${req.url()} :: ${req.failure()?.errorText || 'failed'}`));
+            await page.goto(base, { waitUntil: 'networkidle' });
+
+            const title = await page.title();
+            const h1 = (await page.locator('h1').first().textContent())?.trim() || '';
+            const industryCards = await page.locator('.cap').count();
+            const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
+            const globe = await page.locator('#vl-globe').count();
+            const toggle = page.locator('[data-industry-toggle]');
+            let toggleWorks = null;
+            if (await toggle.count()) {
+              const before = await page.locator('.cap').count();
+              await toggle.click();
+              await page.waitForTimeout(100);
+              const visibleAfter = await page.locator('.cap:visible').count();
+              toggleWorks = visibleAfter >= before;
+            }
+
+            await page.screenshot({ path: `${out}/${name}.png`, fullPage: true });
+            const ok = title.includes('VL') && h1.includes('Turn your ideas into') && industryCards >= 6 && globe === 1 && !overflow && consoleErrors.length === 0 && pageErrors.length === 0 && failedRequests.length === 0 && toggleWorks !== false;
+            report.checks.push({ name, viewport, title, h1, industryCards, globe, overflow, toggleWorks, consoleErrors, pageErrors, failedRequests, ok });
+            await context.close();
+            if (!ok) throw new Error(`${name} browser evidence failed`);
+          }
+
+          await runCase('desktop-1440x1100', { width: 1440, height: 1100 });
+          await runCase('android-portrait-412x915', { width: 412, height: 915 }, true);
+          fs.writeFileSync(`${out}/report.json`, JSON.stringify(report, null, 2));
+          await browser.close();
+          EOF
+          node /tmp/vl-browser-evidence.mjs
+
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vl-cinematic-browser-evidence
+          path: artifacts/browser-evidence
+          if-no-files-found: error
+          retention-days: 30
