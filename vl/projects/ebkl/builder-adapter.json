@@ -1,0 +1,57 @@
+{
+  "schema": "vl.ebkl-builder-adapter/1",
+  "project_class": "CRITICAL_NUMERICAL / CADASTRAL",
+  "target_repository": "lundus88/ebkl",
+  "authoritative_development_branch": "ebkl-cadastral-v2",
+  "allowed_actions": [
+    "read_repository",
+    "read_branch",
+    "inspect_tests",
+    "prepare_change_plan",
+    "prepare_patch",
+    "run_non_production_tests",
+    "run_syntax_checks",
+    "report_golden_regression_status",
+    "prepare_pull_request_metadata"
+  ],
+  "forbidden_actions": [
+    "merge_main",
+    "force_push",
+    "delete_branch",
+    "deploy_production",
+    "mutate_production",
+    "alter_regulatory_tolerance_without_verified_source",
+    "alter_numerical_formula_without_evidence",
+    "auto_resolve_boundary_conflict",
+    "mark_blocked_golden_regression_as_pass"
+  ],
+  "required_preflight": {
+    "repository_must_equal": "lundus88/ebkl",
+    "branch_must_not_equal": "main",
+    "production_locked": true,
+    "crs_datum_explicit": true,
+    "boundary_conflict_state": "HUMAN_REVIEW_REQUIRED",
+    "golden_regression_must_be_reported": true,
+    "verified_regulatory_source_required": true
+  },
+  "validation_commands": [
+    "npm test",
+    "node --check app.mjs"
+  ],
+  "stop_conditions": [
+    "target repository mismatch",
+    "target branch is main",
+    "test failure",
+    "syntax failure",
+    "golden regression status missing",
+    "attempted numerical change without evidence",
+    "attempted regulatory rule change without verified source",
+    "boundary conflict requires human review",
+    "production or merge operation requested"
+  ],
+  "handoff": {
+    "maximum_authority": "PR_PREPARATION_ONLY",
+    "merge_authority": "HUMAN_ONLY",
+    "production_authority": "HUMAN_ONLY"
+  }
+}
