@@ -6,10 +6,10 @@
   "roles": {
     "viewer": ["project.read", "artifact.read"],
     "auditor": ["project.read", "artifact.read", "audit.read"],
-    "builder": ["project.read", "spec.read", "spec.propose", "factory.plan", "factory.enqueue", "artifact.read", "qa.execute"],
+    "builder": ["project.read", "spec.read", "spec.propose", "factory.plan", "factory.enqueue", "artifact.read", "qa.execute", "connector.invoke"],
     "reviewer": ["project.read", "spec.read", "artifact.read", "qa.execute", "certification.propose", "release.request_approval"],
-    "admin": ["project.read", "spec.read", "spec.propose", "factory.plan", "factory.enqueue", "artifact.read", "qa.execute", "certification.propose", "release.request_approval", "audit.read", "workspace.membership.manage"],
-    "owner": ["project.read", "spec.read", "spec.propose", "factory.plan", "factory.enqueue", "artifact.read", "qa.execute", "certification.propose", "release.request_approval", "audit.read", "workspace.membership.manage", "workspace.policy.manage"]
+    "admin": ["project.read", "spec.read", "spec.propose", "factory.plan", "factory.enqueue", "artifact.read", "qa.execute", "certification.propose", "release.request_approval", "audit.read", "connector.invoke", "workspace.membership.manage"],
+    "owner": ["project.read", "spec.read", "spec.propose", "factory.plan", "factory.enqueue", "artifact.read", "qa.execute", "certification.propose", "release.request_approval", "audit.read", "connector.invoke", "workspace.membership.manage", "workspace.policy.manage"]
   },
   "never_role_derived_capabilities": [
     "production.approve",
