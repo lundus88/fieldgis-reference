@@ -2,6 +2,7 @@
   "schema_version": "vl.capability-catalog/1",
   "positioning": "VL — Governed AI Software Factory",
   "homepage_categories": [
+    "Office & Public Service",
     "Business",
     "E-Commerce",
     "Mobile",
@@ -19,6 +20,18 @@
     "high-risk": "Sandbox/demo by default, explicit risk controls, independent validation and human approval before live/high-impact execution."
   },
   "categories": [
+    {"name":"Office & Public Service Applications","risk":"elevated","examples":["office administration portal","incoming/outgoing correspondence","memo and circular workflow","meeting minutes and action tracker","leave and attendance workflow","claims workflow","asset and inventory registry","vehicle and room booking","project monitoring","public complaints and service requests","permit and application tracking","field inspection forms","KPI dashboard","SOP and circular search","AI office assistant"]},
+    {"name":"Public Administration","risk":"elevated","examples":["case management","application intake","approval workflow","service counter queue","citizen/customer portal","complaint management","permit workflow","records registry","inspection scheduling"]},
+    {"name":"Office HR & Workforce","risk":"elevated","examples":["staff directory","attendance","leave workflow","training records","competency tracking","performance support","roster and duty scheduling","task assignment"]},
+    {"name":"Office Finance & Claims","risk":"high-risk","examples":["budget dashboard","expense tracking","travel claim workflow","overtime claim workflow","payment request workflow","financial reporting support","approval routing","reconciliation support"]},
+    {"name":"Procurement & Contract Administration","risk":"elevated","examples":["requisition workflow","quotation comparison","tender tracking","purchase order workflow","supplier registry","contract register","renewal alerts","delivery acceptance tracking"]},
+    {"name":"Asset & Facilities Management","risk":"elevated","examples":["asset register","inventory issue/return","maintenance tickets","vehicle booking","meeting room booking","facility inspection","QR asset tagging","location/GIS asset map"]},
+    {"name":"Project & Programme Management","risk":"standard","examples":["project dashboard","milestone tracking","task assignment","risk register","issue tracker","progress reporting","meeting action tracker","portfolio dashboard"]},
+    {"name":"Records & Document Services","risk":"elevated","examples":["digital file registry","document management","OCR capture","correspondence tracking","version control","approval routing","archive/search portal","retention workflow"]},
+    {"name":"Public Service Delivery","risk":"elevated","examples":["online application portal","appointment booking","service request tracking","public complaints","status notifications","case officer dashboard","field verification","service analytics"]},
+    {"name":"Governance, Audit & Compliance","risk":"elevated","examples":["audit tracker","compliance checklist","evidence repository","policy acknowledgement","risk register","internal control monitoring","SLA monitoring","incident register"]},
+    {"name":"Field Operations","risk":"elevated","examples":["mobile inspection forms","offline field data capture","GPS/GIS inspection","work order dispatch","photo evidence","asset condition survey","route planning","field progress dashboard"]},
+    {"name":"Knowledge & Productivity","risk":"standard","examples":["SOP assistant","circular search","internal wiki","meeting summarizer","task manager","report drafting assistant","translation workflow","organizational knowledge search"]},
     {"name":"Business Apps","risk":"standard","examples":["CRM","ERP ringan","quotation","invoicing","procurement","inventory","HR","payroll-support","attendance","project management","job tracking"]},
     {"name":"E-Commerce","risk":"elevated","examples":["online store","marketplace","shopping PWA","product catalog","cart","checkout","order management","inventory","seller dashboard"]},
     {"name":"Finance & Fintech","risk":"high-risk","examples":["expense tracker","budgeting","accounting dashboard","cashflow","loan calculator","portfolio dashboard","payment system"]},
@@ -90,6 +103,7 @@
     {"name":"Personal Productivity","risk":"standard","examples":["notes","task manager","reminders","personal dashboard"]}
   ],
   "special_controls": {
+    "Public Sector & Office Work": ["data classification before build","least-privilege access","audit trail for approvals and consequential actions","retention and records policy mapping","human review for consequential administrative decisions","connector access must be explicitly scoped"],
     "Algorithmic Trading": ["demo/paper-trading by default","compile and static analysis","deterministic backtest","walk-forward or out-of-sample validation","drawdown and position-size caps","no martingale/grid by default","broker credential isolation","explicit human approval before live trading"],
     "Payments": ["sandbox-first","bounded live certification","signed webhook verification","reconciliation","exactly-once fulfillment","explicit human approval for production"],
     "Healthcare": ["data minimization","strict access controls","privacy-compatible model routing","auditability","human review for consequential workflows"],
