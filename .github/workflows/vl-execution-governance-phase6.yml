@@ -1,0 +1,38 @@
+name: VL Execution Governance Phase 6
+
+on:
+  push:
+    branches: [vl/issue-128-phase6-execution-pools]
+    paths:
+      - 'vl/execution-governance/**'
+      - '.github/workflows/vl-execution-governance-phase6.yml'
+  pull_request:
+    branches: [vl/issue-128-phase5-connector-framework]
+    paths:
+      - 'vl/execution-governance/**'
+      - '.github/workflows/vl-execution-governance-phase6.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  execution-pool-governance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Run execution pool governance tests
+        working-directory: vl/execution-governance
+        run: python3 -m unittest -v test_execution_pool_policy.py
+      - name: Assert pool hard locks
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q "UNCERTIFIED_EXECUTION_POOL" vl/execution-governance/execution_pool_policy.py
+          grep -q "AMBIENT_PRODUCTION_CREDENTIALS_FORBIDDEN" vl/execution-governance/execution_pool_policy.py
+          grep -q "CAPABILITY_NOT_BOUND_TO_POOL" vl/execution-governance/execution_pool_policy.py
+          grep -q "'production_locked':True" vl/execution-governance/execution_pool_policy.py
+          echo 'VL EXECUTION GOVERNANCE PHASE 6: PASS'
