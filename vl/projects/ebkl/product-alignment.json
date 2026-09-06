@@ -1,0 +1,108 @@
+{
+  "founder_intent": {
+    "intent_ids": ["EBKL-I1","EBKL-I2","EBKL-I3","EBKL-I4"],
+    "primary_user": "Professional cadastral surveyor working on Sabah cadastral survey workflows",
+    "core_problem": "Cadastral field, computation, geometry, QA/QC, plan and deliverable workflows require a professional software environment without weakening numerical correctness, regulatory provenance or human survey authority.",
+    "desired_outcome": "Use VL as a controlled software factory for e-BKL SurveyOS while preserving the authoritative e-BKL repository, verified numerical behaviour, fail-closed cadastral governance and explicit human release decisions.",
+    "must_have": [
+      "Target repository must remain lundus88/ebkl",
+      "All official e-BKL work categories must remain represented under FIELD, COMPUTE, CADASTRAL and DELIVER",
+      "Strict numeric input validation and explicit CRS/datum state",
+      "Golden Sample regression infrastructure with evidence classification and provenance",
+      "Boundary conflicts escalate to HUMAN_REVIEW_REQUIRED",
+      "Production release requires explicit human approval"
+    ],
+    "must_not": [
+      "Do not invent cadastral formulas, tolerances, thresholds, regulatory rules or authoritative source claims",
+      "Do not auto-move or auto-resolve cadastral boundaries",
+      "Do not treat supplemental or comparison-only evidence as authoritative Golden truth",
+      "Do not merge to e-BKL main automatically",
+      "Do not deploy or mutate e-BKL production automatically",
+      "Do not enable official/submission-ready outputs while required gates remain blocked"
+    ],
+    "success_metric": "VL-generated e-BKL changes pass the e-BKL branch CI/test suite, preserve all numerical/governance locks, maintain traceability to requirements and require human review before merge or production release.",
+    "commercial_model": "Proprietary professional cadastral survey software; commercial decisions remain outside autonomous VL build authority.",
+    "compliance_constraints": [
+      "Sabah cadastral and land-survey rules must be backed by verified authoritative sources before enforcement",
+      "CRS and datum must be explicit",
+      "Numerical correctness has priority over cosmetics",
+      "Unverified acceptance criteria fail closed",
+      "Boundary evidence conflicts require professional human review"
+    ],
+    "release_scope": "Development and pull-request preparation only. No autonomous merge to e-BKL main and no autonomous production deployment.",
+    "human_decision_boundaries": [
+      "Approval of authoritative cadastral formulas and numerical baselines",
+      "Approval of regulatory tolerances, thresholds and rule profiles",
+      "Resolution of boundary conflicts or survey evidence conflicts",
+      "Acceptance or rejection of cadastral survey results",
+      "Promotion of evidence to authoritative Golden status",
+      "Merge to e-BKL main",
+      "Production release or deployment"
+    ]
+  },
+  "user_requirements": [
+    {
+      "id": "EBKL-R1",
+      "user": "Professional cadastral surveyor",
+      "context": "VL is modifying e-BKL source code",
+      "expected_outcome": "Numerical and cadastral governance boundaries are preserved and changes are traceable.",
+      "priority": "P0",
+      "intent_refs": ["EBKL-I1","EBKL-I2"],
+      "acceptance_test_ids": ["EBKL-T1","EBKL-T2"]
+    },
+    {
+      "id": "EBKL-R2",
+      "user": "Professional cadastral surveyor",
+      "context": "A boundary, regulatory or Golden evidence state is unresolved",
+      "expected_outcome": "VL and e-BKL fail closed and require human review rather than manufacturing acceptance.",
+      "priority": "P0",
+      "intent_refs": ["EBKL-I2","EBKL-I3"],
+      "acceptance_test_ids": ["EBKL-T3"]
+    },
+    {
+      "id": "EBKL-R3",
+      "user": "Project owner / human approver",
+      "context": "VL has completed a development change",
+      "expected_outcome": "The result remains branch/PR scoped until explicit human merge and production approval.",
+      "priority": "P0",
+      "intent_refs": ["EBKL-I3","EBKL-I4"],
+      "acceptance_test_ids": ["EBKL-T4"]
+    },
+    {
+      "id": "EBKL-R4",
+      "user": "e-BKL development team",
+      "context": "VL generates or modifies UI and workflow code",
+      "expected_outcome": "All eight primary SurveyOS screens and 46 official work categories remain compatible with the governed architecture.",
+      "priority": "P1",
+      "intent_refs": ["EBKL-I1"],
+      "acceptance_test_ids": []
+    }
+  ],
+  "acceptance_tests": [
+    {
+      "id": "EBKL-T1",
+      "requirement_ids": ["EBKL-R1"],
+      "observable_pass_condition": "The authoritative e-BKL branch test suite and syntax checks pass after a VL-generated change."
+    },
+    {
+      "id": "EBKL-T2",
+      "requirement_ids": ["EBKL-R1"],
+      "observable_pass_condition": "No VL project policy grants authority to change formulas, tolerances, CRS assumptions, boundary positions or production state autonomously."
+    },
+    {
+      "id": "EBKL-T3",
+      "requirement_ids": ["EBKL-R2"],
+      "observable_pass_condition": "Unverified rules or evidence remain BLOCKED/NOT_VERIFIED and boundary conflicts remain HUMAN_REVIEW_REQUIRED."
+    },
+    {
+      "id": "EBKL-T4",
+      "requirement_ids": ["EBKL-R3"],
+      "observable_pass_condition": "VL e-BKL policy states development/PR-only authority; automatic merge and production deploy are prohibited."
+    }
+  ],
+  "contradictions": [],
+  "traceability_manifest": {
+    "founder_intent_hash": "BRANCH_ONLY_NOT_YET_CERTIFIED",
+    "certification_input_hash": "BRANCH_ONLY_NOT_YET_CERTIFIED"
+  }
+}
