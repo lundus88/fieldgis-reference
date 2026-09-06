@@ -7,11 +7,15 @@ on:
     paths:
       - 'vl/enterprise-access/session_audit_visibility.py'
       - 'vl/enterprise-access/test_session_audit_visibility.py'
+      - 'vl/enterprise-access/enterprise-audit-store.sql'
+      - 'vl/enterprise-access/check_enterprise_audit_store.py'
       - '.github/workflows/vl-enterprise-session-audit.yml'
   pull_request:
     paths:
       - 'vl/enterprise-access/session_audit_visibility.py'
       - 'vl/enterprise-access/test_session_audit_visibility.py'
+      - 'vl/enterprise-access/enterprise-audit-store.sql'
+      - 'vl/enterprise-access/check_enterprise_audit_store.py'
       - '.github/workflows/vl-enterprise-session-audit.yml'
 
 permissions:
@@ -28,12 +32,18 @@ jobs:
       - name: Run session and audit visibility tests
         working-directory: vl/enterprise-access
         run: python3 -m unittest -v test_session_audit_visibility.py
+      - name: Validate persistence readiness contract
+        run: python3 vl/enterprise-access/check_enterprise_audit_store.py
       - name: Syntax check
-        run: python3 -m py_compile vl/enterprise-access/session_audit_visibility.py
+        run: |
+          python3 -m py_compile vl/enterprise-access/session_audit_visibility.py
+          python3 -m py_compile vl/enterprise-access/check_enterprise_audit_store.py
       - name: Assert no production authority is introduced
         run: |
           set -euo pipefail
-          ! grep -R -nE 'production\.approve|merge\.execute|deploy\.production|service_role|SUPABASE_SERVICE_ROLE_KEY' \
+          ! grep -R -nE 'production\.approve|merge\.execute|deploy\.production|SUPABASE_SERVICE_ROLE_KEY' \
             vl/enterprise-access/session_audit_visibility.py \
-            vl/enterprise-access/test_session_audit_visibility.py
+            vl/enterprise-access/test_session_audit_visibility.py \
+            vl/enterprise-access/enterprise-audit-store.sql \
+            vl/enterprise-access/check_enterprise_audit_store.py
           echo 'ENTERPRISE SESSION/AUDIT AUTHORITY BOUNDARY: PASS'
