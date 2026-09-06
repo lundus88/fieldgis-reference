@@ -1,0 +1,107 @@
+name: VL Golden DEV Human Approval
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/vl-golden-dev-human-approval.yml'
+      - '.github/workflows/vl-golden-factory-proof.yml'
+      - 'vl/proof/**'
+      - 'vl/agent-control-plane/**'
+      - 'vl/adversarial/**'
+      - 'vl/scripts/run-untrusted-sandbox.sh'
+      - 'vl/scripts/build-web-pwa-sandbox.sh'
+      - 'vl/scripts/build-gis-web-sandbox.sh'
+      - 'vl/scripts/validate-api-sandbox.sh'
+      - 'vl/scripts/prepare-mobile-flutter-cache.sh'
+      - 'vl/scripts/build-mobile-flutter-sandbox.sh'
+      - '.github/workflows/vl-factory-runner.yml'
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: vl-golden-dev-human-approval-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+env:
+  VL_PROOF_SHA: ${{ github.event.pull_request.head.sha }}
+
+jobs:
+  verify-automated-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ env.VL_PROOF_SHA }}
+          persist-credentials: false
+      - name: Confirm checkout is exact PR head
+        run: test "$(git rev-parse HEAD)" = "$VL_PROOF_SHA"
+      - name: Re-run deterministic intake and policy prerequisites
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          python3 vl/proof/run_golden_factory_benchmark.py \
+            --cases vl/proof/golden-benchmark-cases.json \
+            --output evidence/golden-factory-manifest.json \
+            --source-sha "$VL_PROOF_SHA"
+          python3 vl/proof/verify_golden_factory_manifest.py \
+            evidence/golden-factory-manifest.json \
+            --expected-sha "$VL_PROOF_SHA"
+          python3 vl/agent-control-plane/run_runtime_policy_tests.py > evidence/acp-runtime-policy.json
+          grep -q 'REQUIRE_HUMAN_PRODUCTION_APPROVAL' evidence/acp-runtime-policy.json
+      - name: Assert Golden Factory automated workflow remains fail-closed
+        run: |
+          set -euo pipefail
+          grep -q 'hold-until-dev-evidence:' .github/workflows/vl-golden-factory-proof.yml
+          grep -q "exit 1" .github/workflows/vl-golden-factory-proof.yml
+          echo 'AUTOMATED GOLDEN PREREQUISITES: PASS'
+
+  human-dev-approval:
+    needs: verify-automated-evidence
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment:
+      name: vl-development
+    steps:
+      - name: Record protected human DEV approval evidence
+        env:
+          APPROVED_SHA: ${{ env.VL_PROOF_SHA }}
+          APPROVAL_ACTOR: ${{ github.actor }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          cat > evidence/dev-human-approval.json <<EOF
+          {
+            "schema": "vl.golden-dev-human-approval/1",
+            "pull_request": "${PR_NUMBER}",
+            "approved_sha": "${APPROVED_SHA}",
+            "approval_actor": "${APPROVAL_ACTOR}",
+            "environment": "vl-development",
+            "production_authority": false,
+            "production_deploy": false
+          }
+          EOF
+          sha256sum evidence/dev-human-approval.json > evidence/SHA256SUMS
+          cat evidence/dev-human-approval.json
+      - name: Upload immutable DEV approval evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: vl-golden-dev-human-approval-${{ github.run_id }}
+          path: evidence
+          if-no-files-found: error
+          retention-days: 90
+
+  record-approved-boundary:
+    needs: human-dev-approval
+    runs-on: ubuntu-latest
+    steps:
+      - name: Record Golden DEV approval boundary
+        run: |
+          set -euo pipefail
+          echo 'DEV HUMAN APPROVAL: PASS for exact PR head.'
+          echo 'This does not merge, deploy, promote, or approve production.'
+          echo 'Golden Factory may proceed to final evidence reconciliation only.'

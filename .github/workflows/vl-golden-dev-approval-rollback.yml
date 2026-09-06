@@ -1,0 +1,129 @@
+name: VL Golden DEV Approval and Rollback Proof
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/vl-golden-dev-approval-rollback.yml'
+      - 'vl/proof/**'
+
+permissions:
+  contents: read
+
+env:
+  TARGET_ENVIRONMENT: development
+
+jobs:
+  human-dev-approval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: vl-development
+    env:
+      SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+      BASE_SHA: ${{ github.event.pull_request.base.sha }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Validate DEV-only environment gate
+        env:
+          ACTOR: ${{ github.actor }}
+          EVENT_NAME: ${{ github.event_name }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          test "$EVENT_NAME" = pull_request
+          test "$TARGET_ENVIRONMENT" = development
+          test -n "$SOURCE_SHA"
+          test -n "$BASE_SHA"
+          test "$SOURCE_SHA" != "$BASE_SHA"
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          case "$ACTOR" in
+            *'[bot]'|*'-bot'|'github-actions')
+              echo 'automation actor cannot serve as the human DEV approval initiator' >&2
+              exit 1
+              ;;
+          esac
+          test -n "$ACTOR"
+          mkdir -p evidence
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          payload={
+            'schema_version':'vl.dev-environment-gate/2',
+            'status':'ENVIRONMENT_GATE_PASSED_DEV_ONLY',
+            'initiating_actor':os.environ['ACTOR'],
+            'event':'pull_request',
+            'workflow_run_id':int(os.environ['RUN_ID']),
+            'source_sha':os.environ['SOURCE_SHA'],
+            'base_sha':os.environ['BASE_SHA'],
+            'target_environment':'development',
+            'production_allowed':False,
+            'reviewer_identity_claimed':False,
+            'note':'Job execution proves GitHub permitted this environment-bound job to run. Workflow runtime does not independently prove required-reviewer configuration or reviewer identity.'
+          }
+          Path('evidence/dev-environment-gate.json').write_text(json.dumps(payload,indent=2,sort_keys=True)+'\n')
+          PY
+      - name: Record protection evidence boundary
+        run: |
+          set -euo pipefail
+          cat > evidence/environment-boundary.txt <<'EOF'
+          This job is bound to GitHub environment: vl-development.
+          Completion alone proves only that GitHub permitted the environment-bound job to execute.
+          PASS-PROTECTED requires independent evidence that vl-development has an enforced human required-reviewer/protection rule.
+          Reviewer identity is not inferred from github.actor.
+          Production authority remains unchanged.
+          EOF
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: vl-dev-environment-gate-${{ github.run_id }}
+          path: evidence
+          if-no-files-found: error
+          retention-days: 90
+
+  dev-rollback-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: human-dev-approval
+    env:
+      SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+      ROLLBACK_TO_SHA: ${{ github.event.pull_request.base.sha }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.base.sha }}
+      - name: Verify bounded DEV rollback transition
+        run: |
+          set -euo pipefail
+          test "$TARGET_ENVIRONMENT" = development
+          test -n "$SOURCE_SHA"
+          test -n "$ROLLBACK_TO_SHA"
+          test "$SOURCE_SHA" != "$ROLLBACK_TO_SHA"
+          test "$(git rev-parse HEAD)" = "$ROLLBACK_TO_SHA"
+          mkdir -p evidence
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          payload={
+            'schema_version':'vl.dev-rollback-proof/2',
+            'status':'ROLLBACK_TARGET_VERIFIED',
+            'from_sha':os.environ['SOURCE_SHA'],
+            'to_sha':os.environ['ROLLBACK_TO_SHA'],
+            'target_environment':'development',
+            'live_dev_mutation_performed':False,
+            'production_mutation':False,
+            'claim_allowed':'exact DEV rollback target is retrievable and SHA-bound',
+            'claim_forbidden':'live DEV rollback executed'
+          }
+          Path('evidence/dev-rollback.json').write_text(json.dumps(payload,indent=2,sort_keys=True)+'\n')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: vl-dev-rollback-${{ github.run_id }}
+          path: evidence
+          if-no-files-found: error
+          retention-days: 90
