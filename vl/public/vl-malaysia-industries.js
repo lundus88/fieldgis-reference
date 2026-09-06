@@ -19,4 +19,8 @@
 ['🚗','Automotive & Fleet','Workshop management, vehicle maintenance, parts inventory and telematics'],
 ['🧠','Technology, AI & Automation','AI assistants, agents, APIs, SaaS, automation, IoT and data platforms'],
 ['🧩','Other Malaysian Industries','Custom systems for specialised sectors, associations, communities and emerging industries']
-];target.innerHTML=`<div class="section-title"><div><h2>What can VL build?</h2><p>One governed software factory across Malaysia’s public and private sector industries.</p></div><a class="outline" href="./capabilities.html">Explore all industries →</a></div><div class="cap-grid">${industries.map(i=>`<div class="cap"><div class="ico">${i[0]}</div><div><strong>${i[1]}</strong><small>${i[2]}</small></div></div>`).join('')}</div>`;})();
+];
+const featuredCount=6;
+target.innerHTML=`<div class="section-title"><div><h2>What can VL build?</h2><p>One governed software factory across Malaysia’s public and private sector industries.</p></div><a class="outline" href="./capabilities.html">Explore all industries →</a></div><div class="cap-grid" id="industryGrid">${industries.map((i,n)=>`<div class="cap${n>=featuredCount?' industry-extra':''}"><div class="ico">${i[0]}</div><div><strong>${i[1]}</strong><small>${i[2]}</small></div></div>`).join('')}</div><button class="industry-toggle" id="industryToggle" type="button" aria-expanded="false" aria-controls="industryGrid">View all 20 industries ↓</button>`;
+const btn=document.getElementById('industryToggle');if(!btn)return;btn.addEventListener('click',()=>{const open=target.classList.toggle('industries-open');btn.setAttribute('aria-expanded',String(open));btn.textContent=open?'Show featured industries ↑':'View all 20 industries ↓';if(!open)target.scrollIntoView({behavior:'smooth',block:'start'});});
+})();
