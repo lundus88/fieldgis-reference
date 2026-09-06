@@ -43,6 +43,9 @@ jobs:
       - name: Validate e-BKL product alignment contract
         run: python3 vl/product-alignment/validate_product_alignment.py vl/projects/ebkl/product-alignment.json
 
+      - name: Validate e-BKL builder adapter contract
+        run: python3 vl/projects/ebkl/validate_builder_adapter.py vl/projects/ebkl/builder-adapter.json
+
       - name: Validate critical numerical hard locks
         shell: bash
         run: |
