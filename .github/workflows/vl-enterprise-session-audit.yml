@@ -9,6 +9,8 @@ on:
       - 'vl/enterprise-access/test_session_audit_visibility.py'
       - 'vl/enterprise-access/enterprise-audit-store.sql'
       - 'vl/enterprise-access/check_enterprise_audit_store.py'
+      - 'vl/enterprise-access/identity_federation.py'
+      - 'vl/enterprise-access/test_identity_federation.py'
       - '.github/workflows/vl-enterprise-session-audit.yml'
   pull_request:
     paths:
@@ -16,6 +18,8 @@ on:
       - 'vl/enterprise-access/test_session_audit_visibility.py'
       - 'vl/enterprise-access/enterprise-audit-store.sql'
       - 'vl/enterprise-access/check_enterprise_audit_store.py'
+      - 'vl/enterprise-access/identity_federation.py'
+      - 'vl/enterprise-access/test_identity_federation.py'
       - '.github/workflows/vl-enterprise-session-audit.yml'
 
 permissions:
@@ -32,12 +36,16 @@ jobs:
       - name: Run session and audit visibility tests
         working-directory: vl/enterprise-access
         run: python3 -m unittest -v test_session_audit_visibility.py
+      - name: Run identity federation readiness tests
+        working-directory: vl/enterprise-access
+        run: python3 -m unittest -v test_identity_federation.py
       - name: Validate persistence readiness contract
         run: python3 vl/enterprise-access/check_enterprise_audit_store.py
       - name: Syntax check
         run: |
           python3 -m py_compile vl/enterprise-access/session_audit_visibility.py
           python3 -m py_compile vl/enterprise-access/check_enterprise_audit_store.py
+          python3 -m py_compile vl/enterprise-access/identity_federation.py
       - name: Assert no production authority is introduced
         run: |
           set -euo pipefail
@@ -45,5 +53,7 @@ jobs:
             vl/enterprise-access/session_audit_visibility.py \
             vl/enterprise-access/test_session_audit_visibility.py \
             vl/enterprise-access/enterprise-audit-store.sql \
-            vl/enterprise-access/check_enterprise_audit_store.py
+            vl/enterprise-access/check_enterprise_audit_store.py \
+            vl/enterprise-access/identity_federation.py \
+            vl/enterprise-access/test_identity_federation.py
           echo 'ENTERPRISE SESSION/AUDIT AUTHORITY BOUNDARY: PASS'
