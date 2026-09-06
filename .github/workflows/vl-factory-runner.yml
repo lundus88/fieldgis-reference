@@ -283,6 +283,24 @@ jobs:
           sha256sum ../vl-api-build.tgz > ../../runner-sha256.txt
           echo "workspace/vl-api-build.tgz" > ../../runner-artifact-path.txt
 
+      # ---------- Eligible Web/PWA/GIS preview gate ----------
+      - name: Verify eligible factory preview evidence
+        id: preview_gate
+        if: >-
+          (steps.claim.outputs.builder_key == 'gis-web-v1' && steps.gis_build.outcome == 'success') ||
+          ((steps.claim.outputs.builder_key == 'web-react-v1' || steps.claim.outputs.builder_key == 'pwa-react-v1') && steps.web_build.outcome == 'success')
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x vl/visual-preview/run-factory-preview-gate.sh
+          ARTIFACT_PATH=$(cat runner-artifact-path.txt)
+          vl/visual-preview/run-factory-preview-gate.sh \
+            '${{ steps.claim.outputs.builder_key }}' \
+            "$ARTIFACT_PATH" \
+            '${{ github.sha }}' \
+            claim.json
+
       # ---------- Result + artifact ----------
       - name: Determine runner result
         id: result
@@ -293,8 +311,8 @@ jobs:
           OK=false
           case "$BUILDER" in
             mobile-flutter-v1) [ '${{ steps.mobile_build.outcome }}' = 'success' ] && OK=true ;;
-            gis-web-v1) [ '${{ steps.gis_build.outcome }}' = 'success' ] && OK=true ;;
-            web-react-v1|pwa-react-v1) [ '${{ steps.web_build.outcome }}' = 'success' ] && OK=true ;;
+            gis-web-v1) [ '${{ steps.gis_build.outcome }}' = 'success' ] && [ '${{ steps.preview_gate.outcome }}' = 'success' ] && OK=true ;;
+            web-react-v1|pwa-react-v1) [ '${{ steps.web_build.outcome }}' = 'success' ] && [ '${{ steps.preview_gate.outcome }}' = 'success' ] && OK=true ;;
             api-service-v1) [ '${{ steps.api_build.outcome }}' = 'success' ] && OK=true ;;
           esac
           SHA=''; PATH_VALUE=''
@@ -305,6 +323,15 @@ jobs:
           echo "sha=$SHA" >> "$GITHUB_OUTPUT"
           echo "path=$PATH_VALUE" >> "$GITHUB_OUTPUT"
           echo "name=$NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Upload visual preview evidence
+        if: always() && steps.preview_gate.outcome != 'skipped'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: vl-preview-${{ steps.claim.outputs.factory_run_id }}-${{ steps.claim.outputs.builder_key }}
+          path: vl/visual-preview/evidence-factory
+          if-no-files-found: warn
+          retention-days: 90
 
       - name: Upload runner artifact
         if: steps.result.outputs.ok == 'true'
@@ -324,7 +351,7 @@ jobs:
           CALLBACK_TOKEN=$(python3 -c 'import json,sys; print(json.load(sys.stdin)["value"])' <<<"$RAW")
           echo "::add-mask::$CALLBACK_TOKEN"
           python3 - <<'PY' > callback.json
-          import json
+          import json,os
           claim=json.load(open('claim.json'))
           ok='${{ steps.result.outputs.ok }}'=='true'
           builder='${{ steps.claim.outputs.builder_key }}'
@@ -332,9 +359,21 @@ jobs:
           if builder in ('web-react-v1','pwa-react-v1','gis-web-v1'):
               result['artifact_contract']='vercel-build-output-v3'
               result['immutable_prebuilt']=True
+              result['visual_preview_required']=True
+              evidence_path='vl/visual-preview/evidence-factory/evidence.json'
+              if os.path.exists(evidence_path):
+                  evidence=json.load(open(evidence_path))
+                  result['visual_preview_result']=evidence.get('conclusion','FAIL')
+                  result['visual_preview_app_spec_sha256']=evidence.get('app_spec_sha256')
+                  result['visual_preview_artifact_sha256']=evidence.get('artifact_sha256')
+                  result['visual_preview_source_sha']=evidence.get('source_sha')
+                  result['visual_preview_evidence_schema']=evidence.get('schema')
+              else:
+                  result['visual_preview_result']='MISSING'
           if builder=='gis-web-v1' and ok:
               result['maplibre_bundle_contract']='PASS'
-          print(json.dumps({'action':'complete','job_id':claim['job_id'],'lease_token':claim['lease_token'],'success':ok,'result':result,'error_text':None if ok else 'GitHub runner build or validation failed'}))
+          error_text=None if ok else ('Visual preview evidence gate failed or is missing' if builder in ('web-react-v1','pwa-react-v1','gis-web-v1') else 'GitHub runner build or validation failed')
+          print(json.dumps({'action':'complete','job_id':claim['job_id'],'lease_token':claim['lease_token'],'success':ok,'result':result,'error_text':error_text}))
           PY
           curl -fsSL -X POST \
             -H "Authorization: Bearer ${CALLBACK_TOKEN}" \
