@@ -1,0 +1,61 @@
+{
+  "schema": "vl.context-policy/1",
+  "policy_id": "vl-default-context-governance",
+  "version": 1,
+  "default_decision": "deny",
+  "sensitive_classes": [
+    "secret",
+    "credential",
+    "customer_private",
+    "proprietary_dataset",
+    "production_data"
+  ],
+  "rules": [
+    {
+      "id": "deny-secrets",
+      "effect": "deny",
+      "resource_type": "repo_path",
+      "pattern": "**/.env*",
+      "data_class": "*",
+      "reason": "Environment secret material must never enter model context."
+    },
+    {
+      "id": "deny-secret-directories",
+      "effect": "deny",
+      "resource_type": "repo_path",
+      "pattern": "**/secrets/**",
+      "data_class": "*",
+      "reason": "Secret directories are excluded from model context."
+    },
+    {
+      "id": "allow-public-source",
+      "effect": "allow",
+      "resource_type": "repo_path",
+      "pattern": "src/**",
+      "data_class": "source_code",
+      "reason": "Project source code may be supplied when task scope permits."
+    },
+    {
+      "id": "allow-tests",
+      "effect": "allow",
+      "resource_type": "repo_path",
+      "pattern": "tests/**",
+      "data_class": "test_code",
+      "reason": "Tests may be supplied for implementation and validation tasks."
+    },
+    {
+      "id": "deny-production-connector-data",
+      "effect": "deny",
+      "resource_type": "connector_resource",
+      "pattern": "production/**",
+      "data_class": "*",
+      "reason": "Production connector resources require a narrower explicit project policy."
+    }
+  ],
+  "audit": {
+    "record_policy_version": true,
+    "record_resource_class": true,
+    "record_decision": true,
+    "record_secret_values": false
+  }
+}
