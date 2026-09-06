@@ -41,7 +41,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import json, os, re, urllib.request, pathlib, hashlib, zipfile, tarfile
+          import json, os, re, urllib.request, urllib.error, pathlib, hashlib, zipfile, tarfile
           repo=os.environ['GITHUB_REPOSITORY']
           token=os.environ['GH_TOKEN']
           pattern=re.compile(r'^vl-factory-([0-9a-fA-F-]{36})-(web-react-v1|pwa-react-v1|gis-web-v1)$')
@@ -63,8 +63,23 @@ jobs:
           out=pathlib.Path('/tmp/real-factory')
           out.mkdir(parents=True,exist_ok=True)
           zpath=out/'artifact.zip'
-          req=urllib.request.Request(a['archive_download_url'],headers={'Authorization':f'Bearer {token}','Accept':'application/vnd.github+json'})
-          with urllib.request.urlopen(req) as r, zpath.open('wb') as f: f.write(r.read())
+
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, req, fp, code, msg, headers, newurl):
+                  return None
+          opener=urllib.request.build_opener(NoRedirect)
+          api_req=urllib.request.Request(a['archive_download_url'],headers={'Authorization':f'Bearer {token}','Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'})
+          try:
+              opener.open(api_req)
+              raise SystemExit('artifact download endpoint did not redirect')
+          except urllib.error.HTTPError as e:
+              if e.code not in (302,307): raise
+              signed=e.headers.get('Location')
+          if not signed or not signed.startswith('https://'):
+              raise SystemExit('missing signed artifact download location')
+          with urllib.request.urlopen(signed) as r, zpath.open('wb') as f:
+              f.write(r.read())
+
           with zipfile.ZipFile(zpath) as z: z.extractall(out/'zip')
           tgzs=list((out/'zip').rglob('*.tgz'))
           if len(tgzs)!=1: raise SystemExit(f'expected exactly one tgz, found {len(tgzs)}')
