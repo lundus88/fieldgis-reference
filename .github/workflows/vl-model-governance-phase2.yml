@@ -1,0 +1,39 @@
+name: VL Model Governance Phase 2
+
+on:
+  push:
+    branches: [vl/issue-128-phase2-model-governance]
+    paths:
+      - 'vl/model-governance/**'
+      - '.github/workflows/vl-model-governance-phase2.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/model-governance/**'
+      - '.github/workflows/vl-model-governance-phase2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  model-governance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Run deterministic routing tests
+        working-directory: vl/model-governance
+        run: python3 -m unittest -v test_route_model.py
+      - name: Assert fail-closed routing markers
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'vl.model-registry/1' vl/model-governance/model-registry.json
+          grep -q 'status.*deprecated' vl/model-governance/model-registry.json
+          grep -q 'MODEL_ROUTING_BLOCKED' vl/model-governance/route_model.py
+          grep -q 'production_locked' vl/model-governance/route_model.py
+          grep -q 'deterministic' vl/model-governance/route_model.py
+          echo 'VL MODEL GOVERNANCE PHASE 2: PASS'
