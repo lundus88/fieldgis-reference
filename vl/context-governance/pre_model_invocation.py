@@ -4,8 +4,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from build_context_manifest import build_context_manifest
-from validate_context_policy import load_policy
+from build_context_manifest import build_context
 
 
 class ContextGovernanceBlocked(RuntimeError):
@@ -15,32 +14,20 @@ class ContextGovernanceBlocked(RuntimeError):
 def build_pre_model_payload(*, policy_path: str | Path, resources: list[dict[str, Any]], task: dict[str, Any]) -> dict[str, Any]:
     """Build the only payload shape permitted to cross a future model boundary.
 
-    Raw candidate resources are never forwarded directly. The context manifest is
-    built first, denied resources are excluded, and the resulting payload carries
-    only approved context plus non-secret provenance metadata.
+    Candidate resources are evaluated before payload construction. Denied resource
+    content is omitted entirely. Provenance records only decisions and SHA-256
+    digests, never denied secret values.
     """
-    policy = load_policy(policy_path)
-    result = build_context_manifest(policy, resources)
+    policy = json.loads(Path(policy_path).read_text())
+    result = build_context(policy, resources)
 
-    allowed_context: list[dict[str, Any]] = []
-    allowed_ids = {entry['resource_id'] for entry in result['manifest']['resources'] if entry['decision'] == 'allow'}
-    for resource in resources:
-        rid = str(resource.get('resource_id', ''))
-        if rid in allowed_ids:
-            allowed_context.append({
-                'resource_id': rid,
-                'resource_type': resource.get('resource_type'),
-                'path': resource.get('path'),
-                'content': resource.get('content'),
-            })
-
-    if resources and not allowed_context:
+    if resources and not result['context']:
         raise ContextGovernanceBlocked('CONTEXT_GOVERNANCE_BLOCKED: no candidate resources are allowed')
 
     return {
         'schema': 'vl.pre-model-invocation/1',
         'task': task,
-        'context': allowed_context,
+        'context': result['context'],
         'context_manifest': result['manifest'],
         'production_locked': True,
         'raw_candidates_forwarded': False,
