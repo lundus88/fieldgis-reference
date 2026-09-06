@@ -1,0 +1,50 @@
+name: VL Historical Orphan Observability
+
+on:
+  push:
+    branches: [vl/issue-123-orphan-observability]
+    paths:
+      - 'vl/observability/**'
+      - '.github/workflows/vl-orphan-observability.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/observability/**'
+      - '.github/workflows/vl-orphan-observability.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  orphan-observability:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+
+      - name: Run stale factory run observability tests
+        working-directory: vl/observability
+        run: python3 -m unittest -v test_stale_factory_run.py
+
+      - name: Assert non-mutation and fail-closed disposition
+        shell: bash
+        run: |
+          set -euo pipefail
+          F=vl/observability/classify_stale_factory_run.py
+          D=vl/observability/ORPHAN-DISPOSITION.md
+          grep -q 'HISTORICAL_ORPHAN_CANDIDATE' "$F"
+          grep -q 'CURRENT_PATH_REGRESSION_REQUIRES_REVIEW' "$F"
+          grep -q 'mutation_performed.*False' "$F"
+          grep -q 'production_authority.*False' "$F"
+          grep -q 'release_candidate_blocked_observed' "$F"
+          grep -q 'direct_state_mutation = FORBIDDEN' "$D"
+          grep -q 'automatic_production_approval = FORBIDDEN' "$D"
+          grep -q 'recommended_disposition = REVIEW_AND_RECONCILE' "$D"
+          if grep -Eq 'update[[:space:]]+public\.factory_runs|delete[[:space:]]+from|insert[[:space:]]+into[[:space:]]+public\.deployments' "$F"; then
+            echo 'unexpected mutation statement in observability classifier' >&2
+            exit 1
+          fi
+          echo 'VL ORPHAN OBSERVABILITY CONTRACT: PASS'
