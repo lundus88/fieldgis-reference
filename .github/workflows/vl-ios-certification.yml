@@ -1,0 +1,125 @@
+name: VL iOS Certification Baseline
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/vl-ios-certification.yml'
+      - 'docs/vl/VL_IOS_CERTIFICATION.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vl-ios-cert-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  VL_IOS_PROOF_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+
+jobs:
+  ios-simulator-cert:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Confirm exact source SHA
+        shell: bash
+        run: test "$(git rev-parse HEAD)" = "$VL_IOS_PROOF_SHA"
+
+      - name: Set up Flutter 3.38.1
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
+        with:
+          flutter-version: '3.38.1'
+          channel: stable
+          cache: true
+
+      - name: Record toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          flutter --version | tee evidence/flutter-version.txt
+          xcodebuild -version | tee evidence/xcode-version.txt
+          xcrun simctl list devicetypes | head -80 > evidence/simulator-device-types.txt
+          printf '%s\n' "$VL_IOS_PROOF_SHA" > evidence/source-sha.txt
+
+      - name: Create trusted Flutter iOS fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          flutter create vl-ios-cert-fixture \
+            --platforms=ios \
+            --org com.vrslabs \
+            --project-name vl_ios_cert_fixture
+          rm -f vl-ios-cert-fixture/test/widget_test.dart
+
+      - name: Analyze Flutter source
+        working-directory: vl-ios-cert-fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          flutter analyze --no-fatal-infos | tee ../evidence/flutter-analyze.txt
+
+      - name: Build unsigned iOS simulator app
+        working-directory: vl-ios-cert-fixture
+        shell: bash
+        env:
+          CODE_SIGNING_ALLOWED: 'NO'
+          CODE_SIGNING_REQUIRED: 'NO'
+        run: |
+          set -euo pipefail
+          flutter build ios --simulator --debug --no-codesign | tee ../evidence/flutter-build-ios.txt
+          test -d build/ios/iphonesimulator/Runner.app
+          ditto -c -k --sequesterRsrc --keepParent build/ios/iphonesimulator/Runner.app ../evidence/Runner-simulator.app.zip
+          shasum -a 256 ../evidence/Runner-simulator.app.zip > ../evidence/Runner-simulator.app.zip.sha256
+
+      - name: Boot simulator and smoke launch
+        shell: bash
+        run: |
+          set -euo pipefail
+          device_type="$(xcrun simctl list devicetypes -j | python3 -c 'import json,sys; d=json.load(sys.stdin); xs=[x for x in d["devicetypes"] if "iPhone" in x["name"]]; print(xs[-1]["identifier"])')"
+          runtime="$(xcrun simctl list runtimes -j | python3 -c 'import json,sys; d=json.load(sys.stdin); xs=[x for x in d["runtimes"] if x.get("isAvailable") and "iOS" in x["name"]]; print(xs[-1]["identifier"])')"
+          udid="$(xcrun simctl create VL-iOS-Cert "$device_type" "$runtime")"
+          trap 'xcrun simctl shutdown "$udid" >/dev/null 2>&1 || true; xcrun simctl delete "$udid" >/dev/null 2>&1 || true' EXIT
+          xcrun simctl boot "$udid"
+          xcrun simctl bootstatus "$udid" -b
+          xcrun simctl install "$udid" vl-ios-cert-fixture/build/ios/iphonesimulator/Runner.app
+          bundle_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' vl-ios-cert-fixture/build/ios/iphonesimulator/Runner.app/Info.plist)"
+          test -n "$bundle_id"
+          xcrun simctl launch "$udid" "$bundle_id" | tee evidence/simulator-launch.txt
+          printf '%s\n' "$bundle_id" > evidence/bundle-id.txt
+
+      - name: Assert certification boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s evidence/Runner-simulator.app.zip
+          test -s evidence/Runner-simulator.app.zip.sha256
+          test -s evidence/simulator-launch.txt
+          grep -q -- '--no-codesign' .github/workflows/vl-ios-certification.yml
+          ! grep -Eq 'APPLE_(CERTIFICATE|PROVISIONING|API)|MATCH_PASSWORD|FASTLANE_SESSION|app-store|testflight' .github/workflows/vl-ios-certification.yml
+          cat > evidence/certification-boundary.json <<'JSON'
+          {
+            "status": "PASS_BASELINE_ONLY",
+            "platform": "ios-simulator",
+            "signed_device_build": false,
+            "app_store_or_testflight": false,
+            "production_credentials_used": false,
+            "claim_allowed": "iOS simulator build capability verified",
+            "claim_forbidden": "iOS production/App Store certified"
+          }
+          JSON
+
+      - name: Upload immutable iOS certification evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: vl-ios-cert-${{ github.run_id }}
+          path: evidence/
+          if-no-files-found: error
+          retention-days: 90
