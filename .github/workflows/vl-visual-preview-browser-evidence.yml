@@ -1,0 +1,87 @@
+name: VL Visual Preview Browser Evidence
+
+on:
+  push:
+    branches: [vl/issue-130-visual-preview-evidence]
+    paths:
+      - 'vl/visual-preview/**'
+      - '.github/workflows/vl-visual-preview-browser-evidence.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/visual-preview/**'
+      - '.github/workflows/vl-visual-preview-browser-evidence.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  visual-preview-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+
+      - name: Setup Node 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+
+      - name: Install independent browser verifier
+        run: |
+          set -euo pipefail
+          npm install --no-save --ignore-scripts playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Start sandbox preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 4173 --directory vl/visual-preview/sample > /tmp/vl-preview.log 2>&1 &
+          echo $! > /tmp/vl-preview.pid
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:4173 >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/vl-preview.log
+          exit 1
+
+      - name: Run independent browser verification
+        env:
+          VL_PREVIEW_URL: http://127.0.0.1:4173
+          VL_PREVIEW_OUT: vl/visual-preview/evidence
+        run: node vl/visual-preview/verify-preview.mjs
+
+      - name: Validate immutable evidence manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s vl/visual-preview/evidence/evidence.json
+          test -s vl/visual-preview/evidence/preview-desktop.png
+          test -s vl/visual-preview/evidence/preview-mobile.png
+          python3 - <<'PY'
+          import json
+          p='vl/visual-preview/evidence/evidence.json'
+          d=json.load(open(p))
+          assert d['schema']=='vl.visual-preview-evidence/1'
+          assert d['verifier']=='independent-playwright'
+          assert d['environment']=='DEV_SANDBOX_ONLY'
+          assert d['production_authority'] is False
+          assert d['source_sha']
+          assert d['conclusion']=='PASS'
+          assert d['checks']['console_errors']==[]
+          assert d['checks']['network_failures']==[]
+          print('VL VISUAL PREVIEW EVIDENCE CONTRACT: PASS')
+          PY
+
+      - name: Upload visual verification evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: vl-visual-preview-browser-evidence
+          path: vl/visual-preview/evidence/
+          if-no-files-found: error
+          retention-days: 90
