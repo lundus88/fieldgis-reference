@@ -2,7 +2,7 @@
 
 Status date: 2026-09-06
 
-## Evidence-complete milestone
+## Historical real-artifact proof
 
 The real Factory Runner artifact proof milestone is PASS for one historical PWA factory artifact.
 
@@ -22,10 +22,19 @@ The real Factory Runner artifact proof milestone is PASS for one historical PWA 
 
 The control-plane record was read-only cross-checked and matched builder key, source SHA, artifact name and artifact SHA-256. Production remained locked.
 
-## Scope boundary
+## Automatic enforcement implementation
 
-This proves the Issue #130 real-factory-artifact evidence path. It does **not** claim production-wide automatic enforcement for every future eligible build.
+Branch `vl/issue-130-visual-preview-evidence` now implements a post-build / pre-callback visual preview gate for eligible `web-react-v1`, `pwa-react-v1`, and `gis-web-v1` Factory builds.
 
-`production_enforcement = NOT_IMPLEMENTED`
+The Factory Runner result is PASS for those builders only when both the immutable build and the independent browser preview gate PASS. Missing/failed preview evidence causes the callback result to fail closed. Preview evidence is uploaded separately with 90-day retention and records source SHA, artifact SHA-256, canonical App Spec SHA-256, desktop/mobile screenshots, console errors, network failures, and `production_authority=false`.
 
-Future enforcement should be introduced separately and must preserve existing Factory Runner, production promoter and approval boundaries.
+Branch enforcement CI run `34031155298` is PASS. It executed the real preview helper against an immutable Vercel-build-output fixture and separately asserted the Factory Runner fail-closed wiring.
+
+## Enforcement boundary
+
+- `branch_enforcement_implementation = CI_PROVEN`
+- `main_enforcement = NOT_ACTIVE`
+- `production_enforcement = NOT_ACTIVE`
+- `production_authority = false`
+
+No merge or deployment has been performed. A human-reviewed merge to `main`, followed by evidence from a natural eligible Factory Runner build, is required before claiming live Factory-wide enforcement.
