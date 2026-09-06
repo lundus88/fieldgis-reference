@@ -1,0 +1,39 @@
+name: VL Completion Governance Phase 3
+
+on:
+  push:
+    branches: [vl/issue-128-phase3-completion-validator]
+    paths:
+      - 'vl/completion-governance/**'
+      - '.github/workflows/vl-completion-governance-phase3.yml'
+  pull_request:
+    branches: [vl/issue-128-phase2-model-governance]
+    paths:
+      - 'vl/completion-governance/**'
+      - '.github/workflows/vl-completion-governance-phase3.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  independent-validator:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Run independent completion validator tests
+        working-directory: vl/completion-governance
+        run: python3 -m unittest -v test_independent_validator.py
+      - name: Assert independent fail-closed markers
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q "builder_self_report_trusted': False" vl/completion-governance/independent_validator.py
+          grep -q "INCOMPLETE_ACCEPTANCE_EVIDENCE" vl/completion-governance/independent_validator.py
+          grep -q "APP_SPEC_BINDING_MISMATCH" vl/completion-governance/independent_validator.py
+          grep -q "SOURCE_BINDING_MISMATCH" vl/completion-governance/independent_validator.py
+          grep -q "'production_locked': True" vl/completion-governance/independent_validator.py
+          echo 'VL COMPLETION GOVERNANCE PHASE 3: PASS'
