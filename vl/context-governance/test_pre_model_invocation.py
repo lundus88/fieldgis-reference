@@ -1,5 +1,4 @@
 import json
-import tempfile
 import unittest
 from pathlib import Path
 
@@ -15,8 +14,8 @@ class PreModelInvocationTests(unittest.TestCase):
         resources = [
             {
                 'resource_type': 'repo_path',
-                'resource': 'docs/architecture.md',
-                'data_class': 'internal',
+                'resource': 'src/architecture.ts',
+                'data_class': 'source_code',
                 'content': 'SAFE_ARCHITECTURE_CONTEXT',
             },
             {
@@ -36,6 +35,7 @@ class PreModelInvocationTests(unittest.TestCase):
         self.assertNotIn('TOP_SECRET_VALUE_SHOULD_NEVER_CROSS', encoded)
         self.assertFalse(payload['raw_candidates_forwarded'])
         self.assertTrue(payload['production_locked'])
+        self.assertEqual(payload['context_manifest']['allowed_count'], 1)
         self.assertEqual(payload['context_manifest']['denied_count'], 1)
         self.assertFalse(payload['context_manifest']['secret_values_recorded'])
 
