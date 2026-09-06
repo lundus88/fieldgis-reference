@@ -6,8 +6,8 @@ ARTIFACT_PATH="${2:?artifact path required}"
 SOURCE_SHA="${3:?source sha required}"
 CLAIM_JSON="${4:-claim.json}"
 
-rm -rf preview-root vl/visual-preview/evidence-factory preview-tools
-mkdir -p preview-root vl/visual-preview/evidence-factory preview-tools
+rm -rf preview-root vl/visual-preview/evidence-factory vl/visual-preview/node_modules vl/visual-preview/package.json vl/visual-preview/package-lock.json
+mkdir -p preview-root vl/visual-preview/evidence-factory
 
 case "$BUILDER" in
   web-react-v1|pwa-react-v1|gis-web-v1) ;;
@@ -56,9 +56,9 @@ done
 curl -fsS http://127.0.0.1:4173/ >/dev/null
 
 (
-  cd preview-tools
+  cd vl/visual-preview
   npm init -y >/dev/null 2>&1
-  npm install --ignore-scripts --no-audit --no-fund playwright@1.55.0 >/dev/null
+  npm install --ignore-scripts --no-audit --no-fund --save-exact playwright@1.55.0 >/dev/null
   npx playwright install chromium >/dev/null
 )
 
@@ -69,10 +69,9 @@ VL_ARTIFACT_SHA256="$ARTIFACT_SHA256" \
 VL_APP_SPEC_SHA256="$APP_SPEC_SHA256" \
 VL_BUILDER_KEY="$BUILDER" \
 VL_ACCEPTANCE_INVENTORY='vl/visual-preview/evidence-factory/acceptance-inventory.json' \
-NODE_PATH="$PWD/preview-tools/node_modules" \
 node vl/visual-preview/verify-factory-preview.mjs
 
-python3 - "$APP_SPEC_SHA256" "$ARTIFACT_SHA256" <<'PY'
+python3 - <<'PY'
 import json
 p='vl/visual-preview/evidence-factory/evidence.json'
 d=json.load(open(p))
