@@ -37,7 +37,9 @@ jobs:
           set -euo pipefail
           rm -rf enforcement-fixture
           mkdir -p enforcement-fixture/.vercel/output/static
-          cp vl/visual-preview/sample/index.html enforcement-fixture/.vercel/output/static/index.html
+          cat > enforcement-fixture/.vercel/output/static/index.html <<'HTML'
+          <!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VL Enforcement Fixture</title></head><body><div id="root"><main><h1>VL Visual Preview Enforcement CI</h1></main></div></body></html>
+          HTML
           printf '%s\n' '{"version":3}' > enforcement-fixture/.vercel/output/config.json
           tar -C enforcement-fixture -czf enforcement-web.tgz .vercel/output
           cat > claim.json <<'JSON'
