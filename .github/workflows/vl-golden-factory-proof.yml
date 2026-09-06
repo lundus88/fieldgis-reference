@@ -21,6 +21,8 @@ jobs:
   deterministic-intake-routing:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    env:
+      VL_PROOF_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -32,13 +34,13 @@ jobs:
           python3 vl/proof/run_golden_factory_benchmark.py \
             --cases vl/proof/golden-benchmark-cases.json \
             --output evidence/golden-factory-manifest.json \
-            --source-sha '${{ github.sha }}'
+            --source-sha "$VL_PROOF_SHA"
       - name: Verify fail-closed phase-one manifest
         run: |
           set -euo pipefail
           python3 vl/proof/verify_golden_factory_manifest.py \
             evidence/golden-factory-manifest.json \
-            --expected-sha '${{ github.sha }}'
+            --expected-sha "$VL_PROOF_SHA"
       - name: Verify recorded DEV sandbox runs through GitHub API
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -46,7 +48,8 @@ jobs:
           set -euo pipefail
           python3 vl/proof/verify_dev_sandbox_evidence.py \
             --evidence vl/proof/dev-sandbox-evidence.json \
-            --output evidence/verified-dev-sandbox-evidence.json
+            --output evidence/verified-dev-sandbox-evidence.json \
+            --expected-sha "$VL_PROOF_SHA"
       - name: Prove autonomous production approval remains unavailable
         working-directory: vl/agent-control-plane
         run: |
