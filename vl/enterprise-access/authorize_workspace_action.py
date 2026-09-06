@@ -94,7 +94,8 @@ def decide(policy: dict[str, Any], snapshot: dict[str, Any], request: dict[str, 
 
     if capability in forbidden:
         return _decision(policy, request, "deny", "DENY_NEVER_ROLE_DERIVED_CAPABILITY")
-    if capability not in role_caps:
+    role_allowed = capability in role_caps or (capability.startswith("connector.invoke:") and "connector.invoke" in role_caps)
+    if not role_allowed:
         return _decision(policy, request, "deny", "DENY_ROLE_CAPABILITY", {"role": role})
 
     requested_class = str(request.get("data_classification") or "internal")
