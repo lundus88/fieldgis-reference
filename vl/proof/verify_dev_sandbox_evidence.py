@@ -29,6 +29,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--evidence", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--expected-sha", required=True)
     args = parser.parse_args()
     token = os.environ.get("GITHUB_TOKEN", "")
     if not token:
@@ -36,6 +37,11 @@ def main() -> int:
 
     evidence = json.loads(args.evidence.read_text(encoding="utf-8"))
     tested_sha = evidence["tested_sha"]
+    if tested_sha != args.expected_sha:
+        raise AssertionError(
+            f"stale DEV sandbox evidence: tested_sha={tested_sha} expected_sha={args.expected_sha}"
+        )
+
     verified = []
     for expected in evidence["runs"]:
         run_id = int(expected["run_id"])
@@ -75,6 +81,7 @@ def main() -> int:
         "schema_version": "vl.verified-dev-sandbox-evidence/1",
         "status": "PASS",
         "tested_sha": tested_sha,
+        "expected_sha": args.expected_sha,
         "production_mutation": False,
         "verified_runs": verified,
     }
