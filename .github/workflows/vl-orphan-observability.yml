@@ -29,12 +29,21 @@ jobs:
         working-directory: vl/observability
         run: python3 -m unittest -v test_stale_factory_run.py
 
+      - name: Validate append-only observability event store contract
+        run: python3 vl/observability/check_observability_event_store.py
+
+      - name: Syntax check
+        run: |
+          python3 -m py_compile vl/observability/classify_stale_factory_run.py
+          python3 -m py_compile vl/observability/check_observability_event_store.py
+
       - name: Assert non-mutation and fail-closed disposition
         shell: bash
         run: |
           set -euo pipefail
           F=vl/observability/classify_stale_factory_run.py
           D=vl/observability/ORPHAN-DISPOSITION.md
+          S=vl/observability/observability-event-store.sql
           grep -q 'HISTORICAL_ORPHAN_CANDIDATE' "$F"
           grep -q 'CURRENT_PATH_REGRESSION_REQUIRES_REVIEW' "$F"
           grep -q 'mutation_performed.*False' "$F"
@@ -43,8 +52,10 @@ jobs:
           grep -q 'direct_state_mutation = FORBIDDEN' "$D"
           grep -q 'automatic_production_approval = FORBIDDEN' "$D"
           grep -q 'recommended_disposition = REVIEW_AND_RECONCILE' "$D"
-          if grep -Eq 'update[[:space:]]+public\.factory_runs|delete[[:space:]]+from|insert[[:space:]]+into[[:space:]]+public\.deployments' "$F"; then
-            echo 'unexpected mutation statement in observability classifier' >&2
+          grep -q 'enable row level security' "$S"
+          grep -q 'No UPDATE/DELETE policies are defined' "$S"
+          if grep -Eqi 'update[[:space:]]+public\.factory_runs|delete[[:space:]]+from[[:space:]]+public\.factory_runs|insert[[:space:]]+into[[:space:]]+public\.deployments' "$F" "$S"; then
+            echo 'unexpected factory/deployment mutation statement in observability contract' >&2
             exit 1
           fi
           echo 'VL ORPHAN OBSERVABILITY CONTRACT: PASS'
