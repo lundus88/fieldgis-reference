@@ -1,0 +1,89 @@
+name: VL Visual Preview Enforcement CI
+
+on:
+  push:
+    branches: [vl/issue-130-visual-preview-evidence]
+    paths:
+      - '.github/workflows/vl-factory-runner.yml'
+      - '.github/workflows/vl-visual-preview-enforcement-ci.yml'
+      - 'vl/visual-preview/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/vl-factory-runner.yml'
+      - '.github/workflows/vl-visual-preview-enforcement-ci.yml'
+      - 'vl/visual-preview/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  enforcement-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+
+      - name: Build immutable preview test artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf enforcement-fixture
+          mkdir -p enforcement-fixture/.vercel/output/static
+          cp vl/visual-preview/sample/index.html enforcement-fixture/.vercel/output/static/index.html
+          printf '%s\n' '{"version":3}' > enforcement-fixture/.vercel/output/config.json
+          tar -C enforcement-fixture -czf enforcement-web.tgz .vercel/output
+          cat > claim.json <<'JSON'
+          {
+            "status":"leased",
+            "builder_key":"web-react-v1",
+            "factory_run_id":"ci-fixture",
+            "app_spec":{
+              "id":"ci-app-spec",
+              "title":"VL Visual Preview Enforcement CI",
+              "status":"approved",
+              "target_platforms":["web"]
+            }
+          }
+          JSON
+
+      - name: Run real post-build preview gate helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x vl/visual-preview/run-factory-preview-gate.sh
+          vl/visual-preview/run-factory-preview-gate.sh web-react-v1 enforcement-web.tgz '${{ github.sha }}' claim.json
+          python3 - <<'PY'
+          import json
+          d=json.load(open('vl/visual-preview/evidence-factory/evidence.json'))
+          assert d['conclusion']=='PASS', d
+          assert d['factory_enforcement']=='POST_BUILD_PRE_CALLBACK', d
+          assert d['production_authority'] is False, d
+          assert len(d['app_spec_sha256'])==64, d
+          assert len(d['artifact_sha256'])==64, d
+          print('FACTORY PREVIEW ENFORCEMENT FIXTURE: PASS')
+          PY
+
+      - name: Assert Factory Runner fail-closed wiring
+        shell: bash
+        run: |
+          set -euo pipefail
+          F=.github/workflows/vl-factory-runner.yml
+          grep -q 'id: preview_gate' "$F"
+          grep -q "steps.preview_gate.outcome.*success" "$F"
+          grep -q "visual_preview_required.*True" "$F"
+          grep -q "visual_preview_result.*MISSING" "$F"
+          grep -q 'Visual preview evidence gate failed or is missing' "$F"
+          grep -q 'run-factory-preview-gate.sh' "$F"
+          if grep -q 'production.approve\|merge.execute' vl/visual-preview/run-factory-preview-gate.sh; then
+            echo 'unexpected production/merge authority marker in preview gate' >&2
+            exit 1
+          fi
+          echo 'FACTORY RUNNER VISUAL PREVIEW ENFORCEMENT CONTRACT: PASS'
