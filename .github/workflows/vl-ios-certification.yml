@@ -47,6 +47,7 @@ jobs:
           flutter --version | tee evidence/flutter-version.txt
           xcodebuild -version | tee evidence/xcode-version.txt
           xcrun simctl list devicetypes | head -80 > evidence/simulator-device-types.txt
+          xcrun simctl list devices available > evidence/simulator-devices-available.txt
           printf '%s\n' "$VL_IOS_PROOF_SHA" > evidence/source-sha.txt
 
       - name: Create trusted Flutter iOS fixture
@@ -79,15 +80,20 @@ jobs:
           ditto -c -k --sequesterRsrc --keepParent build/ios/iphonesimulator/Runner.app ../evidence/Runner-simulator.app.zip
           shasum -a 256 ../evidence/Runner-simulator.app.zip > ../evidence/Runner-simulator.app.zip.sha256
 
-      - name: Boot simulator and smoke launch
+      - name: Boot compatible available simulator and smoke launch
         shell: bash
         run: |
           set -euo pipefail
-          device_type="$(xcrun simctl list devicetypes -j | python3 -c 'import json,sys; d=json.load(sys.stdin); xs=[x for x in d["devicetypes"] if "iPhone" in x["name"]]; print(xs[-1]["identifier"])')"
-          runtime="$(xcrun simctl list runtimes -j | python3 -c 'import json,sys; d=json.load(sys.stdin); xs=[x for x in d["runtimes"] if x.get("isAvailable") and "iOS" in x["name"]]; print(xs[-1]["identifier"])')"
-          udid="$(xcrun simctl create VL-iOS-Cert "$device_type" "$runtime")"
-          trap 'xcrun simctl shutdown "$udid" >/dev/null 2>&1 || true; xcrun simctl delete "$udid" >/dev/null 2>&1 || true' EXIT
-          xcrun simctl boot "$udid"
+          device_json="$(xcrun simctl list devices available -j)"
+          udid="$(printf '%s' "$device_json" | python3 -c 'import json,sys; d=json.load(sys.stdin); xs=[]; [xs.extend(v) for k,v in d.get("devices",{}).items() if "iOS" in k]; xs=[x for x in xs if x.get("isAvailable", True) and "iPhone" in x.get("name","")]; print(xs[0]["udid"] if xs else "")')"
+          test -n "$udid"
+          device_name="$(printf '%s' "$device_json" | python3 -c 'import json,sys,os; d=json.load(sys.stdin); u=os.environ["UDID"]; xs=[]; [xs.extend(v) for k,v in d.get("devices",{}).items() if "iOS" in k]; m=[x for x in xs if x.get("udid")==u]; print(m[0]["name"] if m else "")' UDID="$udid")"
+          printf '%s\n' "$udid" > evidence/simulator-udid.txt
+          printf '%s\n' "$device_name" > evidence/simulator-device-name.txt
+          state="$(printf '%s' "$device_json" | python3 -c 'import json,sys,os; d=json.load(sys.stdin); u=os.environ["UDID"]; xs=[]; [xs.extend(v) for v in d.get("devices",{}).values()]; m=[x for x in xs if x.get("udid")==u]; print(m[0].get("state","") if m else "")' UDID="$udid")"
+          if [ "$state" != "Booted" ]; then
+            xcrun simctl boot "$udid"
+          fi
           xcrun simctl bootstatus "$udid" -b
           xcrun simctl install "$udid" vl-ios-cert-fixture/build/ios/iphonesimulator/Runner.app
           bundle_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' vl-ios-cert-fixture/build/ios/iphonesimulator/Runner.app/Info.plist)"
@@ -102,6 +108,7 @@ jobs:
           test -s evidence/Runner-simulator.app.zip
           test -s evidence/Runner-simulator.app.zip.sha256
           test -s evidence/simulator-launch.txt
+          test -s evidence/simulator-udid.txt
           grep -q -- '--no-codesign' .github/workflows/vl-ios-certification.yml
           ! grep -Eq 'APPLE_(CERTIFICATE|PROVISIONING|API)|MATCH_PASSWORD|FASTLANE_SESSION|app-store|testflight' .github/workflows/vl-ios-certification.yml
           cat > evidence/certification-boundary.json <<'JSON'
