@@ -6,13 +6,11 @@ on:
     paths:
       - 'vl/projects/ebkl/**'
       - '.github/workflows/vl-ebkl-critical-numerical.yml'
-      - 'vl/product-alignment/**'
   pull_request:
     branches: [main]
     paths:
       - 'vl/projects/ebkl/**'
       - '.github/workflows/vl-ebkl-critical-numerical.yml'
-      - 'vl/product-alignment/**'
   workflow_dispatch:
 
 permissions:
@@ -24,6 +22,23 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Enforce e-BKL integration scope isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="$(git merge-base origin/main HEAD)"
+          changed="$(git diff --name-only "$base" HEAD)"
+          echo "$changed"
+          while IFS= read -r path; do
+            [ -z "$path" ] && continue
+            case "$path" in
+              vl/projects/ebkl/*|.github/workflows/vl-ebkl-critical-numerical.yml) ;;
+              *) echo "SCOPE ISOLATION FAIL: unexpected path changed: $path"; exit 1 ;;
+            esac
+          done <<< "$changed"
 
       - name: Validate e-BKL product alignment contract
         run: python3 vl/product-alignment/validate_product_alignment.py vl/projects/ebkl/product-alignment.json
@@ -38,6 +53,7 @@ jobs:
 
           policy = Path('vl/projects/ebkl/CRITICAL_NUMERICAL_POLICY.md').read_text()
           doc = json.loads(Path('vl/projects/ebkl/product-alignment.json').read_text())
+          workflow = Path('.github/workflows/vl-ebkl-critical-numerical.yml').read_text()
           text = policy + '\n' + json.dumps(doc)
 
           required = {
@@ -64,6 +80,15 @@ jobs:
             raise SystemExit('e-BKL CRITICAL NUMERICAL GATE: FAIL - no main merge prohibition')
           if not any('production' in x.lower() and ('deploy' in x.lower() or 'mutate' in x.lower()) for x in must_not):
             raise SystemExit('e-BKL CRITICAL NUMERICAL GATE: FAIL - no production mutation prohibition')
+
+          forbidden_workflow_capabilities = [
+            'contents: write', 'id-token: write', 'pull-requests: write',
+            'deployments: write', 'packages: write', 'supabase',
+            'vl-production-promoter', 'vl-factory-runner'
+          ]
+          found = [x for x in forbidden_workflow_capabilities if x.lower() in workflow.lower()]
+          if found:
+            raise SystemExit('e-BKL CRITICAL NUMERICAL GATE: FAIL - forbidden workflow capability: ' + ', '.join(found))
 
           print('e-BKL CRITICAL NUMERICAL GATE: PASS')
           PY
