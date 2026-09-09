@@ -28,14 +28,14 @@
   <a class="skip" href="#main">Skip to main content</a>
   <nav><div class="wrap nav">
     <a class="brand" href="#"><img src="./vl-icon.svg" alt=""><span>VL<small>Governed AI Software Factory</small></span></a>
-    <div class="links"><a href="#capabilities">Capabilities</a><a href="#governance">Governance</a><a href="#readiness">Readiness</a><a class="cta secondary" href="./assisted-build.html">Start governed build</a></div>
+    <div class="links"><a href="#capabilities">Capabilities</a><a href="#governance">Governance</a><a href="#readiness">Readiness</a><a href="./pilot-login.html">Sign in</a><a class="cta secondary" href="./assisted-build.html">Start governed build</a></div>
   </div></nav>
   <main id="main">
     <section class="hero"><div class="wrap">
       <span class="pill eyebrow">Controlled development</span>
       <h1>VL builds software <span>with proof.</span></h1>
       <p class="lead">A governed AI software factory that turns a software request into auditable engineering evidence—while keeping production release under explicit human authority.</p>
-      <div class="hero-actions"><a class="cta" href="./assisted-build.html">Describe a software request</a><a class="cta secondary" href="#capabilities">View Builder Registry</a></div>
+      <div class="hero-actions"><a class="cta" href="./assisted-build.html">Describe a software request</a><a class="cta secondary" href="./pilot-login.html">Pilot sign in</a><a class="cta secondary" href="#capabilities">View Builder Registry</a></div>
       <p class="proofline"><b>Production is never autonomous.</b> A successful build, test or certification does not itself approve, promote or deploy to production.</p>
     </div></section>
 
@@ -56,7 +56,7 @@
     </div></section>
 
     <section id="launcher"><div class="wrap launcher">
-      <article class="primary"><span class="badge active">GOVERNED ENTRY</span><h3>Start with the existing Assisted Build contract.</h3><p>Describe the project, review the generated App Spec and confirmation data, see the Factory Credit estimate, and only then enter the governed factory path. This browser entry does not grant production authority.</p><div class="launcher-actions"><a class="cta" href="./assisted-build.html">Open Assisted Build</a><a class="cta secondary" href="./prd.html">Import PRD</a><a class="cta secondary" href="./voice.html">Voice input</a><a class="cta secondary" href="./build-status.html">Build status</a></div></article>
+      <article class="primary"><span class="badge active">GOVERNED ENTRY</span><h3>Start with the existing Assisted Build contract.</h3><p>Describe the project, review the generated App Spec and confirmation data, see the Factory Credit estimate, and only then enter the governed factory path. Authenticated pilot workspaces use a separate sign-in surface; this browser entry does not grant production authority.</p><div class="launcher-actions"><a class="cta" href="./assisted-build.html">Open Assisted Build</a><a class="cta secondary" href="./pilot-login.html">Sign in / create account</a><a class="cta secondary" href="./prd.html">Import PRD</a><a class="cta secondary" href="./voice.html">Voice input</a><a class="cta secondary" href="./build-status.html">Build status</a></div></article>
       <article class="note"><h3>Authority boundary</h3><p>Build success and certification evidence remain separate from production release. Human production approval stays explicit and fail-closed.</p></article>
     </div></section>
 
@@ -111,7 +111,7 @@
   <script src="./builder-registry.js"></script>
   <script>
     const rows=document.getElementById('builderRows');
-    const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c]));
     const cls=s=>s==='ACTIVE'?'active':s==='DEVELOPMENT'?'dev':'plan';
     const registry=Array.isArray(window.VL_BUILDER_REGISTRY)?window.VL_BUILDER_REGISTRY:[];
     rows.innerHTML=registry.length?registry.map(b=>`<tr><td>${esc(b.id)}</td><td>${esc(b.category)}<br><small>${esc(b.version)}</small></td><td><span class="badge ${cls(b.status)}">${esc(b.status)}</span></td><td>${esc(b.certification)}</td><td>${esc(b.sandbox)}</td><td>${esc(b.output)}</td><td>${esc(b.limitations)}</td></tr>`).join(''):'<tr><td colspan="7">UNKNOWN — public registry unavailable; no capability state is assumed.</td></tr>';
