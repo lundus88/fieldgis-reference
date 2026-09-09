@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+
+const html=readFileSync('vl/public/index.html','utf8');
+const registry=readFileSync('vl/public/builder-registry.js','utf8');
+assert.match(html,/Governed AI Software Factory/);
+assert.match(html,/VL builds software[\s\S]*with proof/);
+assert.match(html,/HUMAN-GATED/);
+assert.match(html,/Human production approval/);
+assert.match(html,/Controlled Development \/ Controlled Alpha/);
+assert.match(html,/Broad Public Launch[^<]*HOLD/);
+assert.match(html,/Natural Language Request[\s\S]*Rollback \+ Audit/);
+assert.match(html,/payment activation and paid resource provisioning remain approval-gated/i);
+assert.match(html,/Desktop \/ CLI \/ developer tools[\s\S]*PLANNED/);
+assert.doesNotMatch(html,/autonomous production (deployment|promotion)/i);
+assert.doesNotMatch(html,/sb_publishable|service_role|supabase\.co/i);
+for(const id of ['mobile-flutter-v1','gis-web-v1','web-react-v1','pwa-react-v1','api-service-v1']) assert.match(registry,new RegExp(id));
+assert.match(registry,/TECHNICAL PASS AWAITING HUMAN APPROVAL/);
+assert.doesNotMatch(registry,/workflow_run_id|artifact_id|supabase|secret/i);
+console.log('public capability surface: PASS');
