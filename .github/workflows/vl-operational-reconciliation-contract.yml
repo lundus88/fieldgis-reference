@@ -1,0 +1,26 @@
+name: VL Operational Reconciliation Contract
+
+on:
+  pull_request:
+    paths:
+      - 'vl/ops/**'
+      - '.github/workflows/vl-operational-reconciliation-contract.yml'
+  push:
+    branches:
+      - 'fix/vl-operational-reconciliation'
+    paths:
+      - 'vl/ops/**'
+      - '.github/workflows/vl-operational-reconciliation-contract.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Verify fail-closed operational reconciliation contract
+        run: python3 vl/ops/check_operational_contract.py
