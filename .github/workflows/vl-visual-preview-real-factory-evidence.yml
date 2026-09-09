@@ -1,0 +1,153 @@
+name: VL Real Factory Artifact Browser Evidence
+
+on:
+  push:
+    branches: [vl/issue-130-visual-preview-evidence]
+    paths:
+      - 'vl/visual-preview/**'
+      - '.github/workflows/vl-visual-preview-real-factory-evidence.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  verify-real-factory-artifact:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+
+      - name: Setup Node 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+
+      - name: Install independent browser verifier
+        run: |
+          set -euo pipefail
+          npm install --no-save --ignore-scripts playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Select and download latest non-expired real Web PWA GIS factory artifact
+        id: artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os, re, urllib.request, urllib.error, pathlib, hashlib, zipfile, tarfile
+          repo=os.environ['GITHUB_REPOSITORY']
+          token=os.environ['GH_TOKEN']
+          pattern=re.compile(r'^vl-factory-([0-9a-fA-F-]{36})-(web-react-v1|pwa-react-v1|gis-web-v1)$')
+          selected=None
+          for page in range(1,11):
+              req=urllib.request.Request(
+                  f'https://api.github.com/repos/{repo}/actions/artifacts?per_page=100&page={page}',
+                  headers={'Authorization':f'Bearer {token}','Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'})
+              with urllib.request.urlopen(req) as r: data=json.load(r)
+              arts=data.get('artifacts',[])
+              for a in arts:
+                  m=pattern.match(str(a.get('name') or ''))
+                  if m and not a.get('expired'):
+                      selected=(a,m)
+                      break
+              if selected or len(arts)<100: break
+          if not selected: raise SystemExit('REAL_FACTORY_ARTIFACT_NOT_FOUND')
+          a,m=selected
+          out=pathlib.Path('/tmp/real-factory')
+          out.mkdir(parents=True,exist_ok=True)
+          zpath=out/'artifact.zip'
+
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, req, fp, code, msg, headers, newurl):
+                  return None
+          opener=urllib.request.build_opener(NoRedirect)
+          api_req=urllib.request.Request(a['archive_download_url'],headers={'Authorization':f'Bearer {token}','Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'})
+          try:
+              opener.open(api_req)
+              raise SystemExit('artifact download endpoint did not redirect')
+          except urllib.error.HTTPError as e:
+              if e.code not in (302,307): raise
+              signed=e.headers.get('Location')
+          if not signed or not signed.startswith('https://'):
+              raise SystemExit('missing signed artifact download location')
+          with urllib.request.urlopen(signed) as r, zpath.open('wb') as f:
+              f.write(r.read())
+
+          with zipfile.ZipFile(zpath) as z: z.extractall(out/'zip')
+          tgzs=list((out/'zip').rglob('*.tgz'))
+          if len(tgzs)!=1: raise SystemExit(f'expected exactly one tgz, found {len(tgzs)}')
+          tgz=tgzs[0]
+          artifact_sha=hashlib.sha256(tgz.read_bytes()).hexdigest()
+          extract=out/'extract'; extract.mkdir()
+          with tarfile.open(tgz,'r:gz') as t: t.extractall(extract,filter='data')
+          static=extract/'.vercel/output/static'
+          if not (static/'index.html').is_file(): raise SystemExit('missing .vercel/output/static/index.html')
+          wr=a.get('workflow_run') or {}
+          source_sha=str(wr.get('head_sha') or '')
+          if not re.fullmatch(r'[0-9a-fA-F]{40}',source_sha): raise SystemExit('invalid source SHA')
+          values={
+              'artifact_name':a['name'], 'artifact_id':str(a['id']),
+              'factory_run_id':m.group(1), 'builder_key':m.group(2),
+              'source_sha':source_sha, 'artifact_sha256':artifact_sha,
+              'static_dir':str(static),
+          }
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f:
+              for k,v in values.items(): f.write(f'{k}={v}\n')
+          print(json.dumps({k:v for k,v in values.items() if k!='static_dir'},indent=2))
+          PY
+
+      - name: Start real artifact sandbox preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 4173 --directory '${{ steps.artifact.outputs.static_dir }}' >/tmp/vl-real-preview.log 2>&1 &
+          for i in {1..30}; do
+            curl -fsS http://127.0.0.1:4173 >/dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/vl-real-preview.log
+          exit 1
+
+      - name: Verify real factory artifact in independent browser
+        env:
+          VL_PREVIEW_URL: http://127.0.0.1:4173
+          VL_PREVIEW_OUT: vl/visual-preview/evidence-real-factory
+          VL_SOURCE_SHA: ${{ steps.artifact.outputs.source_sha }}
+          VL_ARTIFACT_SHA256: ${{ steps.artifact.outputs.artifact_sha256 }}
+          VL_BUILDER_KEY: ${{ steps.artifact.outputs.builder_key }}
+          VL_ARTIFACT_NAME: ${{ steps.artifact.outputs.artifact_name }}
+          VL_FACTORY_RUN_ID: ${{ steps.artifact.outputs.factory_run_id }}
+        run: node vl/visual-preview/verify-real-factory-preview.mjs
+
+      - name: Enforce truthful historical evidence state
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          p='vl/visual-preview/evidence-real-factory/evidence.json'
+          d=json.load(open(p))
+          assert d['schema']=='vl.visual-preview-evidence/3'
+          assert d['production_authority'] is False
+          assert d['browser_conclusion']=='PASS'
+          assert d['app_spec_binding']=='BLOCKED'
+          assert d['overall_conclusion']=='BLOCKED'
+          assert d['artifact_sha256'] and len(d['artifact_sha256'])==64
+          assert d['source_sha'] and len(d['source_sha'])==40
+          print('REAL FACTORY BROWSER PROOF: PASS; APP SPEC BINDING: BLOCKED')
+          PY
+
+      - name: Upload real factory browser evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: vl-real-factory-browser-evidence
+          path: vl/visual-preview/evidence-real-factory/
+          if-no-files-found: error
+          retention-days: 90

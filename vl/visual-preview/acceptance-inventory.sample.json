@@ -1,0 +1,9 @@
+{
+  "schema": "vl.preview-acceptance-inventory/1",
+  "builder_key": "web-react-v1",
+  "required_selectors": ["[data-vl-preview-root]"],
+  "required_text": ["Production", "LOCKED"],
+  "responsive_profiles": ["desktop", "mobile"],
+  "fail_on_console_error": true,
+  "fail_on_network_error": true
+}

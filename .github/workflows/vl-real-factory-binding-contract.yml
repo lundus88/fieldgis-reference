@@ -1,0 +1,54 @@
+name: VL Real Factory Binding Contract
+
+on:
+  push:
+    branches: [vl/issue-130-visual-preview-evidence]
+    paths:
+      - 'vl/visual-preview/real-factory-binding-evidence.json'
+      - '.github/workflows/vl-real-factory-binding-contract.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/visual-preview/real-factory-binding-evidence.json'
+      - '.github/workflows/vl-real-factory-binding-contract.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  binding-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+
+      - name: Validate real factory binding manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json,re
+          p='vl/visual-preview/real-factory-binding-evidence.json'
+          d=json.load(open(p))
+          assert d['schema']=='vl.real-factory-preview-binding/1'
+          assert re.fullmatch(r'[0-9a-f-]{36}', d['factory_run_id'])
+          assert d['builder_key'] in ('web-react-v1','pwa-react-v1','gis-web-v1')
+          assert d['app_spec']['status']=='approved'
+          assert re.fullmatch(r'[0-9a-f]{64}', d['app_spec']['sha256'])
+          assert re.fullmatch(r'[0-9a-f]{40}', d['source_sha'])
+          assert re.fullmatch(r'[0-9a-f]{64}', d['artifact']['sha256'])
+          assert d['factory_control_plane']['production_locked'] is True
+          assert d['factory_control_plane']['runner_status']=='PASS'
+          assert d['factory_control_plane']['immutable_prebuilt'] is True
+          assert d['browser_evidence']['browser_conclusion']=='PASS'
+          assert d['browser_evidence']['desktop_screenshot'] is True
+          assert d['browser_evidence']['mobile_screenshot'] is True
+          assert d['browser_evidence']['production_authority'] is False
+          assert d['binding_conclusion']=='PASS'
+          assert d['production_enforcement']=='NOT_IMPLEMENTED'
+          assert d['artifact']['name']==f"vl-factory-{d['factory_run_id']}-{d['builder_key']}"
+          print('VL REAL FACTORY APP-SPEC BINDING CONTRACT: PASS')
+          PY

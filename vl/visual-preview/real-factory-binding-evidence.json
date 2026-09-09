@@ -1,0 +1,38 @@
+{
+  "schema": "vl.real-factory-preview-binding/1",
+  "evidence_date": "2026-09-06",
+  "factory_run_id": "2e07a4f8-a389-4882-99ac-f800a6179451",
+  "builder_key": "pwa-react-v1",
+  "app_spec": {
+    "id": "92287091-4821-42db-9596-c036ec9cd40f",
+    "version": 2,
+    "status": "approved",
+    "software_kind": "pwa",
+    "sha256": "e9ae1fba3df7a2e3396639d99c62bd571c67f12160c327de9299cf16a3677bdf",
+    "hash_definition": "sha256(UTF8(public.app_specs.spec::text))"
+  },
+  "factory_control_plane": {
+    "target_environment": "staging",
+    "production_locked": true,
+    "runner_status": "PASS",
+    "artifact_contract": "vercel-build-output-v3",
+    "immutable_prebuilt": true
+  },
+  "source_sha": "41c105f96f07a227c443d9df05dd95d8acbc188b",
+  "artifact": {
+    "name": "vl-factory-2e07a4f8-a389-4882-99ac-f800a6179451-pwa-react-v1",
+    "github_artifact_id": "9751948600",
+    "sha256": "141b06560f2fe033e2b2fd0fc7217cdf8346950eaa8f3a8e035374d64928d74e"
+  },
+  "browser_evidence": {
+    "workflow_run_id": "34026660240",
+    "evidence_artifact_id": "9987269540",
+    "browser_conclusion": "PASS",
+    "desktop_screenshot": true,
+    "mobile_screenshot": true,
+    "production_authority": false
+  },
+  "binding_conclusion": "PASS",
+  "production_enforcement": "NOT_IMPLEMENTED",
+  "notes": "Evidence-complete proof for one historical real Factory Runner PWA artifact. This does not claim that every future eligible build is yet automatically enforced by the preview gate."
+}
