@@ -24,10 +24,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          grep -q 'Certification' vl/public/index.html
-          grep -q './voice.html' vl/public/index.html
-          grep -q './prd.html' vl/public/index.html
-          grep -q 'Project Workspace' vl/public/index.html
+          grep -q 'Governed AI Software Factory' vl/public/index.html
+          grep -q 'HUMAN-GATED' vl/public/index.html
+          grep -q 'Builder Registry' vl/public/index.html
+          grep -q 'Broad Public Launch: HOLD' vl/public/index.html
           grep -q 'Factory Credit' vl/public/assisted-build.html
           grep -q 'QA evidence' vl/public/build-status.html
           grep -q 'Security evidence' vl/public/build-status.html
@@ -42,7 +42,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          grep -q 'register("./sw.js",{scope:"./"})' vl/public/index.html
+          grep -q "register('./sw.js',{scope:'./'})" vl/public/index.html
           grep -q '"start_url": "./index.html"' vl/public/manifest.webmanifest
           grep -q '"scope": "./"' vl/public/manifest.webmanifest
           grep -q "'./manifest.webmanifest'" vl/public/sw.js
@@ -68,3 +68,5 @@ jobs:
           ! grep -Eq "method:[[:space:]]*['\"](POST|PATCH|PUT|DELETE)['\"]" vl/public/build-status.html
           ! grep -Eqi 'checkout|pay now|buy credits|live payment' vl/public/index.html vl/public/prd.html vl/public/build-status.html
           echo 'VL UI FUNCTIONAL COMPLETENESS: PASS'
+      - name: Assert governed public capability surface
+        run: node vl/tests/public_capability_surface_test.mjs
