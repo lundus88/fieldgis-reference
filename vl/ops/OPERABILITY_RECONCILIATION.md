@@ -2,6 +2,8 @@
 
 Status: proposed fail-closed repair contract. This branch does not deploy or mutate the live control plane.
 
+Repository context: visual preview enforcement from PR #141 is now merged to `main`; this operability patch remains independent and does not alter Factory visual-gate logic.
+
 ## Verified 2026-09-09 read-only findings
 
 - `VL Unseen PWA Field Inspection`
