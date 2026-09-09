@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b1220">
+  <link rel="icon" href="./vl-icon.svg">
+  <title>VL — Pilot Sign in</title>
+  <style>
+    :root{--bg:#09111f;--panel:#111c2e;--line:#2a3953;--ink:#edf3ff;--muted:#a8b6cc;--blue:#73a7ff;--violet:#b79bff;--green:#76d5a1;--amber:#ffd078;--red:#ff9b9b}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 15% 0,#233766 0,transparent 30%),var(--bg);color:var(--ink);font:16px/1.55 Inter,system-ui,sans-serif}.wrap{width:min(760px,calc(100% - 28px));margin:auto;padding:28px 0 56px}a{color:#bdd5ff}.brand{display:flex;align-items:center;gap:10px;font-weight:850;margin-bottom:34px}.brand img{width:38px}.brand small{display:block;color:var(--muted);font-size:11px;font-weight:600}.panel{padding:26px;border:1px solid var(--line);border-radius:20px;background:var(--panel);margin-top:18px}.panel h1,.panel h2{margin-top:0}.muted{color:var(--muted)}input{width:100%;padding:13px 14px;margin:7px 0;border-radius:11px;border:1px solid var(--line);background:#0d1728;color:var(--ink);font:inherit}.inline{display:flex;gap:9px;align-items:flex-start;margin:10px 0 14px;color:var(--muted);font-size:14px}.inline input{width:auto;margin-top:4px}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.button,button{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:11px 16px;border:0;border-radius:11px;background:linear-gradient(135deg,var(--blue),var(--violet));color:#07111f;font:inherit;font-weight:850;cursor:pointer;text-decoration:none}.secondary{background:transparent!important;color:var(--ink)!important;border:1px solid var(--line)!important}.ok{color:var(--green)}.warn{color:var(--amber)}.err{color:var(--red)}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.boundary{border-left:3px solid var(--amber);padding:11px 13px;background:#272116;color:#e4cc95;border-radius:0 10px 10px 0;font-size:14px}@media(max-width:620px){.row{grid-template-columns:1fr}.actions{display:grid}.button{width:100%}}
+  </style>
+</head>
+<body><main class="wrap">
+  <a class="brand" href="./index.html"><img src="./vl-icon.svg" alt=""><span>VL<small>Governed AI Software Factory</small></span></a>
+  <section class="panel">
+    <h1>Pilot account</h1>
+    <p class="muted">Sign in or create a Launch Pilot account before using authenticated VL workspaces such as Assisted Build. Authentication does not grant production approval or production promotion authority.</p>
+    <label for="email">Work email</label><input id="email" type="email" autocomplete="email" inputmode="email" placeholder="Work email">
+    <label for="password">Password</label><input id="password" type="password" autocomplete="current-password" placeholder="Password (minimum 8 characters)">
+    <label for="name">Name or company</label><input id="name" autocomplete="organization" placeholder="Required when creating or completing an account">
+    <label class="inline"><input id="terms" type="checkbox"><span>I accept the Launch Pilot terms and understand that every production release remains explicitly human-approved.</span></label>
+    <div class="row"><button id="signupBtn" type="button" onclick="signupClick()">Create account</button><button id="signinBtn" class="secondary" type="button" onclick="signinClick()">Sign in</button></div>
+    <p id="authmsg" class="muted" role="status" aria-live="polite">Ready.</p>
+  </section>
+  <section class="panel">
+    <h2>Account status</h2>
+    <div id="acctmsg" class="muted" role="status" aria-live="polite">Checking saved pilot session…</div>
+    <div class="actions"><a class="button" href="./assisted-build.html">Continue to Assisted Build</a><a class="button secondary" href="./build-status.html">Build status</a><a class="button secondary" href="./index.html">VL home</a></div>
+  </section>
+  <p class="boundary"><b>Authority boundary:</b> this page only establishes the authenticated pilot session used by customer workspaces. It cannot approve, promote or deploy a production release.</p>
+</main>
+<script>
+var VL_URL='https://wczelfmnqpgzfdszxubl.supabase.co';
+var VL_KEY='sb_publishable_lWy0g5rcNuhg52xpI9w7Og_2bGXLiOR';
+var VL_STORE='vl_pilot_session_v2';
+var vlSession=null;
+function el(id){return document.getElementById(id)}
+function setMsg(id,text,cls){var e=el(id);if(e){e.className=cls||'muted';e.textContent=text}}
+function makeHeaders(token,prefer){var h={'apikey':VL_KEY,'Content-Type':'application/json'};if(token)h.Authorization='Bearer '+token;if(prefer)h.Prefer=prefer;return h}
+function saveSession(s){vlSession=s;try{s?localStorage.setItem(VL_STORE,JSON.stringify(s)):localStorage.removeItem(VL_STORE)}catch(e){}}
+function restoreSession(){try{var raw=localStorage.getItem(VL_STORE);vlSession=raw?JSON.parse(raw):null}catch(e){vlSession=null}}
+function readJson(r){return r.text().then(function(t){var d={};try{d=t?JSON.parse(t):{}}catch(e){d={message:t||('HTTP '+r.status)}}if(!r.ok)throw new Error(d.msg||d.message||d.error_description||d.error||('HTTP '+r.status));return d})}
+function authUser(){restoreSession();if(!vlSession||!vlSession.access_token)return Promise.resolve(null);return fetch(VL_URL+'/auth/v1/user',{headers:makeHeaders(vlSession.access_token)}).then(function(r){if(!r.ok){saveSession(null);return null}return r.json()})}
+function getAccount(user){var q='select=id,display_name,status,plan_key,onboarding_state,terms_accepted_at,created_at&owner_user_id=eq.'+encodeURIComponent(user.id);return fetch(VL_URL+'/rest/v1/customer_accounts?'+q,{headers:makeHeaders(vlSession.access_token)}).then(readJson).then(function(rows){return rows[0]||null})}
+function createProfile(user){var display=el('name').value.trim();if(display.length<2)return Promise.reject(new Error('Enter your name or company.'));if(!el('terms').checked)return Promise.reject(new Error('Accept the Launch Pilot terms first.'));var payload={owner_user_id:user.id,display_name:display,status:'active',plan_key:'launch_pilot',onboarding_state:'ready',terms_accepted_at:new Date().toISOString()};return fetch(VL_URL+'/rest/v1/customer_accounts',{method:'POST',headers:makeHeaders(vlSession.access_token,'return=representation'),body:JSON.stringify(payload)}).then(function(r){if(r.status===409)return getAccount(user);return readJson(r).then(function(rows){return rows[0]||null})})}
+function setBusy(on){el('signinBtn').disabled=on;el('signupBtn').disabled=on}
+function loadAccount(){return authUser().then(function(user){if(!user){setMsg('acctmsg','No active pilot session. Sign in or create an account.','warn');return null}return getAccount(user).then(function(a){if(!a){setMsg('acctmsg','Signed in, but the customer profile is incomplete. Enter name/company, accept terms, then sign in again.','warn');return null}setMsg('acctmsg',a.display_name+' · '+String(a.status).toUpperCase()+' · '+a.plan_key+' · onboarding '+a.onboarding_state,'ok');return a})}).catch(function(e){setMsg('acctmsg',e.message||String(e),'err');return null})}
+function signinClick(){setMsg('authmsg','Signing in…','warn');setBusy(true);var em=el('email').value.trim(),pw=el('password').value;if(!em||!pw){setMsg('authmsg','Enter email and password.','err');setBusy(false);return false}fetch(VL_URL+'/auth/v1/token?grant_type=password',{method:'POST',headers:makeHeaders(),body:JSON.stringify({email:em,password:pw})}).then(readJson).then(function(d){saveSession(d);return d.user||authUser()}).then(function(u){return getAccount(u).then(function(a){return a||createProfile(u)})}).then(function(){setMsg('authmsg','Signed in successfully.','ok');return loadAccount()}).catch(function(e){saveSession(null);setMsg('authmsg',e.message||String(e),'err')}).finally(function(){setBusy(false)});return false}
+function signupClick(){setMsg('authmsg','Creating account…','warn');setBusy(true);var em=el('email').value.trim(),pw=el('password').value;if(!em){setMsg('authmsg','Enter your email.','err');setBusy(false);return false}if(pw.length<8){setMsg('authmsg','Password must be at least 8 characters.','err');setBusy(false);return false}if(el('name').value.trim().length<2){setMsg('authmsg','Enter your name or company.','err');setBusy(false);return false}if(!el('terms').checked){setMsg('authmsg','Accept the Launch Pilot terms first.','err');setBusy(false);return false}fetch(VL_URL+'/auth/v1/signup',{method:'POST',headers:makeHeaders(),body:JSON.stringify({email:em,password:pw})}).then(readJson).then(function(d){if(d.access_token){saveSession(d);return (d.user?Promise.resolve(d.user):authUser()).then(createProfile).then(function(){setMsg('authmsg','Account created and signed in.','ok');return loadAccount()})}setMsg('authmsg','Account created. Check your email to confirm, then sign in.','warn')}).catch(function(e){setMsg('authmsg',e.message||String(e),'err')}).finally(function(){setBusy(false)});return false}
+restoreSession();loadAccount();
+</script>
+<script src="./vl-i18n.js" defer></script>
+</body></html>
