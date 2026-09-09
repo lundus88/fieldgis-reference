@@ -1,0 +1,104 @@
+name: VL Capability Refresh Runtime Validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/public/**'
+      - 'vl/tests/public_capability_surface_test.mjs'
+      - 'vl/scripts/generate_public_builder_registry.py'
+      - '.github/workflows/vl-capability-refresh-runtime-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  flutter-analyze-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+
+      - name: Set up Java 21
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Flutter 3.38.1
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
+        with:
+          flutter-version: '3.38.1'
+          channel: stable
+          cache: true
+
+      - name: Generate Android scaffold
+        run: flutter create . --platforms=android --org com.vrslabs --project-name fieldgis_reference
+
+      - name: Write CI-safe model smoke test
+        run: |
+          mkdir -p test
+          cat > test/widget_test.dart <<'DART'
+          import 'package:flutter_test/flutter_test.dart';
+          import 'package:fieldgis_reference/main.dart';
+
+          void main() {
+            test('FieldPoint JSON roundtrip', () {
+              final createdAt = DateTime.utc(2026, 9, 9, 12, 0);
+              final point = FieldPoint(
+                id: 'capability-refresh',
+                code: 'VL001',
+                latitude: 5.9804,
+                longitude: 116.0735,
+                accuracyM: 3.2,
+                createdAt: createdAt,
+              );
+              final restored = FieldPoint.fromJson(point.toJson());
+              expect(restored.id, point.id);
+              expect(restored.code, point.code);
+              expect(restored.latitude, point.latitude);
+              expect(restored.longitude, point.longitude);
+              expect(restored.accuracyM, point.accuracyM);
+              expect(restored.createdAt, point.createdAt);
+            });
+          }
+          DART
+
+      - name: Resolve locked dependencies
+        run: flutter pub get --enforce-lockfile
+
+      - name: Flutter analyze
+        run: flutter analyze --no-fatal-infos
+
+      - name: Flutter test
+        run: flutter test --dart-define=VL_CERT_ENV=certification
+
+  webgis-analyze-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: webgis
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+
+      - name: Set up Node 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+
+      - name: Install pinned dependencies
+        run: npm install --ignore-scripts --package-lock-only && npm ci --ignore-scripts
+
+      - name: WebGIS static analysis
+        run: npm run analyze
+
+      - name: WebGIS tests
+        run: npm test
