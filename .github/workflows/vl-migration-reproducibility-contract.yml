@@ -5,12 +5,15 @@ on:
     paths:
       - 'vl/migrations/**'
       - '.github/workflows/vl-migration-reproducibility-contract.yml'
+      - '.github/workflows/vl-schema-capture-evidence.yml'
   push:
     branches:
       - 'fix/vl-migration-reproducibility-2026-09'
+      - 'fix/vl-remote-schema-evidence-2026-09'
     paths:
       - 'vl/migrations/**'
       - '.github/workflows/vl-migration-reproducibility-contract.yml'
+      - '.github/workflows/vl-schema-capture-evidence.yml'
   workflow_dispatch:
 
 permissions:
@@ -24,3 +27,5 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - name: Verify migration reproducibility safeguards
         run: python3 vl/migrations/check_migration_reproducibility.py
+      - name: Verify read-only schema capture safeguards
+        run: python3 vl/migrations/check_schema_capture_evidence.py

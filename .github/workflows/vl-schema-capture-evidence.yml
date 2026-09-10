@@ -1,0 +1,63 @@
+name: VL Schema Capture Evidence
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  capture-read-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      VL_SUPABASE_PROJECT_REF: wczelfmnqpgzfdszxubl
+      SUPABASE_CLI_VERSION: 2.117.0
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - name: Require operator credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_ACCESS_TOKEN:-}" || { echo 'SUPABASE_ACCESS_TOKEN is required'; exit 1; }
+          test -n "${SUPABASE_DB_PASSWORD:-}" || { echo 'SUPABASE_DB_PASSWORD is required'; exit 1; }
+
+      - name: Capture schema and migration history read-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          CAPTURE="$RUNNER_TEMP/vl-schema-capture"
+          mkdir -p "$CAPTURE"
+          cd "$CAPTURE"
+
+          npx -y "supabase@${SUPABASE_CLI_VERSION}" --version
+          npx -y "supabase@${SUPABASE_CLI_VERSION}" init
+          npx -y "supabase@${SUPABASE_CLI_VERSION}" link --project-ref "$VL_SUPABASE_PROJECT_REF"
+
+          # Default db dump is schema-only: no production table rows are exported.
+          npx -y "supabase@${SUPABASE_CLI_VERSION}" db dump --linked -f remote_schema.sql
+          npx -y "supabase@${SUPABASE_CLI_VERSION}" migration fetch
+
+          {
+            sha256sum remote_schema.sql
+            find supabase/migrations -type f -print0 | sort -z | xargs -0 sha256sum
+          } > SHA256SUMS.txt
+
+          # Fail closed if fetched SQL appears to contain obvious credential material.
+          if grep -RIEq '(sb_secret_[A-Za-z0-9_-]+|sk[_-][A-Za-z0-9_-]{16,}|eyJ[A-Za-z0-9_-]{16,}\.[A-Za-z0-9_-]{16,}\.[A-Za-z0-9_-]{16,}|password[[:space:]]*=[[:space:]]*[^[:space:];]{8,})' remote_schema.sql supabase/migrations; then
+            echo 'Potential credential material detected in schema/migration capture; artifact upload blocked.'
+            exit 1
+          fi
+
+          tar -czf "$GITHUB_WORKSPACE/vl-schema-capture-evidence.tar.gz" remote_schema.sql supabase/migrations SHA256SUMS.txt
+
+      - name: Upload short-lived evidence artifact
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: vl-schema-capture-evidence
+          path: vl-schema-capture-evidence.tar.gz
+          if-no-files-found: error
+          retention-days: 1
