@@ -47,7 +47,7 @@ jobs:
           } > SHA256SUMS.txt
 
           # Fail closed if fetched SQL appears to contain obvious credential material.
-          if grep -RIEq '(sb_secret_[A-Za-z0-9_-]+|sk[_-][A-Za-z0-9_-]{16,}|eyJ[A-Za-z0-9_-]{16,}\.[A-Za-z0-9_-]{16,}\.[A-Za-z0-9_-]{16,}|password[[:space:]]*=[[:space:]]*['\"'\"]?[^[:space:];]{8,})' remote_schema.sql supabase/migrations; then
+          if grep -RIEq '(sb_secret_[A-Za-z0-9_-]+|sk[_-][A-Za-z0-9_-]{16,}|eyJ[A-Za-z0-9_-]{16,}\.[A-Za-z0-9_-]{16,}\.[A-Za-z0-9_-]{16,}|password[[:space:]]*=[[:space:]]*[^[:space:];]{8,})' remote_schema.sql supabase/migrations; then
             echo 'Potential credential material detected in schema/migration capture; artifact upload blocked.'
             exit 1
           fi
