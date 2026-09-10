@@ -1,0 +1,26 @@
+name: VL Migration Reproducibility Contract
+
+on:
+  pull_request:
+    paths:
+      - 'vl/migrations/**'
+      - '.github/workflows/vl-migration-reproducibility-contract.yml'
+  push:
+    branches:
+      - 'fix/vl-migration-reproducibility-2026-09'
+    paths:
+      - 'vl/migrations/**'
+      - '.github/workflows/vl-migration-reproducibility-contract.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reproducibility-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Verify migration reproducibility safeguards
+        run: python3 vl/migrations/check_migration_reproducibility.py
