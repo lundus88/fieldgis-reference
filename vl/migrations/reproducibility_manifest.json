@@ -1,0 +1,80 @@
+{
+  "schema": "vl.migration-reproducibility/1",
+  "verified_at": "2026-09-10",
+  "repository": "lundus88/fieldgis-reference",
+  "migration_root": "vl/migrations",
+  "policy": {
+    "historical_migrations_are_immutable": true,
+    "synthetic_certification_evidence_for_replay": false,
+    "production_schema_mutation_during_history_repair": false,
+    "tracking_only_repair_requires_exact_schema_parity": true,
+    "fresh_dev_replay_required_before_rollout": true
+  },
+  "known_remote_history_prerequisites": [
+    {
+      "object": "public.claim_vrs_production_promotion_job(jsonb)",
+      "first_observed_blocker": "20260826024508_harden_production_promotion_rpcs",
+      "status": "remote-history prerequisite missing from reproducible source chain"
+    },
+    {
+      "object": "public.complete_vrs_production_promotion_job(uuid,uuid,boolean,jsonb,text)",
+      "first_observed_blocker": "20260826024508_harden_production_promotion_rpcs",
+      "status": "remote-history prerequisite missing from reproducible source chain"
+    },
+    {
+      "object": "private.production_adapter_registry",
+      "first_observed_blocker": "20260826032718_vl_production_adapters_observability_v3",
+      "status": "remote-history prerequisite missing from reproducible source chain"
+    },
+    {
+      "object": "private.production_promotion_jobs",
+      "first_observed_blocker": "20260826032718_vl_production_adapters_observability_v3",
+      "status": "remote-history prerequisite missing from reproducible source chain"
+    },
+    {
+      "object": "private.builder_release_gate_profiles",
+      "first_observed_blocker": "20260826103513_pwa_offline_release_contract_gate",
+      "status": "remote-history prerequisite missing from reproducible source chain"
+    },
+    {
+      "object": "private.release_validation_jobs",
+      "first_observed_blocker": "20260826210555_harden_private_control_plane_rls",
+      "status": "remote-history prerequisite missing from reproducible source chain"
+    },
+    {
+      "object": "private.auto_prepare_release_candidate()",
+      "first_observed_blocker": "20260827120317_harden_control_plane_direct_writes",
+      "status": "remote-history prerequisite missing from reproducible source chain"
+    },
+    {
+      "object": "public.vl_cert_health",
+      "first_observed_blocker": "operational health freshness rollout",
+      "status": "present in production but absent from fresh replay path"
+    }
+  ],
+  "historical_data_dependent_migrations": [
+    {
+      "file": "vl/migrations/20260829_raise_web_pwa_certification_depth.sql",
+      "dependency": "historical builder certification evidence",
+      "fresh_replay_behavior": "blocked without historical evidence",
+      "allowed_recovery": "canonical schema baseline plus migration-history synchronization; never synthetic PASS evidence"
+    },
+    {
+      "file": "vl/migrations/20260829_builder_certification_depth_3.sql",
+      "dependency": "historical builder certification evidence",
+      "fresh_replay_behavior": "blocked without historical evidence",
+      "allowed_recovery": "canonical schema baseline plus migration-history synchronization; never synthetic PASS evidence"
+    }
+  ],
+  "required_recovery_gates": [
+    "canonical_remote_schema_pull",
+    "schema_parity_review",
+    "migration_history_diff_review",
+    "tracking_only_history_repair_if_schema_exactly_matches",
+    "fresh_data_less_dev_replay",
+    "security_advisors",
+    "performance_advisors",
+    "operational_reconciliation_regression",
+    "read_only_production_non_mutation_verification"
+  ]
+}
