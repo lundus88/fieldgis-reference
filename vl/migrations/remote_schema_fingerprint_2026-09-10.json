@@ -1,0 +1,54 @@
+{
+  "schema": "vl.remote-schema-fingerprint/1",
+  "captured_at_date": "2026-09-10",
+  "project_name": "vrs-core",
+  "project_ref": "wczelfmnqpgzfdszxubl",
+  "capture_mode": "read_only_metadata",
+  "contains_production_rows": false,
+  "migration_history": {
+    "count": 166,
+    "first_version": "20260825085858",
+    "last_version": "20260901034112",
+    "chain_sha256": "38bc0ff05cdc5b71a0774415a73f1f56fbcf18b3d9de1cee270a1a9cf569dae3",
+    "hash_definition": "SHA-256 of newline-joined ordered version|name|SHA256(statements) records"
+  },
+  "schema_fingerprint": {
+    "schemas": ["public", "private"],
+    "functions": {
+      "count": 122,
+      "sha256": "17a2a5b112900ae1dfb68eb6149cb384bb5a308aa5d764740bd3a0ba0131b1cb"
+    },
+    "columns": {
+      "count": 815,
+      "sha256": "7d3ff81e0b71eda3e1442939a6ef2ea7a210748cb6533e72476f7c54fb78b11d"
+    },
+    "constraints": {
+      "count": 346,
+      "sha256": "2bc9f84ec91eaa5a637a0ff0ec2fe78bb29953c197c3a98222f4bdfaefb3bd79"
+    },
+    "indexes": {
+      "count": 215,
+      "sha256": "3d2ad7e49f14c6b795924f99c8426ad7300b7090b3ebfcd7e9db68e0a5968dc7"
+    },
+    "policies": {
+      "count": 88,
+      "sha256": "248e901bfa38e4709d6f53febe1ef06f22458f7331da77f6d5be6cbfa082d91a"
+    }
+  },
+  "critical_history_hashes": {
+    "20260826024508_harden_production_promotion_rpcs": "e9b8581ddb6c003e3065391fee5078c5b0c4c1c3f3b67c4cb1210bb8fff551df",
+    "20260826032718_vl_production_adapters_observability_v3": "242a129b74ece6b4a73e7a0610a39b232455d2ec7db0f8c3b7203404a739a79a",
+    "20260826103513_pwa_offline_release_contract_gate": "87288b79c61115e012fc876a2df51d8dd4b7127379287c715ee1f6cc230583cd",
+    "20260826210555_harden_private_control_plane_rls": "8253b6d822a5d322b0bdae549b7dcdd10441ca98c22e3fa186af94ea57712a37",
+    "20260827120317_harden_control_plane_direct_writes": "9bab17b2cf9fd5eb21c818a502a20719e2b2827f9d1486c02954c894c4e944ef",
+    "20260829140340_raise_web_pwa_certification_depth": "d3c937e3bd28fff4c2e6d4306c4d4ca9836a70564e044afc1da7ab66c0756093",
+    "20260829144844_builder_certification_depth_3": "63eb56235470a9aa15405843ed40be300cbd69b662f45dbbe404e62d2a2234ef",
+    "20260901034112_assisted_build_product_alignment": "cf95157cf723b69ab63152f75418f3219f49be8a53021fb12042b57dda74e7ba"
+  },
+  "governance": {
+    "authoritative_schema_dump_required_before_history_repair": true,
+    "migration_history_repair_performed": false,
+    "production_schema_mutation_performed": false,
+    "synthetic_certification_evidence_created": false
+  }
+}
