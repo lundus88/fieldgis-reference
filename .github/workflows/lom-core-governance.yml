@@ -9,6 +9,8 @@ on:
       - 'vl/model-governance/**'
       - 'vl/execution-governance/**'
       - 'vl/remediation-governance/**'
+      - 'vl/multi-agent-governance/**'
+      - 'vl/golden-workflow/**'
       - 'vl/LOM_V1.md'
       - '.github/workflows/lom-core-governance.yml'
   pull_request:
@@ -19,6 +21,8 @@ on:
       - 'vl/model-governance/**'
       - 'vl/execution-governance/**'
       - 'vl/remediation-governance/**'
+      - 'vl/multi-agent-governance/**'
+      - 'vl/golden-workflow/**'
       - 'vl/LOM_V1.md'
       - '.github/workflows/lom-core-governance.yml'
   workflow_dispatch:
@@ -51,6 +55,11 @@ jobs:
       - name: Remediation governance regression
         working-directory: vl/remediation-governance
         run: python3 -m unittest -v test_remediation_policy.py
+      - name: Multi-agent governance regression
+        working-directory: vl/multi-agent-governance
+        run: python3 -m unittest -v test_delegation_policy.py
+      - name: Golden workflow evidence
+        run: python3 vl/golden-workflow/run_golden_workflow.py
       - name: Assert LOM fail-closed invariants
         shell: bash
         run: |
