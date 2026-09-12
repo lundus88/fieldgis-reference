@@ -1,0 +1,93 @@
+name: LOM Core Governance
+
+on:
+  push:
+    branches: [lom-v1]
+    paths:
+      - 'vl/context-governance/**'
+      - 'vl/completion-governance/**'
+      - 'vl/model-governance/**'
+      - 'vl/execution-governance/**'
+      - 'vl/remediation-governance/**'
+      - 'vl/multi-agent-governance/**'
+      - 'vl/connector-governance/**'
+      - 'vl/golden-workflow/**'
+      - 'vl/LOM_V1.md'
+      - '.github/workflows/lom-core-governance.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/context-governance/**'
+      - 'vl/completion-governance/**'
+      - 'vl/model-governance/**'
+      - 'vl/execution-governance/**'
+      - 'vl/remediation-governance/**'
+      - 'vl/multi-agent-governance/**'
+      - 'vl/connector-governance/**'
+      - 'vl/golden-workflow/**'
+      - 'vl/LOM_V1.md'
+      - '.github/workflows/lom-core-governance.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lom-core-governance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Validate context policy
+        run: python3 vl/context-governance/validate_context_policy.py vl/context-governance/default-context-policy.json
+      - name: Context governance regression
+        working-directory: vl/context-governance
+        run: python3 -m unittest -v test_lom_context_governance.py
+      - name: Independent completion regression
+        working-directory: vl/completion-governance
+        run: python3 -m unittest -v test_lom_independent_validator.py
+      - name: Model governance regression
+        working-directory: vl/model-governance
+        run: python3 -m unittest -v test_route_model.py
+      - name: Execution pool governance regression
+        working-directory: vl/execution-governance
+        run: python3 -m unittest -v test_lom_execution_pool.py
+      - name: Remediation governance regression
+        working-directory: vl/remediation-governance
+        run: python3 -m unittest -v test_remediation_policy.py
+      - name: Multi-agent governance regression
+        working-directory: vl/multi-agent-governance
+        run: python3 -m unittest -v test_lom_delegation_policy.py
+      - name: Validate connector registry contract
+        run: python3 vl/connector-governance/validate_connector_registry.py vl/connector-governance/connector-registry.json
+      - name: Golden workflow evidence
+        run: python3 vl/golden-workflow/run_golden_workflow.py
+      - name: Assert LOM fail-closed invariants
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q '"default_decision": "deny"' vl/context-governance/default-context-policy.json
+          grep -q '"record_secret_values": false' vl/context-governance/default-context-policy.json
+          grep -q 'CONTEXT_GOVERNANCE_BLOCKED' vl/context-governance/pre_model_invocation.py
+          grep -q "'raw_candidates_forwarded': False" vl/context-governance/pre_model_invocation.py
+          grep -q "'builder_self_report_trusted': False" vl/completion-governance/independent_validator.py
+          grep -q 'INCOMPLETE_ACCEPTANCE_EVIDENCE' vl/completion-governance/independent_validator.py
+          grep -q 'APP_SPEC_BINDING_MISMATCH' vl/completion-governance/independent_validator.py
+          grep -q "'production_locked': True" vl/completion-governance/independent_validator.py
+          grep -q 'MODEL_ROUTING_BLOCKED' vl/model-governance/route_model.py
+          grep -q "'deterministic': True" vl/model-governance/route_model.py
+          grep -q "'production_locked': True" vl/model-governance/route_model.py
+          grep -q 'NONPRODUCTION_ENVIRONMENT_REQUIRED' vl/execution-governance/execution_pool_policy.py
+          grep -q "'production_approval': False" vl/execution-governance/execution_pool_policy.py
+          grep -q "'production_locked': True" vl/execution-governance/execution_pool_policy.py
+          grep -q 'REMEDIATION_BUDGET_EXHAUSTED' vl/remediation-governance/remediation_policy.py
+          grep -q 'FAILURE_EVIDENCE_REQUIRED' vl/remediation-governance/remediation_policy.py
+          grep -q "'merge_executed': False" vl/remediation-governance/remediation_policy.py
+          grep -q "'production_deployed': False" vl/remediation-governance/remediation_policy.py
+          grep -q "'production_locked': True" vl/remediation-governance/remediation_policy.py
+          grep -q '"default_decision": "deny"' vl/connector-governance/connector-registry.json
+          grep -q '"write_authority": false' vl/connector-governance/connector-registry.json
+          grep -q '"production_locked": true' vl/connector-governance/connector-registry.json
+          echo 'LOM CORE GOVERNANCE: PASS'

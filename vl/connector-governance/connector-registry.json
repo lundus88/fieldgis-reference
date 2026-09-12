@@ -1,0 +1,22 @@
+{
+  "schema": "lom.connector-registry/1",
+  "registry_id": "lom-v1-readonly-connectors",
+  "version": 1,
+  "default_decision": "deny",
+  "production_locked": true,
+  "write_authority": false,
+  "paid_action_authority": false,
+  "ambient_credentials_allowed": false,
+  "connectors": [
+    {
+      "id": "fixture-repository-catalog",
+      "version": "1.0.0",
+      "status": "certified-fixture",
+      "mode": "read-only",
+      "allowed_operations": ["read"],
+      "resource_scopes": ["fixture/repository"],
+      "external_runtime": false,
+      "credentials_required": false
+    }
+  ]
+}
