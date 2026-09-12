@@ -8,6 +8,7 @@ on:
       - 'vl/completion-governance/**'
       - 'vl/model-governance/**'
       - 'vl/execution-governance/**'
+      - 'vl/remediation-governance/**'
       - 'vl/LOM_V1.md'
       - '.github/workflows/lom-core-governance.yml'
   pull_request:
@@ -17,6 +18,7 @@ on:
       - 'vl/completion-governance/**'
       - 'vl/model-governance/**'
       - 'vl/execution-governance/**'
+      - 'vl/remediation-governance/**'
       - 'vl/LOM_V1.md'
       - '.github/workflows/lom-core-governance.yml'
   workflow_dispatch:
@@ -46,6 +48,9 @@ jobs:
       - name: Execution pool governance regression
         working-directory: vl/execution-governance
         run: python3 -m unittest -v test_lom_execution_pool.py
+      - name: Remediation governance regression
+        working-directory: vl/remediation-governance
+        run: python3 -m unittest -v test_remediation_policy.py
       - name: Assert LOM fail-closed invariants
         shell: bash
         run: |
@@ -64,4 +69,9 @@ jobs:
           grep -q 'NONPRODUCTION_ENVIRONMENT_REQUIRED' vl/execution-governance/execution_pool_policy.py
           grep -q "'production_approval': False" vl/execution-governance/execution_pool_policy.py
           grep -q "'production_locked': True" vl/execution-governance/execution_pool_policy.py
+          grep -q 'REMEDIATION_BUDGET_EXHAUSTED' vl/remediation-governance/remediation_policy.py
+          grep -q 'FAILURE_EVIDENCE_REQUIRED' vl/remediation-governance/remediation_policy.py
+          grep -q "'merge_executed': False" vl/remediation-governance/remediation_policy.py
+          grep -q "'production_deployed': False" vl/remediation-governance/remediation_policy.py
+          grep -q "'production_locked': True" vl/remediation-governance/remediation_policy.py
           echo 'LOM CORE GOVERNANCE: PASS'
