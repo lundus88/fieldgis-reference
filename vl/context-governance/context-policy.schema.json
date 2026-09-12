@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vrs-labs.local/schemas/context-policy.schema.json",
+  "title": "VL Context Governance Policy",
+  "type": "object",
+  "required": ["schema", "policy_id", "version", "default_decision", "rules", "sensitive_classes", "audit"],
+  "properties": {
+    "schema": {"const": "vl.context-policy/1"},
+    "policy_id": {"type": "string", "minLength": 1},
+    "version": {"type": "integer", "minimum": 1},
+    "default_decision": {"const": "deny"},
+    "rules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "effect", "resource_type", "pattern", "data_class", "reason"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "effect": {"enum": ["allow", "deny"]},
+          "resource_type": {"enum": ["repo_path", "connector_resource", "generated_artifact", "prompt_attachment"]},
+          "pattern": {"type": "string", "minLength": 1},
+          "data_class": {"type": "string", "minLength": 1},
+          "reason": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "sensitive_classes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string"},
+      "uniqueItems": true
+    },
+    "audit": {
+      "type": "object",
+      "required": ["record_policy_version", "record_resource_class", "record_decision", "record_secret_values"],
+      "properties": {
+        "record_policy_version": {"const": true},
+        "record_resource_class": {"const": true},
+        "record_decision": {"const": true},
+        "record_secret_values": {"const": false}
+      }
+    }
+  }
+}
