@@ -10,6 +10,7 @@ on:
       - 'vl/execution-governance/**'
       - 'vl/remediation-governance/**'
       - 'vl/multi-agent-governance/**'
+      - 'vl/connector-governance/**'
       - 'vl/golden-workflow/**'
       - 'vl/LOM_V1.md'
       - '.github/workflows/lom-core-governance.yml'
@@ -22,6 +23,7 @@ on:
       - 'vl/execution-governance/**'
       - 'vl/remediation-governance/**'
       - 'vl/multi-agent-governance/**'
+      - 'vl/connector-governance/**'
       - 'vl/golden-workflow/**'
       - 'vl/LOM_V1.md'
       - '.github/workflows/lom-core-governance.yml'
@@ -58,6 +60,8 @@ jobs:
       - name: Multi-agent governance regression
         working-directory: vl/multi-agent-governance
         run: python3 -m unittest -v test_delegation_policy.py
+      - name: Validate connector registry contract
+        run: python3 vl/connector-governance/validate_connector_registry.py vl/connector-governance/connector-registry.json
       - name: Golden workflow evidence
         run: python3 vl/golden-workflow/run_golden_workflow.py
       - name: Assert LOM fail-closed invariants
@@ -83,4 +87,7 @@ jobs:
           grep -q "'merge_executed': False" vl/remediation-governance/remediation_policy.py
           grep -q "'production_deployed': False" vl/remediation-governance/remediation_policy.py
           grep -q "'production_locked': True" vl/remediation-governance/remediation_policy.py
+          grep -q '"default_decision": "deny"' vl/connector-governance/connector-registry.json
+          grep -q '"write_authority": false' vl/connector-governance/connector-registry.json
+          grep -q '"production_locked": true' vl/connector-governance/connector-registry.json
           echo 'LOM CORE GOVERNANCE: PASS'
