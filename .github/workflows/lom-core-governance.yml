@@ -2,7 +2,7 @@ name: LOM Core Governance
 
 on:
   push:
-    branches: [lom-v1]
+    branches: [lom-v1, lom-p1-live-connector-proof]
     paths:
       - 'vl/context-governance/**'
       - 'vl/completion-governance/**'
@@ -62,6 +62,9 @@ jobs:
         run: python3 -m unittest -v test_lom_delegation_policy.py
       - name: Validate connector registry contract
         run: python3 vl/connector-governance/validate_connector_registry.py vl/connector-governance/connector-registry.json
+      - name: Live read-only connector runtime proof
+        if: github.ref == 'refs/heads/lom-p1-live-connector-proof' || github.event_name == 'pull_request'
+        run: python3 vl/connector-governance/run_github_readonly_proof.py
       - name: Golden workflow evidence
         run: python3 vl/golden-workflow/run_golden_workflow.py
       - name: Assert LOM fail-closed invariants
