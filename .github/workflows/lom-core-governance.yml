@@ -6,6 +6,7 @@ on:
     paths:
       - 'vl/context-governance/**'
       - 'vl/completion-governance/**'
+      - 'vl/model-governance/**'
       - 'vl/LOM_V1.md'
       - '.github/workflows/lom-core-governance.yml'
   pull_request:
@@ -13,6 +14,7 @@ on:
     paths:
       - 'vl/context-governance/**'
       - 'vl/completion-governance/**'
+      - 'vl/model-governance/**'
       - 'vl/LOM_V1.md'
       - '.github/workflows/lom-core-governance.yml'
   workflow_dispatch:
@@ -36,6 +38,9 @@ jobs:
       - name: Independent completion regression
         working-directory: vl/completion-governance
         run: python3 -m unittest -v test_lom_independent_validator.py
+      - name: Model governance regression
+        working-directory: vl/model-governance
+        run: python3 -m unittest -v test_route_model.py
       - name: Assert LOM fail-closed invariants
         shell: bash
         run: |
@@ -48,4 +53,7 @@ jobs:
           grep -q 'INCOMPLETE_ACCEPTANCE_EVIDENCE' vl/completion-governance/independent_validator.py
           grep -q 'APP_SPEC_BINDING_MISMATCH' vl/completion-governance/independent_validator.py
           grep -q "'production_locked': True" vl/completion-governance/independent_validator.py
+          grep -q 'MODEL_ROUTING_BLOCKED' vl/model-governance/route_model.py
+          grep -q "'deterministic': True" vl/model-governance/route_model.py
+          grep -q "'production_locked': True" vl/model-governance/route_model.py
           echo 'LOM CORE GOVERNANCE: PASS'
