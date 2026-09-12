@@ -7,6 +7,7 @@ on:
       - 'vl/context-governance/**'
       - 'vl/completion-governance/**'
       - 'vl/model-governance/**'
+      - 'vl/execution-governance/**'
       - 'vl/LOM_V1.md'
       - '.github/workflows/lom-core-governance.yml'
   pull_request:
@@ -15,6 +16,7 @@ on:
       - 'vl/context-governance/**'
       - 'vl/completion-governance/**'
       - 'vl/model-governance/**'
+      - 'vl/execution-governance/**'
       - 'vl/LOM_V1.md'
       - '.github/workflows/lom-core-governance.yml'
   workflow_dispatch:
@@ -25,7 +27,7 @@ permissions:
 jobs:
   lom-core-governance:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -41,6 +43,9 @@ jobs:
       - name: Model governance regression
         working-directory: vl/model-governance
         run: python3 -m unittest -v test_route_model.py
+      - name: Execution pool governance regression
+        working-directory: vl/execution-governance
+        run: python3 -m unittest -v test_lom_execution_pool.py
       - name: Assert LOM fail-closed invariants
         shell: bash
         run: |
@@ -56,4 +61,7 @@ jobs:
           grep -q 'MODEL_ROUTING_BLOCKED' vl/model-governance/route_model.py
           grep -q "'deterministic': True" vl/model-governance/route_model.py
           grep -q "'production_locked': True" vl/model-governance/route_model.py
+          grep -q 'NONPRODUCTION_ENVIRONMENT_REQUIRED' vl/execution-governance/execution_pool_policy.py
+          grep -q "'production_approval': False" vl/execution-governance/execution_pool_policy.py
+          grep -q "'production_locked': True" vl/execution-governance/execution_pool_policy.py
           echo 'LOM CORE GOVERNANCE: PASS'
