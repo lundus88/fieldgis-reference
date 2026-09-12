@@ -59,7 +59,7 @@ jobs:
         run: python3 -m unittest -v test_remediation_policy.py
       - name: Multi-agent governance regression
         working-directory: vl/multi-agent-governance
-        run: python3 -m unittest -v test_delegation_policy.py
+        run: python3 -m unittest -v test_lom_delegation_policy.py
       - name: Validate connector registry contract
         run: python3 vl/connector-governance/validate_connector_registry.py vl/connector-governance/connector-registry.json
       - name: Golden workflow evidence
