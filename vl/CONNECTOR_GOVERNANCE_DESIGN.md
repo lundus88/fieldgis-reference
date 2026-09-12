@@ -1,8 +1,8 @@
 # LOM Connector Governance — Design Contract
 
-Status: DESIGN-READY / IMPLEMENTATION-BLOCKED
+Status: STATIC CONTRACT IMPLEMENTED / LIVE RUNTIME NOT DEPLOYED
 
-This document records the intended Lundus Operating Model (LOM) connector-governance contract without enabling any live connector write, paid action, production mutation, credential change, or autonomous approval.
+This document records the Lundus Operating Model (LOM) connector-governance contract without enabling any live connector write, paid action, production mutation, credential change, or autonomous approval.
 
 ## Purpose
 
@@ -18,16 +18,27 @@ LOM must treat every external connector as an explicitly governed capability. No
 6. Write, paid, provisioning, destructive and production-impacting operations remain blocked until a separately reviewed human-approval runtime exists.
 7. A boolean supplied by the caller is not acceptable proof of human approval.
 8. Approval evidence, when implemented later, must be independently issued, attributable to a human principal, bound to the exact canonical request digest, and auditable.
-9. Connector decisions must emit request, grant and decision digests without secret values.
+9. Connector decisions must emit request, grant and decision digests without secret values when a live runtime is later introduced.
 10. Any missing policy, unknown connector, out-of-scope resource or uncertified runtime fails closed.
 
 ## LOM v1 implementation boundary
 
-Initial implementation target is read-only, non-production connector governance only.
+The current implementation is a declarative, read-only, non-production connector registry plus a static validator:
 
-Permitted candidate class:
+- `vl/connector-governance/connector-registry.json`
+- `vl/connector-governance/validate_connector_registry.py`
 
-`connector.read:<connector-id>`
+The registry is deny-by-default and asserts:
+
+- `production_locked=true`
+- `write_authority=false`
+- `paid_action_authority=false`
+- `ambient_credentials_allowed=false`
+- allowed operation is read only
+- fixture connector has `external_runtime=false`
+- fixture connector requires no credentials
+
+No live external connector is invoked by this implementation.
 
 Explicitly excluded from LOM v1 connector runtime activation:
 
@@ -41,23 +52,19 @@ Explicitly excluded from LOM v1 connector runtime activation:
 
 ## Acceptance criteria
 
-A future implementation is acceptable only when tests prove:
+The current static implementation is acceptable when CI proves:
 
-- uncertified connector => DENY
-- missing grant => DENY
-- resource scope escape => DENY
-- non-read operation in v1 => DENY
-- ambient credential dependency => DENY
-- missing/unknown policy => DENY
-- read-only in-scope request with valid grant => ALLOW
-- decision evidence is deterministic and contains no secret material
+- registry is deny-by-default
+- connector entries are uniquely identified and versioned
+- only read operations are declared
+- explicit resource scopes exist
+- no ambient credentials are permitted
+- no external runtime is enabled
 - `production_locked=true`
 - write authority remains false
 
+A future live connector runtime must additionally prove request/grant/resource authorization, deterministic decision evidence, and no secret material exposure.
+
 ## Runtime evidence rule
 
-Contract and CI evidence do not constitute live connector runtime proof. Runtime status must remain `NOT_DEPLOYED` until an actual non-production connector path is exercised with machine-readable evidence.
-
-## Sequencing
-
-Connector Governance must be proven before LOM allows controlled multi-agent workers to invoke external systems. Execution Pool and Multi-Agent modules may be designed in parallel, but connector authority cannot be inferred or inherited from them.
+Static contract and CI evidence do not constitute live connector runtime proof. Runtime status remains `NOT_DEPLOYED` until an actual non-production connector path is exercised with machine-readable evidence.
