@@ -4,10 +4,20 @@ from __future__ import annotations
 import hashlib
 import importlib.util
 import json
+import sys
 from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[2]
+for rel in (
+    'vl/context-governance',
+    'vl/model-governance',
+    'vl/execution-governance',
+    'vl/remediation-governance',
+    'vl/multi-agent-governance',
+    'vl/completion-governance',
+):
+    sys.path.insert(0, str(ROOT / rel))
 
 
 def load_module(name: str, relpath: str):
