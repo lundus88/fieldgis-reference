@@ -1,0 +1,19 @@
+name: LOM P6 Operational Validation
+
+on:
+  pull_request:
+    paths:
+      - 'vl/lom-operational-validation/**'
+      - '.github/workflows/lom-p6-operational-validation.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run tests
+        working-directory: vl/lom-operational-validation
+        run: python3 -m unittest -v test_validation.py
