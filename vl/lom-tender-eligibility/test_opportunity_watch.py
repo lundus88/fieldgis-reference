@@ -37,6 +37,29 @@ class OpportunityWatchTests(unittest.TestCase):
         self.assertIn("SD013", result["candidate_ssb_codes"])
         self.assertEqual(result["warning"], "KEYWORD_MATCH_IS_NOT_CONFIRMED_SCOPE")
 
+    def test_sabah_water_bm_pipe_installation_is_inferential_only(self):
+        result = analyze(
+            "KERJA-KERJA PEMASANGAN PAIP JENIS MSCL",
+            "Kerja pemasangan paip di Pagalungan",
+            source_type="QUOTATION",
+            scope_confirmed=False,
+        )
+        self.assertEqual(result["opportunity_class"], "POTENTIAL_SERVICE_NEED")
+        self.assertEqual(result["evidence_state"], "DOWNSTREAM_INFRASTRUCTURE_SIGNAL_ONLY")
+        self.assertEqual(result["warning"], "INFRASTRUCTURE_SIGNAL_IS_NOT_CONFIRMED_SURVEY_SCOPE")
+        self.assertIn("pemasangan paip", result["downstream_infrastructure_signals"])
+        self.assertFalse(result["scope_confirmed"])
+
+    def test_downstream_signal_never_becomes_direct_without_explicit_service_signal(self):
+        result = analyze(
+            "Pembinaan jalan baharu",
+            "Kerja tanah dan pembinaan jalan",
+            source_type="TENDER",
+            scope_confirmed=True,
+        )
+        self.assertEqual(result["opportunity_class"], "POTENTIAL_SERVICE_NEED")
+        self.assertEqual(result["evidence_state"], "DOWNSTREAM_INFRASTRUCTURE_SIGNAL_ONLY")
+
     def test_unrelated_procurement_is_not_relevant(self):
         result = analyze(
             "Office furniture supply",
@@ -47,6 +70,7 @@ class OpportunityWatchTests(unittest.TestCase):
         self.assertEqual(result["opportunity_class"], "NO_RELEVANT_SIGNAL")
         self.assertEqual(result["candidate_ssb_codes"], [])
         self.assertEqual(result["service_categories"], [])
+        self.assertEqual(result["downstream_infrastructure_signals"], [])
 
     def test_known_service_code_is_captured(self):
         result = analyze(

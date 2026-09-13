@@ -9,6 +9,21 @@ NO_RELEVANT_SIGNAL = "NO_RELEVANT_SIGNAL"
 TENDER_SOURCES = {"TENDER", "QUOTATION", "RFQ", "RFP"}
 CLIENT_SOURCES = {"CLIENT", "CONTRACTOR", "DEVELOPER", "CONSULTANT", "PROJECT", "OWNER", "AGENCY"}
 
+DOWNSTREAM_INFRASTRUCTURE_SIGNALS = [
+    "pemasangan paip",
+    "kerja-kerja paip",
+    "paip air",
+    "water pipe installation",
+    "pipe installation",
+    "pipeline works",
+    "road construction",
+    "pembinaan jalan",
+    "slope stabilisation",
+    "slope stabilization",
+    "earthworks",
+    "kerja tanah",
+]
+
 
 def load_json(name):
     return json.loads((Path(__file__).parent / name).read_text(encoding="utf-8"))
@@ -47,34 +62,45 @@ def procurement_code_signals(text, watchbook=None):
     return found
 
 
+def downstream_infrastructure_signals(text):
+    haystack = (text or "").lower()
+    return sorted({signal for signal in DOWNSTREAM_INFRASTRUCTURE_SIGNALS if signal in haystack})
+
+
 def analyze(title, description, source_type="OTHER", scope_confirmed=False, codebook=None, watchbook=None):
     text = f"{title or ''} {description or ''}".strip()
     source_type = (source_type or "OTHER").upper()
     codes = candidate_ssb_codes(text, codebook)
     categories = service_categories(text, watchbook)
     procurement = procurement_code_signals(text, watchbook)
-    has_signal = bool(codes or categories or procurement)
+    downstream = downstream_infrastructure_signals(text)
+    has_explicit_signal = bool(codes or categories or procurement)
 
-    if not has_signal:
-        result = NO_RELEVANT_SIGNAL
-        evidence = "NO_SUPPORTED_SERVICE_SIGNAL"
-        warning = None
-        next_action = "No survey/mapping follow-up unless new evidence appears."
-    elif scope_confirmed and source_type in TENDER_SOURCES:
+    if has_explicit_signal and scope_confirmed and source_type in TENDER_SOURCES:
         result = DIRECT_TENDER
         evidence = "EXPLICIT_SCOPE_CONFIRMED"
         warning = None
         next_action = "Capture deadline and exact service scope for Director review."
-    elif scope_confirmed and source_type in CLIENT_SOURCES:
+    elif has_explicit_signal and scope_confirmed and source_type in CLIENT_SOURCES:
         result = CONFIRMED_CLIENT_NEED
         evidence = "EXPLICIT_CLIENT_NEED_CONFIRMED"
         warning = None
         next_action = "Capture the requirement and evidence source for Director review."
-    else:
+    elif has_explicit_signal:
         result = POTENTIAL_SERVICE_NEED
         evidence = "KEYWORD_SIGNAL_ONLY"
         warning = "KEYWORD_MATCH_IS_NOT_CONFIRMED_SCOPE"
         next_action = "Verify source evidence for explicit survey/mapping scope."
+    elif downstream:
+        result = POTENTIAL_SERVICE_NEED
+        evidence = "DOWNSTREAM_INFRASTRUCTURE_SIGNAL_ONLY"
+        warning = "INFRASTRUCTURE_SIGNAL_IS_NOT_CONFIRMED_SURVEY_SCOPE"
+        next_action = "Review source documents for explicit survey, setting-out, as-built, mapping, GIS, control or route-survey scope."
+    else:
+        result = NO_RELEVANT_SIGNAL
+        evidence = "NO_SUPPORTED_SERVICE_SIGNAL"
+        warning = None
+        next_action = "No survey/mapping follow-up unless new evidence appears."
 
     return {
         "source_type": source_type,
@@ -82,6 +108,7 @@ def analyze(title, description, source_type="OTHER", scope_confirmed=False, code
         "service_categories": categories,
         "candidate_ssb_codes": codes,
         "candidate_procurement_service_codes": procurement,
+        "downstream_infrastructure_signals": downstream,
         "scope_confirmed": bool(scope_confirmed),
         "evidence_state": evidence,
         "warning": warning,
