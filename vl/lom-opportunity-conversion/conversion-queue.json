@@ -1,0 +1,54 @@
+{
+  "version": "1.0",
+  "captured_at": "2026-09-13T04:29:22Z",
+  "items": [
+    {
+      "id": "JKR-KINARUT-2026",
+      "route": "SUBCONTRACT_DISCOVERY",
+      "status": "HOLD",
+      "active_until": "2026-10-05",
+      "main_project_value_rm": 17419000,
+      "survey_value_rm": null,
+      "direct_bid_eligibility": "NOT_ESTABLISHED_FOR_SURVEYOR",
+      "survey_scope": "UNCONFIRMED",
+      "customer_intent": "UNCONFIRMED",
+      "next_evidence_action": "Identify award/shortlist or prime-contractor procurement path and verify whether a survey/geospatial subcontract package exists."
+    },
+    {
+      "id": "JKR-SEMPORNA-2026",
+      "route": "SUBCONTRACT_DISCOVERY",
+      "status": "HOLD",
+      "active_until": "2026-10-19",
+      "main_project_value_rm": 32920000,
+      "survey_value_rm": null,
+      "direct_bid_eligibility": "UNVERIFIED",
+      "survey_scope": "UNCONFIRMED",
+      "customer_intent": "UNCONFIRMED",
+      "next_evidence_action": "Verify tender eligibility and identify any explicit survey, setting-out, topo, utility, GIS, or as-built subcontract requirement."
+    },
+    {
+      "id": "SAFODA-BENGKOKA-SURVEY-2026",
+      "route": "WATCH_FOR_REPEAT",
+      "status": "WATCHLIST",
+      "active_until": "2026-09-07",
+      "main_project_value_rm": null,
+      "survey_value_rm": null,
+      "direct_bid_eligibility": "LICENSED_SURVEYOR_REQUIRED",
+      "survey_scope": "CONFIRMED_HISTORICAL_DIRECT_SURVEY",
+      "customer_intent": "HISTORICAL_CONFIRMED",
+      "next_evidence_action": "Monitor SAFODA procurement for repeat cadastral or mapping work and capture the next live tender before closing date."
+    },
+    {
+      "id": "JTU-GIS-MARKET-PATTERN",
+      "route": "WATCH_FOR_REPEAT",
+      "status": "WATCHLIST",
+      "active_until": null,
+      "main_project_value_rm": null,
+      "survey_value_rm": null,
+      "direct_bid_eligibility": "UNKNOWN",
+      "survey_scope": "HISTORICAL_GIS_PROCUREMENT_PATTERN",
+      "customer_intent": "HISTORICAL_CONFIRMED",
+      "next_evidence_action": "Monitor JTU eSebutHarga for new GIS, mapping, database harmonisation, cadastral support, GNSS, or survey-related procurement."
+    }
+  ]
+}
