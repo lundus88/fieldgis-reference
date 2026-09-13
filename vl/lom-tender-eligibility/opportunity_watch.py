@@ -11,6 +11,7 @@ CLIENT_SOURCES = {"CLIENT", "CONTRACTOR", "DEVELOPER", "CONSULTANT", "PROJECT", 
 
 DOWNSTREAM_INFRASTRUCTURE_SIGNALS = [
     "pemasangan paip",
+    "pengalihan paip",
     "kerja-kerja paip",
     "paip air",
     "water pipe installation",
