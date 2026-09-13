@@ -1,0 +1,59 @@
+{
+  "version": "1.0",
+  "as_of": "2026-09-13",
+  "firms": [
+    {
+      "id": "JURUUKUR-LEE-SURVEYS-ASSOCIATE",
+      "name": "Juruukur Lee Surveys and Associate",
+      "evidence_profile": "Ridin26_Rev1 Profile JLSA - Kemaskini Susunatur V3f.docx",
+      "ssb_license": {
+        "status": "CURRENT",
+        "licence_no": "20/2026",
+        "valid_until": "2026-12-31",
+        "new_work_authority": "FULL"
+      },
+      "ssb_disciplines": ["SD001","SD002","SD003","SD004","SD005","SD006","SD007","SD008","SD009","SD010","SD011","SD012","SD013","SD014","SD015","SD016","SD017","SD018"],
+      "procurement_codes": [
+        {"scheme":"PUKONSA","code":"230900","description":"Ukur Tanah","valid_until":"2028-03-02","evidence_state":"CURRENT"},
+        {"scheme":"MOF","code":"221788","description":"Perkhidmatan Pengukuran Tanah/Sempadan","valid_until":"2027-04-10","evidence_state":"CURRENT"},
+        {"scheme":"MOF","code":"220601","description":"Topografi","valid_until":"2027-04-10","evidence_state":"CURRENT"},
+        {"scheme":"MOF","code":"220604","description":"Pemetaan","valid_until":"2027-04-10","evidence_state":"CURRENT"},
+        {"scheme":"MOF","code":"220605","description":"Rondaan Udara","valid_until":"2027-04-10","evidence_state":"CURRENT"}
+      ],
+      "capability_tags": ["cadastral","topographical","engineering","underground_utility","mapping","hydrographic","construction_survey"],
+      "evidence_state": "CURRENT"
+    },
+    {
+      "id": "SEJAGAT-SURVEY-CONSULTANT",
+      "name": "Sejagat Survey Consultant",
+      "evidence_profile": "CV SEJAGAT 2026.pdf",
+      "ssb_license": {
+        "status": "CURRENT_RESTRICTED",
+        "licence_no": "34/2026",
+        "valid_until": "2026-12-31",
+        "new_work_authority": "OUTSTANDING_WORK_ONLY"
+      },
+      "ssb_disciplines": ["SD001","SD002","SD003","SD004","SD005","SD006","SD007","SD008","SD009","SD010","SD011","SD012","SD013","SD014","SD015","SD016","SD017","SD018"],
+      "procurement_codes": [],
+      "procurement_evidence_state": "NOT_SUPPLIED",
+      "capability_tags": ["cadastral","strata","topographical","engineering","hydrographic","underground_utility","lidar","gnss","gis","pipeline_project_experience"],
+      "evidence_state": "CURRENT_BUT_RESTRICTED"
+    },
+    {
+      "id": "JURUUKUR-LOUDIN-ASSOCIATES",
+      "name": "Juruukur Loudin & Associates",
+      "evidence_profile": "COMPANY PROFILE 2024.pdf",
+      "ssb_license": {
+        "status": "EXPIRED_EVIDENCE",
+        "licence_no": "27/2024",
+        "valid_until": "2024-12-31",
+        "new_work_authority": "UNVERIFIED_2026"
+      },
+      "ssb_disciplines_evidenced": ["SD005","SD006","SD007","SD008","SD009","SD010","SD011","SD012","SD013","SD014","SD015","SD016","SD017"],
+      "procurement_codes": [],
+      "procurement_evidence_state": "STALE_OR_NOT_CURRENTLY_VERIFIED",
+      "capability_tags": ["cadastral","engineering","topographical","mining","subsidiary_title","hydrographic","aerial","lidar","pipeline"],
+      "evidence_state": "STALE"
+    }
+  ]
+}

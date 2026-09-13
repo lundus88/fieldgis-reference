@@ -1,0 +1,19 @@
+name: LOM P6 Tender Eligibility
+
+on:
+  pull_request:
+    paths:
+      - 'vl/lom-tender-eligibility/**'
+      - '.github/workflows/lom-p6-tender-eligibility.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run tender eligibility tests
+        working-directory: vl/lom-tender-eligibility
+        run: python3 -m unittest -v test_match_tender.py

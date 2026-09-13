@@ -1,0 +1,24 @@
+{
+  "version": "1.0",
+  "authority": "Sabah Surveyors Board discipline list evidenced in supplied 2026 firm profiles",
+  "codes": [
+    {"code":"SD001","discipline":"Agricultural land survey","keywords":["agricultural land","tanah pertanian"]},
+    {"code":"SD002","discipline":"Land survey under Land Ordinance for non-agricultural purposes","keywords":["land application","alienation","cadastral","land survey"]},
+    {"code":"SD003","discipline":"Subdivision of buildings for Subsidiary Titles","keywords":["subsidiary title","strata","building subdivision"]},
+    {"code":"SD004","discipline":"Refixation or replacement of boundary marks","keywords":["boundary re-establishment","boundary mark","resurvey","batu sempadan"]},
+    {"code":"SD005","discipline":"Land acquisition survey for public purposes","keywords":["land acquisition","pengambilan tanah","acquisition survey"]},
+    {"code":"SD006","discipline":"Survey of land for reserves and special purposes","keywords":["reserve survey","government reserve","special purpose"]},
+    {"code":"SD007","discipline":"Control traverse survey","keywords":["control traverse","traverse survey","control survey"]},
+    {"code":"SD008","discipline":"Compilation plan or proposed land acquisition plan","keywords":["compilation plan","acquisition plan","proposed land acquisition plan"]},
+    {"code":"SD009","discipline":"GNSS control point positioning survey","keywords":["gnss","gps control","control point","satellite positioning"]},
+    {"code":"SD010","discipline":"Mining land survey","keywords":["mining survey","quarry survey","mining land"]},
+    {"code":"SD011","discipline":"Temporary Occupation Licence land survey","keywords":["temporary occupation licence","tol survey","tol"]},
+    {"code":"SD012","discipline":"Site surveying","keywords":["site survey","setting out","setting-out","construction survey","as-built","as built"]},
+    {"code":"SD013","discipline":"Road, railway and pipeline survey","keywords":["road survey","highway survey","railway survey","pipeline survey","water pipe","pipeline"]},
+    {"code":"SD014","discipline":"Waterways, drainage and irrigation survey","keywords":["waterway","drainage survey","irrigation survey","river survey"]},
+    {"code":"SD015","discipline":"Transmission line survey","keywords":["transmission line","power line","utility corridor"]},
+    {"code":"SD016","discipline":"Hydrographic survey for territorial waters","keywords":["hydrographic","bathymetry","marine survey"]},
+    {"code":"SD017","discipline":"Aerial survey and LiDAR mapping","keywords":["lidar","aerial survey","aerial mapping","drone mapping","uav mapping"]},
+    {"code":"SD018","discipline":"Underground utility survey","keywords":["underground utility","utility mapping","utility detection","gpr"]}
+  ]
+}
