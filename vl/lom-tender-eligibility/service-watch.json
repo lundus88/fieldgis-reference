@@ -1,0 +1,28 @@
+{
+  "version": "1.0",
+  "purpose": "Opportunity detection for tender watch and client need watch. No firm ranking or selection.",
+  "service_categories": [
+    {"id":"LAND_CADASTRAL","keywords":["land survey","cadastral survey","ukur tanah","ukur kadaster","land application survey","alienation survey"]},
+    {"id":"BOUNDARY_REESTABLISHMENT","keywords":["boundary survey","boundary re-establishment","boundary mark","resurvey","batu sempadan","demarcation"]},
+    {"id":"SUBDIVISION_STRATA","keywords":["subdivision survey","amalgamation survey","partition survey","strata survey","subsidiary title"]},
+    {"id":"LAND_ACQUISITION","keywords":["land acquisition survey","pengambilan tanah","acquisition survey","acquisition plan"]},
+    {"id":"TOPOGRAPHICAL","keywords":["topographical survey","topographic survey","topo survey","contour survey","detail survey","levelling"]},
+    {"id":"ENGINEERING_SITE","keywords":["engineering survey","site survey","setting out","setting-out","construction survey","as-built survey","as built survey","building survey"]},
+    {"id":"GNSS_CONTROL","keywords":["gnss","gps control","control point","control survey","control traverse","traverse survey"]},
+    {"id":"ROAD_RAIL_PIPELINE","keywords":["road survey","highway survey","railway survey","pipeline survey","route survey","water pipe survey"]},
+    {"id":"DRAINAGE_WATERWAY","keywords":["drainage survey","waterway survey","irrigation survey","river survey","drain survey"]},
+    {"id":"TRANSMISSION_LINE","keywords":["transmission line survey","power line survey","utility corridor survey"]},
+    {"id":"HYDROGRAPHIC","keywords":["hydrographic survey","bathymetric survey","bathymetry","marine survey"]},
+    {"id":"AERIAL_LIDAR_DRONE","keywords":["aerial survey","aerial mapping","lidar","lidar mapping","drone mapping","uav mapping","photogrammetry"]},
+    {"id":"MAPPING_GIS","keywords":["mapping","gis","geographic information system","geospatial","orthophoto","spatial data"]},
+    {"id":"UTILITY_MAPPING","keywords":["underground utility","utility mapping","utility detection","gpr","ground penetrating radar"]},
+    {"id":"MINING_SURVEY","keywords":["mining survey","quarry survey","mining land survey"]}
+  ],
+  "procurement_service_codes": [
+    {"scheme":"PUKONSA","code":"230900","description":"Ukur Tanah"},
+    {"scheme":"MOF","code":"221788","description":"Perkhidmatan Pengukuran Tanah/Sempadan"},
+    {"scheme":"MOF","code":"220601","description":"Topografi"},
+    {"scheme":"MOF","code":"220604","description":"Pemetaan"},
+    {"scheme":"MOF","code":"220605","description":"Rondaan Udara"}
+  ]
+}
