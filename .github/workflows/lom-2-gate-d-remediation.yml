@@ -20,6 +20,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Install test dependency
+        run: python -m pip install --disable-pip-version-check pytest
       - name: Validate remediation policy
         run: python vl/lom-gate-d-remediation/validate_remediation.py
       - name: Run remediation regression tests
