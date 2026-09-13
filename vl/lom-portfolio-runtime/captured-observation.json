@@ -1,0 +1,10 @@
+{
+  "captured_at": "2026-09-13T03:30:00Z",
+  "observations": [
+    {"project_id":"vl","repository":"lundus88/fieldgis-reference","accessible":true,"default_branch":"main","main_sha":"9f740f5625e4aea4730d13ce7a71729c670911ed","signals":["LOM_P2_INTEGRATED"],"evidence_refs":["commit:9f740f5625e4aea4730d13ce7a71729c670911ed"]},
+    {"project_id":"ebkl","repository":"lundus88/ebkl","accessible":true,"default_branch":"main","main_sha":"7fac06e935e7ce3a52d640967dc79e7e99d43be4","signals":["MAIN_ACTIVE","OPEN_READINESS_PR_33"],"evidence_refs":["commit:7fac06e935e7ce3a52d640967dc79e7e99d43be4","pr:33"]},
+    {"project_id":"sabahlot","repository":"lundus88/sabahlot","accessible":true,"default_branch":"main","main_sha":"526b15d3585bea470ca28b3c5be0356cea0a827d","signals":["RELEASE_GATE_HISTORY","OPEN_MOBILE_PR_72"],"evidence_refs":["commit:526b15d3585bea470ca28b3c5be0356cea0a827d","pr:72"]},
+    {"project_id":"lunduslead","repository":"lundus88/lundus-lead","accessible":true,"default_branch":"main","main_sha":"e866ae5da36232b977a54fb117f790aa484d494f","signals":["MAIN_ACTIVE","TENDER_WATCH_RUNTIME_WIRING_BLOCKED_PR_140"],"evidence_refs":["commit:e866ae5da36232b977a54fb117f790aa484d494f","pr:140"]},
+    {"project_id":"kontenstudio","repository":"lundus88/kontenstudio","accessible":true,"default_branch":"main","main_sha":null,"signals":["EMPTY_REPOSITORY"],"evidence_refs":["repo:empty"]}
+  ]
+}
