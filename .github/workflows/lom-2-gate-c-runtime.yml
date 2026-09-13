@@ -1,0 +1,28 @@
+name: LOM 2.0 Gate C Runtime
+
+on:
+  pull_request:
+    paths:
+      - 'vl/lom-gate-c-runtime/**'
+      - '.github/workflows/lom-2-gate-c-runtime.yml'
+  push:
+    branches:
+      - lom-2-gate-c-runtime
+    paths:
+      - 'vl/lom-gate-c-runtime/**'
+      - '.github/workflows/lom-2-gate-c-runtime.yml'
+
+jobs:
+  runtime:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Syntax check
+        run: python -m py_compile vl/lom-gate-c-runtime/*.py
+      - name: Install pytest
+        run: python -m pip install pytest
+      - name: Run Gate C tests
+        run: pytest -q vl/lom-gate-c-runtime
