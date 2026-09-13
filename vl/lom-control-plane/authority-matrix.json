@@ -1,0 +1,24 @@
+{
+  "version": "1.0",
+  "default_decision": "DENY_OR_HOLD",
+  "rules": [
+    {"action": "RESEARCH", "environment": "NON_PRODUCTION", "authority": "AUTO", "evidence_required": true},
+    {"action": "ANALYSE", "environment": "NON_PRODUCTION", "authority": "AUTO", "evidence_required": true},
+    {"action": "DEVELOPMENT_CODE_CHANGE", "environment": "NON_PRODUCTION", "authority": "AUTO_WITHIN_SCOPE", "evidence_required": true},
+    {"action": "QA_TEST", "environment": "NON_PRODUCTION", "authority": "AUTO", "evidence_required": true},
+    {"action": "SECURITY_REVIEW", "environment": "NON_PRODUCTION", "authority": "AUTO_SEPARATE_ROLE", "evidence_required": true},
+    {"action": "INDEPENDENT_CERTIFICATION", "environment": "NON_PRODUCTION", "authority": "AUTO_SEPARATE_ROLE", "evidence_required": true},
+    {"action": "PREPARE_RELEASE_CANDIDATE", "environment": "NON_PRODUCTION", "authority": "AUTO_WITHIN_SCOPE", "evidence_required": true},
+    {"action": "MERGE_PROTECTED_MAIN", "environment": "ANY", "authority": "HUMAN_APPROVAL", "evidence_required": true},
+    {"action": "PRODUCTION_DEPLOY", "environment": "PRODUCTION", "authority": "HUMAN_APPROVAL", "evidence_required": true},
+    {"action": "PRODUCTION_DATA_MUTATION", "environment": "PRODUCTION", "authority": "HUMAN_APPROVAL", "evidence_required": true},
+    {"action": "PRODUCTION_AUTHORITY_CHANGE", "environment": "PRODUCTION", "authority": "HUMAN_APPROVAL", "evidence_required": true},
+    {"action": "FINANCIAL_OR_CONTRACTUAL_COMMITMENT", "environment": "ANY", "authority": "HUMAN_APPROVAL", "evidence_required": true}
+  ],
+  "invariants": {
+    "production_approval_human_only": true,
+    "builder_self_certification_allowed": false,
+    "delegation_may_widen_scope": false,
+    "unknown_authority_allowed": false
+  }
+}
