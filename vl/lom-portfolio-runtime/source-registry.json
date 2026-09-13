@@ -1,0 +1,10 @@
+{
+  "version": "1.0",
+  "sources": [
+    {"project_id":"vl","name":"VL / VRS Labs","repository":"lundus88/fieldgis-reference","default_branch":"main","mode":"READ_ONLY"},
+    {"project_id":"ebkl","name":"e-BKL","repository":"lundus88/ebkl","default_branch":"main","mode":"READ_ONLY"},
+    {"project_id":"sabahlot","name":"SabahLot","repository":"lundus88/sabahlot","default_branch":"main","mode":"READ_ONLY"},
+    {"project_id":"lunduslead","name":"LundusLead","repository":"lundus88/lundus-lead","default_branch":"main","mode":"READ_ONLY"},
+    {"project_id":"kontenstudio","name":"KontenStudio","repository":"lundus88/kontenstudio","default_branch":"main","mode":"READ_ONLY"}
+  ]
+}
