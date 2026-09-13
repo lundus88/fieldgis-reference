@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - 'vl/lom-operational-validation/**'
+      - 'vl/lom-revenue-execution/live-opportunity-register.json'
+      - 'vl/lom-opportunity-conversion/conversion-queue.json'
       - '.github/workflows/lom-p6-operational-validation.yml'
 
 permissions:
