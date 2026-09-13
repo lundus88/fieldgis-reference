@@ -4,12 +4,22 @@ HUMAN_ONLY = {
     "PRICING_COMMITMENT","CONTRACT_COMMITMENT","FINANCIAL_COMMITMENT"
 }
 
+DELEGATED_ACTIONS = {
+    "READ_ONLY_OBSERVATION",
+    "GENERATE_ARTIFACT",
+    "RUN_TEST",
+    "RENDER_REPORT",
+    "NON_PRODUCTION_REVERSIBLE_ACTION"
+}
+
 
 def route(action: str, evidence_status: str, risk: str, reversible: bool, production: bool) -> dict:
     if not action:
         raise ValueError("action required")
     if action in HUMAN_ONLY:
         return {"decision":"ESCALATE","reason":"HUMAN_ONLY_ACTION"}
+    if action not in DELEGATED_ACTIONS:
+        return {"decision":"HOLD","reason":"UNKNOWN_OR_UNDELEGATED_AUTHORITY"}
     if evidence_status in {"MISSING","CONTRADICTORY"}:
         return {"decision":"HOLD","reason":"EVIDENCE_NOT_READY"}
     if production:
