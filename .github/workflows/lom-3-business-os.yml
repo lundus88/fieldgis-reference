@@ -1,0 +1,25 @@
+name: LOM 3.0 Business OS
+
+on:
+  pull_request:
+    paths:
+      - 'vl/lom-business-os/**'
+      - '.github/workflows/lom-3-business-os.yml'
+  push:
+    branches:
+      - lom-3-business-os
+    paths:
+      - 'vl/lom-business-os/**'
+      - '.github/workflows/lom-3-business-os.yml'
+
+jobs:
+  business-os-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run Business OS regression tests
+        working-directory: vl/lom-business-os
+        run: python -m unittest -q

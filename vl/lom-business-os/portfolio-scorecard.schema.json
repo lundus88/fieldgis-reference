@@ -1,0 +1,16 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"LOM 3.0 Portfolio Scorecard",
+  "type":"object",
+  "required":["project_id","evidence_status","value_signal","risk","urgency","delivery_confidence","recommendation"],
+  "properties":{
+    "project_id":{"type":"string","minLength":1},
+    "evidence_status":{"enum":["COMPLETE","PARTIAL","MISSING","CONTRADICTORY"]},
+    "value_signal":{"enum":["HIGH","MEDIUM","LOW","UNKNOWN"]},
+    "risk":{"enum":["LOW","MEDIUM","HIGH","UNKNOWN"]},
+    "urgency":{"enum":["HIGH","MEDIUM","LOW","UNKNOWN"]},
+    "delivery_confidence":{"enum":["HIGH","MEDIUM","LOW","UNKNOWN"]},
+    "recommendation":{"enum":["PRIORITISE","REVIEW","HOLD","MONITOR"]}
+  },
+  "additionalProperties":false
+}
