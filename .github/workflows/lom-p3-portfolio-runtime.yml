@@ -1,0 +1,12 @@
+name: LOM P3 Portfolio Runtime
+on:
+  push:
+    branches: [lom-p3-live-portfolio-runtime]
+  pull_request:
+    branches: [main]
+jobs:
+  runtime:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 vl/lom-portfolio-runtime/test_portfolio_runtime.py
