@@ -27,6 +27,18 @@
       "next_evidence_action": "Verify tender eligibility and identify any explicit survey, setting-out, topo, utility, GIS, or as-built subcontract requirement."
     },
     {
+      "id": "JANS-PIPE-PAGALUNGAN-2026",
+      "route": "SUBCONTRACT_DISCOVERY",
+      "status": "HOLD",
+      "active_until": "2026-09-21",
+      "main_project_value_rm": null,
+      "survey_value_rm": null,
+      "direct_bid_eligibility": "UNVERIFIED",
+      "survey_scope": "UNCONFIRMED",
+      "customer_intent": "UNCONFIRMED",
+      "next_evidence_action": "Review the available procurement attachment for explicit route survey, as-built, utility, GIS, or site set-out scope before any pursuit decision."
+    },
+    {
       "id": "SAFODA-BENGKOKA-SURVEY-2026",
       "route": "WATCH_FOR_REPEAT",
       "status": "WATCHLIST",
