@@ -1,0 +1,38 @@
+{
+  "version": "1.0",
+  "mode": "RECOMMENDATION_ONLY",
+  "score_dimensions": {
+    "revenue_potential": 0.30,
+    "probability_of_success": 0.20,
+    "strategic_value": 0.15,
+    "urgency": 0.10,
+    "delivery_risk": -0.15,
+    "effort_cost": -0.10
+  },
+  "decision_bands": {
+    "ACCELERATE": 70,
+    "CONTINUE": 50,
+    "HOLD": 30,
+    "STOP": 0
+  },
+  "evidence": {
+    "required": true,
+    "missing_behavior": "HOLD",
+    "stale_behavior": "REVIEW"
+  },
+  "authority": {
+    "financial_or_contractual_commitment": "HUMAN_ONLY",
+    "pricing_commitment": "HUMAN_ONLY",
+    "protected_main_merge": "HUMAN_ONLY",
+    "production_deploy": "HUMAN_ONLY",
+    "production_data_mutation": "HUMAN_ONLY",
+    "production_authority_change": "HUMAN_ONLY"
+  },
+  "invariants": {
+    "fabricate_value_allowed": false,
+    "fabricate_probability_allowed": false,
+    "fabricate_customer_intent_allowed": false,
+    "fabricate_eligibility_allowed": false,
+    "fabricate_revenue_allowed": false
+  }
+}
