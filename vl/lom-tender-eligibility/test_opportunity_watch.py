@@ -50,6 +50,18 @@ class OpportunityWatchTests(unittest.TestCase):
         self.assertIn("pemasangan paip", result["downstream_infrastructure_signals"])
         self.assertFalse(result["scope_confirmed"])
 
+    def test_bm_pipe_relocation_is_inferential_only(self):
+        result = analyze(
+            "KERJA-KERJA PENGALIHAN PAIP UNTUK PROJEK PEMBINAAN",
+            "Pengalihan paip di tapak projek",
+            source_type="QUOTATION",
+            scope_confirmed=False,
+        )
+        self.assertEqual(result["opportunity_class"], "POTENTIAL_SERVICE_NEED")
+        self.assertEqual(result["evidence_state"], "DOWNSTREAM_INFRASTRUCTURE_SIGNAL_ONLY")
+        self.assertEqual(result["warning"], "INFRASTRUCTURE_SIGNAL_IS_NOT_CONFIRMED_SURVEY_SCOPE")
+        self.assertIn("pengalihan paip", result["downstream_infrastructure_signals"])
+
     def test_bm_slope_repair_is_inferential_only(self):
         result = analyze(
             "Kerja pembaikan mendapan tanah dan cerun",
