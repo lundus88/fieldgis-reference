@@ -1,0 +1,21 @@
+name: LOM P6 Pursuit Outcome Learning
+
+on:
+  pull_request:
+    paths:
+      - 'vl/lom-pursuit-outcome-learning/**'
+      - '.github/workflows/lom-p6-pursuit-outcome-learning.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run outcome learning tests
+        run: python -m unittest vl/lom-pursuit-outcome-learning/test_outcome.py
