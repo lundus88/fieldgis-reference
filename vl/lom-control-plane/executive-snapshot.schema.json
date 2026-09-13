@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lundus.local/lom/executive-snapshot.schema.json",
+  "title": "LOM Executive Snapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["generated_at", "portfolio", "autonomy", "director_queue"],
+  "properties": {
+    "generated_at": {"type": "string", "format": "date-time"},
+    "portfolio": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total", "healthy", "review", "blocked", "hold", "release_candidate"],
+      "properties": {
+        "total": {"type": "integer", "minimum": 0},
+        "healthy": {"type": "integer", "minimum": 0},
+        "review": {"type": "integer", "minimum": 0},
+        "blocked": {"type": "integer", "minimum": 0},
+        "hold": {"type": "integer", "minimum": 0},
+        "release_candidate": {"type": "integer", "minimum": 0}
+      }
+    },
+    "revenue": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "qualified_pipeline": {"type": "number", "minimum": 0},
+        "quotes_outstanding": {"type": "number", "minimum": 0},
+        "won_period": {"type": "number", "minimum": 0},
+        "currency": {"type": "string", "default": "MYR"}
+      }
+    },
+    "autonomy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tasks_executed", "tasks_verified", "tasks_escalated"],
+      "properties": {
+        "tasks_executed": {"type": "integer", "minimum": 0},
+        "tasks_verified": {"type": "integer", "minimum": 0},
+        "tasks_escalated": {"type": "integer", "minimum": 0},
+        "human_hours_saved": {"type": "number", "minimum": 0},
+        "safe_autonomous_completion_rate": {"type": "number", "minimum": 0, "maximum": 1},
+        "director_intervention_rate": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    "director_queue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["open_count", "critical_count"],
+      "properties": {
+        "open_count": {"type": "integer", "minimum": 0},
+        "critical_count": {"type": "integer", "minimum": 0},
+        "top_exception_ids": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "top_priorities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["project_id", "reason"],
+        "properties": {
+          "project_id": {"type": "string", "minLength": 1},
+          "reason": {"type": "string", "minLength": 1},
+          "priority_score": {"type": "number"}
+        }
+      }
+    }
+  }
+}

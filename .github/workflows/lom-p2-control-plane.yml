@@ -1,0 +1,24 @@
+name: LOM P2 Control Plane
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/lom-control-plane/**'
+      - '.github/workflows/lom-p2-control-plane.yml'
+  push:
+    branches: [lom-p2-operational-control-plane]
+    paths:
+      - 'vl/lom-control-plane/**'
+      - '.github/workflows/lom-p2-control-plane.yml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Validate control plane
+        run: python3 vl/lom-control-plane/validate_control_plane.py
+      - name: Adversarial tests
+        working-directory: vl/lom-control-plane
+        run: python3 -m unittest -v test_control_plane_adversarial.py

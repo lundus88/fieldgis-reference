@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lundus.local/lom/exception-queue.schema.json",
+  "title": "LOM Director Exception Queue",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "generated_at", "exceptions"],
+  "properties": {
+    "version": {"type": "string", "const": "1.0"},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "exceptions": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/exception"}
+    }
+  },
+  "$defs": {
+    "exception": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["exception_id", "project_id", "category", "severity", "summary", "decision_required", "status", "created_at"],
+      "properties": {
+        "exception_id": {"type": "string", "minLength": 1},
+        "project_id": {"type": "string", "minLength": 1},
+        "category": {"enum": ["HUMAN_APPROVAL", "AUTHORITY_GAP", "EVIDENCE_GAP", "RISK_THRESHOLD", "UNRESOLVED_BLOCKER", "PRODUCTION_TRANSITION", "CONFLICTING_EVIDENCE"]},
+        "severity": {"enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"]},
+        "summary": {"type": "string", "minLength": 1},
+        "decision_required": {"type": "string", "minLength": 1},
+        "recommended_action": {"type": ["string", "null"]},
+        "evidence_refs": {"type": "array", "items": {"type": "string"}},
+        "status": {"enum": ["OPEN", "ACKNOWLEDGED", "RESOLVED", "REJECTED"]},
+        "human_decision": {"type": ["string", "null"]},
+        "created_at": {"type": "string", "format": "date-time"},
+        "resolved_at": {"type": ["string", "null"], "format": "date-time"}
+      }
+    }
+  }
+}

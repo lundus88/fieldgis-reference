@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lundus.local/lom/portfolio-registry.schema.json",
+  "title": "LOM Portfolio Registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "generated_at", "projects"],
+  "properties": {
+    "version": {"type": "string", "const": "1.0"},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "projects": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/project"}
+    }
+  },
+  "$defs": {
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_id", "name", "objective", "stage", "health", "evidence_maturity", "owner", "next_action", "updated_at"],
+      "properties": {
+        "project_id": {"type": "string", "minLength": 1},
+        "name": {"type": "string", "minLength": 1},
+        "objective": {"type": "string", "minLength": 1},
+        "repository": {"type": ["string", "null"]},
+        "branch": {"type": ["string", "null"]},
+        "source_sha": {"type": ["string", "null"], "pattern": "^[0-9a-f]{7,40}$"},
+        "stage": {"enum": ["IDEA", "ASSESS", "PLAN", "BUILD", "QA", "SECURITY_REVIEW", "INDEPENDENT_VALIDATION", "RELEASE_CANDIDATE", "RELEASED", "MONITOR", "IMPROVE"]},
+        "health": {"enum": ["HEALTHY", "REVIEW", "BLOCKED", "HOLD", "RELEASE_CANDIDATE"]},
+        "evidence_maturity": {"enum": ["CONTRACT_PROVEN", "INTEGRATED", "RUNTIME_PROVEN"]},
+        "owner": {"type": "string", "minLength": 1},
+        "risk": {"enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"]},
+        "blockers": {"type": "array", "items": {"type": "string"}},
+        "next_action": {"type": "string", "minLength": 1},
+        "evidence_refs": {"type": "array", "items": {"type": "string"}},
+        "approval_required": {"type": "boolean", "default": false},
+        "updated_at": {"type": "string", "format": "date-time"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"health": {"const": "RELEASE_CANDIDATE"}}, "required": ["health"]},
+          "then": {
+            "properties": {"approval_required": {"const": true}},
+            "required": ["evidence_refs", "approval_required"]
+          }
+        }
+      ]
+    }
+  }
+}
