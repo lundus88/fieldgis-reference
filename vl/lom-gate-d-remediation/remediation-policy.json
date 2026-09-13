@@ -1,0 +1,31 @@
+{
+  "version": "1.0",
+  "default_decision": "HOLD",
+  "allowed_conditions": {
+    "environment": "NON_PRODUCTION",
+    "reversible": true,
+    "max_risk": "LOW",
+    "evidence_required": true,
+    "independent_revalidation_required": true,
+    "max_attempts": 1
+  },
+  "human_only_actions": [
+    "PROTECTED_MAIN_MERGE",
+    "PRODUCTION_DEPLOY_OR_RELEASE",
+    "PRODUCTION_DATA_MUTATION",
+    "AUTHORITY_OR_SECURITY_POLICY_WIDENING",
+    "CUSTOMER_OUTREACH",
+    "BID_SUBMISSION",
+    "QUOTATION_OR_PRICING_COMMITMENT",
+    "CONTRACT_OR_LEGAL_COMMITMENT",
+    "FINANCIAL_COMMITMENT"
+  ],
+  "forbidden_remediation": [
+    "IRREVERSIBLE_CHANGE",
+    "DESTRUCTIVE_CHANGE",
+    "SELF_CERTIFICATION",
+    "DELEGATION_WIDENING",
+    "EVIDENCE_BYPASS"
+  ],
+  "outcomes": ["RECOVERED", "HOLD", "ESCALATE", "FAILED_VALIDATION"]
+}
