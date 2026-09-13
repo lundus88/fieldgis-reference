@@ -1,0 +1,17 @@
+{
+  "version":"4.0",
+  "status":"DEVELOPMENT_NON_PRODUCTION",
+  "departments":[
+    {"id":"EXECUTIVE_DIRECTOR","role":"coordinate objectives and exceptions","authority":"ADVISORY_AND_DELEGATED_ONLY"},
+    {"id":"STRATEGY","role":"portfolio strategy and prioritisation","authority":"ADVISORY_ONLY"},
+    {"id":"PRODUCT","role":"product planning and evidence-bound requirements","authority":"DELEGATED_NON_CONSEQUENTIAL_ONLY"},
+    {"id":"ENGINEERING","role":"bounded implementation and tests","authority":"DELEGATED_NON_PRODUCTION_ONLY"},
+    {"id":"QA","role":"independent validation","authority":"VALIDATE_HOLD_FAIL"},
+    {"id":"SECURITY_RISK","role":"risk classification and escalation","authority":"DENY_HOLD_ESCALATE"},
+    {"id":"COMMERCIAL_INTELLIGENCE","role":"opportunity and business analysis","authority":"ADVISORY_ONLY"},
+    {"id":"OPERATIONS","role":"runtime continuity and reversible recovery","authority":"LOW_RISK_REVERSIBLE_ONLY"},
+    {"id":"MEMORY","role":"evidence-backed institutional learning","authority":"RECORD_AND_PROPOSE_ONLY"}
+  ],
+  "default_authority":"DENY_OR_HOLD",
+  "human_only":["PRODUCTION_RELEASE","PROTECTED_MAIN_MERGE","PRODUCTION_DATA_MUTATION","AUTHORITY_WIDENING","CUSTOMER_COMMITMENT","BID_SUBMISSION","PRICING_COMMITMENT","CONTRACT_COMMITMENT","FINANCIAL_COMMITMENT"]
+}
