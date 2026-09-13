@@ -1,15 +1,34 @@
+import json
 import unittest
 from datetime import date
+from pathlib import Path
 
 from validate_pipeline import validate
 
 
 class OperationalValidationTests(unittest.TestCase):
     def test_active_missing_conversion_is_hold(self):
-        live = [{"id": "JANS-PIPE-PAGALUNGAN-2026", "status": "HOLD", "closing_date": "2026-09-21"}]
+        live = [{"id": "ACTIVE-SIGNAL", "status": "HOLD", "closing_date": "2026-09-21"}]
         findings = validate(live, [], today=date(2026, 9, 13))
         self.assertEqual(findings[0]["type"], "ACTIVE_SIGNAL_MISSING_CONVERSION")
         self.assertEqual(findings[0]["severity"], "HOLD")
+
+    def test_remediated_active_signal_preserves_hold(self):
+        live = [{"id": "JANS-PIPE-PAGALUNGAN-2026", "status": "HOLD", "closing_date": "2026-09-21"}]
+        conversion = [{"id": "JANS-PIPE-PAGALUNGAN-2026", "status": "HOLD", "active_until": "2026-09-21"}]
+        self.assertEqual(validate(live, conversion, today=date(2026, 9, 13)), [])
+
+    def test_repository_pipeline_has_no_dropped_active_signal(self):
+        repo_root = Path(__file__).resolve().parents[2]
+        live_path = repo_root / "vl" / "lom-revenue-execution" / "live-opportunity-register.json"
+        conversion_path = repo_root / "vl" / "lom-opportunity-conversion" / "conversion-queue.json"
+        with live_path.open(encoding="utf-8") as f:
+            live = json.load(f)["entries"]
+        with conversion_path.open(encoding="utf-8") as f:
+            conversion = json.load(f)["items"]
+        findings = validate(live, conversion, today=date(2026, 9, 13))
+        dropped = [x for x in findings if x["type"] == "ACTIVE_SIGNAL_MISSING_CONVERSION"]
+        self.assertEqual(dropped, [])
 
     def test_historical_watchlist_missing_conversion_is_not_failure(self):
         live = [{"id": "HISTORICAL-SURVEY", "status": "WATCHLIST", "closing_date": "2026-03-24"}]
