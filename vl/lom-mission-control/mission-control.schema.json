@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LOM Mission Control Snapshot",
+  "type": "object",
+  "required": ["objective_id","lifecycle_state","evidence_status","risk_state","agent_states","exceptions","recommended_director_action"],
+  "properties": {
+    "objective_id": {"type":"string","minLength":1},
+    "lifecycle_state": {"enum":["OBJECTIVE","PLAN","RISK_GATE","EXECUTE","VALIDATE","REMEDIATE_IF_ALLOWED","REVALIDATE","LEARN","COMPLETE","HOLD","ESCALATE"]},
+    "evidence_status": {"enum":["COMPLETE","PARTIAL","MISSING","CONTRADICTORY"]},
+    "risk_state": {"enum":["LOW","MEDIUM","HIGH","UNKNOWN"]},
+    "agent_states": {"type":"array","items":{"type":"object","required":["role","state"],"properties":{"role":{"type":"string"},"state":{"type":"string"}}}},
+    "exceptions": {"type":"array","items":{"type":"string"}},
+    "recommended_director_action": {"enum":["NONE","REVIEW","APPROVE_OR_REJECT","ACQUIRE_EVIDENCE","HOLD"]}
+  },
+  "additionalProperties": false
+}

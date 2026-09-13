@@ -1,0 +1,45 @@
+{
+  "version": "4.0-foundation",
+  "default_authority_decision": "DENY_OR_HOLD",
+  "human_only_actions": [
+    "PROTECTED_MAIN_MERGE",
+    "PRODUCTION_DEPLOYMENT_OR_RELEASE",
+    "PRODUCTION_DATA_MUTATION",
+    "AUTHORITY_OR_SECURITY_POLICY_WIDENING",
+    "CUSTOMER_OUTREACH",
+    "BID_SUBMISSION",
+    "QUOTATION_OR_PRICING_COMMITMENT",
+    "CONTRACTING_OR_LEGAL_COMMITMENT",
+    "FINANCIAL_COMMITMENT"
+  ],
+  "delegation_rules": {
+    "may_narrow": true,
+    "may_widen": false,
+    "self_delegate_new_authority": false,
+    "unknown_scope_decision": "DENY_OR_HOLD"
+  },
+  "evidence_rules": {
+    "missing_required_evidence": "HOLD_OR_BLOCKED",
+    "contradictory_required_evidence": "HOLD_OR_BLOCKED",
+    "synthetic_positive_state_forbidden": true,
+    "material_transition_requires_provenance": true
+  },
+  "segregation_of_duties": {
+    "builder_may_be_sole_certifier": false,
+    "consequential_work_requires_independent_validation": true
+  },
+  "self_remediation": {
+    "allowed": true,
+    "scope": "EXPLICITLY_DELEGATED_REVERSIBLE_NON_PRODUCTION_NON_CONSEQUENTIAL_ONLY",
+    "production_allowed": false,
+    "authority_widening_allowed": false,
+    "financial_or_contractual_actions_allowed": false
+  },
+  "learning": {
+    "may_record_outcomes": true,
+    "may_recommend_policy_changes": true,
+    "may_auto_apply_authority_changes": false,
+    "may_auto_apply_scoring_or_threshold_changes": false,
+    "may_auto_apply_financial_or_legal_changes": false
+  }
+}

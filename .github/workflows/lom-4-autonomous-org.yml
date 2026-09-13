@@ -1,0 +1,25 @@
+name: LOM 4.0 Autonomous Digital Organization
+
+on:
+  pull_request:
+    paths:
+      - 'vl/lom-autonomous-org/**'
+      - '.github/workflows/lom-4-autonomous-org.yml'
+  push:
+    branches:
+      - lom-4-autonomous-digital-org
+    paths:
+      - 'vl/lom-autonomous-org/**'
+      - '.github/workflows/lom-4-autonomous-org.yml'
+
+jobs:
+  autonomous-org-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run organization runtime regression tests
+        working-directory: vl/lom-autonomous-org
+        run: python -m unittest -q

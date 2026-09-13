@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LOM Gate E Outcome",
+  "type": "object",
+  "required": ["objective_id", "state", "stage", "reasons", "evidence_refs"],
+  "properties": {
+    "objective_id": {"type": "string", "minLength": 1},
+    "state": {"enum": ["COMPLETE", "HOLD", "ESCALATE"]},
+    "stage": {"enum": ["OBJECTIVE", "PLAN", "RISK_GATE", "EXECUTE", "VALIDATE", "REMEDIATE_IF_ALLOWED", "REVALIDATE", "LEARN", "COMPLETE_OR_ESCALATE"]},
+    "reasons": {"type": "array", "items": {"type": "string"}},
+    "evidence_refs": {"type": "array", "items": {"type": "string"}},
+    "learning_record": {
+      "type": "object",
+      "properties": {
+        "outcome": {"type": "string"},
+        "policy_change": {"enum": ["PROPOSE_ONLY"]}
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

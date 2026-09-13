@@ -1,0 +1,41 @@
+{
+  "version": "1.0",
+  "roles": [
+    {
+      "id": "DIRECTOR",
+      "purpose": "Set objectives, risk appetite and human-only approvals",
+      "may_execute": ["SET_OBJECTIVE", "APPROVE_HUMAN_ONLY_ACTION", "REJECT_OR_HOLD"],
+      "may_not_delegate": ["FINAL_HUMAN_ACCOUNTABILITY"]
+    },
+    {
+      "id": "PLANNER",
+      "purpose": "Decompose approved objectives into bounded plans and dependencies",
+      "may_execute": ["DRAFT_PLAN", "RANK_NON_CONSEQUENTIAL_WORK", "REQUEST_EVIDENCE"],
+      "forbidden": ["WIDEN_AUTHORITY", "APPROVE_OWN_PLAN_AS_FINAL"]
+    },
+    {
+      "id": "EXECUTOR",
+      "purpose": "Execute explicitly delegated non-consequential tasks",
+      "may_execute": ["NON_PRODUCTION_REVERSIBLE_ACTION", "GENERATE_ARTIFACT", "RUN_TEST"],
+      "forbidden": ["HUMAN_ONLY_ACTION", "SELF_APPROVE"]
+    },
+    {
+      "id": "VALIDATOR",
+      "purpose": "Independently verify plans, evidence and execution results",
+      "may_execute": ["VALIDATE", "FAIL", "HOLD", "REQUEST_MORE_EVIDENCE"],
+      "forbidden": ["EXECUTE_VALIDATED_CONSEQUENTIAL_WORK"]
+    },
+    {
+      "id": "RISK_GOVERNOR",
+      "purpose": "Evaluate policy, security, legal, financial and production boundaries",
+      "may_execute": ["CLASSIFY_RISK", "ESCALATE", "DENY_OR_HOLD"],
+      "forbidden": ["WIDEN_AUTHORITY"]
+    },
+    {
+      "id": "MEMORY_KEEPER",
+      "purpose": "Maintain evidence-backed institutional learning",
+      "may_execute": ["RECORD_OUTCOME", "PROPOSE_LESSON", "LINK_EVIDENCE"],
+      "forbidden": ["AUTO_APPLY_POLICY_CHANGE"]
+    }
+  ]
+}
