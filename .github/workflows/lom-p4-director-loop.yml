@@ -16,6 +16,6 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - name: Run director loop tests
-        run: python -m pytest -q vl/lom-director-loop/test_director_loop.py
+        run: python vl/lom-director-loop/test_director_loop.py
       - name: Generate director brief
         run: python vl/lom-director-loop/director_loop.py
