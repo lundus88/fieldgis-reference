@@ -22,6 +22,8 @@ DOWNSTREAM_INFRASTRUCTURE_SIGNALS = [
     "slope stabilization",
     "earthworks",
     "kerja tanah",
+    "pembaikan cerun",
+    "mendapan tanah",
 ]
 
 
