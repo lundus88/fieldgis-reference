@@ -1,0 +1,11 @@
+{
+  "version": "1.0",
+  "captured_at": "2026-09-13T04:25:00Z",
+  "entries": [
+    {"id":"JKR-SLOPE-KINARUT-2026","class":"DOWNSTREAM_INFERRED","status":"HOLD","closing_date":"2026-10-05","evidence":"JKR Sabah tender listing","next_action":"Review tender documents for explicit survey or geospatial scope."},
+    {"id":"JKR-IMMIGRATION-SEMPORNA-2026","class":"DOWNSTREAM_INFERRED","status":"HOLD","closing_date":"2026-10-19","evidence":"JKR Sabah tender listing","next_action":"Review documents for survey, setting-out, mapping, GIS or subcontract scope."},
+    {"id":"JANS-PIPE-PAGALUNGAN-2026","class":"DOWNSTREAM_INFERRED","status":"HOLD","closing_date":"2026-09-21","evidence":"Sabah Water Department quotation listing","next_action":"Review attachment for route survey, as-built, utility, GIS or site set-out scope."},
+    {"id":"SAFODA-BENGKOKA-SURVEY-2026","class":"DIRECT_SURVEY_MARKET_PROOF","status":"WATCHLIST","closing_date":"2026-03-24","evidence":"SAFODA tender history","next_action":"Monitor for repeat cadastral, boundary, mapping and GNSS procurements."},
+    {"id":"LUNDUSLEAD-TENDER-WATCH-PR140","class":"ACQUISITION_PIPELINE_BLOCKER","status":"HOLD","closing_date":null,"evidence":"LundusLead PR 140","next_action":"Complete validated runtime wiring and re-run QA before treating Tender Watch coverage as live."}
+  ]
+}
