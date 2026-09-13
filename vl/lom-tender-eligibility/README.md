@@ -4,6 +4,10 @@ Status: DEVELOPMENT / NON-PRODUCTION
 
 Purpose: detect and classify opportunities where a tender, quotation, project or client needs land surveying, mapping or related geospatial services. This module does **not** rank, select or compare survey firms.
 
+## Canonical engine
+
+`opportunity_watch.py` is the canonical operational matcher. The older `match_tender.py` is legacy P6.8 code and must not be used by automation for firm ranking or firm-selection decisions.
+
 ## Operational focus
 
 1. Tender Watch — detect tenders, quotations, RFQs and RFPs with explicit or possible survey/mapping/geospatial scope.
