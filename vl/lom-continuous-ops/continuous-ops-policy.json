@@ -1,0 +1,33 @@
+{
+  "version": "1.0",
+  "mode": "REPORT_ONLY",
+  "schedule": {
+    "cadence": "DAILY",
+    "timezone": "Asia/Kuala_Lumpur"
+  },
+  "source_access": "READ_ONLY",
+  "stale_evidence_policy": "HOLD_OR_REVIEW",
+  "authorities": {
+    "production_deploy": "HUMAN_ONLY",
+    "protected_main_merge": "HUMAN_ONLY",
+    "production_data_mutation": "HUMAN_ONLY",
+    "production_authority_mutation": "HUMAN_ONLY",
+    "financial_commitment": "HUMAN_ONLY",
+    "contractual_commitment": "HUMAN_ONLY"
+  },
+  "forbidden_automation": [
+    "CROSS_REPOSITORY_WRITE",
+    "PRODUCTION_DEPLOY",
+    "PROTECTED_MAIN_MERGE",
+    "PRODUCTION_DATA_MUTATION",
+    "PRODUCTION_AUTHORITY_MUTATION",
+    "FINANCIAL_COMMITMENT",
+    "CONTRACTUAL_COMMITMENT"
+  ],
+  "allowed_outputs": [
+    "DAILY_DIRECTOR_BRIEF",
+    "EXECUTIVE_SNAPSHOT",
+    "DIRECTOR_EXCEPTION_QUEUE",
+    "EVIDENCE_MANIFEST"
+  ]
+}
