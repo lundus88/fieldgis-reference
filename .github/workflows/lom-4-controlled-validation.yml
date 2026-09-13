@@ -1,0 +1,31 @@
+name: LOM 4.0 Controlled Operational Validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/lom-controlled-validation/**'
+      - 'vl/lom-autonomous-org/**'
+      - '.github/workflows/lom-4-controlled-validation.yml'
+  push:
+    branches:
+      - lom-4-controlled-operational-validation
+    paths:
+      - 'vl/lom-controlled-validation/**'
+      - 'vl/lom-autonomous-org/**'
+      - '.github/workflows/lom-4-controlled-validation.yml'
+
+jobs:
+  controlled-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run controlled validation harness
+        working-directory: vl/lom-controlled-validation
+        run: python validation_harness.py
+      - name: Run controlled validation regression tests
+        working-directory: vl/lom-controlled-validation
+        run: python -m unittest -q
