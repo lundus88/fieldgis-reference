@@ -1,4 +1,4 @@
-name: LOM P6 Tender Eligibility
+name: LOM P6 Tender & Client Need Watch
 
 on:
   pull_request:
@@ -14,6 +14,6 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - name: Run tender eligibility tests
+      - name: Run opportunity watch tests
         working-directory: vl/lom-tender-eligibility
-        run: python3 -m unittest -v test_match_tender.py
+        run: python3 -m unittest -v test_opportunity_watch.py
