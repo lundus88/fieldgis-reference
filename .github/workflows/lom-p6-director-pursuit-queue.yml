@@ -1,0 +1,21 @@
+name: LOM P6 Director Pursuit Queue
+
+on:
+  pull_request:
+    paths:
+      - 'vl/lom-director-pursuit-queue/**'
+      - '.github/workflows/lom-p6-director-pursuit-queue.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Run Director pursuit queue tests
+        run: python -m unittest vl/lom-director-pursuit-queue/test_queue.py
