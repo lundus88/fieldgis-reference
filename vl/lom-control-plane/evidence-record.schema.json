@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lundus.local/lom/evidence-record.schema.json",
+  "title": "LOM Evidence Record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["evidence_id", "project_id", "evidence_type", "claim", "outcome", "actor", "source", "created_at"],
+  "properties": {
+    "evidence_id": {"type": "string", "minLength": 1},
+    "project_id": {"type": "string", "minLength": 1},
+    "evidence_type": {"enum": ["CONTRACT", "CI", "RUNTIME", "QA", "SECURITY", "CERTIFICATION", "APPROVAL", "RELEASE", "ROLLBACK", "AUDIT"]},
+    "claim": {"type": "string", "minLength": 1},
+    "outcome": {"enum": ["PASS", "FAIL", "HOLD", "BLOCKED", "INFO"]},
+    "actor": {"type": "string", "minLength": 1},
+    "role": {"type": "string"},
+    "source": {"type": "string", "minLength": 1},
+    "source_sha": {"type": ["string", "null"], "pattern": "^[0-9a-f]{7,40}$"},
+    "artifact_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+    "run_id": {"type": ["string", "null"]},
+    "parent_run_id": {"type": ["string", "null"]},
+    "details": {"type": "object"},
+    "created_at": {"type": "string", "format": "date-time"}
+  }
+}
