@@ -68,6 +68,24 @@ def aggregate(measurements: Iterable[TechnicalMeasurement], anchor: WorkloadAnch
         else:
             rejected.append({'source_reference': measurement.source_reference, **decision})
 
+    # Batch semantics are fail-closed. A single rejected measurement means the
+    # aggregate cannot be promoted as READY, even when other samples are valid.
+    # HOLD takes precedence over HUMAN_REVIEW because malformed/stale/mismatched
+    # evidence must first be repaired before any higher-level safety decision.
+    if rejected:
+        rejected_statuses = {item['status'] for item in rejected}
+        if 'HOLD' in rejected_statuses:
+            return {
+                'status': 'HOLD',
+                'reason': 'BATCH_CONTAINS_REJECTED_MEASUREMENT',
+                'rejected': rejected,
+            }
+        return {
+            'status': 'HUMAN_REVIEW',
+            'reason': 'BATCH_CONTAINS_SAFETY_REVIEW_MEASUREMENT',
+            'rejected': rejected,
+        }
+
     if not valid:
         return {'status': 'HOLD', 'reason': 'NO_VALID_MEASUREMENT', 'rejected': rejected}
 
@@ -91,6 +109,8 @@ def aggregate(measurements: Iterable[TechnicalMeasurement], anchor: WorkloadAnch
 
 
 def health(summary: dict) -> dict:
+    if summary.get('status') == 'HUMAN_REVIEW':
+        return {'health': 'HUMAN_REVIEW', 'reason': summary.get('reason', 'MEASUREMENT_REQUIRES_HUMAN_REVIEW')}
     if summary.get('status') != 'READY':
         return {'health': 'HOLD', 'reason': summary.get('reason', 'MEASUREMENT_NOT_READY')}
     if summary['safety'] < 0.99:
