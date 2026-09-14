@@ -24,6 +24,7 @@ IMAGE='ghcr.io/cirruslabs/flutter:3.38.1@sha256:01cf49cb0586bd9ece557683b0fd5ce4
 NDK_VERSION='28.2.13676358'
 BUILD_TOOLS_VERSION='35.0.0'
 COMPILE_SDK='36'
+TRANSITIVE_PLATFORM='35'
 CMAKE_VERSION='3.22.1'
 
 # Reviewed dependencies used by the certified mobile-flutter-v1 reference contract.
@@ -73,10 +74,10 @@ fi
 [ -s "$ROOT/.flutter-sdk/bin/cache/engine.stamp" ] || { echo "runner-owned Flutter SDK cache is incomplete" >&2; exit 69; }
 [ "$(stat -c '%u' "$ROOT/.flutter-sdk/bin/flutter")" = "$HOST_UID" ] || { echo "Flutter SDK is not runner-owned" >&2; exit 72; }
 
-# Flutter 3.38.1 requires compileSdk 36 and NDK 28.2.13676358; the current AGP
-# toolchain also requests Build Tools 35.0.0 and CMake 3.22.1. Install those exact
-# components only inside an ephemeral trusted container, then stream just their SDK
-# directories to stdout. No host path or secret is visible during this network-enabled bootstrap.
+# The main app compiles against Android 36. The certified plugin set also contains
+# a transitive Android/JNI build that requests Platform 35. Install both platforms
+# in the trusted network phase so the later generated sandbox never needs a writable
+# SDK or network access.
 ANDROID_READY="$ROOT/.android-sdk-components/.vl-android-components-ready"
 if [ ! -f "$ANDROID_READY" ]; then
   find "$ROOT/.android-sdk-components" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +
@@ -96,20 +97,23 @@ if [ ! -f "$ANDROID_READY" ]; then
       \"\$sdkmanager_path\" --sdk_root=/opt/android-sdk-linux \
         'ndk;$NDK_VERSION' \
         'build-tools;$BUILD_TOOLS_VERSION' \
+        'platforms;android-$TRANSITIVE_PLATFORM' \
         'platforms;android-$COMPILE_SDK' \
         'cmake;$CMAKE_VERSION' >&2
       /bin/tar -C /opt/android-sdk-linux -cf - \
         'ndk/$NDK_VERSION' \
         'build-tools/$BUILD_TOOLS_VERSION' \
+        'platforms/android-$TRANSITIVE_PLATFORM' \
         'platforms/android-$COMPILE_SDK' \
         'cmake/$CMAKE_VERSION'" \
     | tar -C "$ROOT/.android-sdk-components" -xf - --no-same-owner
-  printf '%s\n' "ndk=$NDK_VERSION build-tools=$BUILD_TOOLS_VERSION platform=android-$COMPILE_SDK cmake=$CMAKE_VERSION" > "$ANDROID_READY"
+  printf '%s\n' "ndk=$NDK_VERSION build-tools=$BUILD_TOOLS_VERSION platforms=android-$TRANSITIVE_PLATFORM,android-$COMPILE_SDK cmake=$CMAKE_VERSION" > "$ANDROID_READY"
 fi
 
 [ -s "$ROOT/.android-sdk-components/ndk/$NDK_VERSION/source.properties" ] || { echo "required Android NDK missing" >&2; exit 73; }
 [ -x "$ROOT/.android-sdk-components/build-tools/$BUILD_TOOLS_VERSION/aapt2" ] || { echo "required Android Build Tools missing" >&2; exit 74; }
-[ -s "$ROOT/.android-sdk-components/platforms/android-$COMPILE_SDK/android.jar" ] || { echo "required Android platform missing" >&2; exit 75; }
+[ -s "$ROOT/.android-sdk-components/platforms/android-$TRANSITIVE_PLATFORM/android.jar" ] || { echo "required transitive Android platform missing" >&2; exit 78; }
+[ -s "$ROOT/.android-sdk-components/platforms/android-$COMPILE_SDK/android.jar" ] || { echo "required Android compile platform missing" >&2; exit 75; }
 [ -x "$ROOT/.android-sdk-components/cmake/$CMAKE_VERSION/bin/cmake" ] || { echo "required Android CMake missing" >&2; exit 77; }
 [ "$(stat -c '%u' "$ROOT/.android-sdk-components/ndk/$NDK_VERSION/source.properties")" = "$HOST_UID" ] || { echo "Android components are not runner-owned" >&2; exit 76; }
 
@@ -172,4 +176,4 @@ trap - EXIT
 
 # Do not allow the trusted warm-up artifact to be mistaken for a generated build.
 rm -rf "$ROOT/build"
-printf '%s\n' 'trusted-template-toolchain-prepared-v8-certified-deps' > "$ROOT/.vl-mobile-cache-prepared"
+printf '%s\n' 'trusted-template-toolchain-prepared-v9-certified-deps-platform35' > "$ROOT/.vl-mobile-cache-prepared"
