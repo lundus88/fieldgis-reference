@@ -1,0 +1,42 @@
+name: LOM Security Hardening
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/lom-operational-safety/**'
+      - 'vl/lom-self-improvement-runtime/**'
+      - 'vl/lom-continuous-improvement/**'
+      - 'vl/lom-daily-ops-cockpit/**'
+      - 'vl/lom-security-hardening/**'
+      - '.github/workflows/lom-security-hardening.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  security-hardening:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate authority alignment
+        run: python vl/lom-security-hardening/validate_authority_alignment.py
+      - name: Operational safety regression
+        working-directory: vl/lom-operational-safety
+        run: python -m unittest -v test_operational_safety.py
+      - name: Self-improvement runtime regression
+        working-directory: vl/lom-self-improvement-runtime
+        run: python -m unittest -v test_self_improvement_runtime.py
+      - name: Continuous improvement regression
+        working-directory: vl/lom-continuous-improvement
+        run: python -m unittest -v test_orchestrator.py
+      - name: Daily Operations Cockpit regression
+        working-directory: vl/lom-daily-ops-cockpit
+        run: python -m unittest -v test_cockpit.py
