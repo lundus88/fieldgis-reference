@@ -43,11 +43,12 @@ jobs:
           chmod +x vl/scripts/prepare-mobile-flutter-cache.sh vl/scripts/build-mobile-flutter-sandbox.sh
           vl/scripts/prepare-mobile-flutter-cache.sh sandbox-mobile
           test -f sandbox-mobile/.vl-mobile-cache-prepared
-          grep -q 'trusted-template-toolchain-prepared-v8-certified-deps' sandbox-mobile/.vl-mobile-cache-prepared
+          grep -q 'trusted-template-toolchain-prepared-v9-certified-deps-platform35' sandbox-mobile/.vl-mobile-cache-prepared
           test -x sandbox-mobile/.flutter-sdk/bin/flutter
           test -s sandbox-mobile/.flutter-sdk/bin/cache/engine.stamp
           test -s sandbox-mobile/.android-sdk-components/ndk/28.2.13676358/source.properties
           test -x sandbox-mobile/.android-sdk-components/build-tools/35.0.0/aapt2
+          test -s sandbox-mobile/.android-sdk-components/platforms/android-35/android.jar
           test -s sandbox-mobile/.android-sdk-components/platforms/android-36/android.jar
           test -x sandbox-mobile/.android-sdk-components/cmake/3.22.1/bin/cmake
 
@@ -169,8 +170,10 @@ jobs:
           grep -q -- "NDK_VERSION='28.2.13676358'" vl/scripts/prepare-mobile-flutter-cache.sh
           grep -q -- "BUILD_TOOLS_VERSION='35.0.0'" vl/scripts/prepare-mobile-flutter-cache.sh
           grep -q -- "COMPILE_SDK='36'" vl/scripts/prepare-mobile-flutter-cache.sh
+          grep -q -- "TRANSITIVE_PLATFORM='35'" vl/scripts/prepare-mobile-flutter-cache.sh
           grep -q -- "CMAKE_VERSION='3.22.1'" vl/scripts/prepare-mobile-flutter-cache.sh
           grep -q -- "'build-tools;\$BUILD_TOOLS_VERSION'" vl/scripts/prepare-mobile-flutter-cache.sh
+          grep -q -- "'platforms;android-\$TRANSITIVE_PLATFORM'" vl/scripts/prepare-mobile-flutter-cache.sh
           grep -q -- "'platforms;android-\$COMPILE_SDK'" vl/scripts/prepare-mobile-flutter-cache.sh
           grep -q -- "'cmake;\$CMAKE_VERSION'" vl/scripts/prepare-mobile-flutter-cache.sh
           grep -q -- '/workspace/.flutter-sdk/bin/flutter' vl/scripts/prepare-mobile-flutter-cache.sh
@@ -181,9 +184,6 @@ jobs:
           grep -q -- "'share_plus:\^13.3.0'" vl/scripts/prepare-mobile-flutter-cache.sh
           ! grep -q -- '/sdks/flutter/bin/flutter' vl/scripts/build-mobile-flutter-sandbox.sh
 
-          # The live Factory Runner must prepare trusted state before overlaying
-          # generated artifacts and must execute Mobile build logic only via the
-          # credential-free offline sandbox wrapper.
           grep -q -- 'Prepare pristine Android workspace and trusted cache' .github/workflows/vl-factory-runner.yml
           grep -q -- 'vl/scripts/prepare-mobile-flutter-cache.sh workspace/mobile' .github/workflows/vl-factory-runner.yml
           grep -q -- 'Overlay generated Mobile artifacts' .github/workflows/vl-factory-runner.yml
