@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import hashlib
+import json
 import re
 
 SHA_RE = re.compile(r'^[0-9a-f]{40}$')
@@ -20,6 +22,7 @@ class DecisionRequest:
     candidate_sha: str
     evidence_sha: str
     manifest_sha256: str
+    promotion_manifest: dict
     source_reference: str
     promotion_status: str
     rollback_ready: bool
@@ -37,6 +40,37 @@ def _valid_digest(value: str) -> bool:
     return bool(DIGEST_RE.fullmatch(value or ''))
 
 
+def _canonical_manifest_digest(manifest: dict) -> str:
+    payload = dict(manifest or {})
+    claimed = payload.pop('manifest_sha256', None)
+    if claimed is not None and not _valid_digest(claimed):
+        return ''
+    encoded = json.dumps(payload, sort_keys=True, separators=(',', ':')).encode('utf-8')
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def _manifest_matches_request(req: DecisionRequest) -> bool:
+    m = req.promotion_manifest or {}
+    return all([
+        m.get('schema') == 'lom.pr-evidence-promotion/2',
+        m.get('workload_id') == req.workload_id,
+        m.get('base_sha') == req.base_sha,
+        m.get('candidate_sha') == req.candidate_sha,
+        m.get('evidence_sha') == req.evidence_sha,
+        m.get('source_reference') == req.source_reference,
+        m.get('target_action') == req.target_action,
+        m.get('production') == req.production,
+        m.get('risk') == req.risk,
+        m.get('validation_status') == 'PREPARE_PR',
+        _valid_digest(m.get('validation_package_sha256', '')),
+        _valid_digest(m.get('rollback_plan_sha256', '')),
+        m.get('autonomous_ceiling') == 'PREPARE_PR',
+        m.get('production_authority') == 'HUMAN_ONLY',
+        m.get('auto_merge') == 'DISABLED',
+        m.get('production_execution') == 'DISABLED',
+    ])
+
+
 def classify(req: DecisionRequest) -> dict:
     if not req.workload_id:
         return {'status':'HOLD','reason':'WORKLOAD_ID_REQUIRED'}
@@ -50,6 +84,14 @@ def classify(req: DecisionRequest) -> dict:
         return {'status':'HOLD','reason':'SOURCE_REFERENCE_REQUIRED'}
     if req.promotion_status != 'PREPARE_PR':
         return {'status':'HOLD','reason':'PROMOTION_NOT_READY'}
+    if not _manifest_matches_request(req):
+        return {'status':'HOLD','reason':'PROMOTION_MANIFEST_IDENTITY_MISMATCH'}
+    computed = _canonical_manifest_digest(req.promotion_manifest)
+    if not computed or computed != req.manifest_sha256:
+        return {'status':'HOLD','reason':'PROMOTION_MANIFEST_DIGEST_MISMATCH'}
+    claimed = req.promotion_manifest.get('manifest_sha256')
+    if claimed is not None and claimed != req.manifest_sha256:
+        return {'status':'HOLD','reason':'PROMOTION_MANIFEST_DIGEST_MISMATCH'}
     if not req.rollback_ready:
         return {'status':'HOLD','reason':'ROLLBACK_NOT_READY'}
     if req.risk not in {'LOW','MEDIUM','HIGH'}:
@@ -73,7 +115,7 @@ def recommended_disposition(req: DecisionRequest) -> str:
 def build_decision_package(req: DecisionRequest) -> dict:
     decision = classify(req)
     return {
-        'schema':'lom.human-approval-decision-package/1',
+        'schema':'lom.human-approval-decision-package/2',
         'workload_id':req.workload_id,
         'status':decision['status'],
         'reason':decision['reason'],
@@ -83,6 +125,12 @@ def build_decision_package(req: DecisionRequest) -> dict:
             'evidence_sha':req.evidence_sha,
             'manifest_sha256':req.manifest_sha256,
             'source_reference':req.source_reference,
+        },
+        'evidence_chain':{
+            'promotion_manifest_verified': decision['status'] != 'HOLD',
+            'validation_package_sha256': (req.promotion_manifest or {}).get('validation_package_sha256'),
+            'rollback_plan_sha256': (req.promotion_manifest or {}).get('rollback_plan_sha256'),
+            'promotion_manifest_sha256': req.manifest_sha256,
         },
         'release_readiness':{
             'promotion_status':req.promotion_status,
