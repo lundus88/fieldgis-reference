@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 import hashlib
 import json
 import re
 
 SHA_RE = re.compile(r'^[0-9a-f]{40}$')
+DIGEST_RE = re.compile(r'^[0-9a-f]{64}$')
 HUMAN_ONLY = {
     'PROTECTED_MAIN_MERGE','PRODUCTION_RELEASE','PRODUCTION_DATA_MUTATION',
     'AUTHORITY_WIDENING','AUTH_SECURITY_POLICY_CHANGE','DATA_DELETION',
@@ -22,6 +23,7 @@ class PromotionRequest:
     evidence_sha: str
     source_reference: str
     validation_status: str
+    validation_package_sha256: str
     rollback_plan_digest: str
     target_action: str
     production: bool = False
@@ -32,16 +34,21 @@ def _valid_sha(value: str) -> bool:
     return bool(SHA_RE.fullmatch(value or ''))
 
 
+def _valid_digest(value: str) -> bool:
+    return bool(DIGEST_RE.fullmatch(value or ''))
+
+
 def _manifest_payload(req: PromotionRequest) -> dict:
     return {
-        'schema': 'lom.pr-evidence-promotion/1',
+        'schema': 'lom.pr-evidence-promotion/2',
         'workload_id': req.workload_id,
         'base_sha': req.base_sha,
         'candidate_sha': req.candidate_sha,
         'evidence_sha': req.evidence_sha,
         'source_reference': req.source_reference,
         'validation_status': req.validation_status,
-        'rollback_plan_digest': req.rollback_plan_digest,
+        'validation_package_sha256': req.validation_package_sha256,
+        'rollback_plan_sha256': req.rollback_plan_digest,
         'target_action': req.target_action,
         'production': req.production,
         'risk': req.risk,
@@ -68,8 +75,10 @@ def validate_promotion(req: PromotionRequest) -> dict:
         return {'status': 'HOLD', 'reason': 'SOURCE_REFERENCE_REQUIRED'}
     if req.validation_status != 'PREPARE_PR':
         return {'status': 'HOLD', 'reason': 'SANDBOX_VALIDATION_REQUIRED'}
-    if not req.rollback_plan_digest or len(req.rollback_plan_digest) < 16:
-        return {'status': 'HOLD', 'reason': 'ROLLBACK_EVIDENCE_REQUIRED'}
+    if not _valid_digest(req.validation_package_sha256):
+        return {'status': 'HOLD', 'reason': 'VALIDATION_PACKAGE_DIGEST_REQUIRED'}
+    if not _valid_digest(req.rollback_plan_digest):
+        return {'status': 'HOLD', 'reason': 'ROLLBACK_PLAN_DIGEST_REQUIRED'}
     if req.risk not in {'LOW', 'MEDIUM', 'HIGH'}:
         return {'status': 'HOLD', 'reason': 'UNKNOWN_RISK'}
     if req.target_action in HUMAN_ONLY or req.production or req.risk == 'HIGH':
@@ -82,6 +91,7 @@ def build_promotion_package(req: PromotionRequest) -> dict:
     manifest = _manifest_payload(req)
     manifest['manifest_sha256'] = manifest_digest(req)
     return {
+        'schema': 'lom.pr-evidence-promotion-package/2',
         'status': decision['status'],
         'reason': decision['reason'],
         'manifest': manifest,
@@ -89,6 +99,11 @@ def build_promotion_package(req: PromotionRequest) -> dict:
             'base_sha': req.base_sha,
             'head_sha': req.candidate_sha,
             'human_merge_required': True,
+        },
+        'evidence_chain': {
+            'validation_package_sha256': req.validation_package_sha256,
+            'rollback_plan_sha256': req.rollback_plan_digest,
+            'manifest_sha256': manifest['manifest_sha256'],
         },
         'immutable_evidence_binding': True,
         'autonomous_ceiling': 'PREPARE_PR',
