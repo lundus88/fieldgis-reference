@@ -7,9 +7,9 @@ set -euo pipefail
 # The pinned Cirrus image contains root-owned Flutter SDK files and may not ship
 # every Android component required by Flutter 3.38.1. Generated code must never
 # gain root or network access. Trusted bootstrap containers therefore have no host
-# bind mounts/secrets; they only stream pinned toolchain bytes to stdout. Host-side
-# tar extraction makes those bytes runner-owned. Generated builds later run
-# non-root, offline, with prepared Android components mounted read-only.
+# bind mounts/secrets while toolchain bytes are acquired. A fixed, reviewed mobile
+# dependency baseline is also prewarmed here so later generated builds remain fully
+# offline without trusting generated dependency declarations to access the network.
 #
 # Usage:
 #   prepare-mobile-flutter-cache.sh <workspace>
@@ -25,6 +25,16 @@ NDK_VERSION='28.2.13676358'
 BUILD_TOOLS_VERSION='35.0.0'
 COMPILE_SDK='36'
 CMAKE_VERSION='3.22.1'
+
+# Reviewed dependencies used by the certified mobile-flutter-v1 reference contract.
+# These are constants owned by the trusted runner, never values supplied by generated code.
+CERTIFIED_MOBILE_DEPENDENCIES=(
+  'geolocator:^14.0.3'
+  'maplibre_gl:^0.27.0'
+  'shared_preferences:^2.5.5'
+  'path_provider:^2.1.6'
+  'share_plus:^13.3.0'
+)
 
 command -v docker >/dev/null 2>&1 || { echo "docker is required" >&2; exit 70; }
 command -v tar >/dev/null 2>&1 || { echo "tar is required" >&2; exit 71; }
@@ -103,8 +113,33 @@ fi
 [ -x "$ROOT/.android-sdk-components/cmake/$CMAKE_VERSION/bin/cmake" ] || { echo "required Android CMake missing" >&2; exit 77; }
 [ "$(stat -c '%u' "$ROOT/.android-sdk-components/ndk/$NDK_VERSION/source.properties")" = "$HOST_UID" ] || { echo "Android components are not runner-owned" >&2; exit 76; }
 
-# Trusted pristine-template warm-up. Generated files do not exist yet. Flutter
-# runs non-root; network is allowed only here to warm pub/Gradle dependencies.
+# Preserve the pristine template definition. The trusted bootstrap may temporarily
+# add only the fixed dependency allowlist above; generated dependency declarations
+# are not present yet and therefore cannot influence network activity.
+BACKUP_DIR="$(mktemp -d)"
+cp "$ROOT/pubspec.yaml" "$BACKUP_DIR/pubspec.yaml"
+if [ -f "$ROOT/pubspec.lock" ]; then
+  cp "$ROOT/pubspec.lock" "$BACKUP_DIR/pubspec.lock"
+fi
+cleanup_pubspec() {
+  cp "$BACKUP_DIR/pubspec.yaml" "$ROOT/pubspec.yaml"
+  if [ -f "$BACKUP_DIR/pubspec.lock" ]; then
+    cp "$BACKUP_DIR/pubspec.lock" "$ROOT/pubspec.lock"
+  else
+    rm -f "$ROOT/pubspec.lock"
+  fi
+  rm -rf "$BACKUP_DIR"
+}
+trap cleanup_pubspec EXIT
+
+# Trusted dependency/toolchain warm-up. Network is allowed only for this fixed,
+# reviewed dependency set. The generated build that follows later runs non-root,
+# credential-free and --network none.
+DEPENDENCY_ARGS=""
+for dep in "${CERTIFIED_MOBILE_DEPENDENCIES[@]}"; do
+  DEPENDENCY_ARGS+=" $(printf '%q' "$dep")"
+done
+
 docker run --rm \
   --user "${HOST_UID}:${HOST_GID}" \
   --network bridge \
@@ -128,8 +163,13 @@ docker run --rm \
   --env GIT_CONFIG_COUNT=1 \
   --env GIT_CONFIG_KEY_0=safe.directory \
   --env GIT_CONFIG_VALUE_0=/workspace/.flutter-sdk \
-  "$IMAGE" /bin/bash -lc 'set -euo pipefail; /workspace/.flutter-sdk/bin/flutter --no-version-check pub get; /workspace/.flutter-sdk/bin/flutter --no-version-check build apk --debug --no-pub'
+  "$IMAGE" /bin/bash -lc "set -euo pipefail; /workspace/.flutter-sdk/bin/flutter --no-version-check pub add${DEPENDENCY_ARGS}; /workspace/.flutter-sdk/bin/flutter --no-version-check pub get; /workspace/.flutter-sdk/bin/flutter --no-version-check build apk --debug --no-pub"
+
+# Restore the pristine pubspec before generated artifacts are overlaid. Cached package
+# and Gradle bytes remain in runner-owned cache directories for the offline sandbox.
+cleanup_pubspec
+trap - EXIT
 
 # Do not allow the trusted warm-up artifact to be mistaken for a generated build.
 rm -rf "$ROOT/build"
-printf '%s\n' 'trusted-template-toolchain-prepared-v7' > "$ROOT/.vl-mobile-cache-prepared"
+printf '%s\n' 'trusted-template-toolchain-prepared-v8-certified-deps' > "$ROOT/.vl-mobile-cache-prepared"
