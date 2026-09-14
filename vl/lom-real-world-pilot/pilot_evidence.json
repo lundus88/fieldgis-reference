@@ -1,0 +1,10 @@
+{
+  "captured_at": "2026-09-14",
+  "systems": [
+    {"id":"vl","evidence_state":"READY","signal":"STALE_PORTFOLIO_OBSERVATION","target":"OBSERVABILITY","risk":"LOW","reversible":true,"production":false,"expected":"QUALIFIED"},
+    {"id":"ebkl","evidence_state":"READY","signal":"RECOVERY_HARDENING_VERIFIED_GATE_CLOSED","target":"DOCUMENTATION","risk":"LOW","reversible":true,"production":false,"expected":"QUALIFIED"},
+    {"id":"sabahlot","evidence_state":"MISSING","signal":"PHYSICAL_LANDSCAPE_CONFIRMATION_PENDING","target":"UI_NON_PROD","risk":"LOW","reversible":true,"production":false,"expected":"HOLD"},
+    {"id":"lunduslead","evidence_state":"READY","signal":"DIAGNOSTICS_PR_OPEN","target":"OBSERVABILITY","risk":"LOW","reversible":true,"production":false,"expected":"QUALIFIED"},
+    {"id":"lunduslead-runtime","evidence_state":"READY","signal":"RUNTIME_DISCOVERY_INTEGRATION_SENSITIVE","target":"AUTH_SECURITY_POLICY_CHANGE","risk":"HIGH","reversible":false,"production":true,"expected":"ESCALATE"}
+  ]
+}
