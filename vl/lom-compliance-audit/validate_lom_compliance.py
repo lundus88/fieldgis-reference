@@ -28,6 +28,9 @@ REQUIRED = [
     'vl/lom-operational-safety/delegation.py',
     'vl/lom-operational-safety/evidence_replay.py',
     'vl/lom-operational-safety/event_ledger.py',
+    'vl/lom-learning-evaluation/README.md',
+    'vl/lom-learning-evaluation/learning_core.py',
+    'vl/lom-learning-evaluation/test_learning_core.py',
 ]
 
 WORKFLOWS = [
@@ -57,6 +60,7 @@ TEXT_ASSERTIONS = {
     'vl/lom-autonomous-org/README.md': ['Autonomous Digital Organization'],
     'vl/lom-controlled-validation/README.md': ['Controlled Operational Validation'],
     'vl/lom-operational-safety/README.md': ['Operational Safety Hardening', 'default deny', 'AppendOnlyEventLedger'],
+    'vl/lom-learning-evaluation/README.md': ['Learning & Evaluation Layer', 'PROPOSE_ONLY', 'HUMAN_ONLY'],
 }
 
 
@@ -110,6 +114,21 @@ def main() -> int:
         if needle not in safety_text:
             fail(f'LOM 4.1 safety control missing: {needle}')
 
+    learning = (ROOT / 'vl/lom-learning-evaluation/learning_core.py').read_text(encoding='utf-8')
+    for needle in [
+        'DecisionCorpus',
+        'HumanCorrectionLog',
+        'GoldenScenarioRegistry',
+        'OutcomeScore',
+        'LearningProposal',
+        'PROPOSE_ONLY',
+        'AUTHORITY_CHANGE_REQUIRES_HUMAN',
+        'EVIDENCE_NOT_READY',
+        'SELF_APPLY_FORBIDDEN',
+    ]:
+        if needle not in learning:
+            fail(f'LOM 4.2 learning control missing: {needle}')
+
     completion = (ROOT / 'vl/completion-governance/independent_validator.py').read_text(encoding='utf-8')
     if "'builder_self_report_trusted': False" not in completion:
         fail('independent completion validator does not reject builder self-certification')
@@ -120,6 +139,7 @@ def main() -> int:
     print('LOM 3.0: PRESENT')
     print('LOM 4.0: PRESENT')
     print('LOM 4.1: PRESENT')
+    print('LOM 4.2: PRESENT')
     print('PRODUCTION AUTHORITY: NOT GRANTED')
     return 0
 
