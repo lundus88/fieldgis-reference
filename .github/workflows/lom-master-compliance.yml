@@ -24,6 +24,12 @@ on:
       - 'vl/lom-compliance-audit/**'
       - 'vl/lom-operational-safety/**'
       - 'vl/lom-learning-evaluation/**'
+      - 'vl/lom-self-improvement-runtime/**'
+      - 'vl/lom-continuous-improvement/**'
+      - 'vl/lom-daily-ops-cockpit/**'
+      - 'vl/lom-security-hardening/**'
+      - 'vl/lom-4-5-interoperability-resource-intelligence/**'
+      - 'vl/lom-5-operational-maturity/**'
       - '.github/workflows/lom-*.yml'
   workflow_dispatch:
 
@@ -33,7 +39,7 @@ permissions:
 jobs:
   master-compliance:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
@@ -102,3 +108,20 @@ jobs:
       - name: LOM 4.2 Learning & Evaluation Layer
         working-directory: vl/lom-learning-evaluation
         run: python -m unittest -v test_learning_core.py
+      - name: LOM 4.3 Self-Improvement Runtime
+        working-directory: vl/lom-self-improvement-runtime
+        run: python -m unittest -v test_self_improvement_runtime.py
+      - name: LOM 4.4 Continuous Improvement Orchestrator
+        working-directory: vl/lom-continuous-improvement
+        run: python -m unittest -v test_orchestrator.py
+      - name: LOM Daily Operations Cockpit
+        working-directory: vl/lom-daily-ops-cockpit
+        run: python -m unittest -v test_cockpit.py
+      - name: LOM Security Authority Alignment
+        run: python vl/lom-security-hardening/validate_authority_alignment.py
+      - name: LOM 4.5 Interoperability & Resource Intelligence
+        working-directory: vl/lom-4-5-interoperability-resource-intelligence
+        run: python -m unittest -v test_runtime.py
+      - name: LOM 5.0 Operational Maturity
+        working-directory: vl/lom-5-operational-maturity
+        run: python -m unittest -v test_runtime.py
