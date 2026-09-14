@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "lom.technical-metrics-artifact/2",
+  "title": "LOM Technical Metrics Artifact v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema", "workload_id", "evidence_sha", "measured_at", "sample_count",
+    "success_rate", "correctness", "safety", "critical_safety_failures",
+    "p95_latency_ms", "source_kind", "source_reference", "derived_metrics_sha256"
+  ],
+  "properties": {
+    "schema": {"const": "lom.technical-metrics-artifact/2"},
+    "workload_id": {"type": "string", "minLength": 1},
+    "evidence_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "measured_at": {"type": "string", "format": "date-time"},
+    "sample_count": {"type": "integer", "minimum": 1},
+    "success_rate": {"type": "number", "minimum": 0, "maximum": 1},
+    "correctness": {"type": "number", "minimum": 0, "maximum": 1},
+    "safety": {"type": "number", "minimum": 0, "maximum": 1},
+    "critical_safety_failures": {"type": "integer", "minimum": 0},
+    "p95_latency_ms": {"type": "integer", "minimum": 0},
+    "source_kind": {"const": "ci_artifact"},
+    "source_reference": {"type": "string", "minLength": 1},
+    "derived_metrics_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}
