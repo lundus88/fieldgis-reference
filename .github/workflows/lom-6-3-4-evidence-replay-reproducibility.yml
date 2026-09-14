@@ -1,0 +1,26 @@
+name: LOM 6.3.4 Evidence Replay Reproducibility
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/lom-6-3-4-evidence-replay-reproducibility/**'
+      - '.github/workflows/lom-6-3-4-evidence-replay-reproducibility.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  replay-regression:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run replay regression suite
+        run: |
+          cd vl/lom-6-3-4-evidence-replay-reproducibility
+          python -m unittest -v test_replay.py
