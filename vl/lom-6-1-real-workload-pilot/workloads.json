@@ -1,0 +1,27 @@
+{
+  "version": "1.0",
+  "mode": "READ_ONLY_NON_PRODUCTION",
+  "workloads": [
+    {
+      "workload_id": "ebkl",
+      "repository": "lundus88/ebkl",
+      "main_sha": "a564e3f2c30a52ce7035778a4006ea7a9097ef90",
+      "business_outcome": "cadastral-work processing quality and time saved",
+      "required_metrics": ["success_rate","correctness","safety","p95_latency_ms","ai_cost","human_cost_saved","revenue_generated","error_cost_avoided"]
+    },
+    {
+      "workload_id": "sabahlot",
+      "repository": "lundus88/sabahlot",
+      "main_sha": "526b15d3585bea470ca28b3c5be0356cea0a827d",
+      "business_outcome": "field-assist completion quality and user task efficiency",
+      "required_metrics": ["success_rate","correctness","safety","p95_latency_ms","ai_cost","human_cost_saved","revenue_generated","error_cost_avoided"]
+    },
+    {
+      "workload_id": "lunduslead",
+      "repository": "lundus88/lundus-lead",
+      "main_sha": "f5df0ba246d3ed794914ce3d8aee47f9d6cec08f",
+      "business_outcome": "qualified opportunity discovery and commercial pipeline value",
+      "required_metrics": ["success_rate","correctness","safety","p95_latency_ms","ai_cost","human_cost_saved","revenue_generated","error_cost_avoided"]
+    }
+  ]
+}
