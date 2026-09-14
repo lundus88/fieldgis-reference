@@ -26,5 +26,5 @@ jobs:
           persist-credentials: false
       - name: Run director loop tests
         run: python vl/lom-director-loop/test_director_loop.py
-      - name: Generate read-only director brief
-        run: python vl/lom-director-loop/director_loop.py
+      - name: Run scheduled read-only director loop
+        run: python vl/lom-director-loop/run_scheduled.py
