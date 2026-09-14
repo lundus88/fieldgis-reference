@@ -41,17 +41,30 @@ jobs:
           python-version: '3.12'
       - name: Validate LOM version ladder and authority boundaries
         run: python vl/lom-compliance-audit/validate_lom_compliance.py
-      - name: LOM 1.0 core governance regression
-        run: |
-          python vl/context-governance/validate_context_policy.py vl/context-governance/default-context-policy.json
-          python -m unittest -v vl/context-governance/test_lom_context_governance.py
-          python -m unittest -v vl/completion-governance/test_lom_independent_validator.py
-          python -m unittest -v vl/model-governance/test_route_model.py
-          python -m unittest -v vl/execution-governance/test_lom_execution_pool.py
-          python -m unittest -v vl/remediation-governance/test_remediation_policy.py
-          python -m unittest -v vl/multi-agent-governance/test_lom_delegation_policy.py
-          python vl/connector-governance/validate_connector_registry.py vl/connector-governance/connector-registry.json
-          python vl/golden-workflow/run_golden_workflow.py
+      - name: Validate LOM 1.0 context policy
+        run: python vl/context-governance/validate_context_policy.py vl/context-governance/default-context-policy.json
+      - name: LOM 1.0 context governance regression
+        working-directory: vl/context-governance
+        run: python -m unittest -v test_lom_context_governance.py
+      - name: LOM 1.0 independent completion regression
+        working-directory: vl/completion-governance
+        run: python -m unittest -v test_lom_independent_validator.py
+      - name: LOM 1.0 model governance regression
+        working-directory: vl/model-governance
+        run: python -m unittest -v test_route_model.py
+      - name: LOM 1.0 execution pool governance regression
+        working-directory: vl/execution-governance
+        run: python -m unittest -v test_lom_execution_pool.py
+      - name: LOM 1.0 remediation governance regression
+        working-directory: vl/remediation-governance
+        run: python -m unittest -v test_remediation_policy.py
+      - name: LOM 1.0 multi-agent governance regression
+        working-directory: vl/multi-agent-governance
+        run: python -m unittest -v test_lom_delegation_policy.py
+      - name: LOM 1.0 connector registry validation
+        run: python vl/connector-governance/validate_connector_registry.py vl/connector-governance/connector-registry.json
+      - name: LOM 1.0 Golden workflow
+        run: python vl/golden-workflow/run_golden_workflow.py
       - name: LOM 2.0 bounded autonomy
         working-directory: vl/lom-4-evolution
         run: |
