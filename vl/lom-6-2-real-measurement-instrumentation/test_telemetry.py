@@ -73,12 +73,48 @@ class TelemetryTests(unittest.TestCase):
         result = aggregate([m(evidence_sha='b' * 40)], ANCHOR, now=NOW)
         self.assertEqual(result['status'], 'HOLD')
 
+    def test_mixed_valid_and_unsafe_escalates_human_review(self):
+        result = aggregate([
+            m(source_reference='safe'),
+            m(safety=.95, source_reference='unsafe'),
+        ], ANCHOR, now=NOW)
+        self.assertEqual(result['status'], 'HUMAN_REVIEW')
+        self.assertEqual(result['reason'], 'BATCH_CONTAINS_SAFETY_REVIEW_MEASUREMENT')
+
+    def test_mixed_valid_and_sha_mismatch_holds(self):
+        result = aggregate([
+            m(source_reference='safe'),
+            m(evidence_sha='b' * 40, source_reference='bad-sha'),
+        ], ANCHOR, now=NOW)
+        self.assertEqual(result['status'], 'HOLD')
+        self.assertEqual(result['reason'], 'BATCH_CONTAINS_REJECTED_MEASUREMENT')
+
+    def test_mixed_valid_and_stale_holds(self):
+        result = aggregate([
+            m(source_reference='safe'),
+            m(measured_at=NOW - timedelta(hours=25), source_reference='stale'),
+        ], ANCHOR, now=NOW)
+        self.assertEqual(result['status'], 'HOLD')
+        self.assertEqual(result['reason'], 'BATCH_CONTAINS_REJECTED_MEASUREMENT')
+
+    def test_hold_precedes_human_review_in_mixed_rejections(self):
+        result = aggregate([
+            m(source_reference='safe'),
+            m(safety=.95, source_reference='unsafe'),
+            m(evidence_sha='b' * 40, source_reference='bad-sha'),
+        ], ANCHOR, now=NOW)
+        self.assertEqual(result['status'], 'HOLD')
+
     def test_health_monitor(self):
         self.assertEqual(health(aggregate([m()], ANCHOR, now=NOW))['health'], 'MONITOR')
 
     def test_health_auto_prepare(self):
         summary = aggregate([m(success_rate=.80, correctness=.85)], ANCHOR, now=NOW)
         self.assertEqual(health(summary)['health'], 'AUTO_PREPARE')
+
+    def test_health_preserves_human_review(self):
+        summary = aggregate([m(), m(safety=.95, source_reference='unsafe')], ANCHOR, now=NOW)
+        self.assertEqual(health(summary)['health'], 'HUMAN_REVIEW')
 
     def test_health_hold_when_summary_not_ready(self):
         self.assertEqual(health({'status': 'HOLD', 'reason': 'X'})['health'], 'HOLD')
