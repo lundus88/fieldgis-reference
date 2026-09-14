@@ -1,0 +1,27 @@
+name: LOM 6.9 Human Approval Decision Package
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/lom-6-9-human-approval-decision-package/**'
+      - '.github/workflows/lom-6-9-human-approval-decision-package.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  decision-package:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run LOM 6.9 regression suite
+        working-directory: vl/lom-6-9-human-approval-decision-package
+        run: python -m unittest -v test_decision.py
