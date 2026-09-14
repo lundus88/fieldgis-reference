@@ -1,6 +1,30 @@
 -- Issue #211. Additive RPC boundary hardening; no release gate or authority changes.
 -- Keep private outside PostgREST's exposed schemas. See DATABASE_SECURITY_RPC_RC.md.
+-- Apply after 20260914_public_security_definer_boundary.sql (merged PR #216).
 begin;
+
+-- PR #216 landed while this RC was being prepared. Preserve its historical SQL
+-- and backend helper bodies, but close its client EXECUTE grants once the new
+-- guarded entry paths below are installed in this same transaction. Conditional
+-- lookup also permits applying this migration to the original incident schema.
+do $$
+declare
+  v_signature text;
+  v_function regprocedure;
+begin
+  foreach v_signature in array array[
+    'private.request_vrs_internal_usage_override_impl(uuid,text,integer)',
+    'private.vl_get_assisted_build_quote_impl(text)',
+    'private.vl_prepare_assisted_build_product_alignment_impl(jsonb,jsonb)'
+  ] loop
+    v_function := to_regprocedure(v_signature);
+    if v_function is not null then
+      execute format('revoke all on function %s from public, anon, authenticated',v_function);
+      execute format('alter function %s set search_path = %L',v_function,'');
+    end if;
+  end loop;
+end;
+$$;
 
 -- An INVOKER facade cannot call a helper whose EXECUTE is revoked. Use a
 -- transient INSERT interface: only the trigger owner can execute the privileged
@@ -346,6 +370,16 @@ begin
     if has_function_privilege(v_role,'private.request_vrs_internal_usage_override_impl()','EXECUTE') then
       raise exception 'privileged override helper must not be client-executable';
     end if;
+    foreach v_signature in array array[
+      'private.request_vrs_internal_usage_override_impl(uuid,text,integer)',
+      'private.vl_get_assisted_build_quote_impl(text)',
+      'private.vl_prepare_assisted_build_product_alignment_impl(jsonb,jsonb)'
+    ] loop
+      v_oid := to_regprocedure(v_signature);
+      if v_oid is not null and has_function_privilege(v_role,v_oid,'EXECUTE') then
+        raise exception 'legacy privileged helper unexpectedly client-executable: %',v_signature;
+      end if;
+    end loop;
     foreach v_table in array array[
       'private.internal_usage_overrides','private.internal_usage_audit','private.assisted_build_cost_policy'
     ] loop

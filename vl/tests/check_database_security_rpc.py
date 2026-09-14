@@ -4,7 +4,7 @@ import re
 import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
-SQL = (ROOT / 'vl/migrations/20260914_harden_public_security_definer_rpc.sql').read_text()
+SQL = (ROOT / 'vl/migrations/20260914_security_invoker_rpc_guarded_entry.sql').read_text()
 HISTORY = ROOT / 'vl/migrations'
 
 
@@ -109,6 +109,8 @@ class RpcBoundaryContract(unittest.TestCase):
         self.assertIn('revoke all (project_id, reason, duration_minutes, result)', SQL)
         self.assertIn('revoke all (complexity_class, quote)', SQL)
         self.assertIn("has_any_column_privilege(v_role,v_table,'SELECT,INSERT,UPDATE,REFERENCES')", SQL)
+        self.assertIn('legacy privileged helper unexpectedly client-executable', SQL)
+        self.assertLess('20260914_public_security_definer_boundary.sql', '20260914_security_invoker_rpc_guarded_entry.sql')
 
     def test_assisted_ui_named_rpc_arguments_and_production_lock_are_retained(self):
         ui = (ROOT / 'vl/public/assisted-build.html').read_text()

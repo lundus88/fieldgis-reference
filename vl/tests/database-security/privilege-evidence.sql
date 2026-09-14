@@ -13,7 +13,8 @@ from pg_proc p join pg_namespace n on n.oid=p.pronamespace
 where (n.nspname='public' and p.proname in (
   'request_vrs_internal_usage_override','vl_get_assisted_build_quote','vl_prepare_assisted_build_product_alignment'
 )) or (n.nspname='private' and p.proname in (
-  'request_vrs_internal_usage_override_impl','build_assisted_build_product_alignment','validate_product_alignment'
+  'request_vrs_internal_usage_override_impl','vl_get_assisted_build_quote_impl',
+  'vl_prepare_assisted_build_product_alignment_impl','build_assisted_build_product_alignment','validate_product_alignment'
 ))
 order by n.nspname,p.proname;
 

@@ -1,0 +1,61 @@
+name: VL Factory Scheduler Watchdog
+
+# Redundant trigger path for VL queue workers.
+# This workflow never builds, validates, approves, promotes, or deploys artifacts.
+# It only dispatches the existing fail-closed Factory Runner and Release Validator
+# after a healthy operational/governance signal on main, providing a second
+# trigger path when their scheduled events are delayed or dropped by GitHub Actions.
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows:
+      - "VL Operational Alerts"
+      - "VL Governance CI"
+    types: [completed]
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: vl-factory-scheduler-watchdog
+  cancel-in-progress: false
+
+jobs:
+  dispatch-workers:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Dispatch existing VL Factory Runner
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL -X POST \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${REPO}/actions/workflows/vl-factory-runner.yml/dispatches" \
+            -d '{"ref":"main"}'
+          echo "VL Factory Runner dispatch accepted."
+
+      - name: Dispatch existing VL Release Validator
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL -X POST \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${REPO}/actions/workflows/vl-release-validator.yml/dispatches" \
+            -d '{"ref":"main"}'
+          echo "VL Release Validator dispatch accepted."

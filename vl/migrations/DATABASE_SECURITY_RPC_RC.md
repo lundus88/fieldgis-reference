@@ -2,7 +2,7 @@
 
 Status: repository remediation prepared; **PRODUCTION HOLD**.
 
-**PRODUCTION NOT MODIFIED**
+**PRODUCTION NOT MODIFIED** by this work. A concurrent, separately merged change is described below.
 
 **HUMAN PRODUCTION APPROVAL STILL REQUIRED**
 
@@ -21,6 +21,12 @@ Status: repository remediation prepared; **PRODUCTION HOLD**.
 
 No migration, production RPC mutation, release-validator dispatch, approval, promotion, schema change, or deployment was performed against `vrs-core`.
 
+### Concurrent main update reconciled
+
+After the initial RC was pushed, final verification found main had advanced to `98f766f1529534f779f2ea5c2033945280ec8b57`, including [PR #216](https://github.com/lundus88/fieldgis-reference/pull/216). Its additive `20260914_public_security_definer_boundary.sql` already changes the three public RPCs to INVOKER, but grants authenticated EXECUTE on three private SECURITY DEFINER implementations. A subsequent **read-only** production check confirmed public counts `0 / 0` and all three of those private helper grants active. Therefore the original public exposure is no longer claimed to remain live.
+
+This RC incorporates that main history without rewriting it and completes the directive's stricter private-helper-denial requirement. The migration is named **`20260914_security_invoker_rpc_guarded_entry.sql`**, intentionally sorting after the newly merged migration instead of using the original suggested filename. It preserves PR #216's file/helper bodies, revokes client execution of its three legacy helpers, locks their search paths and installs the guarded public entry paths atomically. No scheduler/watchdog or release-validator change from main is altered by this RC.
+
 ## Architecture and strict helper-execution boundary
 
 The public signatures, argument names, defaults and JSONB returns remain:
@@ -37,7 +43,7 @@ The private quote view intentionally uses its owner's narrow policy-read authori
 
 The alignment helpers only transform input JSON. Their authenticated EXECUTE grants do not confer elevated database authority. Backend `service_role` EXECUTE on these **nonprivileged** helpers preserves backend compatibility when PUBLIC EXECUTE is revoked; it is not used in any client path. Native `pg_catalog.sha256` replaces `pgcrypto.digest(...,'sha256')`, removing extension search-path/privilege dependencies. Both hashes and the entire JSON result match the historical function in the PostgreSQL fixture.
 
-All affected function search paths are empty with schema-qualified relation/helper references. PUBLIC and anon cannot execute the public RPCs. PUBLIC, anon, authenticated and service_role cannot execute the privileged trigger helper. The additive migration uses a transaction, replay-safe CREATE OR REPLACE, explicit table/column ACL reset for the new views and fail-closed postcondition assertions, including unexpected inherited access to raw private tables.
+All affected function search paths are empty with schema-qualified relation/helper references. PUBLIC and anon cannot execute the public RPCs. PUBLIC, anon, authenticated and service_role cannot execute the privileged trigger helper. PUBLIC, anon and authenticated also lose execution on PR #216's three legacy privileged helpers; their backend permissions are retained. The additive migration uses a transaction, replay-safe CREATE OR REPLACE, explicit table/column ACL reset for the new views and fail-closed postcondition assertions, including unexpected inherited access to raw private tables and legacy helper grants.
 
 ## Controls retained
 
@@ -54,21 +60,23 @@ All affected function search paths are empty with schema-qualified relation/help
 | --- | --- |
 | Pre-change Assisted Build, Governance CI, migration reproducibility/schema-capture steps plus founder guardrail | 10/10 command steps passed |
 | `python3 vl/tests/check_database_security_rpc.py` | 10 passed, 0 failed |
-| `npm ci --ignore-scripts && npm test` in `vl/tests/database-security` | Node reports 55 passed, 0 failed (54 subtests plus parent) |
+| `npm ci --ignore-scripts && npm test` in `vl/tests/database-security` | Node reports 56 passed, 0 failed (55 subtests plus parent) |
 | Post-change Assisted Build workflow, including new database-security job, Governance CI and migration reproducibility workflow equivalents | 12/12 command steps passed |
 | Broader `python3 vl/scripts/check_action_pinning.py` | FAIL: 25 pre-existing mutable action references across the repository |
 
-The action-pinning checker was also executed against the exact starting commit's workflow files. Its exit code and complete output match the post-change audit exactly: 86 workflows scanned, 25 findings. The changed workflow retains SHA-pinned actions and adds no finding. This pre-existing failure is disclosed, not suppressed or declared PASS.
+The action-pinning checker was also executed against the exact starting commit's workflow files: 86 workflows and 25 findings. Before the concurrent main integration its complete output was identical. The updated main adds a pinned watchdog workflow; the final audit scans 87 workflows and retains the same 25 findings. The changed Assisted Build workflow retains SHA-pinned actions and adds no finding. This pre-existing failure is disclosed, not suppressed or declared PASS.
 
-The fixture runs **PostgreSQL 17.5** through pinned PGlite `0.4.6`; production reports PostgreSQL `17.6.1.155`. It loads the actual historical RPCs, relevant table definitions/constraints and real pgcrypto extension, then applies and replays the additive migration. The new dependency is test-only, integrity-locked and installed with lifecycle scripts disabled. Local execution used Node 24; GitHub CI is configured for Node 22.
+The fixture runs **PostgreSQL 17.5** through pinned PGlite `0.4.6`; production reports PostgreSQL `17.6.1.155`. It loads the actual historical RPCs, relevant table definitions/constraints and real pgcrypto extension, then PR #216's exact migration and this successor migration/replay. The new dependency is test-only, integrity-locked and installed with lifecycle scripts disabled. Local execution used Node 24; GitHub CI is configured for Node 22.
 
 Tests cover catalog privileges, real anon/authenticated calls, missing identity, AAL1/missing AAL, other-project/nonmember/member rejection, short/null reasons, duration boundaries/null, successful owner/admin/default-duration requests, direct private entry attempts, helper attachment denial, atomic audit failure, disabled/missing policies, exact historical quote/alignment JSON and hashes, read-only transactions, temporary-object shadowing and ACL repair on replay.
 
 | Scope | Tables without RLS | Exposed public DEFINER RPCs | Meaning |
 | --- | ---: | ---: | --- |
-| Production catalog, read-only baseline | 0 | 3 | Incident still present; production untouched |
+| Production catalog, initial read-only baseline | 0 | 3 | Original incident confirmed |
+| Production catalog, later read-only check after concurrent PR #216 | 0 | 0 | Three affected private DEFINER helpers still authenticated-executable; no production writes by this work |
 | Repository fixture before migration | 0 | 3 | Reproduced the relevant boundary failure |
-| Repository fixture after migration/replay | 0 | 0 | Actual catalog count reduction using unchanged evaluator predicates |
+| Repository fixture after PR #216 | 0 | 0 | Three client-executable private DEFINER helpers |
+| Repository fixture after successor/replay | 0 | 0 | Zero client-executable private DEFINER helpers; public scanner predicates unchanged |
 | Complete Supabase DEV control plane | Not tested | Not tested | `BLOCKED_DEV_DATABASE_VALIDATION` |
 
 These are test results, not certification/release-gate records. No PASS was written to a release database. The repository lacks a complete replayable production schema baseline; the fixture supplies explicitly limited test scaffolding and does not claim full migration reproducibility. Full mobile/device/platform CI, live Assisted Build browser flows and the Controlled Canary were not run by this work. Applicable PR checks are reported by GitHub on the PR revision.

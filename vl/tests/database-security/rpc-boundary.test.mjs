@@ -9,11 +9,12 @@ import { pgcrypto } from '@electric-sql/pglite/contrib/pgcrypto';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const read = path => readFileSync(`${root}${path}`, 'utf8');
-const migration = read('migrations/20260914_harden_public_security_definer_rpc.sql');
+const migration = read('migrations/20260914_security_invoker_rpc_guarded_entry.sql');
 const founder = read('migrations/20260901_founder_internal_usage_guardrails.sql');
 const execution = read('migrations/20260901_assisted_build_execution_gate.sql');
 const alignment = read('migrations/20260901_assisted_build_product_alignment.sql');
 const liveAlignment = read('migrations/20260831_product_alignment_live_gate.sql');
+const mergedBoundary = read('migrations/20260914_public_security_definer_boundary.sql');
 const functionSql = (source, signature) => {
   const start = source.indexOf(`create or replace function ${signature}`);
   assert.ok(start >= 0, `missing historical function ${signature}`);
@@ -116,6 +117,14 @@ test('VL RPC boundary on isolated PostgreSQL fixture', async t => {
       assert.match(version.version, /^PostgreSQL 17\./, 'fixture must match the production PostgreSQL major');
       t.diagnostic(`Fixture engine: ${version.version}`);
     });
+    await t.test('merged PR #216 closes public exposure but retains three client-executable private definers', async () => {
+      await db.exec(mergedBoundary);
+      assert.deepEqual(await row(scanner),{public_tables_without_rls:0,public_security_definer_exposed_to_client_roles:0});
+      assert.equal((await row(`select count(*)::int as n from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+        where n.nspname='private' and p.prosecdef and has_function_privilege('authenticated',p.oid,'EXECUTE')`)).n,3);
+      assert.deepEqual((await auth(()=>prepare())).result,oldAlignment);
+      for (const band of ['low','medium','high']) assert.deepEqual((await auth(()=>quote(band))).result,oldQuotes[band]);
+    });
     const unchanged = await row(`select jsonb_build_object(
       'projects',(select jsonb_agg(p) from public.projects p),
       'members',(select jsonb_agg(p) from public.project_members p),
@@ -126,7 +135,7 @@ test('VL RPC boundary on isolated PostgreSQL fixture', async t => {
       await db.exec(migration);
       assert.deepEqual(await counts(), { overrides: 0, audit: 0 });
     });
-    await t.test('unchanged scanner predicates report 3 -> 0 on the fixture', async () => {
+    await t.test('unchanged scanner predicates retain zero public exposure after the successor migration', async () => {
       assert.deepEqual(await row(scanner), { public_tables_without_rls: 0, public_security_definer_exposed_to_client_roles: 0 });
     });
 
@@ -176,6 +185,11 @@ test('VL RPC boundary on isolated PostgreSQL fixture', async t => {
         await denied(()=>db.exec(`create trigger client_trigger before insert on client_trigger_target
           for each row execute function private.request_vrs_internal_usage_override_impl()`));
         await db.exec('drop table client_trigger_target');
+      });
+      for (const role of ['anon','authenticated']) await asRole(role,{sub:owner,aal:'aal2'},async () => {
+        await denied(()=>row('select private.request_vrs_internal_usage_override_impl($1,$2,60)',[project,'Explicit legacy helper reason']));
+        await denied(()=>row("select private.vl_get_assisted_build_quote_impl('low')"));
+        await denied(()=>row('select private.vl_prepare_assisted_build_product_alignment_impl($1,$2)',[answers,structured]));
       });
     });
     for (const aal of ['aal1','',null]) {
