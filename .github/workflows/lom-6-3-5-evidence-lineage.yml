@@ -1,0 +1,23 @@
+name: LOM 6.3.5 Evidence Lineage Chain of Custody
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lineage:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run lineage tests
+        run: python -m unittest vl/lom-6-3-5-evidence-lineage-chain-of-custody/test_lineage.py
