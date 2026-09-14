@@ -22,6 +22,12 @@ REQUIRED = [
     'vl/lom-business-os/README.md',
     'vl/lom-autonomous-org/README.md',
     'vl/lom-controlled-validation/README.md',
+    'vl/lom-operational-safety/README.md',
+    'vl/lom-operational-safety/action-registry.json',
+    'vl/lom-operational-safety/action_registry.py',
+    'vl/lom-operational-safety/delegation.py',
+    'vl/lom-operational-safety/evidence_replay.py',
+    'vl/lom-operational-safety/event_ledger.py',
 ]
 
 WORKFLOWS = [
@@ -34,6 +40,7 @@ WORKFLOWS = [
     '.github/workflows/lom-3-business-os.yml',
     '.github/workflows/lom-4-autonomous-org.yml',
     '.github/workflows/lom-4-controlled-validation.yml',
+    '.github/workflows/lom-master-compliance.yml',
 ]
 
 TEXT_ASSERTIONS = {
@@ -49,6 +56,7 @@ TEXT_ASSERTIONS = {
     'vl/lom-business-os/README.md': ['AI Business Operating System'],
     'vl/lom-autonomous-org/README.md': ['Autonomous Digital Organization'],
     'vl/lom-controlled-validation/README.md': ['Controlled Operational Validation'],
+    'vl/lom-operational-safety/README.md': ['Operational Safety Hardening', 'default deny', 'AppendOnlyEventLedger'],
 }
 
 
@@ -79,6 +87,29 @@ def main() -> int:
         if needle not in runtime:
             fail(f'LOM 4 runtime missing fail-closed control: {needle}')
 
+    safety_files = [
+        ROOT / 'vl/lom-operational-safety/action_registry.py',
+        ROOT / 'vl/lom-operational-safety/delegation.py',
+        ROOT / 'vl/lom-operational-safety/evidence_replay.py',
+        ROOT / 'vl/lom-operational-safety/event_ledger.py',
+    ]
+    safety_text = '\n'.join(path.read_text(encoding='utf-8') for path in safety_files)
+    for needle in [
+        'UNREGISTERED_ACTION',
+        'EXECUTOR_VALIDATOR_COLLISION',
+        'REMEDIATOR_VALIDATOR_COLLISION',
+        'DELEGATION_EXPIRED',
+        'DELEGATION_CAPABILITY_WIDENED',
+        'ATTEMPT_BUDGET_EXHAUSTED',
+        'DUPLICATE_OR_REPLAY',
+        'STALE_EVIDENCE',
+        'CONTRADICTORY_EVIDENCE',
+        'APPEND_ONLY_LEDGER',
+        'UNKNOWN_STATE',
+    ]:
+        if needle not in safety_text:
+            fail(f'LOM 4.1 safety control missing: {needle}')
+
     completion = (ROOT / 'vl/completion-governance/independent_validator.py').read_text(encoding='utf-8')
     if "'builder_self_report_trusted': False" not in completion:
         fail('independent completion validator does not reject builder self-certification')
@@ -88,6 +119,7 @@ def main() -> int:
     print('LOM 2.0: PRESENT')
     print('LOM 3.0: PRESENT')
     print('LOM 4.0: PRESENT')
+    print('LOM 4.1: PRESENT')
     print('PRODUCTION AUTHORITY: NOT GRANTED')
     return 0
 
