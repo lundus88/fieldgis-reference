@@ -1,5 +1,11 @@
+import sys
 import unittest
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
+
+MODULE_DIR = Path(__file__).resolve().parent
+if str(MODULE_DIR) not in sys.path:
+    sys.path.insert(0, str(MODULE_DIR))
 
 from lineage import LineageRecord, custody_digest, validate_chain, validate_lineage
 
