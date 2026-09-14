@@ -1,0 +1,28 @@
+name: LOM 6.3.2 Technical Metrics Artifact Contract
+
+on:
+  pull_request:
+    paths:
+      - 'vl/lom-6-3-2-technical-metrics-artifact-contract/**'
+      - '.github/workflows/lom-6-3-2-technical-metrics-artifact-contract.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run contract regression suite
+        working-directory: vl/lom-6-3-2-technical-metrics-artifact-contract
+        run: python -m unittest -v test_contract.py
+      - name: Validate schema JSON syntax
+        run: python -m json.tool vl/lom-6-3-2-technical-metrics-artifact-contract/metrics-contract.schema.json > /dev/null
