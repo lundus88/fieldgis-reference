@@ -1,0 +1,27 @@
+name: LOM 6 AI Control Plane
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/lom-6-ai-control-plane/**'
+      - '.github/workflows/lom-6-ai-control-plane.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lom-6-ai-control-plane:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run LOM 6 AI Control Plane regression suite
+        working-directory: vl/lom-6-ai-control-plane
+        run: python -m unittest -v test_control_plane.py
