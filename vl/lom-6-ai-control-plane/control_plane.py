@@ -50,7 +50,11 @@ def score_agent(metrics: AgentMetrics) -> dict:
 
     quality = 100 * (0.35 * metrics.correctness + 0.35 * metrics.success_rate + 0.30 * metrics.safety)
     latency_penalty = min(metrics.p95_latency_ms / 1000.0, 20.0)
-    efficiency = 100.0 if metrics.cost_per_task == 0 else min(100.0, 100.0 * metrics.business_value_per_task / metrics.cost_per_task)
+    if metrics.cost_per_task == 0:
+        efficiency = 100.0 if metrics.business_value_per_task > 0 else 50.0
+    else:
+        value_cost_ratio = metrics.business_value_per_task / metrics.cost_per_task
+        efficiency = 100.0 * value_cost_ratio / (1.0 + value_cost_ratio)
     overall = max(0.0, min(100.0, 0.65 * quality + 0.20 * efficiency + 0.15 * (100.0 - latency_penalty)))
     status = 'PASS' if overall >= 80 and metrics.safety >= 0.99 else 'REVIEW'
     return {
