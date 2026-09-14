@@ -43,12 +43,36 @@ jobs:
           chmod +x vl/scripts/prepare-mobile-flutter-cache.sh vl/scripts/build-mobile-flutter-sandbox.sh
           vl/scripts/prepare-mobile-flutter-cache.sh sandbox-mobile
           test -f sandbox-mobile/.vl-mobile-cache-prepared
+          grep -q 'trusted-template-toolchain-prepared-v9-certified-deps-platform35' sandbox-mobile/.vl-mobile-cache-prepared
           test -x sandbox-mobile/.flutter-sdk/bin/flutter
           test -s sandbox-mobile/.flutter-sdk/bin/cache/engine.stamp
           test -s sandbox-mobile/.android-sdk-components/ndk/28.2.13676358/source.properties
           test -x sandbox-mobile/.android-sdk-components/build-tools/35.0.0/aapt2
+          test -s sandbox-mobile/.android-sdk-components/platforms/android-35/android.jar
           test -s sandbox-mobile/.android-sdk-components/platforms/android-36/android.jar
           test -x sandbox-mobile/.android-sdk-components/cmake/3.22.1/bin/cmake
+
+      - name: Overlay certified dependency probe after cache preparation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('sandbox-mobile/pubspec.yaml')
+          text=p.read_text()
+          marker='dev_dependencies:'
+          assert marker in text
+          deps=(
+              '  geolocator: ^14.0.3\n'
+              '  maplibre_gl: ^0.27.0\n'
+              '  shared_preferences: ^2.5.5\n'
+              '  path_provider: ^2.1.6\n'
+              '  share_plus: ^13.3.0\n\n'
+          )
+          text=text.replace(marker,deps+marker,1)
+          p.write_text(text)
+          PY
+          rm -f sandbox-mobile/pubspec.lock
 
       - name: Inject generated-code adversarial Gradle probe after cache preparation
         shell: bash
@@ -146,16 +170,20 @@ jobs:
           grep -q -- "NDK_VERSION='28.2.13676358'" vl/scripts/prepare-mobile-flutter-cache.sh
           grep -q -- "BUILD_TOOLS_VERSION='35.0.0'" vl/scripts/prepare-mobile-flutter-cache.sh
           grep -q -- "COMPILE_SDK='36'" vl/scripts/prepare-mobile-flutter-cache.sh
+          grep -q -- "TRANSITIVE_PLATFORM='35'" vl/scripts/prepare-mobile-flutter-cache.sh
           grep -q -- "CMAKE_VERSION='3.22.1'" vl/scripts/prepare-mobile-flutter-cache.sh
           grep -q -- "'build-tools;\$BUILD_TOOLS_VERSION'" vl/scripts/prepare-mobile-flutter-cache.sh
+          grep -q -- "'platforms;android-\$TRANSITIVE_PLATFORM'" vl/scripts/prepare-mobile-flutter-cache.sh
           grep -q -- "'platforms;android-\$COMPILE_SDK'" vl/scripts/prepare-mobile-flutter-cache.sh
           grep -q -- "'cmake;\$CMAKE_VERSION'" vl/scripts/prepare-mobile-flutter-cache.sh
           grep -q -- '/workspace/.flutter-sdk/bin/flutter' vl/scripts/prepare-mobile-flutter-cache.sh
+          grep -q -- "'geolocator:\^14.0.3'" vl/scripts/prepare-mobile-flutter-cache.sh
+          grep -q -- "'maplibre_gl:\^0.27.0'" vl/scripts/prepare-mobile-flutter-cache.sh
+          grep -q -- "'shared_preferences:\^2.5.5'" vl/scripts/prepare-mobile-flutter-cache.sh
+          grep -q -- "'path_provider:\^2.1.6'" vl/scripts/prepare-mobile-flutter-cache.sh
+          grep -q -- "'share_plus:\^13.3.0'" vl/scripts/prepare-mobile-flutter-cache.sh
           ! grep -q -- '/sdks/flutter/bin/flutter' vl/scripts/build-mobile-flutter-sandbox.sh
 
-          # The live Factory Runner must prepare trusted state before overlaying
-          # generated artifacts and must execute Mobile build logic only via the
-          # credential-free offline sandbox wrapper.
           grep -q -- 'Prepare pristine Android workspace and trusted cache' .github/workflows/vl-factory-runner.yml
           grep -q -- 'vl/scripts/prepare-mobile-flutter-cache.sh workspace/mobile' .github/workflows/vl-factory-runner.yml
           grep -q -- 'Overlay generated Mobile artifacts' .github/workflows/vl-factory-runner.yml
