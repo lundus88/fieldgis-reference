@@ -22,6 +22,8 @@ on:
       - 'vl/lom-autonomous-org/**'
       - 'vl/lom-controlled-validation/**'
       - 'vl/lom-compliance-audit/**'
+      - 'vl/lom-operational-safety/**'
+      - 'vl/lom-learning-evaluation/**'
       - '.github/workflows/lom-*.yml'
   workflow_dispatch:
 
@@ -94,3 +96,9 @@ jobs:
         run: |
           python validation_harness.py
           python -m unittest -q
+      - name: LOM 4.1 Operational Safety Hardening
+        working-directory: vl/lom-operational-safety
+        run: python -m unittest -v test_operational_safety.py
+      - name: LOM 4.2 Learning & Evaluation Layer
+        working-directory: vl/lom-learning-evaluation
+        run: python -m unittest -v test_learning_core.py
