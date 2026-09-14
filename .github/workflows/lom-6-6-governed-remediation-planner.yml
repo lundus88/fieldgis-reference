@@ -1,0 +1,30 @@
+name: LOM 6.6 Governed Remediation Planner
+
+on:
+  pull_request:
+    paths:
+      - 'vl/lom-6-6-governed-remediation-planner/**'
+      - '.github/workflows/lom-6-6-governed-remediation-planner.yml'
+  push:
+    branches:
+      - lom-6-6-governed-remediation-planner
+    paths:
+      - 'vl/lom-6-6-governed-remediation-planner/**'
+      - '.github/workflows/lom-6-6-governed-remediation-planner.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  lom-6-6-governed-remediation-planner:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run LOM 6.6 remediation planner regression suite
+        working-directory: vl/lom-6-6-governed-remediation-planner
+        run: python -m unittest -v test_planner.py
