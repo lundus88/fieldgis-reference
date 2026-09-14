@@ -1,0 +1,23 @@
+{
+  "schema": "lom.action-registry/1",
+  "default_decision": "DENY",
+  "production_locked": true,
+  "actions": [
+    {"action_id":"READ_ONLY_OBSERVATION","capability_id":"cap.observe.readonly","max_risk":"LOW","reversible_required":true,"non_production_only":true},
+    {"action_id":"GENERATE_ARTIFACT","capability_id":"cap.artifact.generate","max_risk":"LOW","reversible_required":true,"non_production_only":true},
+    {"action_id":"RUN_TEST","capability_id":"cap.test.execute","max_risk":"LOW","reversible_required":true,"non_production_only":true},
+    {"action_id":"RENDER_REPORT","capability_id":"cap.report.render","max_risk":"LOW","reversible_required":true,"non_production_only":true},
+    {"action_id":"NON_PRODUCTION_REVERSIBLE_ACTION","capability_id":"cap.nonprod.reversible","max_risk":"LOW","reversible_required":true,"non_production_only":true}
+  ],
+  "human_only_actions": [
+    "PRODUCTION_RELEASE",
+    "PROTECTED_MAIN_MERGE",
+    "PRODUCTION_DATA_MUTATION",
+    "AUTHORITY_WIDENING",
+    "CUSTOMER_COMMITMENT",
+    "BID_SUBMISSION",
+    "PRICING_COMMITMENT",
+    "CONTRACT_COMMITMENT",
+    "FINANCIAL_COMMITMENT"
+  ]
+}
