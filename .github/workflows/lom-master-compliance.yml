@@ -1,0 +1,83 @@
+name: LOM Master Compliance
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/LOM_V1.md'
+      - 'vl/context-governance/**'
+      - 'vl/completion-governance/**'
+      - 'vl/model-governance/**'
+      - 'vl/execution-governance/**'
+      - 'vl/remediation-governance/**'
+      - 'vl/multi-agent-governance/**'
+      - 'vl/connector-governance/**'
+      - 'vl/golden-workflow/**'
+      - 'vl/lom-4-evolution/**'
+      - 'vl/lom-gate-c-runtime/**'
+      - 'vl/lom-gate-d-remediation/**'
+      - 'vl/lom-gate-e-orchestrator/**'
+      - 'vl/lom-mission-control/**'
+      - 'vl/lom-business-os/**'
+      - 'vl/lom-autonomous-org/**'
+      - 'vl/lom-controlled-validation/**'
+      - 'vl/lom-compliance-audit/**'
+      - '.github/workflows/lom-*.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  master-compliance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate LOM version ladder and authority boundaries
+        run: python vl/lom-compliance-audit/validate_lom_compliance.py
+      - name: LOM 1.0 core governance regression
+        run: |
+          python vl/context-governance/validate_context_policy.py vl/context-governance/default-context-policy.json
+          python -m unittest -v vl/context-governance/test_lom_context_governance.py
+          python -m unittest -v vl/completion-governance/test_lom_independent_validator.py
+          python -m unittest -v vl/model-governance/test_route_model.py
+          python -m unittest -v vl/execution-governance/test_lom_execution_pool.py
+          python -m unittest -v vl/remediation-governance/test_remediation_policy.py
+          python -m unittest -v vl/multi-agent-governance/test_lom_delegation_policy.py
+          python vl/connector-governance/validate_connector_registry.py vl/connector-governance/connector-registry.json
+          python vl/golden-workflow/run_golden_workflow.py
+      - name: LOM 2.0 bounded autonomy
+        working-directory: vl/lom-4-evolution
+        run: |
+          python -m unittest -v test_lom2_bounded_loop.py test_foundation.py
+          python validate_foundation.py
+      - name: Install pytest for LOM 2 gates
+        run: python -m pip install --disable-pip-version-check pytest
+      - name: LOM 2.0 Gate C runtime
+        run: pytest -q vl/lom-gate-c-runtime
+      - name: LOM 2.0 Gate D remediation
+        run: |
+          python vl/lom-gate-d-remediation/validate_remediation.py
+          pytest -q vl/lom-gate-d-remediation
+      - name: LOM 2.0 Gate E orchestrator
+        run: pytest -q vl/lom-gate-e-orchestrator
+      - name: LOM 2.0 Gate F Mission Control
+        working-directory: vl/lom-mission-control
+        run: python -m unittest -q
+      - name: LOM 3.0 Business OS
+        working-directory: vl/lom-business-os
+        run: python -m unittest -q
+      - name: LOM 4.0 Autonomous Organization
+        working-directory: vl/lom-autonomous-org
+        run: python -m unittest -q
+      - name: LOM 4.0 Controlled Operational Validation
+        working-directory: vl/lom-controlled-validation
+        run: |
+          python validation_harness.py
+          python -m unittest -q
