@@ -1,0 +1,27 @@
+name: LOM 6.3.1 Live Read-Only Evidence Adapter
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/lom-6-3-1-live-readonly-evidence-adapter/**'
+      - '.github/workflows/lom-6-3-1-live-readonly-evidence-adapter.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run LOM 6.3.1 adapter regression suite
+        working-directory: vl/lom-6-3-1-live-readonly-evidence-adapter
+        run: python -m unittest -v test_adapter.py
