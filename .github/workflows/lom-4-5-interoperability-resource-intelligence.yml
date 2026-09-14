@@ -1,0 +1,27 @@
+name: LOM 4.5 Interoperability Resource Intelligence
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/lom-4-5-interoperability-resource-intelligence/**'
+      - '.github/workflows/lom-4-5-interoperability-resource-intelligence.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lom-4-5:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run LOM 4.5 regression suite
+        working-directory: vl/lom-4-5-interoperability-resource-intelligence
+        run: python -m unittest -v test_runtime.py
