@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "lom.technical-metrics-artifact/1",
+  "title": "LOM Technical Metrics Artifact",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "workload_id",
+    "evidence_sha",
+    "measured_at",
+    "sample_count",
+    "success_rate",
+    "correctness",
+    "safety",
+    "p95_latency_ms",
+    "source_kind",
+    "source_reference"
+  ],
+  "properties": {
+    "schema": {"const": "lom.technical-metrics-artifact/1"},
+    "workload_id": {"type": "string", "minLength": 1},
+    "evidence_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "measured_at": {"type": "string", "format": "date-time"},
+    "sample_count": {"type": "integer", "minimum": 1},
+    "success_rate": {"type": "number", "minimum": 0, "maximum": 1},
+    "correctness": {"type": "number", "minimum": 0, "maximum": 1},
+    "safety": {"type": "number", "minimum": 0, "maximum": 1},
+    "p95_latency_ms": {"type": "integer", "minimum": 0},
+    "source_kind": {"const": "ci_artifact"},
+    "source_reference": {"type": "string", "minLength": 1}
+  }
+}
