@@ -1,0 +1,30 @@
+name: LOM 6.4 Operational Intelligence Dashboard
+
+on:
+  pull_request:
+    paths:
+      - 'vl/lom-6-4-operational-intelligence-dashboard/**'
+      - '.github/workflows/lom-6-4-operational-intelligence-dashboard.yml'
+  push:
+    branches:
+      - lom-6-4-operational-intelligence-dashboard
+    paths:
+      - 'vl/lom-6-4-operational-intelligence-dashboard/**'
+      - '.github/workflows/lom-6-4-operational-intelligence-dashboard.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  lom-6-4-operational-intelligence-dashboard:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run LOM 6.4 dashboard regression suite
+        working-directory: vl/lom-6-4-operational-intelligence-dashboard
+        run: python -m unittest -v test_dashboard.py
