@@ -3,12 +3,14 @@ name: VL Factory Scheduler Watchdog
 # Redundant trigger path for VL Factory Runner.
 # This workflow never builds, validates, approves, promotes, or deploys artifacts.
 # It only dispatches the existing fail-closed factory runner after a healthy
-# Operational Alerts run on main, providing a second trigger path when the
-# runner's own scheduled event is delayed or dropped by GitHub Actions.
+# operational/governance signal on main, providing a second trigger path when
+# the runner's own scheduled event is delayed or dropped by GitHub Actions.
 on:
   workflow_dispatch:
   workflow_run:
-    workflows: ["VL Operational Alerts"]
+    workflows:
+      - "VL Operational Alerts"
+      - "VL Governance CI"
     types: [completed]
 
 permissions:
