@@ -1,6 +1,8 @@
 name: LOM P4 Director Loop
 
 on:
+  schedule:
+    - cron: '17 0 * * *'
   push:
     branches:
       - lom-p4-autonomous-director-loop
@@ -9,13 +11,20 @@ on:
       - 'vl/lom-director-loop/**'
       - 'vl/lom-portfolio-runtime/**'
       - '.github/workflows/lom-p4-director-loop.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
       - name: Run director loop tests
         run: python vl/lom-director-loop/test_director_loop.py
-      - name: Generate director brief
-        run: python vl/lom-director-loop/director_loop.py
+      - name: Run scheduled read-only director loop
+        run: python vl/lom-director-loop/run_scheduled.py
