@@ -1,0 +1,37 @@
+{
+  "schema": "lom.telemetry-source-registry/1",
+  "mode": "READ_ONLY_NON_PRODUCTION",
+  "sources": [
+    {
+      "workload_id": "ebkl",
+      "repository": "lundus88/ebkl",
+      "workflow": "ebkl-dev-validation.yml",
+      "source_kind": "ci_artifact",
+      "production_sensitive": false
+    },
+    {
+      "workload_id": "sabahlot",
+      "repository": "lundus88/sabahlot",
+      "workflow": "release-gate.yml",
+      "source_kind": "ci_artifact",
+      "production_sensitive": false
+    },
+    {
+      "workload_id": "lunduslead",
+      "repository": "lundus88/lundus-lead",
+      "workflow": "qaqc-text-syntax.yml",
+      "source_kind": "ci_artifact",
+      "production_sensitive": false
+    },
+    {
+      "workload_id": "lunduslead-tender",
+      "repository": "lundus88/lundus-lead",
+      "workflow": "tender-pool-bridge.yml",
+      "source_kind": "ci_artifact",
+      "production_sensitive": false
+    }
+  ],
+  "forbidden_sources": [
+    "lundus88/lundus-lead:.github/workflows/deploy-cloudflare-production.yml"
+  ]
+}
