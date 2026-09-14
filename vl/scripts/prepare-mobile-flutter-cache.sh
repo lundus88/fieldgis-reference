@@ -180,4 +180,4 @@ trap - EXIT
 
 # Do not allow the trusted warm-up artifact to be mistaken for a generated build.
 rm -rf "$ROOT/build"
-printf '%s\n' 'trusted-template-toolchain-prepared-v10-certified-deps-platform35-buildtools36' > "$ROOT/.vl-mobile-cache-prepared"
+printf '%s\n' 'trusted-template-toolchain-prepared-v9-certified-deps-platform35-buildtools36' > "$ROOT/.vl-mobile-cache-prepared"
