@@ -83,16 +83,30 @@ def validate_artifact(
     }
 
 
-def build_template(*, workload_id: str, evidence_sha: str, measured_at: str, source_reference: str) -> dict:
+def build_template(
+    *,
+    workload_id: str,
+    evidence_sha: str,
+    measured_at: str,
+    source_reference: str,
+    sample_count: int | None = None,
+    success_rate: float | None = None,
+    correctness: float | None = None,
+    safety: float | None = None,
+    p95_latency_ms: int | None = None,
+) -> dict:
+    values = (sample_count, success_rate, correctness, safety, p95_latency_ms)
+    if any(v is None for v in values):
+        raise ValueError('DERIVED_METRICS_REQUIRED')
     return asdict(MetricsArtifact(
         workload_id=workload_id,
         evidence_sha=evidence_sha,
         measured_at=measured_at,
-        sample_count=1,
-        success_rate=1.0,
-        correctness=1.0,
-        safety=1.0,
-        p95_latency_ms=0,
+        sample_count=sample_count,
+        success_rate=success_rate,
+        correctness=correctness,
+        safety=safety,
+        p95_latency_ms=p95_latency_ms,
         source_reference=source_reference,
     ))
 
@@ -110,6 +124,7 @@ def producer_contract() -> dict:
         'permissions': {'contents': 'read'},
         'production_credentials': 'FORBIDDEN',
         'fabricated_metrics': 'FORBIDDEN',
+        'metric_values': 'DERIVED_REQUIRED',
         'missing_metric_policy': 'HOLD',
         'cross_repo_write': 'DISABLED',
     }

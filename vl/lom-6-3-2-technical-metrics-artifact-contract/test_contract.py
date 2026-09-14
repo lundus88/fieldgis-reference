@@ -74,10 +74,16 @@ class ContractTests(unittest.TestCase):
         r = validate_artifact(artifact(success_rate=.90), expected_workload_id='ebkl', expected_sha=SHA, now=NOW)
         self.assertEqual(r['health'], 'AUTO_PREPARE')
 
-    def test_template_and_producer_contract_are_safe(self):
-        t = build_template(workload_id='ebkl', evidence_sha=SHA, measured_at=NOW.isoformat(), source_reference='run:1')
+    def test_template_requires_derived_metrics_and_contract_is_safe(self):
+        with self.assertRaisesRegex(ValueError, 'DERIVED_METRICS_REQUIRED'):
+            build_template(workload_id='ebkl', evidence_sha=SHA, measured_at=NOW.isoformat(), source_reference='run:1')
+        t = build_template(
+            workload_id='ebkl', evidence_sha=SHA, measured_at=NOW.isoformat(), source_reference='run:1',
+            sample_count=10, success_rate=.9, correctness=.95, safety=1.0, p95_latency_ms=100,
+        )
         p = producer_contract()
-        self.assertEqual(t['evidence_sha'], SHA)
+        self.assertEqual(t['success_rate'], .9)
+        self.assertEqual(p['metric_values'], 'DERIVED_REQUIRED')
         self.assertEqual(p['permissions'], {'contents': 'read'})
         self.assertEqual(p['production_credentials'], 'FORBIDDEN')
         self.assertEqual(p['fabricated_metrics'], 'FORBIDDEN')

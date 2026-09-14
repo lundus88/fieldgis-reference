@@ -1,0 +1,31 @@
+name: LOM 6.3.3 Metric Semantics Registry
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/lom-6-3-2-technical-metrics-artifact-contract/**'
+      - 'vl/lom-6-3-3-metric-semantics-registry/**'
+      - '.github/workflows/lom-6-3-3-metric-semantics-registry.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  regression:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run LOM 6.3.2 contract regressions
+        working-directory: vl/lom-6-3-2-technical-metrics-artifact-contract
+        run: python -m unittest -v test_contract.py
+      - name: Run LOM 6.3.3 semantics regressions
+        working-directory: vl/lom-6-3-3-metric-semantics-registry
+        run: python -m unittest -v test_semantics.py
