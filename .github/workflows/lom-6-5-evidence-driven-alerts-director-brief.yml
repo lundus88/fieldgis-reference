@@ -1,0 +1,30 @@
+name: LOM 6.5 Evidence-Driven Alerts Director Brief
+
+on:
+  pull_request:
+    paths:
+      - 'vl/lom-6-5-evidence-driven-alerts-director-brief/**'
+      - '.github/workflows/lom-6-5-evidence-driven-alerts-director-brief.yml'
+  push:
+    branches:
+      - lom-6-5-evidence-driven-alerts-director-brief
+    paths:
+      - 'vl/lom-6-5-evidence-driven-alerts-director-brief/**'
+      - '.github/workflows/lom-6-5-evidence-driven-alerts-director-brief.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  lom-6-5-director-brief:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run LOM 6.5 director brief regression suite
+        working-directory: vl/lom-6-5-evidence-driven-alerts-director-brief
+        run: python -m unittest -v test_brief.py
