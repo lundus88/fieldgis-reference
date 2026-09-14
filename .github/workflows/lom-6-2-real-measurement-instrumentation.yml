@@ -1,0 +1,26 @@
+name: LOM 6.2 Real Measurement Instrumentation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/lom-6-2-real-measurement-instrumentation/**'
+      - '.github/workflows/lom-6-2-real-measurement-instrumentation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lom-6-2-telemetry:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run LOM 6.2 technical telemetry regression suite
+        working-directory: vl/lom-6-2-real-measurement-instrumentation
+        run: python -m unittest -v test_telemetry.py
