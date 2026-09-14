@@ -1,0 +1,26 @@
+{
+  "schema": "lom.real-workload-measurement/1",
+  "mode": "READ_ONLY_NON_PRODUCTION",
+  "required_fields": [
+    "workload_id",
+    "evidence_sha",
+    "measured_at",
+    "success_rate",
+    "correctness",
+    "safety",
+    "p95_latency_ms",
+    "ai_cost",
+    "human_cost_saved",
+    "revenue_generated",
+    "error_cost_avoided"
+  ],
+  "rules": {
+    "missing_measurement": "HOLD",
+    "stale_or_mismatched_evidence": "HOLD",
+    "safety_below_threshold": "HUMAN_REVIEW",
+    "production_action": "HUMAN_REVIEW",
+    "commercial_or_financial_commitment": "HUMAN_REVIEW",
+    "autonomous_ceiling": "PREPARE_PR"
+  },
+  "reporting_only": ["ai_cost","human_cost_saved","revenue_generated","error_cost_avoided","roi"]
+}
