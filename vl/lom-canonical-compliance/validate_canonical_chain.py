@@ -14,6 +14,12 @@ REQUIRED_AUTHORITY = {
     'unknown_authority': 'HOLD',
 }
 
+REQUIRED_STAGE_SEQUENCE = [
+    '4.3', '4.4', '4.5', '5.0', '6.0', '6.1', '6.2', '6.3', '6.3.1',
+    '6.3.2', '6.3.3', '6.3.4', '6.3.5', '6.4', '6.5', '6.6', '6.7',
+    '6.8', '6.9', '6.9.2', '6.9.3',
+]
+
 
 def fail(message: str) -> None:
     raise SystemExit(f'FAIL: {message}')
@@ -37,6 +43,8 @@ def validate(data: dict) -> None:
     ids = [stage.get('id') for stage in stages]
     owners = [stage.get('owner') for stage in stages]
     artifacts = [stage.get('artifact') for stage in stages]
+    if ids != REQUIRED_STAGE_SEQUENCE:
+        fail('canonical stage sequence incomplete, reordered, or contains an unexpected stage')
     if len(ids) != len(set(ids)):
         fail('duplicate canonical stage id')
     if len(owners) != len(set(owners)):
@@ -50,16 +58,28 @@ def validate(data: dict) -> None:
         if not (ROOT / stage['artifact']).is_file():
             fail(f"missing canonical artifact: {stage['artifact']}")
 
-    pending_ids = {item.get('id') for item in data.get('pending_external_stages', [])}
+    pending = data.get('pending_external_stages') or []
+    pending_ids = {item.get('id') for item in pending}
     if set(ids) & pending_ids:
         fail('pending stage must not be promoted to canonical before merge')
+    for item in pending:
+        if not item.get('id') or not item.get('owner') or not item.get('tracking_pr'):
+            fail('pending stage declaration incomplete')
+        if item.get('merge_required_before_canonical') is not True:
+            fail('pending stage must require merge before canonical promotion')
 
-    for invariant in data.get('critical_invariants', []):
+    invariants = data.get('critical_invariants') or []
+    if not invariants:
+        fail('critical invariants missing')
+    for invariant in invariants:
         path = ROOT / invariant['artifact']
         if not path.is_file():
             fail(f'missing invariant artifact: {invariant["artifact"]}')
         text = path.read_text(encoding='utf-8')
-        for token in invariant.get('tokens', []):
+        tokens = invariant.get('tokens') or []
+        if not tokens:
+            fail(f'critical invariant tokens missing for {invariant["artifact"]}')
+        for token in tokens:
             if token not in text:
                 fail(f'critical invariant missing from {invariant["artifact"]}: {token}')
 
