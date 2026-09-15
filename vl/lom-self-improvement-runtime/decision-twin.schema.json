@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LOM Decision Twin Counterfactual Result",
+  "type": "object",
+  "required": [
+    "status",
+    "reason",
+    "candidate_id",
+    "execution_authority",
+    "execution_performed",
+    "autonomous_ceiling",
+    "production_authority",
+    "protected_main_merge",
+    "authority_widening"
+  ],
+  "properties": {
+    "status": {"enum": ["HOLD", "HUMAN_REVIEW", "REJECT", "SANDBOX_CANDIDATE"]},
+    "reason": {"type": "string", "minLength": 1},
+    "candidate_id": {"type": "string"},
+    "target": {"type": "string"},
+    "summary": {"type": "object"},
+    "decision_twin_fingerprint": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "next_stage": {
+      "type": ["string", "null"],
+      "enum": ["LOM_6_7_VALIDATION_SANDBOX", null]
+    },
+    "execution_authority": {"const": "NONE"},
+    "execution_performed": {"const": false},
+    "autonomous_ceiling": {"const": "PREPARE_PR"},
+    "production_authority": {"const": "HUMAN_ONLY"},
+    "protected_main_merge": {"const": "HUMAN_ONLY"},
+    "authority_widening": {"const": "DISABLED"}
+  },
+  "additionalProperties": true
+}
