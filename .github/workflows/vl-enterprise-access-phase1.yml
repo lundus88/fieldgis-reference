@@ -1,0 +1,57 @@
+name: VL Enterprise Workspace RBAC
+
+on:
+  push:
+    branches: [vl/issue-131-enterprise-rbac]
+    paths:
+      - 'vl/enterprise-access/**'
+      - '.github/workflows/vl-enterprise-access-phase1.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/enterprise-access/**'
+      - '.github/workflows/vl-enterprise-access-phase1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  enterprise-access:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+
+      - name: Run enterprise RBAC adversarial tests
+        working-directory: vl/enterprise-access
+        run: python3 -m unittest -v test_enterprise_access.py
+
+      - name: Assert ACP narrowing and human approval hard locks
+        shell: bash
+        run: |
+          set -euo pipefail
+          POLICY=vl/enterprise-access/enterprise-access-policy.json
+          ENGINE=vl/enterprise-access/authorize_workspace_action.py
+          grep -q '"default_decision": "deny"' "$POLICY"
+          grep -q '"enterprise_layer_may_only_narrow": true' "$POLICY"
+          grep -q '"direct_execution_authority": false' "$POLICY"
+          grep -q '"human_only": true' "$POLICY"
+          grep -q '"explicit_grant_required": true' "$POLICY"
+          grep -q 'DENY_ACP_CAPABILITY_NOT_GRANTED' "$ENGINE"
+          grep -q 'DENY_PROJECT_MEMBERSHIP' "$ENGINE"
+          grep -q 'DENY_APPROVER_BUILDER_CONFLICT' "$ENGINE"
+          grep -q 'DENY_AMBIENT_CREDENTIALS' "$ENGINE"
+          if grep -q '"production.approve"' "$POLICY"; then
+            python3 - <<'PY'
+          import json
+          p=json.load(open('vl/enterprise-access/enterprise-access-policy.json'))
+          for role,caps in p['roles'].items():
+              assert 'production.approve' not in caps, role
+              assert 'production.promote' not in caps, role
+          print('PRODUCTION ROLE DERIVATION: BLOCKED')
+          PY
+          fi
+          echo 'VL ENTERPRISE WORKSPACE RBAC CONTRACT: PASS'
