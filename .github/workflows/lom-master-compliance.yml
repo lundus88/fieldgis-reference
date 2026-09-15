@@ -30,6 +30,8 @@ on:
       - 'vl/lom-security-hardening/**'
       - 'vl/lom-4-5-interoperability-resource-intelligence/**'
       - 'vl/lom-5-operational-maturity/**'
+      - 'vl/lom-6-*/**'
+      - 'vl/lom-canonical-compliance/**'
       - '.github/workflows/lom-*.yml'
   workflow_dispatch:
 
@@ -125,3 +127,7 @@ jobs:
       - name: LOM 5.0 Operational Maturity
         working-directory: vl/lom-5-operational-maturity
         run: python -m unittest -v test_runtime.py
+      - name: LOM Canonical 4.3 through 6.9.3 Reconciliation
+        run: |
+          python vl/lom-canonical-compliance/validate_canonical_chain.py
+          python -m unittest -v vl/lom-canonical-compliance/test_canonical_chain.py
