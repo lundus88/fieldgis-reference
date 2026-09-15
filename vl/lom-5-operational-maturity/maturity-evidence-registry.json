@@ -1,0 +1,77 @@
+{
+  "schema": "lom.operational-maturity-evidence/1",
+  "issue": 158,
+  "mode": "READ_ONLY_NON_PRODUCTION",
+  "records": [
+    {
+      "run_id": "golden-1-ebkl",
+      "project_id": "ebkl",
+      "evidence_state": "PARTIAL",
+      "classification": "REAL_WORLD_GOLDEN_WORKFLOW_ACCEPTED",
+      "final_outcome": "PASS",
+      "source_reference": "Issue #158 starting evidence: Golden Workflow #1 on e-BKL completed with explicit human acceptance.",
+      "known_gap": "Per-run mandatory digests, budgets, timing, cost, artifact/QA linkage and delegation evidence are not present in the authoritative repository record."
+    },
+    {
+      "run_id": "golden-2-ebkl-hold",
+      "project_id": "ebkl",
+      "evidence_state": "PARTIAL",
+      "classification": "FAIL_CLOSED_HOLD_BLOCKED",
+      "final_outcome": "BLOCKED",
+      "source_commit_sha": "e7797faee51d57ce8252aa7aeafe2619b3402595",
+      "qa_security_evidence": [
+        {
+          "kind": "github-actions",
+          "run_id": "34674501309",
+          "status": "SUCCESS"
+        }
+      ],
+      "authority_expansion_incident": false,
+      "fabricated_pass_incident": false,
+      "production_approval": false,
+      "source_reference": "Issue #158 comment 5646278932; RSP.2026139042 remained PRE-FIELD / COMPUTE BLOCKED and fail-closed.",
+      "known_gap": "Mandatory App Spec/context/routing digests, budgets, elapsed/cost metrics, artifact digest, independent-validation object, human-decision linkage and multi-agent evidence are incomplete."
+    },
+    {
+      "run_id": "golden-3-lunduslead-remediation",
+      "project_id": "lunduslead",
+      "evidence_state": "PARTIAL",
+      "classification": "REMEDIATION_CASE_VERIFIED",
+      "final_outcome": "REMEDIATED",
+      "source_commit_sha": "e866ae5da36232b977a54fb117f790aa484d494f",
+      "qa_security_evidence": [
+        {
+          "kind": "github-actions",
+          "run_id": "34696162340",
+          "status": "SUCCESS"
+        }
+      ],
+      "remediation_history": [
+        {
+          "scope": "OpenClaw same-origin HTTPS redirect",
+          "result": "BOUNDED_REMEDIATION_VERIFIED",
+          "pr": 138
+        }
+      ],
+      "authority_expansion_incident": false,
+      "fabricated_pass_incident": false,
+      "production_approval": false,
+      "source_reference": "Issue #158 comment 5646283850; PR #138 remediation evidence.",
+      "known_gap": "Mandatory App Spec/context/routing digests, budgets, elapsed/cost metrics, artifact digest, explicit independent-validation object, human-decision linkage and multi-agent evidence are incomplete."
+    },
+    {
+      "run_id": "golden-4-kontenstudio-recovery",
+      "project_id": "kontenstudio",
+      "evidence_state": "PARTIAL",
+      "classification": "SOURCE_LINEAGE_RECOVERED_QA_REPRODUCIBILITY_PENDING",
+      "final_outcome": "HOLD",
+      "source_commit_sha": "d805404c585fc732721126930b21f13fa866f367",
+      "authority_expansion_incident": false,
+      "fabricated_pass_incident": false,
+      "production_approval": false,
+      "source_reference": "Issue #158 comment 5646852123; recovered deployment HEAD matched Vercel metadata.",
+      "current_repository_verification": "Repository lundus88/kontenstudio is accessible, but branch main is not currently resolvable; reproducible repository QA remains unverified.",
+      "known_gap": "Authoritative Git branch/history must be restored and reproducible QA plus mandatory per-run digests, budgets, metrics, human-decision and multi-agent evidence must be bound before VERIFIED status."
+    }
+  ]
+}
