@@ -31,6 +31,8 @@ REQUIRED = [
     'vl/lom-learning-evaluation/README.md',
     'vl/lom-learning-evaluation/learning_core.py',
     'vl/lom-learning-evaluation/test_learning_core.py',
+    'vl/lom-learning-evaluation/trust_confidence.py',
+    'vl/lom-learning-evaluation/test_trust_confidence.py',
 ]
 
 WORKFLOWS = [
@@ -43,6 +45,7 @@ WORKFLOWS = [
     '.github/workflows/lom-3-business-os.yml',
     '.github/workflows/lom-4-autonomous-org.yml',
     '.github/workflows/lom-4-controlled-validation.yml',
+    '.github/workflows/lom-trust-confidence.yml',
     '.github/workflows/lom-master-compliance.yml',
 ]
 
@@ -60,7 +63,13 @@ TEXT_ASSERTIONS = {
     'vl/lom-autonomous-org/README.md': ['Autonomous Digital Organization'],
     'vl/lom-controlled-validation/README.md': ['Controlled Operational Validation'],
     'vl/lom-operational-safety/README.md': ['Operational Safety Hardening', 'default deny', 'AppendOnlyEventLedger'],
-    'vl/lom-learning-evaluation/README.md': ['Learning & Evaluation Layer', 'PROPOSE_ONLY', 'HUMAN_ONLY'],
+    'vl/lom-learning-evaluation/README.md': [
+        'Learning & Evaluation Layer',
+        'PROPOSE_ONLY',
+        'HUMAN_ONLY',
+        'Trust & Confidence Calibration',
+        'execution_authority = NONE',
+    ],
 }
 
 
@@ -129,6 +138,21 @@ def main() -> int:
         if needle not in learning:
             fail(f'LOM 4.2 learning control missing: {needle}')
 
+    trust = (ROOT / 'vl/lom-learning-evaluation/trust_confidence.py').read_text(encoding='utf-8')
+    for needle in [
+        'TrustCalibrationEngine',
+        'CALIBRATION_HISTORY_INSUFFICIENT',
+        'CALIBRATION_ERROR_HIGH',
+        'INDEPENDENT_VALIDATION_REQUIRED',
+        'AUTHORITY_INVALID',
+        'production_locked',
+        'execution_authority',
+        'PREPARE_PR',
+        'authority_effect',
+    ]:
+        if needle not in trust:
+            fail(f'LOM 4.2 trust calibration control missing: {needle}')
+
     completion = (ROOT / 'vl/completion-governance/independent_validator.py').read_text(encoding='utf-8')
     if "'builder_self_report_trusted': False" not in completion:
         fail('independent completion validator does not reject builder self-certification')
@@ -140,6 +164,7 @@ def main() -> int:
     print('LOM 4.0: PRESENT')
     print('LOM 4.1: PRESENT')
     print('LOM 4.2: PRESENT')
+    print('LOM 4.2 TRUST CALIBRATION: PRESENT')
     print('PRODUCTION AUTHORITY: NOT GRANTED')
     return 0
 
