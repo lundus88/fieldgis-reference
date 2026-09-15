@@ -1,0 +1,49 @@
+name: LOM Decision Twin Counterfactual Evaluation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/lom-self-improvement-runtime/**'
+      - '.github/workflows/lom-decision-twin.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'vl/lom-self-improvement-runtime/**'
+      - '.github/workflows/lom-decision-twin.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  decision-twin:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Run LOM 4.3 runtime and Decision Twin regressions
+        working-directory: vl/lom-self-improvement-runtime
+        run: python -m unittest -v test_self_improvement_runtime.py test_decision_twin.py
+      - name: Assert Decision Twin authority boundary
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          text = Path('vl/lom-self-improvement-runtime/decision_twin.py').read_text()
+          for marker in (
+              '"execution_authority": "NONE"',
+              '"execution_performed": False',
+              '"autonomous_ceiling": "PREPARE_PR"',
+              '"production_authority": "HUMAN_ONLY"',
+              '"protected_main_merge": "HUMAN_ONLY"',
+              '"authority_widening": "DISABLED"',
+              'DECISION_TWIN_EXECUTION_FORBIDDEN',
+          ):
+              assert marker in text, marker
+          print('DECISION TWIN AUTHORITY BOUNDARY: PASS')
+          PY
