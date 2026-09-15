@@ -1,0 +1,34 @@
+name: LOM Canonical Compliance Reconciliation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/lom-canonical-compliance/**'
+      - 'vl/lom-self-improvement-runtime/**'
+      - 'vl/lom-continuous-improvement/**'
+      - 'vl/lom-4-5-interoperability-resource-intelligence/**'
+      - 'vl/lom-5-operational-maturity/**'
+      - 'vl/lom-6-*/**'
+      - '.github/workflows/lom-canonical-compliance.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  canonical-compliance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate canonical LOM chain
+        run: python vl/lom-canonical-compliance/validate_canonical_chain.py
+      - name: Canonical reconciliation regressions
+        working-directory: vl/lom-canonical-compliance
+        run: python -m unittest -v test_canonical_chain.py
