@@ -3,12 +3,6 @@ name: LOM Level 6 Exact-Main Regression
 on:
   pull_request:
     branches: [main]
-    paths:
-      - 'vl/lom-6-*/**'
-      - 'vl/lom-canonical-compliance/**'
-      - 'vl/lom-final-hardening/**'
-      - '.github/workflows/lom-level6-exact-main-regression.yml'
-      - '.github/workflows/lom-master-compliance.yml'
   push:
     branches: [main]
     paths:

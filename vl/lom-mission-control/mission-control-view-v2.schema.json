@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LOM Mission Control Portfolio View v2",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "mode",
+    "overall_action_class",
+    "objectives",
+    "telemetry",
+    "control_intents",
+    "portfolio",
+    "autonomous_ceiling",
+    "control_execution",
+    "production_authority",
+    "protected_main_merge"
+  ],
+  "properties": {
+    "schema_version": {"const": 2},
+    "mode": {"const": "READ_ONLY_NON_PRODUCTION"},
+    "overall_action_class": {"enum": ["HOLD", "HUMAN_REVIEW", "MONITOR"]},
+    "objectives": {"type": "array"},
+    "telemetry": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "objective_id",
+          "project_id",
+          "action_class",
+          "reason",
+          "evidence_gap_count",
+          "incident_count",
+          "critical_incident_count",
+          "pending_approvals",
+          "estimated_cost_usd",
+          "elapsed_ms",
+          "retry_count",
+          "slo_breached",
+          "source_reference",
+          "evidence_fresh"
+        ],
+        "properties": {
+          "objective_id": {"type": "string", "minLength": 1},
+          "project_id": {"type": "string", "minLength": 1},
+          "golden_workflow_id": {"type": ["string", "null"]},
+          "action_class": {"enum": ["HOLD", "HUMAN_REVIEW", "MONITOR"]},
+          "reason": {"type": "string", "minLength": 1},
+          "evidence_gap_count": {"type": "integer", "minimum": 0},
+          "incident_count": {"type": "integer", "minimum": 0},
+          "critical_incident_count": {"type": "integer", "minimum": 0},
+          "pending_approvals": {"type": "integer", "minimum": 0},
+          "estimated_cost_usd": {"type": "number", "minimum": 0},
+          "cost_budget_usd": {"type": ["number", "null"], "minimum": 0},
+          "elapsed_ms": {"type": "integer", "minimum": 0},
+          "time_budget_ms": {"type": ["integer", "null"], "minimum": 0},
+          "retry_count": {"type": "integer", "minimum": 0},
+          "retry_budget": {"type": ["integer", "null"], "minimum": 0},
+          "slo_breached": {"type": "boolean"},
+          "source_reference": {"type": ["string", "null"]},
+          "evidence_fresh": {"type": "boolean"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "control_intents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "objective_id",
+          "action",
+          "environment",
+          "status",
+          "reason",
+          "execution_authority",
+          "execution_performed",
+          "production_authority"
+        ],
+        "properties": {
+          "objective_id": {"type": "string"},
+          "action": {"enum": ["PAUSE", "QUARANTINE", "STOP"]},
+          "environment": {"type": "string"},
+          "status": {"enum": ["HOLD", "HUMAN_REVIEW", "PREPARE_CONTROL"]},
+          "reason": {"type": "string"},
+          "execution_authority": {"const": "NONE"},
+          "execution_performed": {"const": false},
+          "production_authority": {"const": "HUMAN_ONLY"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "portfolio": {
+      "type": "object",
+      "required": [
+        "objective_count",
+        "telemetry_record_count",
+        "evidence_gap_total",
+        "incident_total",
+        "critical_incident_total",
+        "pending_approval_total",
+        "budget_overrun_count",
+        "slo_breach_count",
+        "estimated_cost_total_usd"
+      ],
+      "properties": {
+        "objective_count": {"type": "integer", "minimum": 0},
+        "telemetry_record_count": {"type": "integer", "minimum": 0},
+        "evidence_gap_total": {"type": "integer", "minimum": 0},
+        "incident_total": {"type": "integer", "minimum": 0},
+        "critical_incident_total": {"type": "integer", "minimum": 0},
+        "pending_approval_total": {"type": "integer", "minimum": 0},
+        "budget_overrun_count": {"type": "integer", "minimum": 0},
+        "slo_breach_count": {"type": "integer", "minimum": 0},
+        "estimated_cost_total_usd": {"type": "number", "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "autonomous_ceiling": {"const": "PREPARE_PR"},
+    "control_execution": {"const": "DISABLED"},
+    "production_authority": {"const": "HUMAN_ONLY"},
+    "protected_main_merge": {"const": "HUMAN_ONLY"}
+  },
+  "additionalProperties": false
+}
