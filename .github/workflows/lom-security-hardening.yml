@@ -20,17 +20,33 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: '3.12'
       - name: Validate authority alignment
         run: python vl/lom-security-hardening/validate_authority_alignment.py
-      - name: Operational safety regression
+      - name: Operational safety and Red-Team Chaos regression
         working-directory: vl/lom-operational-safety
-        run: python -m unittest -v test_operational_safety.py
+        run: python -m unittest -v test_operational_safety.py test_red_team_chaos_lab.py
+      - name: Emit Red-Team Chaos evidence
+        working-directory: vl/lom-operational-safety
+        run: |
+          python red_team_chaos_lab.py > red-team-chaos-result.json
+          python - <<'PY'
+          import json
+          result = json.load(open('red-team-chaos-result.json'))
+          assert result['status'] == 'PASS', result
+          assert result['failed_count'] == 0, result
+          assert result['production_locked'] is True, result
+          assert result['execution_authority'] == 'NONE', result
+          assert result['execution_performed'] is False, result
+          assert result['network_access'] == 'DISABLED', result
+          assert result['credential_access'] == 'NONE', result
+          assert result['autonomous_ceiling'] == 'PREPARE_PR', result
+          PY
       - name: Self-improvement runtime regression
         working-directory: vl/lom-self-improvement-runtime
         run: python -m unittest -v test_self_improvement_runtime.py
