@@ -1,0 +1,50 @@
+{
+  "schema": "lom.canonical-compliance-chain/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "issue": 248,
+  "authority": {
+    "autonomous_ceiling": "PREPARE_PR",
+    "production_authority": "HUMAN_ONLY",
+    "protected_main_merge": "HUMAN_ONLY",
+    "self_approval": "FORBIDDEN",
+    "missing_evidence": "HOLD",
+    "unknown_authority": "HOLD"
+  },
+  "canonical_stages": [
+    {"id":"4.3","owner":"self-improvement-runtime","artifact":"vl/lom-self-improvement-runtime/self_improvement_runtime.py"},
+    {"id":"4.4","owner":"continuous-improvement-orchestrator","artifact":"vl/lom-continuous-improvement/orchestrator.py"},
+    {"id":"4.5","owner":"interoperability-resource-intelligence","artifact":"vl/lom-4-5-interoperability-resource-intelligence/runtime.py"},
+    {"id":"5.0","owner":"operational-maturity","artifact":"vl/lom-5-operational-maturity/runtime.py"},
+    {"id":"6.0","owner":"ai-control-plane","artifact":"vl/lom-6-ai-control-plane/control_plane.py"},
+    {"id":"6.2","owner":"real-technical-measurement","artifact":"vl/lom-6-2-real-measurement-instrumentation/telemetry.py"},
+    {"id":"6.3","owner":"telemetry-collection","artifact":"vl/lom-6-3-telemetry-collection-pilot/collector.py"},
+    {"id":"6.3.1","owner":"live-readonly-evidence-adapter","artifact":"vl/lom-6-3-1-live-readonly-evidence-adapter/adapter.py"},
+    {"id":"6.3.2","owner":"technical-metrics-artifact","artifact":"vl/lom-6-3-2-technical-metrics-artifact-contract/contract.py"},
+    {"id":"6.3.3","owner":"metric-semantics-registry","artifact":"vl/lom-6-3-3-metric-semantics-registry/semantics.py"},
+    {"id":"6.3.4","owner":"evidence-replay-reproducibility","artifact":"vl/lom-6-3-4-evidence-replay-reproducibility/replay.py"},
+    {"id":"6.3.5","owner":"evidence-lineage","artifact":"vl/lom-6-3-5-evidence-lineage/lineage.py"},
+    {"id":"6.4","owner":"operational-intelligence-dashboard","artifact":"vl/lom-6-4-operational-intelligence-dashboard/dashboard.py"},
+    {"id":"6.5","owner":"evidence-driven-director-brief","artifact":"vl/lom-6-5-evidence-driven-alerts-director-brief/director_brief.py"},
+    {"id":"6.6","owner":"governed-remediation-planner","artifact":"vl/lom-6-6-governed-remediation-planner/planner.py"},
+    {"id":"6.7","owner":"autonomous-validation-sandbox","artifact":"vl/lom-6-7-autonomous-validation-sandbox/sandbox.py"},
+    {"id":"6.8","owner":"governed-pr-evidence-promotion","artifact":"vl/lom-6-8-governed-pr-evidence-promotion/promotion.py"},
+    {"id":"6.9","owner":"human-approval-decision-package","artifact":"vl/lom-6-9-human-approval-decision-package/decision.py"},
+    {"id":"6.9.2","owner":"human-approval-receipt","artifact":"vl/lom-6-9-2-human-approval-receipt/receipt.py"},
+    {"id":"6.9.3","owner":"approval-consumption-ledger","artifact":"vl/lom-6-9-3-approval-consumption-ledger/consumption.py"}
+  ],
+  "pending_external_stages": [
+    {
+      "id":"6.3.6",
+      "owner":"critical-safety-propagation",
+      "tracking_pr":246,
+      "merge_required_before_canonical":true,
+      "reason":"Open Release Candidate; do not duplicate or treat as merged evidence."
+    }
+  ],
+  "critical_invariants": [
+    {"artifact":"vl/lom-self-improvement-runtime/README.md","tokens":["PREPARE_PR","HUMAN_ONLY","may not self-approve"]},
+    {"artifact":"vl/lom-6-7-autonomous-validation-sandbox/sandbox.py","tokens":["PREPARE_PR","HUMAN_ONLY"]},
+    {"artifact":"vl/lom-6-8-governed-pr-evidence-promotion/promotion.py","tokens":["PREPARE_PR","HUMAN_ONLY"]},
+    {"artifact":"vl/lom-6-9-human-approval-decision-package/decision.py","tokens":["HUMAN_REVIEW"]}
+  ]
+}
