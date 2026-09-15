@@ -1,19 +1,24 @@
 import unittest
 from datetime import datetime, timedelta, timezone
 
-from receipt import ApprovalReceipt, build_receipt_package, receipt_digest, validate_receipt
+from receipt import ApprovalReceipt, build_receipt_package, receipt_digest, sign_receipt, validate_receipt
 
 NOW = datetime(2026, 9, 15, 1, 0, tzinfo=timezone.utc)
 CAND = 'b' * 40
 PKG = 'c' * 64
+ISSUER_KEY = b'test-only-issuer-key-not-production'
+TRUSTED_ISSUERS = {'github-oidc:test': ISSUER_KEY}
+TRUSTED_ACTORS = {'human:director': 'github:user:215026954'}
 
 
-def req(**overrides):
+def unsigned_req(**overrides):
     data = dict(
         workload_id='ebkl',
         candidate_sha=CAND,
         decision_package_sha256=PKG,
         actor_id='human:director',
+        identity_subject='github:user:215026954',
+        issuer_id='github-oidc:test',
         decision='APPROVE',
         nonce='approval-nonce-0001',
         issued_at=(NOW - timedelta(minutes=5)).isoformat(),
@@ -24,6 +29,10 @@ def req(**overrides):
     return ApprovalReceipt(**data)
 
 
+def req(**overrides):
+    return sign_receipt(unsigned_req(**overrides), issuer_key=ISSUER_KEY)
+
+
 class ApprovalReceiptTests(unittest.TestCase):
     def validate(self, receipt=None, **kwargs):
         return validate_receipt(
@@ -31,6 +40,8 @@ class ApprovalReceiptTests(unittest.TestCase):
             expected_candidate_sha=kwargs.pop('expected_candidate_sha', CAND),
             expected_decision_package_sha256=kwargs.pop('expected_decision_package_sha256', PKG),
             now=kwargs.pop('now', NOW),
+            trusted_issuer_keys=kwargs.pop('trusted_issuer_keys', TRUSTED_ISSUERS),
+            trusted_actor_subjects=kwargs.pop('trusted_actor_subjects', TRUSTED_ACTORS),
             consumed_nonces=kwargs.pop('consumed_nonces', frozenset()),
         )
 
@@ -52,7 +63,37 @@ class ApprovalReceiptTests(unittest.TestCase):
     def test_missing_actor_holds(self):
         self.assertEqual(self.validate(req(actor_id=''))['reason'], 'ACTOR_ID_REQUIRED')
 
-    def test_unknown_decision_holds(self):
+    def test_missing_identity_subject_holds(self):
+        self.assertEqual(self.validate(req(identity_subject=''))['reason'], 'IDENTITY_SUBJECT_REQUIRED')
+
+    def test_unknown_actor_holds(self):
+        r = req(actor_id='human:unknown')
+        self.assertEqual(self.validate(r)['reason'], 'UNTRUSTED_HUMAN_ACTOR')
+
+    def test_identity_binding_mismatch_holds(self):
+        r = req(identity_subject='github:user:999')
+        self.assertEqual(self.validate(r)['reason'], 'HUMAN_IDENTITY_BINDING_MISMATCH')
+
+    def test_unknown_issuer_holds(self):
+        r = sign_receipt(unsigned_req(issuer_id='unknown-issuer'), issuer_key=ISSUER_KEY)
+        self.assertEqual(self.validate(r)['reason'], 'UNTRUSTED_IDENTITY_ISSUER')
+
+    def test_missing_signature_holds(self):
+        self.assertEqual(self.validate(unsigned_req())['reason'], 'SIGNATURE_REQUIRED')
+
+    def test_tampered_signed_receipt_holds(self):
+        signed = req()
+        tampered = ApprovalReceipt(**{**signed.__dict__, 'decision': 'REJECT'})
+        self.assertEqual(self.validate(tampered)['reason'], 'SIGNATURE_INVALID')
+
+    def test_wrong_issuer_key_holds(self):
+        signed = req()
+        self.assertEqual(
+            self.validate(signed, trusted_issuer_keys={'github-oidc:test': b'wrong-key'})['reason'],
+            'SIGNATURE_INVALID',
+        )
+
+    def test_unknown_decision_holds_after_valid_signature(self):
         self.assertEqual(self.validate(req(decision='MAYBE'))['reason'], 'UNKNOWN_DECISION')
 
     def test_bad_nonce_holds(self):
@@ -91,6 +132,9 @@ class ApprovalReceiptTests(unittest.TestCase):
 
     def test_package_preserves_authority_boundaries(self):
         package = build_receipt_package(req())
+        self.assertTrue(package['cryptographic_signature_required'])
+        self.assertTrue(package['trusted_issuer_required'])
+        self.assertTrue(package['trusted_human_identity_binding_required'])
         self.assertTrue(package['single_use_nonce_required'])
         self.assertTrue(package['bound_to_exact_candidate'])
         self.assertTrue(package['bound_to_exact_decision_package'])
