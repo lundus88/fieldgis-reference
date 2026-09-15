@@ -5,6 +5,7 @@ from action_registry import ActionRegistry
 from delegation import validate_actor_separation, validate_attempt, validate_delegation
 from evidence_replay import ReplayGuard, validate_evidence
 from event_ledger import AppendOnlyEventLedger
+from red_team_chaos_lab import run_suite
 
 ROOT = Path(__file__).resolve().parent
 
@@ -115,6 +116,15 @@ class OperationalSafetyTests(unittest.TestCase):
             ledger.replace()
         with self.assertRaisesRegex(RuntimeError, "APPEND_ONLY_LEDGER"):
             ledger.delete()
+
+    def test_red_team_chaos_suite_blocks_all_registered_attacks(self):
+        result = run_suite()
+        self.assertEqual(result["status"], "PASS")
+        self.assertEqual(result["reason"], "ALL_ATTACKS_FAIL_CLOSED")
+        self.assertEqual(result["failed_count"], 0)
+        self.assertTrue(result["production_locked"])
+        self.assertEqual(result["execution_authority"], "NONE")
+        self.assertFalse(result["execution_performed"])
 
 
 if __name__ == "__main__":
