@@ -32,6 +32,7 @@ on:
       - 'vl/lom-5-operational-maturity/**'
       - 'vl/lom-6-*/**'
       - 'vl/lom-canonical-compliance/**'
+      - 'vl/lom-final-hardening/**'
       - '.github/workflows/lom-*.yml'
   push:
     branches: [main]
@@ -64,6 +65,7 @@ on:
       - 'vl/lom-5-operational-maturity/**'
       - 'vl/lom-6-*/**'
       - 'vl/lom-canonical-compliance/**'
+      - 'vl/lom-final-hardening/**'
       - '.github/workflows/lom-*.yml'
   workflow_dispatch:
 
@@ -73,7 +75,7 @@ permissions:
 jobs:
   master-compliance:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -163,3 +165,5 @@ jobs:
         run: |
           python vl/lom-canonical-compliance/validate_canonical_chain.py
           python -m unittest -v vl/lom-canonical-compliance/test_canonical_chain.py
+      - name: LOM 6.x exact-SHA functional regression
+        run: python vl/lom-final-hardening/run_level6_exact_main.py
