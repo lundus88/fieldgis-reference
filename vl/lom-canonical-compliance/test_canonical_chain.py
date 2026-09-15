@@ -15,6 +15,18 @@ class CanonicalChainTests(unittest.TestCase):
     def test_current_manifest_passes(self):
         validator.validate(copy.deepcopy(BASE))
 
+    def test_missing_stage_fails(self):
+        data = copy.deepcopy(BASE)
+        data['canonical_stages'].pop(5)
+        with self.assertRaises(SystemExit):
+            validator.validate(data)
+
+    def test_reordered_stage_fails(self):
+        data = copy.deepcopy(BASE)
+        data['canonical_stages'][5], data['canonical_stages'][6] = data['canonical_stages'][6], data['canonical_stages'][5]
+        with self.assertRaises(SystemExit):
+            validator.validate(data)
+
     def test_duplicate_stage_fails(self):
         data = copy.deepcopy(BASE)
         data['canonical_stages'].append(copy.deepcopy(data['canonical_stages'][0]))
@@ -47,6 +59,12 @@ class CanonicalChainTests(unittest.TestCase):
             'owner': pending['owner'],
             'artifact': data['canonical_stages'][0]['artifact'] + '.duplicate',
         })
+        with self.assertRaises(SystemExit):
+            validator.validate(data)
+
+    def test_pending_stage_requires_merge_gate(self):
+        data = copy.deepcopy(BASE)
+        data['pending_external_stages'][0]['merge_required_before_canonical'] = False
         with self.assertRaises(SystemExit):
             validator.validate(data)
 
