@@ -91,7 +91,7 @@ jobs:
           import json,re
           p='vl/visual-preview/evidence-factory/evidence.json'
           d=json.load(open(p))
-          assert d['schema']=='vl.visual-preview-evidence/2'
+          assert d['schema']=='vl.visual-preview-evidence/3'
           assert d['verifier']=='independent-playwright'
           assert d['builder_key']=='web-react-v1'
           assert d['environment']=='DEV_SANDBOX_ONLY'
@@ -102,6 +102,8 @@ jobs:
           assert d['conclusion']=='PASS'
           assert d['checks']['console_errors']==[]
           assert d['checks']['network_failures']==[]
+          assert d['checks']['same_origin_network_failures']==[]
+          assert d['checks']['external_network_failures']==[]
           print('VL FACTORY-BOUND VISUAL EVIDENCE CONTRACT: PASS')
           PY
 
