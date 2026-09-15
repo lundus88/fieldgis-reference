@@ -53,10 +53,15 @@ class CanonicalChainTests(unittest.TestCase):
 
     def test_pending_stage_cannot_be_canonical(self):
         data = copy.deepcopy(BASE)
-        pending = data['pending_external_stages'][0]
+        data['pending_external_stages'] = [{
+            'id': '7.0',
+            'owner': 'future-stage',
+            'tracking_pr': 999,
+            'merge_required_before_canonical': True,
+        }]
         data['canonical_stages'].append({
-            'id': pending['id'],
-            'owner': pending['owner'],
+            'id': '7.0',
+            'owner': 'future-stage',
             'artifact': data['canonical_stages'][0]['artifact'] + '.duplicate',
         })
         with self.assertRaises(SystemExit):
@@ -64,7 +69,12 @@ class CanonicalChainTests(unittest.TestCase):
 
     def test_pending_stage_requires_merge_gate(self):
         data = copy.deepcopy(BASE)
-        data['pending_external_stages'][0]['merge_required_before_canonical'] = False
+        data['pending_external_stages'] = [{
+            'id': '7.0',
+            'owner': 'future-stage',
+            'tracking_pr': 999,
+            'merge_required_before_canonical': False,
+        }]
         with self.assertRaises(SystemExit):
             validator.validate(data)
 
