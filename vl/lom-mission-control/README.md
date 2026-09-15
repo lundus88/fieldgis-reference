@@ -1,4 +1,4 @@
-# LOM Mission Control
+# LOM 2.0 Gate F — Director Mission Control
 
 Status: DEVELOPMENT / NON-PRODUCTION
 
