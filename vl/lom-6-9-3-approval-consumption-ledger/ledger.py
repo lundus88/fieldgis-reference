@@ -100,8 +100,6 @@ def verify_ledger_chain(existing_entries: tuple[LedgerEntry, ...]) -> dict:
         if entry.previous_record_sha256 != expected_previous:
             return {'status': 'HOLD', 'reason': 'LEDGER_CHAIN_BROKEN', 'index': index}
         recomputed = record_digest(_request_from_entry(entry), entry.previous_record_sha256)
-        if not hashlib.sha256:
-            raise AssertionError('sha256 unavailable')
         if entry.record_sha256 != recomputed:
             return {'status': 'HOLD', 'reason': 'LEDGER_RECORD_DIGEST_MISMATCH', 'index': index}
         expected_previous = entry.record_sha256
