@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-ROOT = HERE.parents[1]
+VL = HERE.parent
 
 spec = importlib.util.spec_from_file_location("project_state_truth", HERE / "project_state_truth.py")
 project_state_truth = importlib.util.module_from_spec(spec)
@@ -13,7 +13,7 @@ spec.loader.exec_module(project_state_truth)
 
 ledger_spec = importlib.util.spec_from_file_location(
     "event_ledger",
-    ROOT / "lom-operational-safety" / "event_ledger.py",
+    VL / "lom-operational-safety" / "event_ledger.py",
 )
 event_ledger = importlib.util.module_from_spec(ledger_spec)
 sys.modules[ledger_spec.name] = event_ledger
