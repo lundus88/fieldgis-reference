@@ -35,9 +35,16 @@ def bounded_action(project_id, health):
     return 'Continue read-only monitoring and evidence refresh.'
 
 
-def build(now=None):
+def build(now=None, payload=None):
+    """Build the Director brief from a portfolio observation payload.
+
+    Runtime callers omit ``payload`` and read the canonical captured observation.
+    Tests may inject a controlled payload so freshness and fail-closed semantics
+    are regression-tested independently from the mutable live snapshot.
+    """
     now = now or datetime.now(timezone.utc)
-    payload = json.loads((RUNTIME / 'captured-observation.json').read_text())
+    if payload is None:
+        payload = json.loads((RUNTIME / 'captured-observation.json').read_text())
     captured_at = parse_z(payload['captured_at'])
     age_hours = (now - captured_at).total_seconds() / 3600
     stale = age_hours > MAX_AGE_HOURS
