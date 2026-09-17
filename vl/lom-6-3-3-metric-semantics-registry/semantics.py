@@ -21,12 +21,12 @@ class RawMetricEvidence:
 
 
 # Keep this aligned with READ_ONLY portfolio workloads that have an authoritative
-# repository in vl/lom-portfolio-runtime/source-registry.json. SLP intentionally
-# remains absent while its authoritative source is UNREGISTERED_HOLD.
+# repository in vl/lom-portfolio-runtime/source-registry.json.
 ALLOWED_WORKLOADS = {
     'vl',
     'ebkl',
     'sabahlot',
+    'slp',
     'lunduslead',
     'lunduslead-tender',
     'urusmy',
