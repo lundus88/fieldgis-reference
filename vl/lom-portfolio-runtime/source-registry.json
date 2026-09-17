@@ -1,10 +1,12 @@
 {
-  "version": "1.0",
+  "version": "2.0",
   "sources": [
-    {"project_id":"vl","name":"VL / VRS Labs","repository":"lundus88/fieldgis-reference","default_branch":"main","mode":"READ_ONLY"},
-    {"project_id":"ebkl","name":"e-BKL","repository":"lundus88/ebkl","default_branch":"main","mode":"READ_ONLY"},
-    {"project_id":"sabahlot","name":"SabahLot","repository":"lundus88/sabahlot","default_branch":"main","mode":"READ_ONLY"},
-    {"project_id":"lunduslead","name":"LundusLead","repository":"lundus88/lundus-lead","default_branch":"main","mode":"READ_ONLY"},
-    {"project_id":"kontenstudio","name":"KontenStudio","repository":"lundus88/kontenstudio","default_branch":"main","mode":"READ_ONLY"}
+    {"project_id":"vl","name":"VL / VRS Labs","objective_id":"portfolio:vl:readiness","repository":"lundus88/fieldgis-reference","default_branch":"main","mode":"READ_ONLY"},
+    {"project_id":"ebkl","name":"e-BKL","objective_id":"portfolio:ebkl:readiness","repository":"lundus88/ebkl","default_branch":"main","mode":"READ_ONLY"},
+    {"project_id":"sabahlot","name":"SabahLot","objective_id":"portfolio:sabahlot:readiness","repository":"lundus88/sabahlot","default_branch":"main","mode":"READ_ONLY"},
+    {"project_id":"slp","name":"Spatial & Land Planner (SLP)","objective_id":"portfolio:slp:readiness","repository":null,"default_branch":null,"mode":"UNREGISTERED_HOLD","hold_reason":"AUTHORITATIVE_SOURCE_NOT_REGISTERED"},
+    {"project_id":"lunduslead","name":"LundusLead","objective_id":"portfolio:lunduslead:readiness","repository":"lundus88/lundus-lead","default_branch":"main","mode":"READ_ONLY"},
+    {"project_id":"urusmy","name":"UrusMY","objective_id":"portfolio:urusmy:readiness","repository":"lundus88/urusmy","default_branch":"main","mode":"READ_ONLY"},
+    {"project_id":"kontenstudio","name":"KontenStudio","objective_id":"portfolio:kontenstudio:readiness","repository":"lundus88/kontenstudio","default_branch":"main","mode":"READ_ONLY"}
   ]
 }
