@@ -32,16 +32,10 @@
     {"id":"6.8","owner":"governed-pr-evidence-promotion","artifact":"vl/lom-6-8-governed-pr-evidence-promotion/promotion.py"},
     {"id":"6.9","owner":"human-approval-decision-package","artifact":"vl/lom-6-9-human-approval-decision-package/decision.py"},
     {"id":"6.9.2","owner":"human-approval-receipt","artifact":"vl/lom-6-9-2-human-approval-receipt/receipt.py"},
-    {"id":"6.9.3","owner":"approval-consumption-ledger","artifact":"vl/lom-6-9-3-approval-consumption-ledger/ledger.py"}
+    {"id":"6.9.3","owner":"approval-consumption-ledger","artifact":"vl/lom-6-9-3-approval-consumption-ledger/ledger.py"},
+    {"id":"6.10","owner":"project-state-truth-layer","artifact":"vl/lom-6-10-project-state-truth-layer/project_state_truth.py"}
   ],
-  "pending_external_stages": [
-    {
-      "id": "6.10",
-      "owner": "project-state-truth-layer",
-      "tracking_pr": 260,
-      "merge_required_before_canonical": true
-    }
-  ],
+  "pending_external_stages": [],
   "critical_invariants": [
     {"artifact":"vl/lom-self-improvement-runtime/README.md","tokens":["PREPARE_PR","HUMAN_ONLY","may not self-approve"]},
     {"artifact":"vl/lom-6-1-real-workload-pilot/measurement-contract.json","tokens":["READ_ONLY_NON_PRODUCTION","PREPARE_PR","HUMAN_REVIEW"]},
@@ -50,6 +44,7 @@
     {"artifact":"vl/lom-6-8-governed-pr-evidence-promotion/promotion.py","tokens":["PREPARE_PR","HUMAN_ONLY"]},
     {"artifact":"vl/lom-6-9-human-approval-decision-package/decision.py","tokens":["human_decision_required","auto_approve"]},
     {"artifact":"vl/lom-6-9-2-human-approval-receipt/receipt.py","tokens":["APPROVED_FOR_BOUND_ACTION","SIGNATURE_INVALID","UNTRUSTED_HUMAN_ACTOR","UNTRUSTED_IDENTITY_ISSUER"]},
-    {"artifact":"vl/lom-6-9-3-approval-consumption-ledger/ledger.py","tokens":["IDEMPOTENT_NOOP","READY_TO_APPEND","LEDGER_CHAIN_BROKEN","LEDGER_RECORD_DIGEST_MISMATCH"]}
+    {"artifact":"vl/lom-6-9-3-approval-consumption-ledger/ledger.py","tokens":["IDEMPOTENT_NOOP","READY_TO_APPEND","LEDGER_CHAIN_BROKEN","LEDGER_RECORD_DIGEST_MISMATCH"]},
+    {"artifact":"vl/lom-6-10-project-state-truth-layer/project_state_truth.py","tokens":["PREPARE_PR","HUMAN_ONLY","execution_performed"]}
   ]
 }
