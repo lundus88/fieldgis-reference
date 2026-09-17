@@ -2,7 +2,8 @@ name: LOM P4 Director Loop
 
 on:
   schedule:
-    - cron: '17 0 * * *'
+    - cron: '37 0 * * *'
+    - cron: '47 6 * * *'
   push:
     branches:
       - lom-p4-autonomous-director-loop
@@ -15,6 +16,11 @@ on:
 
 permissions:
   contents: read
+  actions: read
+
+concurrency:
+  group: lom-p4-director-loop-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   validate:
@@ -24,13 +30,39 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
-      - name: Run director loop tests
+      - name: Run director loop and scheduler tests
         run: |
           python vl/lom-director-loop/test_director_loop.py
           python vl/lom-director-loop/test_scheduled_run.py
+          python vl/lom-director-loop/test_scheduler_guard.py
+      - name: Evaluate scheduler reliability guard
+        id: scheduler_guard
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_EVENT_SCHEDULE: ${{ github.event.schedule }}
+        run: python vl/lom-director-loop/scheduler_guard.py
       - name: Run scheduled read-only director loop
+        if: steps.scheduler_guard.outputs.action == 'RUN'
+        env:
+          GITHUB_EVENT_SCHEDULE: ${{ github.event.schedule }}
+          LOM_SCHEDULER_STATUS: ${{ steps.scheduler_guard.outputs.scheduler_status }}
+          LOM_SCHEDULER_ACTION: ${{ steps.scheduler_guard.outputs.action }}
+          LOM_SCHEDULER_CONDITION: ${{ steps.scheduler_guard.outputs.observed_condition }}
+          LOM_SCHEDULER_REASON: ${{ steps.scheduler_guard.outputs.reason }}
         run: python vl/lom-director-loop/run_scheduled.py
+      - name: Record guarded no-op
+        if: steps.scheduler_guard.outputs.action == 'SKIP'
+        run: echo "LOM P4 Director Loop no-op; a successful Director Brief artifact already exists for this UTC day."
+      - name: Upload scheduler guard evidence
+        if: ${{ always() && steps.scheduler_guard.outcome != 'skipped' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: lom-director-scheduler-${{ github.run_id }}
+          path: vl/lom-director-loop/scheduler-guard-evidence.json
+          if-no-files-found: error
+          retention-days: 30
       - name: Upload Director Brief evidence
+        if: steps.scheduler_guard.outputs.action == 'RUN'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: lom-director-brief-${{ github.run_id }}
@@ -38,5 +70,6 @@ jobs:
             vl/lom-director-loop/daily-executive-brief.json
             vl/lom-director-loop/DAILY_DIRECTOR_BRIEF.md
             vl/lom-director-loop/scheduled-run-evidence.json
+            vl/lom-director-loop/scheduler-guard-evidence.json
           if-no-files-found: error
           retention-days: 30
