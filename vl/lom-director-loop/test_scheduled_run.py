@@ -11,19 +11,30 @@ spec.loader.exec_module(rs)
 
 
 class ScheduledDirectorRunTests(unittest.TestCase):
-    def test_manifest_binds_brief_to_source_snapshot_and_preserves_authority(self):
+    def test_manifest_binds_brief_source_scheduler_and_authority(self):
         brief = {
             'generated_at': '2026-09-17T00:17:00Z',
             'source_captured_at': '2026-09-17T00:45:00Z',
             'freshness_status': 'FRESH',
             'source_age_hours': 0.5,
         }
-        manifest = rs.build_run_manifest(brief, 'abc123', '42', 'deadbeef')
-        self.assertEqual(manifest['schema'], 'lom.director-brief-run/1')
+        scheduler = {
+            'event_name': 'schedule',
+            'schedule': '37 0 * * *',
+            'status': 'DELAYED',
+            'guard_action': 'RUN',
+            'observed_condition': 'PRIMARY_TRIGGER',
+            'reason': 'PRIMARY_TRIGGER_DELAYED',
+        }
+        manifest = rs.build_run_manifest(brief, 'abc123', '42', 'deadbeef', scheduler)
+        self.assertEqual(manifest['schema'], 'lom.director-brief-run/2')
         self.assertEqual(manifest['source_snapshot']['sha256'], 'abc123')
         self.assertEqual(manifest['source_snapshot']['freshness_status'], 'FRESH')
         self.assertEqual(manifest['github_run_id'], '42')
         self.assertEqual(manifest['github_sha'], 'deadbeef')
+        self.assertEqual(manifest['scheduler']['status'], 'DELAYED')
+        self.assertEqual(manifest['scheduler']['guard_action'], 'RUN')
+        self.assertIn('vl/lom-director-loop/scheduler-guard-evidence.json', manifest['outputs'])
         self.assertEqual(manifest['execution_authority'], 'NONE')
         self.assertFalse(manifest['execution_performed'])
         self.assertEqual(manifest['production_authority'], 'HUMAN_ONLY')
