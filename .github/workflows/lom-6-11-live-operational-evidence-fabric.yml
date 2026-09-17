@@ -1,0 +1,55 @@
+name: LOM 6.11 Live Operational Evidence Fabric
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/lom-6-11-live-operational-evidence-fabric/**'
+      - 'vl/lom-6-3-3-metric-semantics-registry/**'
+      - 'vl/lom-portfolio-runtime/source-registry.json'
+      - '.github/workflows/lom-6-11-live-operational-evidence-fabric.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  evidence-fabric:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: LOM 6.11 evidence fabric regression
+        working-directory: vl/lom-6-11-live-operational-evidence-fabric
+        run: python -m unittest -v test_evidence_fabric.py
+      - name: LOM 6.3.3 portfolio metric semantics regression
+        working-directory: vl/lom-6-3-3-metric-semantics-registry
+        run: python -m unittest -v test_semantics.py
+      - name: Verify source registry and semantics alignment
+        run: |
+          python - <<'PY'
+          import json
+          import runpy
+          from pathlib import Path
+
+          root = Path('vl')
+          registry = json.loads((root / 'lom-portfolio-runtime' / 'source-registry.json').read_text())
+          semantics = runpy.run_path(str(root / 'lom-6-3-3-metric-semantics-registry' / 'semantics.py'))
+          registered = {
+              source['project_id']
+              for source in registry['sources']
+              if source.get('mode') == 'READ_ONLY'
+          }
+          allowed = set(semantics['ALLOWED_WORKLOADS'])
+          missing = sorted(registered - allowed)
+          if missing:
+              raise SystemExit(f'FAIL: missing metric semantics for READ_ONLY projects: {missing}')
+          if 'slp' in allowed:
+              raise SystemExit('FAIL: SLP semantics must remain unregistered while source is HOLD')
+          print(f'LOM 6.11 REGISTRY ALIGNMENT: PASS ({len(registered)} READ_ONLY projects)')
+          PY

@@ -20,7 +20,18 @@ class RawMetricEvidence:
     source_reference: str
 
 
-ALLOWED_WORKLOADS = {'ebkl', 'sabahlot', 'lunduslead', 'lunduslead-tender'}
+# Keep this aligned with READ_ONLY portfolio workloads that have an authoritative
+# repository in vl/lom-portfolio-runtime/source-registry.json. SLP intentionally
+# remains absent while its authoritative source is UNREGISTERED_HOLD.
+ALLOWED_WORKLOADS = {
+    'vl',
+    'ebkl',
+    'sabahlot',
+    'lunduslead',
+    'lunduslead-tender',
+    'urusmy',
+    'kontenstudio',
+}
 
 
 def _rate(passed: int, total: int) -> float:
