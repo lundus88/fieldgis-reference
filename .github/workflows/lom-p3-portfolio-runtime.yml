@@ -10,3 +10,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: python3 vl/lom-portfolio-runtime/test_portfolio_runtime.py
+      - run: python3 vl/lom-portfolio-runtime/test_portfolio_truth_bridge.py
