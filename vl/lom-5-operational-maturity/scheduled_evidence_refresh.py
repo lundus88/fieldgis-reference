@@ -18,8 +18,27 @@ def build_refresh(registry: dict, current_repository: str, current_sha: str, run
         repo = source.get('repository')
         project_id = source.get('project_id')
         branch = source.get('default_branch') or 'main'
-        if source.get('mode') != 'READ_ONLY':
-            raise ValueError('READ_ONLY_SOURCE_REQUIRED')
+        mode = source.get('mode')
+
+        if mode == 'UNREGISTERED_HOLD':
+            observations.append({
+                'project_id': project_id,
+                'repository': None,
+                'accessible': False,
+                'default_branch': None,
+                'main_sha': None,
+                'signals': ['SOURCE_NOT_REGISTERED'],
+                'evidence_refs': [
+                    f'run:{run_id}',
+                    'registry:vl/lom-portfolio-runtime/source-registry.json',
+                    f"hold:{source.get('hold_reason') or 'AUTHORITATIVE_SOURCE_NOT_REGISTERED'}",
+                ],
+            })
+            continue
+
+        if mode != 'READ_ONLY':
+            raise ValueError('READ_ONLY_OR_UNREGISTERED_HOLD_SOURCE_REQUIRED')
+
         if repo == current_repository and current_sha:
             observations.append({
                 'project_id': project_id,
