@@ -35,7 +35,14 @@
     {"id":"6.9.3","owner":"approval-consumption-ledger","artifact":"vl/lom-6-9-3-approval-consumption-ledger/ledger.py"},
     {"id":"6.10","owner":"project-state-truth-layer","artifact":"vl/lom-6-10-project-state-truth-layer/project_state_truth.py"}
   ],
-  "pending_external_stages": [],
+  "pending_external_stages": [
+    {
+      "id": "6.11",
+      "owner": "live-operational-evidence-fabric",
+      "tracking_pr": 267,
+      "merge_required_before_canonical": true
+    }
+  ],
   "critical_invariants": [
     {"artifact":"vl/lom-self-improvement-runtime/README.md","tokens":["PREPARE_PR","HUMAN_ONLY","may not self-approve"]},
     {"artifact":"vl/lom-6-1-real-workload-pilot/measurement-contract.json","tokens":["READ_ONLY_NON_PRODUCTION","PREPARE_PR","HUMAN_REVIEW"]},
