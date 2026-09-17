@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LOM Mission Control Truth-Bound Portfolio View v3",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "mode",
+    "overall_action_class",
+    "objectives",
+    "telemetry",
+    "control_intents",
+    "portfolio",
+    "project_status_authority",
+    "project_truth",
+    "autonomous_ceiling",
+    "control_execution",
+    "production_authority",
+    "protected_main_merge"
+  ],
+  "properties": {
+    "schema_version": {"const": 3},
+    "mode": {"const": "READ_ONLY_NON_PRODUCTION"},
+    "overall_action_class": {"enum": ["HOLD", "HUMAN_REVIEW", "MONITOR"]},
+    "objectives": {"type": "array"},
+    "telemetry": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["objective_id", "project_id", "action_class", "reason"],
+        "properties": {
+          "objective_id": {"type": "string", "minLength": 1},
+          "project_id": {"type": "string", "minLength": 1},
+          "action_class": {"enum": ["HOLD", "HUMAN_REVIEW", "MONITOR"]},
+          "reason": {"type": "string", "minLength": 1},
+          "project_status_source": {"const": "LOM_6_10_PROJECT_STATE_TRUTH"},
+          "canonical_project_state": {"enum": ["UNVERIFIED", "VERIFIED", "APPROVED", "RELEASED", "HOLD", "FAILED"]},
+          "canonical_project_reason": {"type": "string", "minLength": 1},
+          "project_truth_fingerprint": {"type": "string", "minLength": 1},
+          "effective_action_class": {"enum": ["HOLD", "HUMAN_REVIEW", "MONITOR"]}
+        },
+        "additionalProperties": true
+      }
+    },
+    "control_intents": {"type": "array"},
+    "portfolio": {
+      "type": "object",
+      "required": [
+        "objective_count",
+        "telemetry_record_count",
+        "truth_bound_project_count",
+        "truth_missing_project_count",
+        "truth_blocked_project_count"
+      ],
+      "properties": {
+        "objective_count": {"type": "integer", "minimum": 0},
+        "telemetry_record_count": {"type": "integer", "minimum": 0},
+        "truth_bound_project_count": {"type": "integer", "minimum": 0},
+        "truth_missing_project_count": {"type": "integer", "minimum": 0},
+        "truth_blocked_project_count": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": true
+    },
+    "project_status_authority": {"const": "LOM_6_10_PROJECT_STATE_TRUTH"},
+    "project_truth": {
+      "type": "object",
+      "required": ["status", "reason", "source", "execution_authority", "execution_performed", "production_authority"],
+      "properties": {
+        "status": {"enum": ["BOUND", "HOLD"]},
+        "reason": {"type": "string", "minLength": 1},
+        "source": {"const": "LOM_6_10_PROJECT_STATE_TRUTH"},
+        "schema": {"type": "string"},
+        "snapshot_fingerprint": {"type": "string"},
+        "truth_overall": {},
+        "project_count": {"type": "integer", "minimum": 0},
+        "projects": {"type": "array"},
+        "autonomous_ceiling": {"const": "PREPARE_PR"},
+        "protected_main_merge": {"const": "HUMAN_ONLY"},
+        "execution_authority": {"const": "NONE"},
+        "execution_performed": {"const": false},
+        "production_authority": {"const": "HUMAN_ONLY"}
+      },
+      "additionalProperties": true
+    },
+    "autonomous_ceiling": {"const": "PREPARE_PR"},
+    "control_execution": {"const": "DISABLED"},
+    "production_authority": {"const": "HUMAN_ONLY"},
+    "protected_main_merge": {"const": "HUMAN_ONLY"}
+  },
+  "additionalProperties": false
+}

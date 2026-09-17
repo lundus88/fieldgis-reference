@@ -30,6 +30,26 @@ Mission Control v2 extends the existing component rather than introducing a seco
 
 The v2 machine-readable contract is `mission-control-view-v2.schema.json`.
 
+## Canonical Project State Truth integration
+LOM 6.10 Project State Truth is the canonical source for project status when Director Mission Control is used in evidence-bound mode.
+
+`truth_bound_mission_control.py` composes the existing v2 Mission Control view with the canonical `lom.project-state-truth/1` snapshot. It does not create another dashboard, ledger, state engine, or execution path.
+
+Use `build_truth_bound_mission_control_view(...)` when project status must be evidence-bound. The existing `build_mission_control_view(...)` remains unchanged for backward compatibility.
+
+Truth-bound behavior is fail-closed:
+- missing Project State Truth snapshot -> HOLD;
+- invalid schema or weakened authority invariant -> HOLD;
+- missing snapshot fingerprint -> HOLD;
+- duplicate or malformed project truth -> HOLD;
+- telemetry project missing from the truth snapshot -> HOLD;
+- canonical state `UNVERIFIED`, `HOLD`, or `FAILED` -> effective HOLD;
+- canonical state `VERIFIED`, `APPROVED`, or `RELEASED` permits the existing operational telemetry classification to continue;
+- telemetry HOLD still overrides a verified project state;
+- Production authority and control execution remain unchanged.
+
+Mission Control surfaces the canonical project state, reason, snapshot fingerprint, and source identifier `LOM_6_10_PROJECT_STATE_TRUTH`. It never treats a displayed `RELEASED` state as authority to perform a release.
+
 ## Control semantics
 Mission Control never directly executes a control action.
 
