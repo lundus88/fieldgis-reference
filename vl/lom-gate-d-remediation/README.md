@@ -15,6 +15,22 @@ Gate D adds bounded remediation on top of the Gate C multi-agent runtime. It per
 6. Close only when validation proves recovery.
 7. HOLD or ESCALATE when evidence is missing, retries are exhausted, risk exceeds threshold, or any HUMAN_ONLY boundary is touched.
 
+## Recurrent failure intelligence
+Gate D now includes cross-run recovery memory as an advisory-only extension. It does not create a second remediation engine and does not execute fixes itself.
+
+The recurrent-failure layer:
+- fingerprints failures using project, component, failure class, error code and environment;
+- records evidence-backed recovery attempts and their independently validated outcomes;
+- avoids repeating recovery actions that already failed for the same failure signature;
+- prefers a previously validated known-good recovery route when the same failure recurs;
+- selects an untried delegated fallback when available;
+- prevents remediation loops when every bounded route has failed;
+- escalates recurrent unresolved failures for human review;
+- never proposes an autonomous route across the Production boundary;
+- never widens the Gate D delegation envelope.
+
+All recommendations remain `execution_authority=NONE`, `execution_performed=false`, `production_authority=HUMAN_ONLY`, with autonomous ceiling `PREPARE_PR`.
+
 ## Explicitly forbidden
 - protected-main merge
 - production deploy/release
