@@ -49,7 +49,5 @@ jobs:
           missing = sorted(registered - allowed)
           if missing:
               raise SystemExit(f'FAIL: missing metric semantics for READ_ONLY projects: {missing}')
-          if 'slp' in allowed:
-              raise SystemExit('FAIL: SLP semantics must remain unregistered while source is HOLD')
           print(f'LOM 6.11 REGISTRY ALIGNMENT: PASS ({len(registered)} READ_ONLY projects)')
           PY

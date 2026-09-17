@@ -37,12 +37,11 @@ class SemanticsTests(unittest.TestCase):
 
     def test_portfolio_workloads_are_registered(self):
         registry = semantics_registry()
-        for workload in ('vl', 'ebkl', 'sabahlot', 'lunduslead', 'urusmy', 'kontenstudio'):
+        for workload in ('vl', 'ebkl', 'sabahlot', 'slp', 'lunduslead', 'urusmy', 'kontenstudio'):
             self.assertIn(workload, registry)
-        self.assertNotIn('slp', registry)
 
     def test_new_portfolio_workloads_use_same_deterministic_derivation(self):
-        for workload in ('vl', 'urusmy', 'kontenstudio'):
+        for workload in ('vl', 'slp', 'urusmy', 'kontenstudio'):
             result = derive_metrics(raw(workload_id=workload))
             self.assertEqual(result['status'], 'READY')
             self.assertEqual(result['metrics']['derivation'], 'DETERMINISTIC_FROM_RAW_COUNTERS')
@@ -91,6 +90,7 @@ class SemanticsTests(unittest.TestCase):
         reg = semantics_registry()
         self.assertEqual(reg['ebkl']['success_rate'], 'successful_cases / total_cases')
         self.assertEqual(reg['sabahlot']['declared_metric_values'], 'FORBIDDEN')
+        self.assertEqual(reg['slp']['missing_evidence_policy'], 'HOLD')
 
     def test_derivation_marker_present(self):
         self.assertEqual(derive_metrics(raw())['metrics']['derivation'], 'DETERMINISTIC_FROM_RAW_COUNTERS')
