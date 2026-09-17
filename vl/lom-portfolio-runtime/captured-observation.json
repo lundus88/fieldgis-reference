@@ -1,10 +1,78 @@
 {
-  "captured_at": "2026-09-13T03:30:00Z",
+  "schema": "lom.portfolio-observation/2",
+  "captured_at": "2026-09-17T00:50:00Z",
+  "mode": "READ_ONLY_FAIL_CLOSED",
+  "production_authority": "HUMAN_ONLY",
   "observations": [
-    {"project_id":"vl","repository":"lundus88/fieldgis-reference","accessible":true,"default_branch":"main","main_sha":"9f740f5625e4aea4730d13ce7a71729c670911ed","signals":["LOM_P2_INTEGRATED"],"evidence_refs":["commit:9f740f5625e4aea4730d13ce7a71729c670911ed"]},
-    {"project_id":"ebkl","repository":"lundus88/ebkl","accessible":true,"default_branch":"main","main_sha":"7fac06e935e7ce3a52d640967dc79e7e99d43be4","signals":["MAIN_ACTIVE","OPEN_READINESS_PR_33"],"evidence_refs":["commit:7fac06e935e7ce3a52d640967dc79e7e99d43be4","pr:33"]},
-    {"project_id":"sabahlot","repository":"lundus88/sabahlot","accessible":true,"default_branch":"main","main_sha":"526b15d3585bea470ca28b3c5be0356cea0a827d","signals":["RELEASE_GATE_HISTORY","OPEN_MOBILE_PR_72"],"evidence_refs":["commit:526b15d3585bea470ca28b3c5be0356cea0a827d","pr:72"]},
-    {"project_id":"lunduslead","repository":"lundus88/lundus-lead","accessible":true,"default_branch":"main","main_sha":"e866ae5da36232b977a54fb117f790aa484d494f","signals":["MAIN_ACTIVE","TENDER_WATCH_RUNTIME_WIRING_BLOCKED_PR_140"],"evidence_refs":["commit:e866ae5da36232b977a54fb117f790aa484d494f","pr:140"]},
-    {"project_id":"kontenstudio","repository":"lundus88/kontenstudio","accessible":true,"default_branch":"main","main_sha":null,"signals":["EMPTY_REPOSITORY"],"evidence_refs":["repo:empty"]}
+    {
+      "project_id": "vl",
+      "repository": "lundus88/fieldgis-reference",
+      "accessible": true,
+      "default_branch": "main",
+      "main_sha": "4fe138ff8ed19af5f67a8fc82d2beaf3acd4be61",
+      "observed_at_epoch": 1789606200,
+      "signals": ["MAIN_ACTIVE", "OPEN_PUBLIC_READINESS_PR_259", "OPEN_DATABASE_SECURITY_PR_218"],
+      "evidence_refs": ["commit:4fe138ff8ed19af5f67a8fc82d2beaf3acd4be61", "pr:259", "pr:218"]
+    },
+    {
+      "project_id": "ebkl",
+      "repository": "lundus88/ebkl",
+      "accessible": true,
+      "default_branch": "main",
+      "main_sha": "cce72ef631a3801496637ed510a1e4909c2ffc61",
+      "observed_at_epoch": 1789606200,
+      "signals": ["MAIN_ACTIVE", "BLOCKED_PRODUCTION_HOLD_DECLARED", "OPEN_AUTHORITY_HARDENING_PR_19"],
+      "evidence_refs": ["commit:cce72ef631a3801496637ed510a1e4909c2ffc61", "pr:19", "status:production-remains-hold"]
+    },
+    {
+      "project_id": "sabahlot",
+      "repository": "lundus88/sabahlot",
+      "accessible": true,
+      "default_branch": "main",
+      "main_sha": "526b15d3585bea470ca28b3c5be0356cea0a827d",
+      "observed_at_epoch": 1789606200,
+      "signals": ["MAIN_ACTIVE", "BLOCKED_PUBLIC_LAUNCH_AUTHORITY_NOT_ESTABLISHED", "OPEN_MOBILE_PR_72"],
+      "evidence_refs": ["commit:526b15d3585bea470ca28b3c5be0356cea0a827d", "pr:72", "status:broad-public-launch-not-authorized"]
+    },
+    {
+      "project_id": "slp",
+      "repository": null,
+      "accessible": false,
+      "default_branch": null,
+      "main_sha": null,
+      "observed_at_epoch": 1789606200,
+      "signals": ["AUTHORITATIVE_SOURCE_NOT_REGISTERED"],
+      "evidence_refs": ["registry:source-registry-v2", "status:AUTHORITATIVE_SOURCE_NOT_REGISTERED"]
+    },
+    {
+      "project_id": "lunduslead",
+      "repository": "lundus88/lundus-lead",
+      "accessible": true,
+      "default_branch": "main",
+      "main_sha": "f5df0ba246d3ed794914ce3d8aee47f9d6cec08f",
+      "observed_at_epoch": 1789606200,
+      "signals": ["MAIN_ACTIVE", "TENDER_WATCH_RUNTIME_WIRING_BLOCKED_PR_140", "OPEN_DIAGNOSTICS_PR_148"],
+      "evidence_refs": ["commit:f5df0ba246d3ed794914ce3d8aee47f9d6cec08f", "pr:140", "pr:148"]
+    },
+    {
+      "project_id": "urusmy",
+      "repository": "lundus88/urusmy",
+      "accessible": true,
+      "default_branch": "main",
+      "main_sha": "03592aac987a90c97d11bb43614d7b54b29fa248",
+      "observed_at_epoch": 1789606200,
+      "signals": ["MAIN_ACTIVE", "BLOCKED_PRODUCTION_HOLD_PR_1", "OPEN_LAND_P0_PR_1"],
+      "evidence_refs": ["commit:03592aac987a90c97d11bb43614d7b54b29fa248", "pr:1", "status:production-hold"]
+    },
+    {
+      "project_id": "kontenstudio",
+      "repository": "lundus88/kontenstudio",
+      "accessible": true,
+      "default_branch": "main",
+      "main_sha": "d805404c585fc732721126930b21f13fa866f367",
+      "observed_at_epoch": 1789606200,
+      "signals": ["MAIN_ACTIVE", "RECOVERED_BASELINE_EXACT_HEAD"],
+      "evidence_refs": ["commit:d805404c585fc732721126930b21f13fa866f367", "status:recovered-baseline"]
+    }
   ]
 }
