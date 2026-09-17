@@ -35,6 +35,18 @@ class SemanticsTests(unittest.TestCase):
     def test_unregistered_workload_holds(self):
         self.assertEqual(derive_metrics(raw(workload_id='x'))['reason'], 'WORKLOAD_SEMANTICS_NOT_REGISTERED')
 
+    def test_portfolio_workloads_are_registered(self):
+        registry = semantics_registry()
+        for workload in ('vl', 'ebkl', 'sabahlot', 'lunduslead', 'urusmy', 'kontenstudio'):
+            self.assertIn(workload, registry)
+        self.assertNotIn('slp', registry)
+
+    def test_new_portfolio_workloads_use_same_deterministic_derivation(self):
+        for workload in ('vl', 'urusmy', 'kontenstudio'):
+            result = derive_metrics(raw(workload_id=workload))
+            self.assertEqual(result['status'], 'READY')
+            self.assertEqual(result['metrics']['derivation'], 'DETERMINISTIC_FROM_RAW_COUNTERS')
+
     def test_missing_provenance_holds(self):
         self.assertEqual(derive_metrics(raw(source_reference=''))['reason'], 'PROVENANCE_REQUIRED')
 
