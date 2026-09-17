@@ -18,13 +18,25 @@ permissions:
 
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
       - name: Run director loop tests
-        run: python vl/lom-director-loop/test_director_loop.py
+        run: |
+          python vl/lom-director-loop/test_director_loop.py
+          python vl/lom-director-loop/test_scheduled_run.py
       - name: Run scheduled read-only director loop
         run: python vl/lom-director-loop/run_scheduled.py
+      - name: Upload Director Brief evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: lom-director-brief-${{ github.run_id }}
+          path: |
+            vl/lom-director-loop/daily-executive-brief.json
+            vl/lom-director-loop/DAILY_DIRECTOR_BRIEF.md
+            vl/lom-director-loop/scheduled-run-evidence.json
+          if-no-files-found: error
+          retention-days: 30
