@@ -167,7 +167,7 @@ jobs:
         run: |
           python -m unittest -v test_runtime.py test_multi_project_evidence.py
           python build_longitudinal_summary.py --output /tmp/lom-operational-maturity-summary.json
-      - name: LOM Canonical 4.3 through 6.9.3 Reconciliation
+      - name: LOM Canonical 4.3 through 6.11 Reconciliation
         run: |
           python vl/lom-canonical-compliance/validate_canonical_chain.py
           python -m unittest -v vl/lom-canonical-compliance/test_canonical_chain.py
