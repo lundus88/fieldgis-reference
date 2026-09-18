@@ -1,0 +1,19 @@
+{
+  "schema": "lds.sales-pack/1",
+  "status": "rc",
+  "templates": [
+    "QUOTATION_TEMPLATE_BM.md",
+    "STATEMENT_OF_WORK_TEMPLATE.md",
+    "ORDER_ACKNOWLEDGEMENT_TEMPLATE_BM.md",
+    "DELIVERY_ACCEPTANCE_TEMPLATE_BM.md"
+  ],
+  "required_before_customer_issue": [
+    "verified_business_particulars",
+    "licence_ready",
+    "effective_policy_dates",
+    "official_support_channel"
+  ],
+  "pricing_rule": "customer-specific human-approved quotation amount is authoritative",
+  "payment_rule": "browser redirect is not payment evidence",
+  "close_rule": "paid + fulfilled + receipt + fulfilment event + human close approval"
+}
