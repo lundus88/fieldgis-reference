@@ -39,8 +39,17 @@ if contract.get("production_domain") is not None:
     errors.append("production_domain must remain null")
 if contract.get("root_directory")!="commercial/lundus-digital-systems":
     errors.append("root_directory drift")
-if contract.get("execution_state")!="blocked_by_tool_scope_ambiguity":
-    errors.append("execution_state must remain blocked until a safe project-scoped mutation path exists")
+if contract.get("execution_state")!="blocked_by_tooling_and_auth_path":
+    errors.append("execution_state must remain blocked until a safe project-scoped mutation + authenticated path exists")
+preflight=contract.get("preflight_evidence",{})
+if preflight.get("vercel_cli_installed") is not False:
+    errors.append("preflight must record local Vercel CLI unavailable")
+if preflight.get("ephemeral_npx_auth_verified") is not False:
+    errors.append("preflight must record ephemeral CLI auth unverified")
+if preflight.get("connected_vercel_read_access") is not True:
+    errors.append("connected Vercel read access evidence missing")
+if preflight.get("connected_project_creation_control") is not False:
+    errors.append("project-creation control must remain unavailable")
 
 if errors:
     print("LDS preview deployment contract: FAIL")
@@ -49,4 +58,4 @@ if errors:
 
 print("LDS preview deployment contract: PASS")
 print("project_creation_authorized=true deployment_authorized=true production_promotion_authorized=false")
-print("execution_state=blocked_by_tool_scope_ambiguity")
+print("execution_state=blocked_by_tooling_and_auth_path")
