@@ -13,9 +13,15 @@ required=[
   "OFFER_LOCKED: PASS",
   "LICENCE_READY: HOLD",
   "LEGAL_TRUST_READY: HOLD",
+  "GOLDEN_TRANSACTION_DRY_RUN: PASS",
   "GOLDEN_TRANSACTION_PASS: HOLD",
+  "PREVIEW_EXECUTION: HOLD / blocked_by_tooling_and_auth_path",
+  "LIVE_LEAD_INTAKE: HOLD",
+  "PUBLIC_PAYMENT_ACTIVATION: HOLD",
+  "PUBLIC_LAUNCH: HOLD",
   "Do not bypass repository rulesets.",
   "A browser redirect is not payment evidence.",
+  "A dry-run PASS is not a live Golden Transaction PASS.",
   "This document does not authorize:",
   "Production deployment",
   "live billing activation",
@@ -25,11 +31,40 @@ for token in required:
     if token not in text:
         errors.append(f"missing guardrail: {token}")
 
-sequence=[
+merged_prs={
+  "#277":"807b588dddd4bd1fd2c0c24e9b247a73ca895514",
+  "#275":"af2673d1b9567b1aefed1877c3fc9b8b0419758c",
+  "#276":"8ffacb6b78d4107a4906d7960b3f048dfac8e2d9",
+  "#278":"bef77304464b9e6480191090d8f7672ce203aad4",
+  "#280":"d1fb85f69fe697848a8e654017d4b680bdb0b8ee",
+  "#281":"732bb7e2da9418ba9b74c08704bb3d3f033af6fe",
+  "#279":"724d293ecbd06ec191157d18ac3abb5a1fdcb2ff",
+  "#283":"e2d52171503bd725c3638f0ac2fb60fe6d2e564e",
+  "#284":"54530abc410cfccb1f5ea3219ec4ac79b4ee1901",
+  "#285":"7a544c808b6e76491cc6ee50d8983fa35aa04316",
+  "#286":"bc8273a27d74dc489b2081aa2c62784d3673c799",
+}
+for pr,sha in merged_prs.items():
+    if pr not in text or sha not in text:
+        errors.append(f"missing merged evidence for {pr}")
+
+stale_tokens=[
   "Merge #277 first.",
+  "protected-main merge pending",
+  "PR #275-#282 and LundusLead #151 still require normal repository review/merge gates",
+]
+for token in stale_tokens:
+    if token in text:
+        errors.append(f"stale activation state remains: {token}")
+
+sequence=[
+  "Refresh PR #282 against current `main`",
+  "Resolve LundusLead PR #151",
+  "Verify official business/licence evidence",
+  "Establish a safe dedicated Preview",
   "Run integration checks:",
-  "Perform one controlled paid Golden Transaction.",
-  "Only then consider public payment activation.",
+  "perform one explicitly authorized controlled paid Commercial Golden Transaction",
+  "Only then consider public payment activation",
 ]
 pos=-1
 for token in sequence:
@@ -80,4 +115,6 @@ if errors:
     sys.exit(1)
 
 print("Final commercial activation gate: PASS")
+print("protected_main_sequence=merged through #286; #282 remains human-gated")
 print("licence_evidence=user_attested processing; pass_allowed=false")
+print("production_activation=HOLD")
