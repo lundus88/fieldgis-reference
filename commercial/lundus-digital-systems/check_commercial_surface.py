@@ -101,15 +101,6 @@ for token in ["OFFER_LOCKED = YES","no live checkout","no customer charging befo
     if token not in readme:
         errors.append(f"README: missing guardrail {token}")
 
-if errors:
-    print("LDS commercial surface contract: FAIL")
-    for e in errors: print("-",e)
-    sys.exit(1)
-
-print("LDS commercial surface contract: PASS")
-print(f"required_surfaces={len(required)} html_pages={len(html)}")
-
-
 legal_path=root/"legal-trust-contract.json"
 if legal_path.exists():
     legal=json.loads(legal_path.read_text())
@@ -121,9 +112,9 @@ if legal_path.exists():
     for key in ["registered_entity_name","final_commercial_domain","official_email","official_phone","official_trade_address","support_complaint_channel","policy_effective_dates"]:
         if key not in pending:
             errors.append(f"legal trust: pending verified value missing {key}")
-    required=set(legal.get("required_disclosures_bm",[]))
+    required_disclosures=set(legal.get("required_disclosures_bm",[]))
     for key in ["supplier_or_company_name","email","telephone","trade_address","service_main_characteristics","full_price_including_tax_and_other_cost","payment_method","sale_terms","estimated_supply_time"]:
-        if key not in required:
+        if key not in required_disclosures:
             errors.append(f"legal trust: missing BM disclosure contract {key}")
 
 bm=(root/"maklumat-urusniaga.html").read_text() if (root/"maklumat-urusniaga.html").exists() else ""
@@ -138,3 +129,12 @@ for token in [
 ]:
     if token not in bm:
         errors.append(f"BM disclosure: missing {token}")
+
+if errors:
+    print("LDS commercial surface contract: FAIL")
+    for e in errors:
+        print("-",e)
+    sys.exit(1)
+
+print("LDS commercial surface contract: PASS")
+print(f"required_surfaces={len(required)} html_pages={len(html)}")
