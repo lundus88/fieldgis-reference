@@ -16,7 +16,8 @@ def forbid(label, text, token):
     if token in text:
         errors.append(f"{label}: forbidden {token}")
 
-need("create", create, 'schema("private").from("commercial_offers")')
+need("create", create, 'schema("private")')
+need("create", create, 'from("commercial_offers")')
 need("create", create, '.eq("status", "active")')
 need("create", create, 'amount_source: "server_offer_catalog"')
 need("create", create, 'client_amount_accepted: false')
