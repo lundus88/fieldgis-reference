@@ -1,18 +1,31 @@
 {
   "schema": "lds.public-lead-intake/1",
   "status": "contract_only",
-  "public_endpoint": "/api/lead",
+  "public_endpoint": "/api/public/leads/intake",
   "client_to_lunduslead_direct_write": false,
-  "required_fields": ["name", "email", "service", "message"],
+  "required_fields": [
+    "submission_id",
+    "name",
+    "email",
+    "service",
+    "message",
+    "turnstile_token"
+  ],
   "optional_fields": ["organisation", "phone", "location"],
+  "client_controls": [
+    "submission_uuid",
+    "honeypot",
+    "turnstile_widget"
+  ],
   "server_controls": [
-    "origin_allowlist",
-    "rate_limit",
+    "explicit_enable_flag",
+    "exact_origin_allowlist",
+    "turnstile_verification",
     "payload_size_limit",
     "field_validation",
-    "abuse_detection",
+    "owner_binding",
+    "service_role_backend_only",
     "idempotency_key",
-    "audit_timestamp",
     "source_attribution"
   ],
   "source": {
@@ -29,5 +42,12 @@
     "expose_internal_crm_credentials"
   ],
   "handoff": "server-to-server into LundusLead after connector validation",
-  "authority": "lead creation only; quotation/payment/sale remain human-gated"
+  "authority": "lead creation only; quotation/payment/sale remain human-gated",
+  "production_dependencies": [
+    "final_commercial_origin",
+    "turnstile_site_key",
+    "turnstile_secret",
+    "verified_lunduslead_owner_id",
+    "explicit_production_approval"
+  ]
 }
