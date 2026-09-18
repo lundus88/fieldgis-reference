@@ -1,0 +1,61 @@
+{
+  "schema": "lds.business-licence-evidence/1",
+  "as_of": "2026-09-19",
+  "business_identity": {
+    "trade_name": {
+      "value": "LUNDUS DIGITAL SYSTEMS",
+      "status": "verified_from_user_decision"
+    },
+    "registered_legal_entity_name": {
+      "value": null,
+      "status": "missing"
+    },
+    "registration_number": {
+      "value": null,
+      "status": "missing"
+    },
+    "licence_or_approval_number": {
+      "value": null,
+      "status": "missing"
+    },
+    "official_trade_address": {
+      "value": null,
+      "status": "missing"
+    },
+    "official_email": {
+      "value": null,
+      "status": "missing"
+    },
+    "official_phone": {
+      "value": null,
+      "status": "missing"
+    },
+    "final_commercial_domain": {
+      "value": null,
+      "status": "missing"
+    },
+    "support_complaint_channel": {
+      "value": null,
+      "status": "missing"
+    }
+  },
+  "licence_gate": {
+    "status": "processing",
+    "evidence_level": "user_attested",
+    "user_statement_date": "2026-09-18",
+    "user_statement": "Licence is being processed; expected to be able to accept payment the following week.",
+    "pass_allowed": false,
+    "required_for_pass": [
+      "official approval/certificate/portal evidence",
+      "approved business/legal identity",
+      "approval or licence reference if applicable",
+      "effective or approval date if present",
+      "confirmation that the approved activity covers the commercial offer"
+    ]
+  },
+  "gate_status": {
+    "LICENCE_READY": "HOLD",
+    "LEGAL_TRUST_READY": "HOLD"
+  },
+  "rule": "User attestation may document progress but cannot by itself set LICENCE_READY or LEGAL_TRUST_READY to PASS."
+}
