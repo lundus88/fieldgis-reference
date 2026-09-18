@@ -1,0 +1,338 @@
+name: VL Golden Factory Proof (DEV Only)
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/vl-golden-factory-proof.yml'
+      - 'vl/proof/**'
+      - 'vl/agent-control-plane/**'
+      - 'vl/adversarial/**'
+      - 'vl/scripts/run-untrusted-sandbox.sh'
+      - 'vl/scripts/build-web-pwa-sandbox.sh'
+      - 'vl/scripts/build-gis-web-sandbox.sh'
+      - 'vl/scripts/validate-api-sandbox.sh'
+      - 'vl/scripts/prepare-mobile-flutter-cache.sh'
+      - 'vl/scripts/build-mobile-flutter-sandbox.sh'
+      - '.github/workflows/vl-factory-runner.yml'
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: vl-golden-factory-proof-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  VL_PROOF_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+
+jobs:
+  deterministic-intake-routing:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ env.VL_PROOF_SHA }}
+          persist-credentials: false
+      - name: Confirm checkout is current proof SHA
+        run: test "$(git rev-parse HEAD)" = "$VL_PROOF_SHA"
+      - name: Run deterministic natural-language and routing benchmark
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          python3 vl/proof/run_golden_factory_benchmark.py \
+            --cases vl/proof/golden-benchmark-cases.json \
+            --output evidence/golden-factory-manifest.json \
+            --source-sha "$VL_PROOF_SHA"
+      - name: Verify fail-closed phase-one manifest
+        run: |
+          set -euo pipefail
+          python3 vl/proof/verify_golden_factory_manifest.py \
+            evidence/golden-factory-manifest.json \
+            --expected-sha "$VL_PROOF_SHA"
+      - name: Prove autonomous production approval remains unavailable
+        working-directory: vl/agent-control-plane
+        run: |
+          set -euo pipefail
+          python3 run_runtime_policy_tests.py | tee ../../evidence/acp-runtime-policy.json
+          grep -q 'REQUIRE_HUMAN_PRODUCTION_APPROVAL' ../../evidence/acp-runtime-policy.json
+      - name: Package intake evidence
+        run: |
+          set -euo pipefail
+          printf '%s\n' "$VL_PROOF_SHA" > evidence/current-head.txt
+          sha256sum evidence/* > evidence/SHA256SUMS
+          tar -czf vl-golden-intake-${{ github.run_id }}.tgz evidence
+      - name: Upload immutable intake evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: vl-golden-intake-${{ github.run_id }}
+          path: vl-golden-intake-${{ github.run_id }}.tgz
+          if-no-files-found: error
+          retention-days: 90
+
+  current-head-web-pwa:
+    strategy:
+      matrix:
+        builder: [web-react-v1, pwa-react-v1]
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      VRS_OIDC_TOKEN: host-secret-must-not-leak
+      SUPABASE_SERVICE_ROLE_KEY: host-secret-must-not-leak
+      ACTIONS_ID_TOKEN_REQUEST_TOKEN: host-secret-must-not-leak
+      ACTIONS_ID_TOKEN_REQUEST_URL: https://example.invalid/oidc
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ env.VL_PROOF_SHA }}
+          persist-credentials: false
+      - name: Confirm checkout is current PR head
+        run: test "$(git rev-parse HEAD)" = "$VL_PROOF_SHA"
+      - name: Prepare fixture and dependencies without lifecycle scripts
+        run: |
+          set -euo pipefail
+          cp -R vl/adversarial/web-sandbox-fixture sandbox-web
+          if [ '${{ matrix.builder }}' = 'pwa-react-v1' ]; then
+            mkdir -p sandbox-web/public
+            printf '%s\n' '{"name":"VL Sandbox PWA","short_name":"VL PWA","start_url":"/","display":"standalone"}' > sandbox-web/public/manifest.webmanifest
+            printf '%s\n' "self.addEventListener('fetch',()=>{});" > sandbox-web/public/sw.js
+          fi
+          (cd sandbox-web && npm install --ignore-scripts)
+          docker pull node:22-bookworm
+      - name: Build current-head Web/PWA fixture inside isolated sandbox
+        run: |
+          set -euo pipefail
+          vl/scripts/build-web-pwa-sandbox.sh sandbox-web '${{ matrix.builder }}' > sandbox-sha256.txt
+      - name: Assert current-head Web/PWA artifact and credential isolation
+        run: |
+          set -euo pipefail
+          test -s sandbox-web/dist/index.html
+          test -s sandbox-web/.vl-web-sandbox-env.json
+          test -s vl-web-build.tgz
+          sha256sum -c sandbox-sha256.txt
+          grep -Fq -- '--network none' vl/scripts/run-untrusted-sandbox.sh
+          python3 - <<'PY'
+          import json
+          d=json.load(open('sandbox-web/.vl-web-sandbox-env.json'))
+          assert d == {'leaked': False}, d
+          print('CURRENT-HEAD WEB/PWA SANDBOX: PASS')
+          PY
+      - name: Upload Web/PWA current-head evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: golden-${{ matrix.builder }}-${{ github.run_id }}
+          path: |
+            sandbox-sha256.txt
+            sandbox-web/.vl-web-sandbox-env.json
+          if-no-files-found: error
+          retention-days: 90
+
+  current-head-gis:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      VRS_OIDC_TOKEN: host-secret-must-not-leak
+      SUPABASE_SERVICE_ROLE_KEY: host-secret-must-not-leak
+      ACTIONS_ID_TOKEN_REQUEST_TOKEN: host-secret-must-not-leak
+      ACTIONS_ID_TOKEN_REQUEST_URL: https://example.invalid/oidc
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ env.VL_PROOF_SHA }}
+          persist-credentials: false
+      - name: Confirm checkout is current PR head
+        run: test "$(git rev-parse HEAD)" = "$VL_PROOF_SHA"
+      - name: Prepare GIS fixture and dependencies without lifecycle scripts
+        run: |
+          set -euo pipefail
+          cp -R vl/adversarial/gis-sandbox-fixture sandbox-gis
+          (cd sandbox-gis && npm install --ignore-scripts)
+          docker pull node:22-bookworm
+      - name: Build current-head GIS fixture inside isolated sandbox
+        run: |
+          set -euo pipefail
+          vl/scripts/build-gis-web-sandbox.sh sandbox-gis gis-web-v1 > sandbox-sha256.txt
+      - name: Assert current-head GIS artifact and credential isolation
+        run: |
+          set -euo pipefail
+          test -s sandbox-gis/dist/index.html
+          test -s sandbox-gis/.vl-gis-sandbox-env.json
+          test -s vl-gis-build.tgz
+          sha256sum -c sandbox-sha256.txt
+          grep -Fq -- '--network none' vl/scripts/run-untrusted-sandbox.sh
+          python3 - <<'PY'
+          import json
+          d=json.load(open('sandbox-gis/.vl-gis-sandbox-env.json'))
+          assert d == {'leaked': False}, d
+          print('CURRENT-HEAD GIS SANDBOX: PASS')
+          PY
+      - name: Upload GIS current-head evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: golden-gis-web-v1-${{ github.run_id }}
+          path: |
+            sandbox-sha256.txt
+            sandbox-gis/.vl-gis-sandbox-env.json
+          if-no-files-found: error
+          retention-days: 90
+
+  current-head-api:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      VRS_OIDC_TOKEN: host-secret-must-not-leak
+      SUPABASE_SERVICE_ROLE_KEY: host-secret-must-not-leak
+      ACTIONS_ID_TOKEN_REQUEST_TOKEN: host-secret-must-not-leak
+      ACTIONS_ID_TOKEN_REQUEST_URL: https://example.invalid/oidc
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ env.VL_PROOF_SHA }}
+          persist-credentials: false
+      - name: Confirm checkout is current PR head
+        run: test "$(git rev-parse HEAD)" = "$VL_PROOF_SHA"
+      - name: Set up Deno 2.5.6
+        uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed
+        with:
+          deno-version: v2.5.6
+      - name: Prepare generated API fixture
+        run: |
+          set -euo pipefail
+          cp -R vl/adversarial/api-sandbox-fixture sandbox-api
+          DENO_DIR="$PWD/sandbox-api/.deno-cache" deno cache --no-check sandbox-api/index.ts
+          docker pull denoland/deno:2.5.6
+      - name: Probe credential isolation with generated Deno code
+        run: |
+          set -euo pipefail
+          vl/scripts/run-untrusted-sandbox.sh denoland/deno:2.5.6 sandbox-api -- run --allow-env --allow-write=/workspace/.vl-api-sandbox-env.json probe.ts
+      - name: Validate current-head API inside isolated sandbox
+        run: |
+          set -euo pipefail
+          vl/scripts/validate-api-sandbox.sh sandbox-api api-service-v1 > sandbox-sha256.txt
+      - name: Assert current-head API artifact and credential isolation
+        run: |
+          set -euo pipefail
+          test -s sandbox-api/.vl-api-sandbox-env.json
+          test -s vl-api-build.tgz
+          sha256sum -c sandbox-sha256.txt
+          grep -Fq -- '--network none' vl/scripts/run-untrusted-sandbox.sh
+          python3 - <<'PY'
+          import json
+          d=json.load(open('sandbox-api/.vl-api-sandbox-env.json'))
+          assert d == {'leaked': False, 'visible': []}, d
+          print('CURRENT-HEAD API SANDBOX: PASS')
+          PY
+      - name: Upload API current-head evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: golden-api-service-v1-${{ github.run_id }}
+          path: |
+            sandbox-sha256.txt
+            sandbox-api/.vl-api-sandbox-env.json
+          if-no-files-found: error
+          retention-days: 90
+
+  current-head-mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      VRS_OIDC_TOKEN: host-secret-must-not-leak
+      SUPABASE_SERVICE_ROLE_KEY: host-secret-must-not-leak
+      ACTIONS_ID_TOKEN_REQUEST_TOKEN: host-secret-must-not-leak
+      ACTIONS_ID_TOKEN_REQUEST_URL: https://example.invalid/oidc
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ env.VL_PROOF_SHA }}
+          persist-credentials: false
+      - name: Confirm checkout is current PR head
+        run: test "$(git rev-parse HEAD)" = "$VL_PROOF_SHA"
+      - name: Set up Flutter template tool
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
+        with:
+          flutter-version: '3.38.1'
+          channel: stable
+          cache: true
+      - name: Create pristine trusted Android template and cache
+        run: |
+          set -euo pipefail
+          flutter create sandbox-mobile --platforms=android --org com.vrslabs --project-name vl_sandbox_probe
+          rm -f sandbox-mobile/test/widget_test.dart
+          chmod +x vl/scripts/prepare-mobile-flutter-cache.sh vl/scripts/build-mobile-flutter-sandbox.sh
+          vl/scripts/prepare-mobile-flutter-cache.sh sandbox-mobile
+          test -f sandbox-mobile/.vl-mobile-cache-prepared
+      - name: Inject generated-code adversarial Gradle probe
+        run: |
+          cat >> sandbox-mobile/android/app/build.gradle.kts <<'KOTLIN'
+
+          val vlSandboxProbe = tasks.register("vlSandboxProbe") {
+              doLast {
+                  val sensitive = listOf("VRS_OIDC_TOKEN","SUPABASE_SERVICE_ROLE_KEY","ACTIONS_ID_TOKEN_REQUEST_TOKEN","ACTIONS_ID_TOKEN_REQUEST_URL")
+                  val leaked = sensitive.any { !System.getenv(it).isNullOrEmpty() }
+                  val dockerSocket = rootProject.file("/var/run/docker.sock").exists()
+                  var network = false
+                  try {
+                      val conn = project.uri("https://example.com").toURL().openConnection()
+                      conn.connectTimeout = 1000
+                      conn.readTimeout = 1000
+                      conn.getInputStream().use { it.read() }
+                      network = true
+                  } catch (_: Exception) { network = false }
+                  var outsideWrite = false
+                  try {
+                      rootProject.file("/etc/vl-mobile-sandbox-probe").writeText("should-not-write")
+                      outsideWrite = true
+                  } catch (_: Exception) { outsideWrite = false }
+                  val json = "{\"leaked\":" + leaked + ",\"network\":" + network + ",\"docker_socket\":" + dockerSocket + ",\"outside_write\":" + outsideWrite + "}"
+                  rootProject.projectDir.parentFile.resolve(".vl-mobile-sandbox-env.json").writeText(json)
+              }
+          }
+          tasks.matching { it.name == "preBuild" }.configureEach { dependsOn(vlSandboxProbe) }
+          KOTLIN
+      - name: Analyze and build current-head Mobile code offline in sandbox
+        run: |
+          set -euo pipefail
+          vl/scripts/build-mobile-flutter-sandbox.sh sandbox-mobile mobile-flutter-v1 > mobile-sha256.txt
+      - name: Assert current-head Mobile sandbox isolation and artifact
+        run: |
+          set -euo pipefail
+          test -s sandbox-mobile/.vl-mobile-sandbox-env.json
+          test -s sandbox-mobile/build/app/outputs/flutter-apk/app-debug.apk
+          grep -q 'app-debug.apk' mobile-sha256.txt
+          grep -q -- '--network none' vl/scripts/build-mobile-flutter-sandbox.sh
+          python3 - <<'PY'
+          import json
+          d=json.load(open('sandbox-mobile/.vl-mobile-sandbox-env.json'))
+          expected={'leaked':False,'network':False,'docker_socket':False,'outside_write':False}
+          assert d == expected, (d, expected)
+          print('CURRENT-HEAD MOBILE SANDBOX: PASS')
+          PY
+      - name: Upload Mobile current-head evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: golden-mobile-flutter-v1-${{ github.run_id }}
+          path: |
+            mobile-sha256.txt
+            sandbox-mobile/.vl-mobile-sandbox-env.json
+          if-no-files-found: error
+          retention-days: 90
+
+  hold-until-dev-evidence:
+    runs-on: ubuntu-latest
+    needs:
+      - deterministic-intake-routing
+      - current-head-web-pwa
+      - current-head-gis
+      - current-head-api
+      - current-head-mobile
+    steps:
+      - name: Record phase boundary
+        run: |
+          set -euo pipefail
+          echo 'HOLD: current-head intake and all five active builders passed sandbox evidence.'
+          echo 'PASS—PROVEN is forbidden until protected human DEV approval, DEV rollback, certification completion, and three clean reproducibility runs are attached.'
+          echo 'No production action was requested or performed.'
+          exit 1

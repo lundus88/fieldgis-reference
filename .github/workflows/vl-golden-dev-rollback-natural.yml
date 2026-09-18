@@ -1,0 +1,60 @@
+name: VL Golden DEV Rollback Natural Proof
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/vl-golden-reproducibility-a.yml'
+      - '.github/workflows/vl-golden-reproducibility-b.yml'
+      - '.github/workflows/vl-golden-reproducibility-c.yml'
+      - '.github/workflows/vl-golden-dev-rollback-natural.yml'
+      - 'vl/proof/**'
+
+permissions:
+  contents: read
+
+env:
+  FROM_SHA: ${{ github.event.pull_request.head.sha }}
+  TO_SHA: ${{ github.event.pull_request.base.sha }}
+  TARGET_ENVIRONMENT: development
+
+jobs:
+  rollback-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          ref: ${{ env.TO_SHA }}
+      - name: Verify exact bounded rollback target
+        run: |
+          set -euo pipefail
+          test "$TARGET_ENVIRONMENT" = development
+          test -n "$FROM_SHA"
+          test -n "$TO_SHA"
+          test "$FROM_SHA" != "$TO_SHA"
+          test "$(git rev-parse HEAD)" = "$TO_SHA"
+          mkdir -p evidence
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          payload={
+            'schema_version':'vl.dev-rollback-proof/2',
+            'status':'ROLLBACK_TARGET_VERIFIED',
+            'from_sha':os.environ['FROM_SHA'],
+            'to_sha':os.environ['TO_SHA'],
+            'target_environment':'development',
+            'live_dev_mutation_performed':False,
+            'production_mutation':False,
+            'claim_allowed':'exact DEV rollback target is retrievable and SHA-bound',
+            'claim_forbidden':'live DEV rollback executed'
+          }
+          Path('evidence/dev-rollback.json').write_text(json.dumps(payload,indent=2,sort_keys=True)+'\n')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: vl-dev-rollback-natural-${{ github.run_id }}
+          path: evidence
+          if-no-files-found: error
+          retention-days: 90

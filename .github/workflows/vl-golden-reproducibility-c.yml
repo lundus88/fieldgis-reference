@@ -1,0 +1,45 @@
+name: VL Golden Reproducibility C
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/vl-golden-reproducibility-a.yml'
+      - '.github/workflows/vl-golden-reproducibility-b.yml'
+      - '.github/workflows/vl-golden-reproducibility-c.yml'
+      - '.github/workflows/vl-golden-dev-rollback-natural.yml'
+      - 'vl/proof/**'
+
+permissions:
+  contents: read
+
+env:
+  SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+
+jobs:
+  reproduce-c:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          ref: ${{ env.SOURCE_SHA }}
+      - name: Confirm exact source SHA
+        run: test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+      - name: Reproduce deterministic manifest
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          python3 vl/proof/run_golden_factory_benchmark.py --cases vl/proof/golden-benchmark-cases.json --output evidence/manifest-a.json --source-sha "$SOURCE_SHA"
+          python3 vl/proof/run_golden_factory_benchmark.py --cases vl/proof/golden-benchmark-cases.json --output evidence/manifest-b.json --source-sha "$SOURCE_SHA"
+          cmp evidence/manifest-a.json evidence/manifest-b.json
+          python3 vl/proof/verify_golden_factory_manifest.py evidence/manifest-a.json --expected-sha "$SOURCE_SHA"
+          sha256sum evidence/manifest-a.json > evidence/manifest.sha256
+          printf '%s\n' "$SOURCE_SHA" > evidence/source-sha.txt
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: vl-golden-repro-c-${{ github.run_id }}
+          path: evidence
+          if-no-files-found: error
+          retention-days: 90
