@@ -96,7 +96,7 @@ for token in [
         errors.append(f"first offer RC: missing {token}")
 
 readme=(root/"README.md").read_text() if (root/"README.md").exists() else ""
-for token in ["OFFER_LOCKED = NO","no live checkout","no customer charging","no Production deployment"]:
+for token in ["OFFER_LOCKED = YES","no live checkout","no customer charging before Production payment activation is separately approved","no Production deployment"]:
     if token not in readme:
         errors.append(f"README: missing guardrail {token}")
 
