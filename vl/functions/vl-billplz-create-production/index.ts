@@ -9,6 +9,7 @@ const COLLECTION_ID = (Deno.env.get("BILLPLZ_COLLECTION_ID") || "").trim();
 const ALLOWED_ORIGIN = (Deno.env.get("LUNDUS_COMMERCIAL_ORIGIN") || "").trim();
 
 const db = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
+
 const cors = (origin: string | null) => ({
   "access-control-allow-origin": origin && origin === ALLOWED_ORIGIN ? origin : "null",
   "access-control-allow-headers": "authorization, apikey, content-type",
@@ -16,7 +17,10 @@ const cors = (origin: string | null) => ({
   "vary": "Origin",
 });
 const J = (body: unknown, status = 200, origin: string | null = null) =>
-  new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json", "cache-control": "no-store", ...cors(origin) } });
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { "content-type": "application/json", "cache-control": "no-store", ...cors(origin) },
+  });
 
 Deno.serve(async (req) => {
   const origin = req.headers.get("origin");
@@ -53,17 +57,67 @@ Deno.serve(async (req) => {
   const { data: offer, error: offerErr } = await db
     .schema("private")
     .from("commercial_offers")
-    .select("offer_key,display_name,amount_minor,currency,status,fulfillment_mode")
+    .select("offer_key,offer_type,customer_account_id,display_name,amount_minor,currency,status,fulfillment_mode,valid_until")
     .eq("offer_key", offerKey)
     .eq("status", "active")
     .maybeSingle();
+
   if (offerErr) return J({ error: "offer lookup failed" }, 500, origin);
   if (!offer) return J({ error: "offer unavailable", blocked: true }, 404, origin);
   if (offer.currency !== "MYR" || !Number.isInteger(offer.amount_minor) || offer.amount_minor <= 0) {
     return J({ error: "offer invariant failed", blocked: true }, 409, origin);
   }
+  if (offer.offer_type === "customer_quote") {
+    if (offer.customer_account_id !== account.id) return J({ error: "offer not assigned to this customer", blocked: true }, 403, origin);
+    if (!offer.valid_until || new Date(offer.valid_until).getTime() <= Date.now()) {
+      return J({ error: "offer expired", blocked: true }, 410, origin);
+    }
+  } else if (offer.offer_type !== "public_fixed" || offer.customer_account_id !== null) {
+    return J({ error: "offer scope invariant failed", blocked: true }, 409, origin);
+  }
 
   const merchantReference = `lds-${offer.offer_key}-${crypto.randomUUID()}`;
+
+  // Persist an authoritative pending order first. The partial unique index blocks
+  // duplicate active orders for the same customer + offer before any provider bill exists.
+  const { data: order, error: orderErr } = await db
+    .schema("private")
+    .from("payment_production_orders")
+    .insert({
+      adapter_key: "billplz-payment-v1",
+      provider_bill_id: null,
+      merchant_reference: merchantReference,
+      amount_minor: offer.amount_minor,
+      currency: "MYR",
+      environment: "production",
+      purpose: "commercial_order",
+      status: "pending",
+      fulfillment_state: "unfulfilled",
+      checkout_url: null,
+      created_by: user.id,
+      offer_key: offer.offer_key,
+      customer_account_id: account.id,
+      metadata: {
+        offer_key: offer.offer_key,
+        offer_name: offer.display_name,
+        offer_type: offer.offer_type,
+        customer_account_id: account.id,
+        fulfillment_mode: offer.fulfillment_mode,
+        amount_source: "server_offer_catalog",
+        client_amount_accepted: false,
+        provider_bill_created: false,
+      },
+    })
+    .select("id,merchant_reference,amount_minor,currency,status")
+    .single();
+
+  if (orderErr) {
+    if (String(orderErr.code || "") === "23505") {
+      return J({ error: "active order already exists for this offer", blocked: true }, 409, origin);
+    }
+    return J({ error: "order reservation failed", blocked: true }, 500, origin);
+  }
+
   const callbackUrl = `${SUPABASE_URL}/functions/v1/vl-billplz-webhook-production`;
   const form = new URLSearchParams();
   form.set("collection_id", COLLECTION_ID);
@@ -80,45 +134,69 @@ Deno.serve(async (req) => {
   const basic = btoa(`${API_KEY}:`);
   const response = await fetch("https://www.billplz.com/api/v3/bills", {
     method: "POST",
-    headers: { Authorization: `Basic ${basic}`, "content-type": "application/x-www-form-urlencoded" },
+    headers: {
+      Authorization: `Basic ${basic}`,
+      "content-type": "application/x-www-form-urlencoded",
+    },
     body: form.toString(),
   });
+
   const data = await response.json().catch(() => null);
   if (!response.ok || !data?.id || !data?.url) {
+    await db.schema("private").from("payment_production_orders").update({
+      status: "failed",
+      updated_at: new Date().toISOString(),
+      metadata: {
+        offer_key: offer.offer_key,
+        offer_name: offer.display_name,
+        offer_type: offer.offer_type,
+        customer_account_id: account.id,
+        fulfillment_mode: offer.fulfillment_mode,
+        amount_source: "server_offer_catalog",
+        client_amount_accepted: false,
+        provider_bill_created: false,
+        provider_create_failed: true,
+        provider_status: response.status,
+      },
+    }).eq("id", order.id).eq("status", "pending");
+
     return J({ error: "payment provider create bill failed", blocked: true, provider_status: response.status }, 502, origin);
   }
 
-  const { data: order, error: orderErr } = await db.schema("private").from("payment_production_orders").insert({
-    adapter_key: "billplz-payment-v1",
-    provider_bill_id: String(data.id),
-    merchant_reference: merchantReference,
-    amount_minor: offer.amount_minor,
-    currency: "MYR",
-    environment: "production",
-    purpose: "commercial_order",
-    status: "pending",
-    fulfillment_state: "unfulfilled",
-    checkout_url: String(data.url),
-    created_by: user.id,
-    metadata: {
-      offer_key: offer.offer_key,
-      offer_name: offer.display_name,
-      customer_account_id: account.id,
-      fulfillment_mode: offer.fulfillment_mode,
-      amount_source: "server_offer_catalog",
-      client_amount_accepted: false,
-    },
-  }).select("id,provider_bill_id,merchant_reference,amount_minor,currency,status,checkout_url").single();
+  const { data: finalOrder, error: updateErr } = await db
+    .schema("private")
+    .from("payment_production_orders")
+    .update({
+      provider_bill_id: String(data.id),
+      checkout_url: String(data.url),
+      updated_at: new Date().toISOString(),
+      metadata: {
+        offer_key: offer.offer_key,
+        offer_name: offer.display_name,
+        offer_type: offer.offer_type,
+        customer_account_id: account.id,
+        fulfillment_mode: offer.fulfillment_mode,
+        amount_source: "server_offer_catalog",
+        client_amount_accepted: false,
+        provider_bill_created: true,
+      },
+    })
+    .eq("id", order.id)
+    .eq("status", "pending")
+    .select("id,provider_bill_id,merchant_reference,amount_minor,currency,status,checkout_url")
+    .single();
 
-  if (orderErr) return J({ error: "order persistence failed", blocked: true }, 500, origin);
+  if (updateErr) {
+    return J({ error: "provider bill created but order finalisation failed", blocked: true, manual_review: true }, 500, origin);
+  }
 
   return J({
     ok: true,
-    order_id: order.id,
-    merchant_reference: order.merchant_reference,
-    amount_minor: order.amount_minor,
-    currency: order.currency,
-    checkout_url: order.checkout_url,
+    order_id: finalOrder.id,
+    merchant_reference: finalOrder.merchant_reference,
+    amount_minor: finalOrder.amount_minor,
+    currency: finalOrder.currency,
+    checkout_url: finalOrder.checkout_url,
     payment_status: "pending",
     fulfillment_state: "unfulfilled",
   }, 200, origin);
