@@ -26,6 +26,8 @@ jobs:
         run: python3 commercial/lundus-digital-systems/check_commercial_surface.py
       - name: Validate static links, mobile and accessibility baseline
         run: python3 commercial/lundus-digital-systems/check_surface_qa.py
+      - name: Validate RC noindex and activation HOLD
+        run: python3 commercial/lundus-digital-systems/check_production_activation_surface.py
       - name: Static HTTP smoke test
         run: |
           cd commercial/lundus-digital-systems
