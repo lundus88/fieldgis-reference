@@ -1,0 +1,5 @@
+const EVENT_KEY='lds_launch_events_v1';
+function track(event,meta={}){const safe={event,ts:new Date().toISOString(),path:location.pathname,meta};try{const list=JSON.parse(sessionStorage.getItem(EVENT_KEY)||'[]');list.push(safe);sessionStorage.setItem(EVENT_KEY,JSON.stringify(list.slice(-100)))}catch{}window.dispatchEvent(new CustomEvent('lds:analytics',{detail:safe}))}
+document.addEventListener('click',e=>{const el=e.target.closest('[data-event]');if(el)track(el.dataset.event,{label:el.dataset.label||el.textContent?.trim().slice(0,80)||''})});
+document.addEventListener('DOMContentLoaded',()=>{track('page_view');document.querySelectorAll('input[name="submission_id"]').forEach(el=>{if(!el.value)el.value=crypto.randomUUID()})});
+document.addEventListener('submit',e=>{const form=e.target;if(form.matches('[data-rc-form]')){e.preventDefault();track('form_submit_rc',{form:form.id||'unknown'});const box=form.querySelector('[data-form-status]');if(box)box.textContent='Submission handler is intentionally disabled in this Release Candidate. No data was sent.'}});

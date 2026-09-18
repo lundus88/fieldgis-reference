@@ -29,11 +29,13 @@ const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
 const consoleErrors = [];
 const requestFailures = [];
 const selectorEvidence = {};
+const previewOrigin = new URL(url).origin;
 page.on('console', msg => { if (msg.type() === 'error') consoleErrors.push(msg.text()); });
 page.on('requestfailed', req => requestFailures.push({ url: req.url(), error: req.failure()?.errorText || 'unknown' }));
 
 let status = 'FAIL';
 let reason = null;
+let gisRuntime = null;
 try {
   const response = await page.goto(url, { waitUntil: 'networkidle', timeout: 20000 });
   if (!response || !response.ok()) throw new Error(`preview HTTP status ${response?.status() ?? 'none'}`);
@@ -45,22 +47,62 @@ try {
     const count = await page.getByText(text, { exact: false }).count();
     if (count < 1) throw new Error(`required text missing: ${text}`);
   }
+  if (builderKey === 'gis-web-v1') {
+    gisRuntime = await page.evaluate(() => globalThis.__VL_MAPLIBRE_RUNTIME__ ?? null);
+    if (!gisRuntime?.booted) throw new Error('MapLibre runtime did not boot');
+    const canvasCount = await page.locator('.maplibregl-canvas').count();
+    if (canvasCount < 1) throw new Error('MapLibre canvas missing');
+  }
   await page.screenshot({ path: `${outDir}/preview-desktop.png`, fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.reload({ waitUntil: 'networkidle' });
   for (const selector of inventory.required_selectors) {
     await page.locator(selector).first().waitFor({ state: 'visible', timeout: 7000 });
   }
+  if (builderKey === 'gis-web-v1') {
+    const mobileRuntime = await page.evaluate(() => globalThis.__VL_MAPLIBRE_RUNTIME__ ?? null);
+    if (!mobileRuntime?.booted) throw new Error('MapLibre runtime did not boot after mobile reload');
+    const mobileCanvasCount = await page.locator('.maplibregl-canvas').count();
+    if (mobileCanvasCount < 1) throw new Error('MapLibre canvas missing after mobile reload');
+  }
   await page.screenshot({ path: `${outDir}/preview-mobile.png`, fullPage: true });
   if (consoleErrors.length) throw new Error(`console errors detected: ${consoleErrors.join(' | ')}`);
-  if (requestFailures.length) throw new Error(`network failures detected: ${requestFailures.length}`);
+
+  const sameOriginFailures = requestFailures.filter((failure) => {
+    try { return new URL(failure.url).origin === previewOrigin; }
+    catch { return true; }
+  });
+  const externalFailures = requestFailures.filter((failure) => {
+    try { return new URL(failure.url).origin !== previewOrigin; }
+    catch { return false; }
+  });
+
+  // A generated GIS shell must remain deterministic even when an external basemap/demo
+  // provider is unavailable. Same-origin failures always fail closed. For GIS only,
+  // third-party request failures are retained as evidence but do not invalidate the
+  // immutable application/runtime verification when MapLibre itself booted correctly.
+  if (sameOriginFailures.length) {
+    throw new Error(`same-origin network failures detected: ${sameOriginFailures.length}`);
+  }
+  if (builderKey !== 'gis-web-v1' && externalFailures.length) {
+    throw new Error(`external network failures detected: ${externalFailures.length}`);
+  }
   status = 'PASS';
 } catch (error) {
   reason = error instanceof Error ? error.message : String(error);
 }
 
+const sameOriginFailures = requestFailures.filter((failure) => {
+  try { return new URL(failure.url).origin === previewOrigin; }
+  catch { return true; }
+});
+const externalFailures = requestFailures.filter((failure) => {
+  try { return new URL(failure.url).origin !== previewOrigin; }
+  catch { return false; }
+});
+
 const evidence = {
-  schema: 'vl.visual-preview-evidence/2',
+  schema: 'vl.visual-preview-evidence/3',
   verifier: 'independent-playwright',
   builder_key: builderKey,
   preview_url: url,
@@ -77,6 +119,9 @@ const evidence = {
     mobile_screenshot: status === 'PASS',
     console_errors: consoleErrors,
     network_failures: requestFailures,
+    same_origin_network_failures: sameOriginFailures,
+    external_network_failures: externalFailures,
+    gis_runtime: gisRuntime,
   },
   conclusion: status,
   reason,
