@@ -1,0 +1,33 @@
+{
+  "schema": "lds.public-lead-intake/1",
+  "status": "contract_only",
+  "public_endpoint": "/api/lead",
+  "client_to_lunduslead_direct_write": false,
+  "required_fields": ["name", "email", "service", "message"],
+  "optional_fields": ["organisation", "phone", "location"],
+  "server_controls": [
+    "origin_allowlist",
+    "rate_limit",
+    "payload_size_limit",
+    "field_validation",
+    "abuse_detection",
+    "idempotency_key",
+    "audit_timestamp",
+    "source_attribution"
+  ],
+  "source": {
+    "system": "LUNDUS_DIGITAL_SYSTEMS",
+    "channel": "website",
+    "default_status": "New Lead"
+  },
+  "forbidden_actions": [
+    "auto_quotation",
+    "auto_pricing",
+    "auto_payment",
+    "auto_sale",
+    "direct_browser_write_to_internal_crm",
+    "expose_internal_crm_credentials"
+  ],
+  "handoff": "server-to-server into LundusLead after connector validation",
+  "authority": "lead creation only; quotation/payment/sale remain human-gated"
+}
