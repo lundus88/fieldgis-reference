@@ -16,34 +16,62 @@ def forbid(label, text, token):
     if token in text:
         errors.append(f"{label}: forbidden {token}")
 
-need("create", create, 'schema("private")')
-need("create", create, 'from("commercial_offers")')
-need("create", create, '.eq("status", "active")')
-need("create", create, 'amount_source: "server_offer_catalog"')
-need("create", create, 'client_amount_accepted: false')
-need("create", create, 'purpose: "commercial_order"')
-need("create", create, 'LUNDUS_COMMERCIAL_ORIGIN')
-need("create", create, 'origin !== ALLOWED_ORIGIN')
-need("create", create, 'terms_accepted_at')
-need("create", create, 'payment_status: "pending"')
-need("create", create, 'fulfillment_state: "unfulfilled"')
-forbid("create", create, "body.amount")
-forbid("create", create, "b.amount")
+for token in [
+    'schema("private")',
+    'from("commercial_offers")',
+    '.eq("status", "active")',
+    'offer.customer_account_id !== account.id',
+    'offer.valid_until',
+    'active order already exists for this offer',
+    'amount_source: "server_offer_catalog"',
+    'client_amount_accepted: false',
+    'purpose: "commercial_order"',
+    'offer_key: offer.offer_key',
+    'customer_account_id: account.id',
+    'LUNDUS_COMMERCIAL_ORIGIN',
+    'origin !== ALLOWED_ORIGIN',
+    'terms_accepted_at',
+    'payment_status: "pending"',
+    'fulfillment_state: "unfulfilled"',
+]:
+    need("create", create, token)
 
-need("webhook", webhook, "BILLPLZ_X_SIGNATURE_KEY")
-need("webhook", webhook, "hmacHex")
-need("webhook", webhook, "equalConst")
-need("webhook", webhook, 'vl_apply_billplz_production_webhook')
-need("webhook", webhook, 'invalid signature')
-need("webhook", webhook, 'amount mismatch')
+for token in ["body.amount", "b.amount"]:
+    forbid("create", create, token)
 
-need("migration", migration, "private.commercial_offers")
-need("migration", migration, "revoke all on private.commercial_offers from public, anon, authenticated")
-need("migration", migration, "current_user not in ('service_role','postgres')")
-need("migration", migration, "fulfillment_separated")
-need("migration", migration, "pending_to_paid_awaiting_fulfillment")
-need("migration", migration, "duplicate_event")
-need("migration", migration, "terminal_order_not_resurrected")
+# Order reservation must happen before external provider bill creation.
+reservation = create.find('from("payment_production_orders")')
+provider = create.find('fetch("https://www.billplz.com/api/v3/bills"')
+if reservation < 0 or provider < 0 or reservation > provider:
+    errors.append("create: provider bill is attempted before authoritative order reservation")
+
+for token in [
+    "BILLPLZ_X_SIGNATURE_KEY",
+    "hmacHex",
+    "equalConst",
+    "vl_apply_billplz_production_webhook",
+    "invalid signature",
+    "amount mismatch",
+]:
+    need("webhook", webhook, token)
+
+for token in [
+    "private.commercial_offers",
+    "offer_type",
+    "customer_account_id uuid references public.customer_accounts(id)",
+    "valid_until timestamptz",
+    "payment_production_orders_active_customer_offer_uq",
+    "add column if not exists offer_key",
+    "add column if not exists customer_account_id",
+    "revoke all on private.commercial_offers from public, anon, authenticated",
+    "current_user not in ('service_role','postgres')",
+    "fulfillment_separated",
+    "pending_to_paid_awaiting_fulfillment",
+    "duplicate_event",
+    "terminal_order_not_resurrected",
+]:
+    need("migration", migration, token)
+
 forbid("migration", migration, "set status='paid',paid_at=coalesce(paid_at,now()),fulfillment_state='fulfilled'")
 
 if errors:
