@@ -57,7 +57,14 @@ Forbidden:
 ## Execution status
 AUTHORIZED_PENDING_SAFE_MUTATION_PATH.
 
-The currently available Vercel mutation capability does not expose a project-creation/selection control that can guarantee a new dedicated project before deployment. Because the plan's stop condition requires abort when tool/project scope is ambiguous, no Vercel mutation has been executed.
+Current preflight evidence:
+- connected Vercel read access is available;
+- available connected mutation capability does not expose a project-creation/explicit-project-selection control;
+- local runtime does not have Vercel CLI installed;
+- ephemeral `npx vercel whoami` preflight did not complete before timeout, so CLI authentication was not verified;
+- existing `fieldgis-reference` deployments observed through Vercel are Production-targeted.
+
+Because the stop condition requires abort when tool/project scope is ambiguous, no Vercel mutation has been executed.
 
 ## Deployment procedure once a safe project-scoped mutation path is available
 1. Create a dedicated Vercel project separate from fieldgis-reference Production.
