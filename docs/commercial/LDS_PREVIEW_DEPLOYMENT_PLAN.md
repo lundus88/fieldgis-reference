@@ -1,7 +1,21 @@
 # LUNDUS DIGITAL SYSTEMS — Preview Deployment Plan
 
 Status: NON-PRODUCTION
-Purpose: prepare a safe Preview environment without touching any existing Production deployment.
+Purpose: prepare and, once safe tooling is available, deploy a dedicated Preview environment without touching any existing Production deployment.
+
+## Human approval
+Approval received on 2026-09-19 for:
+- creating a dedicated isolated Vercel project;
+- deploying the LDS commercial surface to Preview only.
+
+This approval does **not** authorize:
+- Production promotion;
+- Production domain binding;
+- Production secrets;
+- live form submission;
+- live checkout;
+- real customer data;
+- real customer charging.
 
 ## Why a dedicated Preview is required
 Current Vercel evidence for the existing fieldgis-reference project shows only Production-target deployments. Therefore the LDS commercial surface must not be previewed by reusing that Production target.
@@ -40,7 +54,12 @@ Forbidden:
 - Production domain alias
 - search indexing
 
-## Deployment procedure after human approval
+## Execution status
+AUTHORIZED_PENDING_SAFE_MUTATION_PATH.
+
+The currently available Vercel mutation capability does not expose a project-creation/selection control that can guarantee a new dedicated project before deployment. Because the plan's stop condition requires abort when tool/project scope is ambiguous, no Vercel mutation has been executed.
+
+## Deployment procedure once a safe project-scoped mutation path is available
 1. Create a dedicated Vercel project separate from fieldgis-reference Production.
 2. Set root directory to commercial/lundus-digital-systems.
 3. Connect only the intended Preview branch.
@@ -73,5 +92,3 @@ Abort Preview deployment if:
 - Production environment variables are inherited;
 - custom Production domain is attached;
 - any live payment/customer write path is enabled.
-
-This document does not authorize creating the Vercel project or deploying it. Those remain separate human-gated actions.
