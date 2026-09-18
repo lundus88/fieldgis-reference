@@ -1,0 +1,26 @@
+{
+  "schema":"lds.preview-deployment/1",
+  "status":"planned",
+  "deployment_authorized":false,
+  "project_creation_authorized":false,
+  "production_promotion_authorized":false,
+  "proposed_project_name":"lundus-digital-systems-preview",
+  "source_repository":"lundus88/fieldgis-reference",
+  "source_branch":"p0/lundus-digital-systems-commercial-surface",
+  "root_directory":"commercial/lundus-digital-systems",
+  "target":"preview",
+  "production_domain":null,
+  "customer_data_allowed":false,
+  "live_form_submission_allowed":false,
+  "live_checkout_allowed":false,
+  "production_secrets_allowed":false,
+  "indexing_allowed":false,
+  "required_guards":[
+    "noindex",
+    "robots_disallow_all",
+    "separate_vercel_project",
+    "no_production_domain",
+    "no_production_secrets",
+    "test_data_only"
+  ]
+}
