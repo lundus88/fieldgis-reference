@@ -1,0 +1,29 @@
+name: LDS Controlled Launch Operations
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'docs/commercial/LDS_CONTROLLED_TESTER_PACK.md'
+      - 'docs/commercial/LDS_LAUNCH_DAY_OPERATOR_CHECKLIST.md'
+      - 'docs/commercial/LDS_ROLLBACK_DRILL.md'
+      - 'docs/commercial/LDS_CONTROLLED_LAUNCH_OPERATIONS.json'
+      - 'docs/commercial/check_controlled_launch_operations.py'
+      - '.github/workflows/lds-controlled-launch-operations.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  controlled-launch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - run: python3 docs/commercial/check_controlled_launch_operations.py
