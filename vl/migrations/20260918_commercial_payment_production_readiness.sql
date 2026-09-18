@@ -1,27 +1,30 @@
 -- LUNDUS DIGITAL SYSTEMS / VL
 -- P0 commercial payment production readiness RC.
 -- REVIEW ONLY: do not apply to Production without explicit human approval.
---
--- Purpose:
--- 1. Server-authoritative commercial offer catalog.
--- 2. Production order creation is bound to an approved offer key.
--- 3. Signed Billplz webhook may confirm payment, but does NOT auto-fulfil.
--- 4. Duplicate callbacks remain idempotent.
--- 5. Refund/cancellation cannot resurrect or double-fulfil an order.
 
 begin;
 
 create table if not exists private.commercial_offers (
   offer_key text primary key,
+  offer_type text not null default 'customer_quote'
+    check (offer_type in ('customer_quote','public_fixed')),
+  customer_account_id uuid references public.customer_accounts(id),
   display_name text not null,
   amount_minor integer not null check (amount_minor > 0),
   currency text not null default 'MYR' check (currency = 'MYR'),
   status text not null default 'draft' check (status in ('draft','active','retired')),
-  fulfillment_mode text not null default 'manual' check (fulfillment_mode in ('manual','product_adapter')),
+  fulfillment_mode text not null default 'manual'
+    check (fulfillment_mode in ('manual','product_adapter')),
+  valid_until timestamptz,
   description text,
   metadata jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  updated_at timestamptz not null default now(),
+  check (
+    (offer_type='customer_quote' and customer_account_id is not null and valid_until is not null)
+    or
+    (offer_type='public_fixed' and customer_account_id is null)
+  )
 );
 
 alter table private.commercial_offers enable row level security;
@@ -30,6 +33,27 @@ grant select, insert, update, delete on private.commercial_offers to service_rol
 
 create index if not exists commercial_offers_status_idx
   on private.commercial_offers(status);
+create index if not exists commercial_offers_customer_status_idx
+  on private.commercial_offers(customer_account_id,status);
+create index if not exists commercial_offers_valid_until_idx
+  on private.commercial_offers(valid_until);
+
+alter table private.payment_production_orders
+  add column if not exists offer_key text references private.commercial_offers(offer_key);
+alter table private.payment_production_orders
+  add column if not exists customer_account_id uuid references public.customer_accounts(id);
+
+create index if not exists payment_production_orders_offer_idx
+  on private.payment_production_orders(offer_key);
+create index if not exists payment_production_orders_customer_idx
+  on private.payment_production_orders(customer_account_id);
+
+create unique index if not exists payment_production_orders_active_customer_offer_uq
+  on private.payment_production_orders(customer_account_id,offer_key)
+  where purpose='commercial_order'
+    and offer_key is not null
+    and customer_account_id is not null
+    and status in ('pending','paid');
 
 create or replace function public.vl_apply_billplz_production_webhook(
   p_event_key text,
@@ -79,7 +103,9 @@ begin
 
   if v_order.environment<>'production'
      or v_order.adapter_key<>'billplz-payment-v1'
-     or v_order.purpose<>'commercial_order' then
+     or v_order.purpose<>'commercial_order'
+     or v_order.offer_key is null
+     or v_order.customer_account_id is null then
     raise exception 'production commercial order invariant failed';
   end if;
   if p_amount_minor is distinct from v_order.amount_minor then raise exception 'amount mismatch'; end if;
@@ -142,6 +168,8 @@ begin
         'environment','production',
         'purpose','commercial_order',
         'authoritative_source','billplz_signed_webhook',
+        'offer_key',v_order.offer_key,
+        'customer_account_id',v_order.customer_account_id,
         'fulfillment_separated',true,
         'reason',v_reason
       )
@@ -174,6 +202,6 @@ grant execute on function public.vl_apply_billplz_production_webhook(text,text,t
   to service_role;
 
 comment on function public.vl_apply_billplz_production_webhook(text,text,text,text,integer)
-is 'Production Billplz commercial payment confirmation. Service-role only; signed webhook caller expected; payment confirmation never auto-fulfils.';
+is 'Production Billplz commercial payment confirmation. Service-role only; payment confirmation never auto-fulfils.';
 
 commit;
