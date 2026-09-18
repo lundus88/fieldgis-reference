@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 from pathlib import Path
-import json, re, sys
+import json, sys
 
 root = Path("commercial/lundus-digital-systems")
 required = [
     "index.html","services.html","about.html","contact.html","faq.html",
     "privacy.html","terms.html","refund.html","checkout.html","order.html",
-    "styles.css","site.js","analytics-contract.json","README.md",
+    "styles.css","site.js","analytics-contract.json","lead-intake-contract.json",
+    "FIRST_COMMERCIAL_OFFER_RC.md","README.md",
 ]
 errors=[]
 
@@ -56,6 +57,32 @@ if analytics_path.exists():
     for key in ["page_view","cta_quote","checkout_start","payment_confirmed_backend","order_fulfilled"]:
         if key not in keys:
             errors.append(f"analytics: missing {key}")
+
+lead_path=root/"lead-intake-contract.json"
+if lead_path.exists():
+    lead=json.loads(lead_path.read_text())
+    if lead.get("schema")!="lds.public-lead-intake/1":
+        errors.append("lead intake: unexpected schema")
+    if lead.get("client_to_lunduslead_direct_write") is not False:
+        errors.append("lead intake: browser-to-internal-CRM direct write must be false")
+    forbidden=set(lead.get("forbidden_actions",[]))
+    for key in ["auto_quotation","auto_pricing","auto_payment","auto_sale","direct_browser_write_to_internal_crm","expose_internal_crm_credentials"]:
+        if key not in forbidden:
+            errors.append(f"lead intake: missing forbidden action {key}")
+    if lead.get("handoff")!="server-to-server into LundusLead after connector validation":
+        errors.append("lead intake: internal CRM handoff is not server-to-server")
+
+offer=(root/"FIRST_COMMERCIAL_OFFER_RC.md").read_text() if (root/"FIRST_COMMERCIAL_OFFER_RC.md").exists() else ""
+for token in [
+    "Custom Digital Systems & Automation — Quotation-Led Implementation",
+    "offer_type = customer_quote",
+    "customer_account_id",
+    "valid_until",
+    "OFFER_LOCKED = YES",
+    "human-approved customer quotes",
+]:
+    if token not in offer:
+        errors.append(f"first offer RC: missing {token}")
 
 readme=(root/"README.md").read_text() if (root/"README.md").exists() else ""
 for token in ["OFFER_LOCKED = NO","no live checkout","no customer charging","no Production deployment"]:
