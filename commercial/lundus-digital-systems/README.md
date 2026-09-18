@@ -23,12 +23,12 @@ The public proposition is limited to:
 2. AI-Assisted SaaS & Decision Support
 3. Geospatial & Mapping Systems
 
-Pricing is intentionally not invented. The first commercial offer and amount remain OFFER_LOCKED = NO until human approval.
+Pricing is intentionally not invented. The first commercial offer is human-approved and OFFER_LOCKED = YES. Customer-specific amounts remain human-approved quotation values.
 
 ## Safety
 - no live form submission
 - no live checkout
-- no customer charging
+- no customer charging before Production payment activation is separately approved
 - no claim of government database access
 - no professional/statutory approval claim
 - no Production deployment
