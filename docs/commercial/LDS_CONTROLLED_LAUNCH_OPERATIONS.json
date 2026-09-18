@@ -1,0 +1,21 @@
+{
+  "schema": "lds.controlled-launch-operations/1",
+  "status": "rc",
+  "public_launch_authorized": false,
+  "payment_activation_authorized": false,
+  "tester_target_min": 5,
+  "tester_target_max": 10,
+  "required_packs": [
+    "controlled_tester",
+    "launch_day_operator",
+    "rollback_drill"
+  ],
+  "hard_stops": [
+    "licence_hold",
+    "legal_trust_hold",
+    "formal_review_missing",
+    "payment_evidence_uncertain",
+    "p0_open"
+  ],
+  "rule": "Operational readiness artifacts cannot promote any Production gate without separate evidence and human approval."
+}
