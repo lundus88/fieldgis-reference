@@ -25,6 +25,13 @@
   ],
   "human_approval_date": "2026-09-19",
   "authorization_scope": "Create dedicated isolated Vercel project and deploy Preview only; no Production promotion/domain/secrets/customer data/live billing.",
-  "execution_state": "blocked_by_tool_scope_ambiguity",
-  "execution_blocker": "Available Vercel mutation tool cannot guarantee creation/selection of a new dedicated project and could target an existing linked project. Stop condition requires abort on ambiguous project scope."
+  "execution_state": "blocked_by_tooling_and_auth_path",
+  "execution_blocker": "Connected Vercel tools expose read access and deployment, but no project-creation/explicit-project-selection mutation path. Local runtime has no installed Vercel CLI; ephemeral npx Vercel auth preflight timed out before identity could be verified. Deployment is therefore aborted per ambiguous-project stop condition.",
+  "preflight_evidence": {
+    "vercel_cli_installed": false,
+    "ephemeral_npx_auth_verified": false,
+    "connected_vercel_read_access": true,
+    "connected_project_creation_control": false,
+    "existing_fieldgis_reference_deployments_observed_target": "production"
+  }
 }
