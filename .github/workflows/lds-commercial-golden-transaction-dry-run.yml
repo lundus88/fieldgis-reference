@@ -1,0 +1,27 @@
+name: LDS Commercial Golden Transaction Dry Run
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'commercial/tests/commercial_golden_transaction_dry_run.py'
+      - 'docs/commercial/LDS_GOLDEN_TRANSACTION_DRY_RUN.md'
+      - '.github/workflows/lds-commercial-golden-transaction-dry-run.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dry-run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Run commercial Golden Transaction model
+        run: python3 commercial/tests/commercial_golden_transaction_dry_run.py

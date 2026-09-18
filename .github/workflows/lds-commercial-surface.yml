@@ -1,0 +1,40 @@
+name: LUNDUS DIGITAL SYSTEMS Commercial Surface
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'commercial/lundus-digital-systems/**'
+      - '.github/workflows/lds-commercial-surface.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  commercial-surface:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Validate launch surface and fail-closed guards
+        run: python3 commercial/lundus-digital-systems/check_commercial_surface.py
+      - name: Validate static links, mobile and accessibility baseline
+        run: python3 commercial/lundus-digital-systems/check_surface_qa.py
+      - name: Validate RC noindex and activation HOLD
+        run: python3 commercial/lundus-digital-systems/check_production_activation_surface.py
+      - name: Static HTTP smoke test
+        run: |
+          cd commercial/lundus-digital-systems
+          python3 -m http.server 8765 >/tmp/lds-http.log 2>&1 &
+          server_pid=$!
+          trap 'kill $server_pid' EXIT
+          sleep 1
+          for page in index.html services.html about.html contact.html faq.html privacy.html terms.html refund.html checkout.html order.html maklumat-urusniaga.html; do
+            curl --fail --silent --show-error "http://127.0.0.1:8765/$page" >/dev/null
+          done

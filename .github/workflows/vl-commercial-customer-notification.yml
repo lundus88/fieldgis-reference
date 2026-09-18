@@ -1,0 +1,30 @@
+name: VL Commercial Customer Notification
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/functions/vl-commercial-notify-production/**'
+      - 'vl/functions/vl-resend-webhook-production/**'
+      - 'vl/migrations/20260918_commercial_customer_notification.sql'
+      - 'vl/tests/check_commercial_customer_notification.py'
+      - 'docs/commercial/COMMERCIAL_CUSTOMER_NOTIFICATION_RC.md'
+      - '.github/workflows/vl-commercial-customer-notification.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  notification-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Validate commercial notification fail-closed contract
+        run: python3 vl/tests/check_commercial_customer_notification.py
