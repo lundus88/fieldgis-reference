@@ -3,39 +3,6 @@ name: LOM Master Compliance
 on:
   pull_request:
     branches: [main]
-    paths:
-      - 'vl/LOM_V1.md'
-      - 'vl/context-governance/**'
-      - 'vl/completion-governance/**'
-      - 'vl/model-governance/**'
-      - 'vl/execution-governance/**'
-      - 'vl/remediation-governance/**'
-      - 'vl/multi-agent-governance/**'
-      - 'vl/connector-governance/**'
-      - 'vl/golden-workflow/**'
-      - 'vl/lom-4-evolution/**'
-      - 'vl/lom-gate-c-runtime/**'
-      - 'vl/lom-gate-d-remediation/**'
-      - 'vl/lom-gate-e-orchestrator/**'
-      - 'vl/lom-mission-control/**'
-      - 'vl/lom-portfolio-runtime/**'
-      - 'vl/lom-director-loop/**'
-      - 'vl/lom-business-os/**'
-      - 'vl/lom-autonomous-org/**'
-      - 'vl/lom-controlled-validation/**'
-      - 'vl/lom-compliance-audit/**'
-      - 'vl/lom-operational-safety/**'
-      - 'vl/lom-learning-evaluation/**'
-      - 'vl/lom-self-improvement-runtime/**'
-      - 'vl/lom-continuous-improvement/**'
-      - 'vl/lom-daily-ops-cockpit/**'
-      - 'vl/lom-security-hardening/**'
-      - 'vl/lom-4-5-interoperability-resource-intelligence/**'
-      - 'vl/lom-5-operational-maturity/**'
-      - 'vl/lom-6-*/**'
-      - 'vl/lom-canonical-compliance/**'
-      - 'vl/lom-final-hardening/**'
-      - '.github/workflows/lom-*.yml'
   push:
     branches: [main]
     paths:
