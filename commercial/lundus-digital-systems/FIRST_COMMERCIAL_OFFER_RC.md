@@ -1,6 +1,6 @@
 # First Commercial Offer RC
 
-Status: PROPOSED — human approval required before OFFER_LOCKED becomes YES.
+Status: APPROVED — OFFER_LOCKED = YES (human approval recorded 2026-09-18).
 
 ## Primary launch offer
 **Custom Digital Systems & Automation — Quotation-Led Implementation**
@@ -51,7 +51,11 @@ This offer does not imply:
 - customer charging before the payment gate is authorised.
 
 ## Human gate
-To set OFFER_LOCKED = YES, approve:
+Human approval received on 2026-09-18 for:
 1. this primary offer name/scope;
 2. quotation-led pricing method;
 3. the rule that only human-approved customer quotes may become active customer_quote offers.
+
+OFFER_LOCKED = YES.
+
+This approval does not authorize Production deployment, migration application, live billing activation, customer charging, or protected-main merge.
