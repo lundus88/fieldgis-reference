@@ -7,6 +7,7 @@ required = [
     "index.html","services.html","about.html","contact.html","faq.html",
     "privacy.html","terms.html","refund.html","checkout.html","order.html",
     "styles.css","site.js","analytics-contract.json","lead-intake-contract.json",
+    "legal-trust-contract.json","maklumat-urusniaga.html",
     "FIRST_COMMERCIAL_OFFER_RC.md","README.md",
 ]
 errors=[]
@@ -24,7 +25,7 @@ for name, text in html.items():
         errors.append(f"{name}: local runtime reference leaked")
 
 index = html.get("index.html","")
-for link in ["services.html","contact.html","privacy.html","terms.html","refund.html","checkout.html"]:
+for link in ["services.html","contact.html","privacy.html","terms.html","refund.html","checkout.html","maklumat-urusniaga.html"]:
     if link not in index:
         errors.append(f"index.html: missing navigation/link {link}")
 
@@ -107,3 +108,33 @@ if errors:
 
 print("LDS commercial surface contract: PASS")
 print(f"required_surfaces={len(required)} html_pages={len(html)}")
+
+
+legal_path=root/"legal-trust-contract.json"
+if legal_path.exists():
+    legal=json.loads(legal_path.read_text())
+    if legal.get("schema")!="lds.legal-trust-readiness/1":
+        errors.append("legal trust: unexpected schema")
+    if legal.get("production_ready") is not False:
+        errors.append("legal trust: RC must remain production_ready=false while verified particulars are pending")
+    pending=set(legal.get("pending_verified_values",[]))
+    for key in ["registered_entity_name","final_commercial_domain","official_email","official_phone","official_trade_address","support_complaint_channel","policy_effective_dates"]:
+        if key not in pending:
+            errors.append(f"legal trust: pending verified value missing {key}")
+    required=set(legal.get("required_disclosures_bm",[]))
+    for key in ["supplier_or_company_name","email","telephone","trade_address","service_main_characteristics","full_price_including_tax_and_other_cost","payment_method","sale_terms","estimated_supply_time"]:
+        if key not in required:
+            errors.append(f"legal trust: missing BM disclosure contract {key}")
+
+bm=(root/"maklumat-urusniaga.html").read_text() if (root/"maklumat-urusniaga.html").exists() else ""
+for token in [
+    'lang="ms"',
+    "Maklumat Pembekal & Urus Niaga",
+    "BELUM DISAHKAN",
+    "Harga penuh",
+    "Kaedah pembayaran",
+    "Anggaran masa pembekalan perkhidmatan",
+    "Pembetulan kesilapan & pengakuterimaan pesanan"
+]:
+    if token not in bm:
+        errors.append(f"BM disclosure: missing {token}")
