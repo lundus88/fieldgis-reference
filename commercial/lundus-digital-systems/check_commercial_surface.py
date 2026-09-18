@@ -31,6 +31,9 @@ for link in ["services.html","contact.html","privacy.html","terms.html","refund.
 contact = html.get("contact.html","")
 if "data-rc-form" not in contact:
     errors.append("contact.html: quotation form is not explicitly RC-blocked")
+for token in ['name="submission_id"','name="turnstile_token"','name="website"','data-turnstile-placeholder']:
+    if token not in contact:
+        errors.append(f"contact.html: missing lead-intake field/guard {token}")
 
 checkout = html.get("checkout.html","")
 for phrase in ["Live payment is not yet enabled","intentionally blocks customer charging","server-authoritative amount","signed backend callback"]:
@@ -40,6 +43,8 @@ for phrase in ["Live payment is not yet enabled","intentionally blocks customer 
 site_js = (root/"site.js").read_text() if (root/"site.js").exists() else ""
 if "preventDefault()" not in site_js or "No data was sent" not in site_js:
     errors.append("site.js: RC form submission block missing")
+if "crypto.randomUUID()" not in site_js:
+    errors.append("site.js: submission UUID generation missing")
 for token in ["billplz.com","functions/v1/vl-billplz-create-production","fetch("]:
     if token in site_js:
         errors.append(f"site.js: live network/payment token forbidden in RC: {token}")
@@ -63,6 +68,12 @@ if lead_path.exists():
     lead=json.loads(lead_path.read_text())
     if lead.get("schema")!="lds.public-lead-intake/1":
         errors.append("lead intake: unexpected schema")
+    if lead.get("public_endpoint")!="/api/public/leads/intake":
+        errors.append("lead intake: endpoint drift")
+    required_fields=set(lead.get("required_fields",[]))
+    for key in ["submission_id","name","email","service","message","turnstile_token"]:
+        if key not in required_fields:
+            errors.append(f"lead intake: missing required field {key}")
     if lead.get("client_to_lunduslead_direct_write") is not False:
         errors.append("lead intake: browser-to-internal-CRM direct write must be false")
     forbidden=set(lead.get("forbidden_actions",[]))
