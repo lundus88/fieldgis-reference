@@ -309,6 +309,132 @@
         "escalate_stalled_ticket"
       ],
       "client_message_required": true
+    },
+    {
+      "id": "CDP-020",
+      "name": "Cost surprise",
+      "severity": "P1",
+      "triggers": [
+        "proposed_charge_exceeds_approved_amount",
+        "unapproved_cost_increase",
+        "internal_compute_overrun_exposed_to_customer"
+      ],
+      "controls": [
+        "approved_quote_ceiling",
+        "change_request_before_extra_charge",
+        "internal_cost_absorption_for_internal_failures"
+      ],
+      "client_message_required": true
+    },
+    {
+      "id": "CDP-021",
+      "name": "Build/publish false success",
+      "severity": "P1",
+      "triggers": [
+        "deploy_command_success_without_health_check",
+        "missing_artifact_identifier",
+        "missing_known_good_rollback_reference"
+      ],
+      "controls": [
+        "post_deploy_health_check",
+        "immutable_artifact_id",
+        "previous_known_good",
+        "rollback_reference"
+      ],
+      "client_message_required": true
+    },
+    {
+      "id": "CDP-022",
+      "name": "Tool/model regression after update",
+      "severity": "P1",
+      "triggers": [
+        "builder_update_without_regression",
+        "model_change_without_compatibility_evidence",
+        "dependency_upgrade_breaks_workflow"
+      ],
+      "controls": [
+        "version_pin",
+        "compatibility_test",
+        "regression_gate",
+        "rollback_update"
+      ],
+      "client_message_required": false
+    },
+    {
+      "id": "CDP-023",
+      "name": "Cross-system state divergence",
+      "severity": "P1",
+      "triggers": [
+        "portal_status_differs_from_authoritative_state",
+        "payment_state_divergence",
+        "support_state_divergence",
+        "delivery_state_divergence"
+      ],
+      "controls": [
+        "authoritative_state_source",
+        "state_reconciliation",
+        "evidence_timestamp",
+        "fail_closed_on_conflict"
+      ],
+      "client_message_required": true
+    },
+    {
+      "id": "CDP-024",
+      "name": "Agent runaway or retry loop",
+      "severity": "P1",
+      "triggers": [
+        "max_steps_exceeded",
+        "max_retries_exceeded",
+        "cost_budget_exceeded",
+        "wall_clock_budget_exceeded",
+        "repeated_identical_failure"
+      ],
+      "controls": [
+        "hard_step_budget",
+        "hard_retry_budget",
+        "cost_budget",
+        "wall_clock_budget",
+        "loop_detector",
+        "kill_switch"
+      ],
+      "client_message_required": false
+    },
+    {
+      "id": "CDP-025",
+      "name": "Portability or exit failure",
+      "severity": "P1",
+      "triggers": [
+        "ownership_terms_undefined",
+        "agreed_export_unavailable",
+        "agreed_source_handover_unavailable",
+        "exit_documentation_missing"
+      ],
+      "controls": [
+        "portability_terms",
+        "data_export_path",
+        "agreed_source_handover",
+        "configuration_documentation",
+        "exit_runbook"
+      ],
+      "client_message_required": true
+    },
+    {
+      "id": "CDP-026",
+      "name": "Internal failure charged to customer",
+      "severity": "P0",
+      "triggers": [
+        "failed_ai_attempt_billed_as_extra",
+        "internal_retry_billed_as_extra",
+        "internal_bug_fix_billed_without_scope_change",
+        "failed_build_billed_as_change_request"
+      ],
+      "controls": [
+        "block_unapproved_charge",
+        "internal_failure_cost_absorbed",
+        "approved_change_request_required",
+        "human_financial_review"
+      ],
+      "client_message_required": true
     }
   ],
   "mandatory_rules": [
@@ -321,6 +447,13 @@
     "No complaint does not equal satisfaction; explicit evidence is required before classifying customer experience as healthy after material milestones",
     "First response SLA and resolution SLA must be tracked separately",
     "Customer must not be required to repeat already-confirmed project information after internal handoff",
-    "Post-handover adoption must be observed separately from technical UAT pass"
+    "Post-handover adoption must be observed separately from technical UAT pass",
+    "Customer charge may not exceed the human-approved quotation without an approved change request",
+    "Deployment is not complete until health check and immutable artifact evidence pass",
+    "Builder/model/dependency updates require compatibility and regression evidence before use on customer delivery",
+    "Conflicting project/payment/support/delivery states must fail closed and reconcile to an authoritative evidence source",
+    "Agent execution must have bounded steps, retries, cost and wall-clock budgets with a kill switch",
+    "Agreed portability and exit artifacts must be available before final handover",
+    "Internal AI retries, failed builds, hallucinations, regressions and bug fixes may not be charged as extra customer work unless a genuine scope change is human-approved"
   ]
 }
