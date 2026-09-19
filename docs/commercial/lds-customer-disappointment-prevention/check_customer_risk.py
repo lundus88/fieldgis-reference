@@ -12,10 +12,10 @@ if (root/"risk-register.json").exists():
     if d.get("schema")!="lds.customer-disappointment-prevention/1":
         errors.append("schema drift")
     ids={x.get("id") for x in d.get("risks",[])}
-    for rid in ["CDP-001","CDP-002","CDP-004","CDP-008","CDP-009","CDP-010","CDP-016"]:
+    for rid in ["CDP-001","CDP-002","CDP-004","CDP-008","CDP-009","CDP-010","CDP-016","CDP-017","CDP-018","CDP-019"]:
         if rid not in ids: errors.append(f"missing risk {rid}")
     rules=" ".join(d.get("mandatory_rules",[]))
-    for token in ["HUMAN_ESCALATION","evidence","rebaselined","human-controlled"]:
+    for token in ["HUMAN_ESCALATION","evidence","rebaselined","human-controlled","First response SLA","repeat already-confirmed","adoption"]:
         if token not in rules: errors.append(f"mandatory rule missing {token}")
 
 if errors:
