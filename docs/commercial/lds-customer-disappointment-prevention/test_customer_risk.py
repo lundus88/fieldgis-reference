@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from customer_risk import Signal,evaluate,should_send_status,detect_silent_dissatisfaction,detect_handoff_context_loss,assess_support_sla,detect_adoption_failure,assess_cost_surprise,verify_delivery_success,assess_update_regression,reconcile_state,assess_agent_budget,assess_portability,assess_internal_failure_charge
+from customer_risk import Signal,evaluate,should_send_status,detect_silent_dissatisfaction,detect_handoff_context_loss,assess_support_sla,detect_adoption_failure,assess_cost_surprise,verify_delivery_success,assess_update_regression,reconcile_state,assess_agent_budget,assess_portability,assess_internal_failure_charge,assess_account_continuity,assess_persisted_state,assess_destructive_action,assess_domain_readiness,assess_permission_preflight,assess_plan_change,assess_support_triage,assess_idempotency,assess_asset_ownership,assess_offboarding
 
 class CustomerRiskTests(unittest.TestCase):
     def test_clear(self):
@@ -84,6 +84,51 @@ class CustomerRiskTests(unittest.TestCase):
         r=assess_internal_failure_charge(True,True,False,False)
         self.assertTrue(r["active"])
         self.assertEqual(r["action"],"BLOCK_CHARGE_AND_HUMAN_REVIEW")
+
+    def test_account_continuity_failure_is_p0(self):
+        r=assess_account_continuity(False,True,True)
+        self.assertTrue(r["active"])
+        self.assertEqual(r["severity"],"P0")
+
+    def test_unsaved_state_blocks_continuation(self):
+        r=assess_persisted_state(True,False,True)
+        self.assertEqual(r["action"],"BLOCK_CONTEXT_DEPENDENT_CONTINUATION")
+
+    def test_destructive_action_requires_recovery_evidence(self):
+        r=assess_destructive_action(True,True,True,False,True,True)
+        self.assertTrue(r["active"])
+        self.assertEqual(r["action"],"BLOCK_DESTRUCTIVE_ACTION")
+
+    def test_domain_not_ready_without_ssl(self):
+        r=assess_domain_readiness(True,False,True)
+        self.assertTrue(r["active"])
+
+    def test_permission_preflight_blocks_missing_deploy_role(self):
+        p={k:True for k in ["edit","approve","deploy","billing_admin","admin","accept"]}
+        p["deploy"]=False
+        r=assess_permission_preflight(p)
+        self.assertIn("deploy",r["missing"])
+
+    def test_plan_change_requires_notice_when_required(self):
+        r=assess_plan_change(True,True,True,True,False)
+        self.assertTrue(r["active"])
+
+    def test_p1_bot_only_support_escalates(self):
+        r=assess_support_triage("P1",True,0)
+        self.assertEqual(r["action"],"HUMAN_ESCALATION")
+
+    def test_consequential_action_without_idempotency_blocks(self):
+        r=assess_idempotency(True,False,True,True)
+        self.assertTrue(r["active"])
+        self.assertEqual(r["action"],"BLOCK_SIDE_EFFECT")
+
+    def test_personal_account_dependency_blocks_handover(self):
+        r=assess_asset_ownership(False,True,True,True)
+        self.assertTrue(r["active"])
+
+    def test_offboarding_requires_export_before_termination(self):
+        r=assess_offboarding(False,True,True,True)
+        self.assertEqual(r["action"],"BLOCK_TERMINATION_OR_DESTRUCTIVE_OFFBOARDING")
 
 if __name__=="__main__":
     unittest.main()
