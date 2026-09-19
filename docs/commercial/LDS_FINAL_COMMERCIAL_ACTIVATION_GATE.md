@@ -143,9 +143,12 @@ Current domain/email readiness:
 - FINAL_COMMERCIAL_DOMAIN: PASS / `lundusdigital.com`
 - DOMAIN_OWNERSHIP_VERIFIED: PASS
 - DNS_PRODUCTION_BINDING: HOLD
-- EMAIL_PROVIDER_SELECTED: HOLD
+- EMAIL_PROVIDER_SELECTED: PASS / Zoho Mail Lite 5 GB
 - EMAIL_DNS_AUTHENTICATION: HOLD
 - OFFICIAL_COMMERCIAL_EMAIL: HOLD
+- email provider: Zoho Mail / Mail Lite 5 GB — SELECTED, subscription not yet purchased
+- planned mailbox architecture: 1 licensed mailbox `hello@lundusdigital.com`; aliases `support@lundusdigital.com`, `billing@lundusdigital.com`
+- transactional/system email remains on Resend
 - DNS record mutation authorized: false
 - Vercel Production domain binding authorized: false
 
@@ -268,7 +271,7 @@ A dry-run PASS is not a live Golden Transaction PASS.
 - MEASUREMENT_READY: CONTRACT_READY / live evidence pending
 - FINAL_COMMERCIAL_DOMAIN: PASS / lundusdigital.com
 - DNS_PRODUCTION_BINDING: HOLD
-- EMAIL_PROVIDER_SELECTED: HOLD
+- EMAIL_PROVIDER_SELECTED: PASS / Zoho Mail Lite 5 GB
 - EMAIL_DNS_AUTHENTICATION: HOLD
 - OFFICIAL_COMMERCIAL_EMAIL: HOLD
 - ACTIVATION_SNAPSHOT: HOLD_NOT_FORMED
