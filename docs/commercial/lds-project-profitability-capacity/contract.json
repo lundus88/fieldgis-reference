@@ -1,0 +1,43 @@
+{
+  "schema": "lds.project-profitability-capacity/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "cost_dimensions": [
+    "approved_project_revenue",
+    "payment_provider_fees",
+    "hosting_and_storage",
+    "ai_model_and_api_cost",
+    "third_party_software",
+    "factory_runtime_cost",
+    "human_delivery_effort",
+    "support_burden",
+    "rework_cost",
+    "refund_or_credit_cost"
+  ],
+  "capacity_dimensions": [
+    "active_projects",
+    "concurrent_builds",
+    "support_load",
+    "critical_incidents",
+    "available_delivery_capacity",
+    "reserved_capacity",
+    "resource_pressure"
+  ],
+  "outputs": [
+    "HEALTHY",
+    "REVIEW",
+    "AT_RISK",
+    "HOLD_CAPACITY"
+  ],
+  "invariants": [
+    "Profitability calculations must use evidence-backed revenue and cost inputs",
+    "Unknown or materially stale cost inputs must not produce a HEALTHY decision",
+    "Internal AI/build failures, regressions and implementation mistakes must be tracked as internal rework cost",
+    "Customer-approved Change Requests may alter revenue/cost baseline only after approval evidence",
+    "Profitability status must not automatically change a customer price or reject a customer",
+    "Capacity HOLD must prevent new scheduling promises but must not cancel existing customer commitments automatically",
+    "P0 incidents and critical support load reserve capacity before new discretionary work",
+    "Estimated contribution margin is an internal planning metric and not a customer invoice amount",
+    "Human commercial approval is required for repricing, rescoping or declining work"
+  ],
+  "production_activation_authorized": false
+}
