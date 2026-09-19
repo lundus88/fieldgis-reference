@@ -133,3 +133,112 @@ def detect_adoption_failure(
         "severity":"P2" if active else "P3",
         "action":"ADOPTION_CHECKPOINT" if active else "TRACK"
     }
+
+
+def assess_cost_surprise(
+    approved_amount:float,
+    proposed_amount:float,
+    approved_change_request:bool
+)->Dict:
+    if approved_amount < 0 or proposed_amount < 0:
+        raise ValueError("invalid amount")
+    extra = proposed_amount > approved_amount
+    active = extra and not approved_change_request
+    return {
+        "risk_id":"CDP-020",
+        "active":active,
+        "severity":"P1" if active else "P3",
+        "action":"BLOCK_EXTRA_CHARGE" if active else "ALLOW_WITHIN_APPROVAL"
+    }
+
+def verify_delivery_success(
+    deploy_command_ok:bool,
+    health_check_ok:bool,
+    artifact_id_present:bool,
+    rollback_ref_present:bool
+)->Dict:
+    complete = all([deploy_command_ok,health_check_ok,artifact_id_present,rollback_ref_present])
+    return {
+        "risk_id":"CDP-021",
+        "active":not complete,
+        "severity":"P1" if not complete else "P3",
+        "delivery_complete":complete,
+        "action":"BLOCK_COMPLETE_CLAIM" if not complete else "ALLOW_DELIVERY_CANDIDATE"
+    }
+
+def assess_update_regression(
+    version_pinned:bool,
+    compatibility_pass:bool,
+    regression_pass:bool
+)->Dict:
+    safe = version_pinned and compatibility_pass and regression_pass
+    return {
+        "risk_id":"CDP-022",
+        "active":not safe,
+        "severity":"P1" if not safe else "P3",
+        "action":"BLOCK_UPDATED_TOOL_FOR_CUSTOMER_DELIVERY" if not safe else "ALLOW"
+    }
+
+def reconcile_state(states:Dict[str,str], authoritative_source:str)->Dict:
+    if authoritative_source not in states:
+        raise ValueError("authoritative source missing")
+    authoritative=states[authoritative_source]
+    conflict=any(v != authoritative for v in states.values())
+    return {
+        "risk_id":"CDP-023",
+        "active":conflict,
+        "severity":"P1" if conflict else "P3",
+        "authoritative_state":authoritative,
+        "action":"FAIL_CLOSED_AND_RECONCILE" if conflict else "ALLOW"
+    }
+
+def assess_agent_budget(
+    steps:int,max_steps:int,
+    retries:int,max_retries:int,
+    cost:float,max_cost:float,
+    wall_clock_minutes:float,max_wall_clock_minutes:float,
+    repeated_identical_failure:bool
+)->Dict:
+    vals=[steps,max_steps,retries,max_retries]
+    if any(v < 0 for v in vals) or min(max_steps,max_retries) == 0:
+        raise ValueError("invalid execution budget")
+    if cost < 0 or max_cost <= 0 or wall_clock_minutes < 0 or max_wall_clock_minutes <= 0:
+        raise ValueError("invalid execution budget")
+    exceeded = (
+        steps > max_steps or retries > max_retries or cost > max_cost
+        or wall_clock_minutes > max_wall_clock_minutes or repeated_identical_failure
+    )
+    return {
+        "risk_id":"CDP-024",
+        "active":exceeded,
+        "severity":"P1" if exceeded else "P3",
+        "action":"KILL_AND_HOLD" if exceeded else "CONTINUE"
+    }
+
+def assess_portability(
+    ownership_defined:bool,
+    agreed_export_available:bool,
+    agreed_source_handover_available:bool,
+    exit_docs_present:bool
+)->Dict:
+    ready=all([ownership_defined,agreed_export_available,agreed_source_handover_available,exit_docs_present])
+    return {
+        "risk_id":"CDP-025",
+        "active":not ready,
+        "severity":"P1" if not ready else "P3",
+        "action":"BLOCK_FINAL_HANDOVER" if not ready else "ALLOW"
+    }
+
+def assess_internal_failure_charge(
+    internal_failure:bool,
+    proposed_extra_charge:bool,
+    genuine_scope_change:bool,
+    human_change_approval:bool
+)->Dict:
+    forbidden = internal_failure and proposed_extra_charge and not (genuine_scope_change and human_change_approval)
+    return {
+        "risk_id":"CDP-026",
+        "active":forbidden,
+        "severity":"P0" if forbidden else "P3",
+        "action":"BLOCK_CHARGE_AND_HUMAN_REVIEW" if forbidden else "ALLOW"
+    }
