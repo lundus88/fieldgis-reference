@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from customer_risk import Signal,evaluate,should_send_status
+from customer_risk import Signal,evaluate,should_send_status,detect_silent_dissatisfaction,detect_handoff_context_loss,assess_support_sla,detect_adoption_failure
 
 class CustomerRiskTests(unittest.TestCase):
     def test_clear(self):
@@ -29,6 +29,27 @@ class CustomerRiskTests(unittest.TestCase):
         self.assertTrue(should_send_status(4,True))
         self.assertFalse(should_send_status(3,True))
         self.assertTrue(should_send_status(24,False))
+
+    def test_silent_dissatisfaction_detected_without_complaint(self):
+        r=detect_silent_dissatisfaction("NO_RESPONSE",2,0)
+        self.assertTrue(r["active"])
+        self.assertEqual(r["risk_id"],"CDP-017")
+
+    def test_handoff_context_loss_detected(self):
+        r=detect_handoff_context_loss(True,False,True)
+        self.assertTrue(r["active"])
+        self.assertEqual(r["action"],"RESTORE_CONTEXT_BEFORE_REPLY")
+
+    def test_response_met_but_resolution_breached(self):
+        r=assess_support_sla(1,2,30,24,False)
+        self.assertTrue(r["response_sla_met"])
+        self.assertFalse(r["resolution_sla_met"])
+        self.assertEqual(r["risk_id"],"CDP-019")
+
+    def test_uat_pass_does_not_equal_adoption_success(self):
+        r=detect_adoption_failure(True,False,False,1)
+        self.assertTrue(r["active"])
+        self.assertEqual(r["action"],"ADOPTION_CHECKPOINT")
 
 if __name__=="__main__":
     unittest.main()
