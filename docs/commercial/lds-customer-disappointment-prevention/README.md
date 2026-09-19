@@ -84,3 +84,13 @@ First response and actual resolution are separate metrics. A fast acknowledgemen
 
 ### Adoption after UAT
 Technical UAT PASS does not prove successful adoption. Quick-start completion, core-workflow use and repeated how-to queries are separate post-handover signals.
+
+
+## AI-builder failure safeguards
+
+- Customer cost is bounded by approved commercial scope. Internal retries, failed builds and tool errors are not automatically billable.
+- A deploy command is never sufficient evidence of delivery. Health check, immutable artifact/version evidence and rollback reference are required.
+- Model, builder and dependency updates are gated by compatibility and regression evidence.
+- Conflicting states across payment, delivery, support or portal must fail closed until reconciled to the authoritative source.
+- Agent execution is bounded by step, retry, cost and wall-clock budgets plus loop detection and kill-switch.
+- Final handover requires the portability/exit artifacts promised by the commercial agreement.
