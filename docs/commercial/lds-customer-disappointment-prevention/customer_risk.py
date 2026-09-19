@@ -242,3 +242,145 @@ def assess_internal_failure_charge(
         "severity":"P0" if forbidden else "P3",
         "action":"BLOCK_CHARGE_AND_HUMAN_REVIEW" if forbidden else "ALLOW"
     }
+
+
+def assess_account_continuity(
+    customer_runtime_independent:bool,
+    grace_recovery_available:bool,
+    human_access_escalation_available:bool
+)->Dict:
+    safe=all([customer_runtime_independent,grace_recovery_available,human_access_escalation_available])
+    return {
+        "risk_id":"CDP-027",
+        "active":not safe,
+        "severity":"P0" if not safe else "P3",
+        "action":"PROTECT_RUNTIME_AND_HUMAN_ESCALATE" if not safe else "ALLOW"
+    }
+
+def assess_persisted_state(
+    project_state_persisted:bool,
+    decision_ledger_present:bool,
+    checkpoint_present:bool
+)->Dict:
+    safe=all([project_state_persisted,decision_ledger_present,checkpoint_present])
+    return {
+        "risk_id":"CDP-028",
+        "active":not safe,
+        "severity":"P1" if not safe else "P3",
+        "action":"BLOCK_CONTEXT_DEPENDENT_CONTINUATION" if not safe else "ALLOW"
+    }
+
+def assess_destructive_action(
+    snapshot_present:bool,
+    target_confirmed:bool,
+    blast_radius_checked:bool,
+    rollback_evidence_present:bool,
+    human_gate_required:bool,
+    human_gate_approved:bool
+)->Dict:
+    gate_ok=(not human_gate_required) or human_gate_approved
+    safe=all([snapshot_present,target_confirmed,blast_radius_checked,rollback_evidence_present,gate_ok])
+    return {
+        "risk_id":"CDP-029",
+        "active":not safe,
+        "severity":"P0" if not safe else "P3",
+        "action":"BLOCK_DESTRUCTIVE_ACTION" if not safe else "ALLOW"
+    }
+
+def assess_domain_readiness(
+    dns_verified:bool,
+    ssl_active:bool,
+    https_health_pass:bool,
+    mail_auth_required:bool=False,
+    mail_auth_pass:bool=False
+)->Dict:
+    ready=dns_verified and ssl_active and https_health_pass and ((not mail_auth_required) or mail_auth_pass)
+    return {
+        "risk_id":"CDP-030",
+        "active":not ready,
+        "severity":"P1" if not ready else "P3",
+        "action":"BLOCK_READY_CLAIM" if not ready else "ALLOW"
+    }
+
+def assess_permission_preflight(permissions:Dict[str,bool])->Dict:
+    required={"edit","approve","deploy","billing_admin","admin","accept"}
+    missing=sorted(k for k in required if not permissions.get(k,False))
+    return {
+        "risk_id":"CDP-031",
+        "active":bool(missing),
+        "severity":"P1" if missing else "P3",
+        "missing":missing,
+        "action":"BLOCK_KICKOFF_OR_RELEASE" if missing else "ALLOW"
+    }
+
+def assess_plan_change(
+    changed:bool,
+    change_record_present:bool,
+    effective_date_present:bool,
+    notice_required:bool,
+    notice_sent:bool
+)->Dict:
+    safe=(not changed) or (change_record_present and effective_date_present and ((not notice_required) or notice_sent))
+    return {
+        "risk_id":"CDP-032",
+        "active":not safe,
+        "severity":"P1" if not safe else "P3",
+        "action":"BLOCK_COMMERCIAL_CHANGE" if not safe else "ALLOW"
+    }
+
+def assess_support_triage(
+    severity:str,
+    bot_only:bool,
+    no_progress_responses:int
+)->Dict:
+    if severity not in {"P0","P1","P2","P3"} or no_progress_responses < 0:
+        raise ValueError("invalid support triage")
+    escalate=(severity in {"P0","P1"} and bot_only) or no_progress_responses >= 2
+    return {
+        "risk_id":"CDP-033",
+        "active":escalate,
+        "severity":"P1" if escalate else "P3",
+        "action":"HUMAN_ESCALATION" if escalate else "CONTINUE"
+    }
+
+def assess_idempotency(
+    consequential:bool,
+    idempotency_key_present:bool,
+    dedupe_guard_present:bool,
+    side_effect_ledger_present:bool
+)->Dict:
+    safe=(not consequential) or all([idempotency_key_present,dedupe_guard_present,side_effect_ledger_present])
+    return {
+        "risk_id":"CDP-034",
+        "active":not safe,
+        "severity":"P0" if not safe else "P3",
+        "action":"BLOCK_SIDE_EFFECT" if not safe else "ALLOW"
+    }
+
+def assess_asset_ownership(
+    business_or_client_owned:bool,
+    designated_admin_present:bool,
+    recovery_contact_present:bool,
+    ownership_record_present:bool
+)->Dict:
+    safe=all([business_or_client_owned,designated_admin_present,recovery_contact_present,ownership_record_present])
+    return {
+        "risk_id":"CDP-035",
+        "active":not safe,
+        "severity":"P1" if not safe else "P3",
+        "action":"BLOCK_FINAL_OPERATIONAL_HANDOVER" if not safe else "ALLOW"
+    }
+
+def assess_offboarding(
+    export_complete:bool,
+    migration_complete:bool,
+    retention_window_known:bool,
+    customer_copy_confirmed:bool
+)->Dict:
+    safe=all([export_complete,migration_complete,retention_window_known,customer_copy_confirmed])
+    return {
+        "risk_id":"CDP-036",
+        "active":not safe,
+        "severity":"P1" if not safe else "P3",
+        "action":"BLOCK_TERMINATION_OR_DESTRUCTIVE_OFFBOARDING" if not safe else "ALLOW"
+    }
