@@ -40,8 +40,12 @@ if domain_email.get("domain_ownership") != "PASS":
     errors.append("domain ownership evidence must be PASS")
 if domain_email.get("email_provider") != "Zoho Mail":
     errors.append("email provider selection drift")
-if domain_email.get("email_plan") != "Mail Lite 5 GB":
+if domain_email.get("email_plan") != "Mail Lite 10 GB":
     errors.append("email plan selection drift")
+if domain_email.get("email_subscription_status") != "PASS":
+    errors.append("email subscription evidence must be PASS")
+if domain_email.get("email_subscription_renewal_date") != "2027-09-19":
+    errors.append("email subscription renewal date drift")
 
 required_gate_sections = {
     "business_licence": "LICENCE_READY",
@@ -74,8 +78,8 @@ if authorized is False:
         errors.append("DNS Production binding must remain HOLD")
     if domain_email.get("email_provider_selected") != "PASS":
         errors.append("email provider selection must remain PASS")
-    if domain_email.get("email_subscription_purchased") is not False:
-        errors.append("email subscription must remain unpurchased")
+    if domain_email.get("email_subscription_purchased") is not True:
+        errors.append("email subscription purchase evidence must remain PASS")
     if domain_email.get("email_dns_authentication") != "HOLD":
         errors.append("email DNS authentication must remain HOLD")
     if domain_email.get("official_commercial_email") != "HOLD":
