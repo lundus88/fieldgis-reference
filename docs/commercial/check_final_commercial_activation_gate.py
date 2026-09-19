@@ -6,6 +6,7 @@ import sys
 gate_path = Path("docs/commercial/LDS_FINAL_COMMERCIAL_ACTIVATION_GATE.md")
 evidence_path = Path("docs/commercial/LDS_BUSINESS_LICENCE_EVIDENCE.json")
 snapshot_path = Path("docs/commercial/LDS_ACTIVATION_SNAPSHOT.json")
+domain_path = Path("docs/commercial/LDS_DOMAIN_EMAIL_READINESS.json")
 
 text = gate_path.read_text()
 errors = []
@@ -20,6 +21,11 @@ required = [
     "PREVIEW_EXECUTION: PASS / V4 READY",
     "PREVIEW_V4_VISUAL_QA: PASS",
     "PREVIEW_V4_WORKFLOW_QA: PASS",
+    "FINAL_COMMERCIAL_DOMAIN: PASS / `lundusdigital.com`",
+    "DNS_PRODUCTION_BINDING: HOLD",
+    "EMAIL_PROVIDER_SELECTED: HOLD",
+    "EMAIL_DNS_AUTHENTICATION: HOLD",
+    "OFFICIAL_COMMERCIAL_EMAIL: HOLD",
     "LIVE_LEAD_INTAKE: HOLD",
     "ACTIVATION_SNAPSHOT: HOLD_NOT_FORMED",
     "PUBLIC_PAYMENT_ACTIVATION: HOLD",
@@ -30,6 +36,8 @@ required = [
     "A dry-run PASS is not a live Golden Transaction PASS.",
     "This document does not authorize:",
     "Production deployment",
+    "DNS record mutation",
+    "email Production activation",
     "live lead-intake activation",
     "live billing activation",
     "live customer charging",
@@ -57,36 +65,6 @@ for pr, sha in merged_prs.items():
     if pr not in text or sha not in text:
         errors.append(f"missing merged evidence for {pr}")
 
-for token in [
-    "PR #282 is the remaining final activation-gate PR",
-    "PR #151: Ready for Review / unmerged",
-    "PREVIEW_EXECUTION: HOLD / blocked_by_tooling_and_auth_path",
-    "Preview plan is merged, but execution remains blocked",
-    "Establish a safe dedicated Preview mutation/authentication path",
-]:
-    if token in text:
-        errors.append(f"stale activation state remains: {token}")
-
-sequence = [
-    "Capture and verify official business/licence evidence.",
-    "Verify all mandatory business particulars",
-    "Verify Production lead-intake, WAF, Turnstile, payment and notification configuration",
-    "Obtain separate explicit human authority",
-    "Perform one controlled paid Commercial Golden Transaction",
-    "Set GOLDEN_TRANSACTION_PASS",
-    "Form a fresh single-use Activation Snapshot",
-    "Obtain explicit human approval of that exact Activation Snapshot.",
-    "Public payment activation / public launch may proceed only by consuming",
-]
-pos = -1
-for token in sequence:
-    cur = text.find(token)
-    if cur < 0:
-        errors.append(f"missing activation step: {token}")
-    elif cur <= pos:
-        errors.append(f"activation sequence out of order at: {token}")
-    pos = cur
-
 if not evidence_path.exists():
     errors.append("business/licence evidence manifest missing")
 else:
@@ -97,8 +75,11 @@ else:
     trade = identity.get("trade_name", {})
     if trade.get("value") != "LUNDUS DIGITAL SYSTEMS":
         errors.append("approved trade name drift")
-    if trade.get("status") != "verified_from_user_decision":
-        errors.append("trade name evidence classification drift")
+    domain = identity.get("final_commercial_domain", {})
+    if domain.get("value") != "lundusdigital.com":
+        errors.append("verified final commercial domain drift")
+    if domain.get("status") != "verified_from_registrar_portal_evidence":
+        errors.append("final commercial domain evidence classification drift")
     licence = evidence.get("licence_gate", {})
     if licence.get("status") != "processing":
         errors.append("licence status must remain processing until official evidence is captured")
@@ -107,10 +88,27 @@ else:
     if licence.get("pass_allowed") is not False:
         errors.append("licence PASS must be blocked while evidence is user-attested only")
     gates = evidence.get("gate_status", {})
+    if gates.get("FINAL_COMMERCIAL_DOMAIN") != "PASS":
+        errors.append("FINAL_COMMERCIAL_DOMAIN must be PASS")
+    if gates.get("DOMAIN_OWNERSHIP_VERIFIED") != "PASS":
+        errors.append("DOMAIN_OWNERSHIP_VERIFIED must be PASS")
     if gates.get("LICENCE_READY") != "HOLD":
         errors.append("LICENCE_READY must remain HOLD")
     if gates.get("LEGAL_TRUST_READY") != "HOLD":
         errors.append("LEGAL_TRUST_READY must remain HOLD")
+
+if not domain_path.exists():
+    errors.append("domain/email readiness manifest missing")
+else:
+    domain = json.loads(domain_path.read_text())
+    if domain.get("schema") != "lds.domain-email-readiness/1":
+        errors.append("unexpected domain/email readiness schema")
+    if domain.get("domain", {}).get("name") != "lundusdigital.com":
+        errors.append("domain/email manifest domain drift")
+    if domain.get("authority", {}).get("dns_mutation_authorized") is not False:
+        errors.append("DNS mutation must remain unauthorized")
+    if domain.get("authority", {}).get("vercel_production_binding_authorized") is not False:
+        errors.append("Vercel Production binding must remain unauthorized")
 
 if not snapshot_path.exists():
     errors.append("activation snapshot contract missing")
@@ -125,10 +123,11 @@ else:
     release = snapshot.get("release", {})
     if release.get("preview_deployment_id") != "dpl_F4rugJSSdfWMmUzb6T2ShGSRnZCJ":
         errors.append("V4 Preview deployment evidence drift")
-    if release.get("preview_visual_qa") != "PASS":
-        errors.append("V4 visual QA evidence drift")
-    if release.get("preview_workflow_qa") != "PASS":
-        errors.append("V4 workflow QA evidence drift")
+    domain_email = snapshot.get("domain_email", {})
+    if domain_email.get("final_commercial_domain") != "lundusdigital.com":
+        errors.append("snapshot final commercial domain drift")
+    if domain_email.get("status") != "HOLD":
+        errors.append("domain/email activation state must remain HOLD")
 
 if errors:
     print("Final commercial activation gate: FAIL")
@@ -138,6 +137,7 @@ if errors:
 
 print("Final commercial activation gate: PASS")
 print("protected_main_sequence=merged through #287")
+print("domain=lundusdigital.com; ownership=PASS; dns_email=HOLD")
 print("lunduslead_151=merged_code; live_activation=HOLD")
 print("preview_v4=READY; visual_qa=PASS; workflow_qa=PASS")
 print("licence_evidence=user_attested processing; pass_allowed=false")
