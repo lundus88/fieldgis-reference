@@ -1,0 +1,53 @@
+{
+  "schema": "lds.integrated-customer-lifecycle-gate/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "canonical_flow": [
+    "ASSESSMENT",
+    "BLUEPRINT",
+    "PRICING_REVIEW",
+    "QUOTATION",
+    "PAYMENT_RECONCILIATION",
+    "KICKOFF",
+    "BUILD",
+    "QA",
+    "UAT",
+    "DELIVERY",
+    "SUPPORT",
+    "RENEWAL_OR_EXIT"
+  ],
+  "hard_gates": [
+    "approved_scope",
+    "human_approved_quotation",
+    "authoritative_payment_reconciliation",
+    "kickoff_readiness_and_human_approval",
+    "qa_evidence",
+    "uat_or_customer_acceptance_evidence",
+    "delivery_evidence"
+  ],
+  "conditional_gates": [
+    "change_request_if_material_scope_change",
+    "support_plan_if_recurring_support_selected",
+    "handover_exit_if_project_closure_or_exit",
+    "renewal_review_if_plan_expiring_or_expansion_signal"
+  ],
+  "advisory_inputs": [
+    "pricing_estimation_intelligence",
+    "reusable_solution_catalog",
+    "delivery_benchmark_learning",
+    "profitability_capacity",
+    "vendor_dependency_risk"
+  ],
+  "invariants": [
+    "This gate composes source evidence and must not create a second source of truth",
+    "Advisory modules must never become implicit authority to advance a hard lifecycle state",
+    "Payment evidence alone must not advance a project to BUILDING",
+    "Material scope change requires approved Change Request before build continues on changed scope",
+    "QA PASS requires QA evidence",
+    "UAT or customer acceptance requires customer evidence",
+    "Delivery complete requires delivery evidence",
+    "Unknown stale missing or contradictory hard-gate evidence returns HOLD",
+    "Project size may reduce optional process but cannot bypass mandatory consequential gates",
+    "Production deployment authority remains separate and HUMAN_ONLY"
+  ],
+  "production_activation_authorized": false
+}
