@@ -99,15 +99,18 @@
     },
     {
       "id": "CDP-007",
-      "name": "Support response delay",
+      "name": "Support response/resolution delay",
       "severity": "P1",
       "triggers": [
-        "sla_breach_risk",
-        "ticket_unowned"
+        "first_response_sla_breach",
+        "resolution_sla_breach",
+        "ticket_unowned",
+        "repeated_reopen"
       ],
       "controls": [
         "owner_assignment",
-        "severity_sla",
+        "separate_first_response_and_resolution_sla",
+        "resolution_checkpoint",
         "escalation"
       ],
       "client_message_required": true
@@ -226,12 +229,15 @@
       "severity": "P2",
       "triggers": [
         "repeated_how_to_queries",
-        "uat_pass_but_usage_failure"
+        "uat_pass_but_usage_failure",
+        "quick_start_not_completed",
+        "core_workflow_not_used_after_handover"
       ],
       "controls": [
         "quick_start_guide",
         "recorded_walkthrough",
-        "support_onboarding"
+        "support_onboarding",
+        "adoption_checkpoint"
       ],
       "client_message_required": true
     },
@@ -250,6 +256,59 @@
         "waitlist"
       ],
       "client_message_required": true
+    },
+    {
+      "id": "CDP-017",
+      "name": "Silent dissatisfaction",
+      "severity": "P1",
+      "triggers": [
+        "post_milestone_pulse_need_attention",
+        "repeated_minor_issue_signal",
+        "repeat_followup_without_formal_complaint",
+        "support_reopen_pattern_without_complaint"
+      ],
+      "controls": [
+        "text_pulse_check",
+        "named_owner",
+        "proactive_followup",
+        "root_cause_review"
+      ],
+      "client_message_required": true
+    },
+    {
+      "id": "CDP-018",
+      "name": "Handoff context loss",
+      "severity": "P1",
+      "triggers": [
+        "owner_change_without_context_record",
+        "customer_required_to_repeat_confirmed_information",
+        "missing_scope_decision_history",
+        "support_missing_project_context"
+      ],
+      "controls": [
+        "single_customer_project_record",
+        "handoff_context_check",
+        "decision_history",
+        "no_repeat_information_rule"
+      ],
+      "client_message_required": true
+    },
+    {
+      "id": "CDP-019",
+      "name": "Acknowledged but unresolved",
+      "severity": "P1",
+      "triggers": [
+        "first_response_met_but_resolution_sla_breached",
+        "multiple_status_replies_without_resolution_plan",
+        "ticket_reopened_after_premature_close"
+      ],
+      "controls": [
+        "separate_resolution_sla",
+        "resolution_owner",
+        "next_resolution_checkpoint",
+        "escalate_stalled_ticket"
+      ],
+      "client_message_required": true
     }
   ],
   "mandatory_rules": [
@@ -258,6 +317,10 @@
     "ETA must be rebaselined when material customer dependency blocks delivery",
     "Fast-track may not bypass QA/security/UAT",
     "Complaint prevention communication must be factual and must not conceal blockers",
-    "Financial/refund/security decisions remain human-controlled"
+    "Financial/refund/security decisions remain human-controlled",
+    "No complaint does not equal satisfaction; explicit evidence is required before classifying customer experience as healthy after material milestones",
+    "First response SLA and resolution SLA must be tracked separately",
+    "Customer must not be required to repeat already-confirmed project information after internal handoff",
+    "Post-handover adoption must be observed separately from technical UAT pass"
   ]
 }
