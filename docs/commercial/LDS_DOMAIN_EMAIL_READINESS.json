@@ -14,7 +14,7 @@
       "start": "2026-09-19",
       "end": "2027-09-18"
     },
-    "purchase_amount_myr": 44.70,
+    "purchase_amount_myr": 44.7,
     "evidence_level": "user_supplied_registrar_invoice_and_portal_screenshots"
   },
   "dns": {
@@ -36,8 +36,8 @@
     "rule": "Do not invent or publish A/CNAME/TXT values before the selected service supplies exact verified values."
   },
   "email": {
-    "provider": null,
-    "provider_selection_status": "PENDING",
+    "provider": "Zoho Mail",
+    "provider_selection_status": "PASS",
     "mailboxes_planned": [
       "hello@lundusdigital.com",
       "support@lundusdigital.com",
@@ -61,7 +61,38 @@
       "initial_policy_after_authentication": "p=none",
       "status": "HOLD_NOT_APPLIED",
       "promotion_rule": "Move toward quarantine/reject only after legitimate senders, SPF alignment, DKIM alignment and report monitoring are verified."
-    }
+    },
+    "plan": "Mail Lite 5 GB",
+    "selection_evidence": {
+      "decided_at": "2026-09-19",
+      "decision_basis": "human approval after official-provider comparison",
+      "observed_pricing": {
+        "amount_usd_per_user_month": 1,
+        "billing": "annual",
+        "observed_at": "2026-09-19",
+        "note": "Pricing is informational and must be rechecked at checkout; tax/local currency may differ."
+      },
+      "capabilities_verified": [
+        "custom-domain email",
+        "user email aliases",
+        "send and receive from aliases",
+        "SPF/DKIM/DMARC administration",
+        "MX-based inbound delivery"
+      ]
+    },
+    "mailbox_architecture": {
+      "licensed_users_planned": 1,
+      "primary_mailbox": "hello@lundusdigital.com",
+      "aliases": [
+        "support@lundusdigital.com",
+        "billing@lundusdigital.com"
+      ],
+      "rationale": "Initial single-operator setup minimizes cost while preserving distinct customer-facing addresses."
+    },
+    "subscription_purchase_authorized": false,
+    "subscription_purchased": false,
+    "transactional_email_provider": "Resend",
+    "transactional_email_rule": "Zoho Mail is for human business correspondence. Transactional/system email remains on Resend and must not be routed through Zoho Mail."
   },
   "security": {
     "registrar_2fa": "NOT_EVIDENCED",
@@ -79,14 +110,16 @@
     "FINAL_COMMERCIAL_DOMAIN": "PASS",
     "DOMAIN_OWNERSHIP_VERIFIED": "PASS",
     "DNS_PRODUCTION_BINDING": "HOLD",
-    "EMAIL_PROVIDER_SELECTED": "HOLD",
+    "EMAIL_PROVIDER_SELECTED": "PASS",
     "EMAIL_DNS_AUTHENTICATION": "HOLD",
     "OFFICIAL_COMMERCIAL_EMAIL": "HOLD",
     "LEGAL_TRUST_READY": "HOLD",
     "PUBLIC_LAUNCH": "HOLD"
   },
   "safe_sequence": [
-    "select email provider",
+    "purchase or start Zoho Mail Lite only after explicit human cost approval",
+    "add lundusdigital.com to Zoho without changing nameservers",
+    "obtain exact Zoho domain-verification and MX/SPF/DKIM values",
     "obtain exact provider MX/SPF/DKIM verification records",
     "prepare DNS change set without applying it",
     "human review exact DNS change set",
