@@ -38,6 +38,10 @@ if domain_email.get("final_commercial_domain") != "lundusdigital.com":
     errors.append("final commercial domain drift")
 if domain_email.get("domain_ownership") != "PASS":
     errors.append("domain ownership evidence must be PASS")
+if domain_email.get("email_provider") != "Zoho Mail":
+    errors.append("email provider selection drift")
+if domain_email.get("email_plan") != "Mail Lite 5 GB":
+    errors.append("email plan selection drift")
 
 required_gate_sections = {
     "business_licence": "LICENCE_READY",
@@ -68,8 +72,10 @@ if authorized is False:
         errors.append("live Golden Transaction must remain HOLD")
     if domain_email.get("dns_production_binding") != "HOLD":
         errors.append("DNS Production binding must remain HOLD")
-    if domain_email.get("email_provider_selected") != "HOLD":
-        errors.append("email provider selection must remain HOLD")
+    if domain_email.get("email_provider_selected") != "PASS":
+        errors.append("email provider selection must remain PASS")
+    if domain_email.get("email_subscription_purchased") is not False:
+        errors.append("email subscription must remain unpurchased")
     if domain_email.get("email_dns_authentication") != "HOLD":
         errors.append("email DNS authentication must remain HOLD")
     if domain_email.get("official_commercial_email") != "HOLD":

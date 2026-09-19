@@ -82,10 +82,14 @@
     "final_commercial_domain": "lundusdigital.com",
     "domain_ownership": "PASS",
     "dns_production_binding": "HOLD",
-    "email_provider_selected": "HOLD",
+    "email_provider_selected": "PASS",
     "email_dns_authentication": "HOLD",
     "official_commercial_email": "HOLD",
     "production_config_fingerprint": null,
-    "status": "HOLD"
+    "status": "HOLD",
+    "email_provider": "Zoho Mail",
+    "email_plan": "Mail Lite 5 GB",
+    "email_subscription_purchased": false,
+    "mailbox_architecture": "1 licensed mailbox hello@ + support@/billing@ aliases"
   }
 }

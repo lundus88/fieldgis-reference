@@ -23,7 +23,7 @@ required = [
     "PREVIEW_V4_WORKFLOW_QA: PASS",
     "FINAL_COMMERCIAL_DOMAIN: PASS / `lundusdigital.com`",
     "DNS_PRODUCTION_BINDING: HOLD",
-    "EMAIL_PROVIDER_SELECTED: HOLD",
+    "EMAIL_PROVIDER_SELECTED: PASS / Zoho Mail Lite 5 GB",
     "EMAIL_DNS_AUTHENTICATION: HOLD",
     "OFFICIAL_COMMERCIAL_EMAIL: HOLD",
     "LIVE_LEAD_INTAKE: HOLD",
@@ -128,6 +128,14 @@ else:
         errors.append("snapshot final commercial domain drift")
     if domain_email.get("status") != "HOLD":
         errors.append("domain/email activation state must remain HOLD")
+    if domain_email.get("email_provider") != "Zoho Mail":
+        errors.append("selected email provider drift")
+    if domain_email.get("email_plan") != "Mail Lite 5 GB":
+        errors.append("selected email plan drift")
+    if domain_email.get("email_provider_selected") != "PASS":
+        errors.append("EMAIL_PROVIDER_SELECTED must be PASS")
+    if domain_email.get("email_subscription_purchased") is not False:
+        errors.append("email subscription must remain unpurchased")
 
 if errors:
     print("Final commercial activation gate: FAIL")
