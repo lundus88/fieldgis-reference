@@ -37,12 +37,31 @@ for key in ["root_domain", "www"]:
         errors.append(f"{key} target must remain null until exact provider value is approved")
 
 email = data.get("email", {})
-if email.get("provider") is not None:
-    errors.append("email provider must remain unselected until explicit decision")
-if email.get("provider_selection_status") != "PENDING":
-    errors.append("email provider selection must remain PENDING")
+if email.get("provider") != "Zoho Mail":
+    errors.append("email provider must be Zoho Mail")
+if email.get("plan") != "Mail Lite 5 GB":
+    errors.append("selected email plan drift")
+if email.get("provider_selection_status") != "PASS":
+    errors.append("email provider selection must be PASS")
+if email.get("subscription_purchase_authorized") is not False:
+    errors.append("email subscription purchase must remain unauthorized")
+if email.get("subscription_purchased") is not False:
+    errors.append("email subscription must remain unpurchased")
+if email.get("transactional_email_provider") != "Resend":
+    errors.append("transactional email provider separation drift")
 if email.get("official_commercial_email") is not None:
     errors.append("official commercial email must remain unset before mailbox verification")
+
+architecture = email.get("mailbox_architecture", {})
+if architecture.get("licensed_users_planned") != 1:
+    errors.append("initial mailbox architecture must plan one licensed user")
+if architecture.get("primary_mailbox") != "hello@lundusdigital.com":
+    errors.append("primary mailbox plan drift")
+aliases = set(architecture.get("aliases", []))
+for address in ["support@lundusdigital.com", "billing@lundusdigital.com"]:
+    if address not in aliases:
+        errors.append(f"planned alias missing: {address}")
+
 planned = set(email.get("mailboxes_planned", []))
 for address in [
     "hello@lundusdigital.com",
@@ -50,7 +69,8 @@ for address in [
     "billing@lundusdigital.com",
 ]:
     if address not in planned:
-        errors.append(f"planned mailbox missing: {address}")
+        errors.append(f"planned address missing: {address}")
+
 for auth_key in ["mx", "spf", "dkim", "dmarc"]:
     if email.get(auth_key, {}).get("status") != "HOLD_NOT_APPLIED":
         errors.append(f"{auth_key} must remain HOLD_NOT_APPLIED")
@@ -60,7 +80,7 @@ expected = {
     "FINAL_COMMERCIAL_DOMAIN": "PASS",
     "DOMAIN_OWNERSHIP_VERIFIED": "PASS",
     "DNS_PRODUCTION_BINDING": "HOLD",
-    "EMAIL_PROVIDER_SELECTED": "HOLD",
+    "EMAIL_PROVIDER_SELECTED": "PASS",
     "EMAIL_DNS_AUTHENTICATION": "HOLD",
     "OFFICIAL_COMMERCIAL_EMAIL": "HOLD",
     "LEGAL_TRUST_READY": "HOLD",
@@ -90,6 +110,8 @@ if errors:
 print("LDS domain/email readiness: PASS")
 print("domain=lundusdigital.com")
 print("domain_ownership=PASS")
+print("email_provider=Zoho Mail")
+print("email_plan=Mail Lite 5 GB")
+print("subscription_purchase=HOLD")
 print("dns_mutation=HOLD")
-print("email_provider=PENDING")
 print("production_binding=HOLD")
