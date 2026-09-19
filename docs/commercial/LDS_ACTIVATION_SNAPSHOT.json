@@ -88,8 +88,10 @@
     "production_config_fingerprint": null,
     "status": "HOLD",
     "email_provider": "Zoho Mail",
-    "email_plan": "Mail Lite 5 GB",
-    "email_subscription_purchased": false,
-    "mailbox_architecture": "1 licensed mailbox hello@ + support@/billing@ aliases"
+    "email_plan": "Mail Lite 10 GB",
+    "email_subscription_purchased": true,
+    "mailbox_architecture": "1 licensed Mail Lite 10 GB user purchased; hello@ planned; support@/billing@ aliases planned",
+    "email_subscription_status": "PASS",
+    "email_subscription_renewal_date": "2027-09-19"
   }
 }
