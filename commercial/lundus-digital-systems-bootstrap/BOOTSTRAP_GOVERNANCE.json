@@ -1,0 +1,29 @@
+{
+  "schema": "lds.vercel-bootstrap/1",
+  "status": "approved_inert_only",
+  "target_project": "lundus-digital-systems-preview",
+  "target_project_id": "prj_9areW7U50izhbz8yNrXK2r1YcJ1F",
+  "commercial_production_release": false,
+  "custom_domain_allowed": false,
+  "production_secrets_allowed": false,
+  "environment_variables_allowed": false,
+  "api_routes_allowed": false,
+  "database_access_allowed": false,
+  "forms_allowed": false,
+  "analytics_allowed": false,
+  "payment_allowed": false,
+  "lead_intake_allowed": false,
+  "customer_data_allowed": false,
+  "indexing_allowed": false,
+  "required_files": [
+    "index.html",
+    "robots.txt"
+  ],
+  "stop_conditions": [
+    "secret_or_environment_variable_inheritance",
+    "custom_domain_attachment",
+    "uncontrolled_git_auto_deploy",
+    "write_path_or_customer_input",
+    "ambiguous_project_or_target_scope"
+  ]
+}
