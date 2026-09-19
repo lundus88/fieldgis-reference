@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from customer_risk import Signal,evaluate,should_send_status,detect_silent_dissatisfaction,detect_handoff_context_loss,assess_support_sla,detect_adoption_failure
+from customer_risk import Signal,evaluate,should_send_status,detect_silent_dissatisfaction,detect_handoff_context_loss,assess_support_sla,detect_adoption_failure,assess_cost_surprise,verify_delivery_success,assess_update_regression,reconcile_state,assess_agent_budget,assess_portability,assess_internal_failure_charge
 
 class CustomerRiskTests(unittest.TestCase):
     def test_clear(self):
@@ -50,6 +50,40 @@ class CustomerRiskTests(unittest.TestCase):
         r=detect_adoption_failure(True,False,False,1)
         self.assertTrue(r["active"])
         self.assertEqual(r["action"],"ADOPTION_CHECKPOINT")
+
+    def test_unapproved_cost_increase_is_blocked(self):
+        r=assess_cost_surprise(1000,1200,False)
+        self.assertTrue(r["active"])
+        self.assertEqual(r["action"],"BLOCK_EXTRA_CHARGE")
+
+    def test_deploy_command_alone_is_not_delivery_success(self):
+        r=verify_delivery_success(True,False,True,True)
+        self.assertFalse(r["delivery_complete"])
+        self.assertEqual(r["action"],"BLOCK_COMPLETE_CLAIM")
+
+    def test_update_without_regression_is_blocked(self):
+        r=assess_update_regression(True,True,False)
+        self.assertTrue(r["active"])
+
+    def test_state_divergence_fails_closed(self):
+        r=reconcile_state({"payment":"PAID","portal":"PENDING","support":"PAID"},"payment")
+        self.assertTrue(r["active"])
+        self.assertEqual(r["action"],"FAIL_CLOSED_AND_RECONCILE")
+
+    def test_agent_loop_hits_kill_switch(self):
+        r=assess_agent_budget(10,10,3,3,5.0,10.0,30,60,True)
+        self.assertTrue(r["active"])
+        self.assertEqual(r["action"],"KILL_AND_HOLD")
+
+    def test_missing_exit_artifact_blocks_handover(self):
+        r=assess_portability(True,True,False,True)
+        self.assertTrue(r["active"])
+        self.assertEqual(r["action"],"BLOCK_FINAL_HANDOVER")
+
+    def test_internal_failure_cannot_be_extra_charge(self):
+        r=assess_internal_failure_charge(True,True,False,False)
+        self.assertTrue(r["active"])
+        self.assertEqual(r["action"],"BLOCK_CHARGE_AND_HUMAN_REVIEW")
 
 if __name__=="__main__":
     unittest.main()
