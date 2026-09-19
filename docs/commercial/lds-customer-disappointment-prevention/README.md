@@ -94,3 +94,17 @@ Technical UAT PASS does not prove successful adoption. Quick-start completion, c
 - Conflicting states across payment, delivery, support or portal must fail closed until reconciled to the authoritative source.
 - Agent execution is bounded by step, retry, cost and wall-clock budgets plus loop detection and kill-switch.
 - Final handover requires the portability/exit artifacts promised by the commercial agreement.
+
+
+## Failure-isolation safeguards
+
+- Customer runtime should not depend on a single staff/developer account remaining healthy.
+- Material project state must be persisted outside ephemeral chat/session context.
+- Destructive operations require snapshot, target confirmation, blast-radius check and rollback evidence.
+- Domain readiness requires service verification, not DNS configuration alone.
+- Permission preflight verifies edit/approve/deploy/billing/admin/accept authority before kickoff or release.
+- Commercial plan changes require a dated change record and required notice.
+- P0/P1 or repeated no-progress support interactions escalate to a human owner.
+- Consequential retries require idempotency and deduplication.
+- Client/business assets should use business/client-owned accounts with admin and recovery continuity.
+- Export/migration evidence must exist before termination or destructive offboarding.
