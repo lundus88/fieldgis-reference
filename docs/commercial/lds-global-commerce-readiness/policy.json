@@ -1,0 +1,42 @@
+{
+  "schema": "lds.global-commerce-readiness/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "principle": "Global enquiries may be accepted without implying paid-order readiness. Paid-order support is country- and evidence-specific.",
+  "classifications": [
+    "SUPPORTED",
+    "MANUAL_REVIEW",
+    "NOT_SUPPORTED"
+  ],
+  "dimensions": [
+    "country_identity",
+    "currency",
+    "tax_treatment",
+    "contract_jurisdiction",
+    "privacy_data_handling",
+    "data_residency",
+    "payment_method",
+    "support_timezone",
+    "builder_capability",
+    "delivery_uat",
+    "invoice_export_requirements",
+    "sanctions_restrictions_check"
+  ],
+  "invariants": [
+    "Unknown or stale country evidence must not produce SUPPORTED",
+    "Missing payment capability must not produce SUPPORTED",
+    "Unsupported currency must not produce SUPPORTED",
+    "Unknown tax treatment must not produce SUPPORTED",
+    "Unknown privacy or data-residency obligations must not produce SUPPORTED",
+    "Missing builder capability must not produce SUPPORTED",
+    "Global enquiry acceptance is separate from paid-order authority",
+    "Country support activation requires human approval",
+    "Production payment activation remains separately human-gated",
+    "No country may inherit another country's legal or tax assumptions"
+  ],
+  "current_global_status": {
+    "technical_factory": "CONDITIONAL",
+    "global_enquiry": "ALLOWED_MANUAL",
+    "global_paid_order": "HOLD",
+    "public_global_checkout": "HOLD"
+  }
+}
