@@ -31,8 +31,19 @@
       "status": "missing"
     },
     "final_commercial_domain": {
-      "value": null,
-      "status": "missing"
+      "value": "lundusdigital.com",
+      "status": "verified_from_registrar_portal_evidence",
+      "registrar": "Exabytes",
+      "registrar_portal_status": "Active",
+      "auto_renew": "Enabled",
+      "next_due": "2027-09-19",
+      "registration_period": {
+        "start": "2026-09-19",
+        "end": "2027-09-18"
+      },
+      "purchase_amount_myr": 44.7,
+      "evidence_level": "user_supplied_registrar_invoice_and_portal_screenshots",
+      "evidence_date": "2026-09-19"
     },
     "support_complaint_channel": {
       "value": null,
@@ -55,7 +66,15 @@
   },
   "gate_status": {
     "LICENCE_READY": "HOLD",
-    "LEGAL_TRUST_READY": "HOLD"
+    "LEGAL_TRUST_READY": "HOLD",
+    "FINAL_COMMERCIAL_DOMAIN": "PASS",
+    "DOMAIN_OWNERSHIP_VERIFIED": "PASS"
   },
-  "rule": "User attestation may document progress but cannot by itself set LICENCE_READY or LEGAL_TRUST_READY to PASS."
+  "rule": "User attestation may document progress but cannot by itself set LICENCE_READY or LEGAL_TRUST_READY to PASS.",
+  "domain_gate": {
+    "ownership_verified": true,
+    "final_commercial_domain": "lundusdigital.com",
+    "production_dns_binding_authorized": false,
+    "official_commercial_email_verified": false
+  }
 }
