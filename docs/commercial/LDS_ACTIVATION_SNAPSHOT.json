@@ -1,0 +1,79 @@
+{
+  "schema": "lds.activation-snapshot/1",
+  "as_of": "2026-09-19",
+  "snapshot_id": null,
+  "snapshot_status": "HOLD_NOT_FORMED",
+  "single_use": true,
+  "release": {
+    "commercial_surface_source_sha": "57d4fe20c89e6cffc94047e7f6f7b4da4f4f538f",
+    "final_activation_gate_merge_sha": "b2b9a97a03a825404a0ebe571a1cbfcfea743c09",
+    "preview_project": "lundus-digital-systems-preview",
+    "preview_project_id": "prj_9areW7U50izhbz8yNrXK2r1YcJ1F",
+    "preview_deployment_id": "dpl_F4rugJSSdfWMmUzb6T2ShGSRnZCJ",
+    "preview_state": "READY",
+    "preview_target": "preview",
+    "preview_visual_qa": "PASS",
+    "preview_workflow_qa": "PASS"
+  },
+  "business_licence": {
+    "manifest": "docs/commercial/LDS_BUSINESS_LICENCE_EVIDENCE.json",
+    "official_evidence_id": null,
+    "evidence_current_as_of": null,
+    "status": "HOLD"
+  },
+  "legal_trust": {
+    "status": "HOLD",
+    "registered_particulars_evidence_id": null,
+    "privacy_policy_version": null,
+    "terms_policy_version": null,
+    "refund_policy_version": null,
+    "support_channel_evidence_id": null
+  },
+  "lead_intake": {
+    "repository": "lundus88/lundus-lead",
+    "code_merge_sha": "210e7cd0457b53958cdf9a235c110e5f2d08979c",
+    "production_activation_authorized": false,
+    "production_config_fingerprint": null,
+    "status": "HOLD"
+  },
+  "payment": {
+    "production_activation_authorized": false,
+    "provider_config_fingerprint": null,
+    "provider_config_verified_at": null,
+    "status": "HOLD"
+  },
+  "golden_transaction": {
+    "dry_run": "PASS",
+    "live_transaction_evidence_id": null,
+    "reconciliation_evidence_id": null,
+    "status": "HOLD"
+  },
+  "decision": {
+    "launch_authorized": false,
+    "approved_by": null,
+    "approved_at": null,
+    "expires_at": null,
+    "consumed_at": null,
+    "launched_at": null
+  },
+  "blockers": [
+    "LICENCE_READY",
+    "LEGAL_TRUST_READY",
+    "LIVE_LEAD_INTAKE",
+    "PAYMENT_PRODUCTION_READY",
+    "GOLDEN_TRANSACTION_PASS",
+    "PUBLIC_LAUNCH"
+  ],
+  "invalidation_rules": [
+    "commercial surface artifact or release SHA changes",
+    "Preview deployment or artifact fingerprint changes",
+    "business/licence evidence changes, expires, is superseded, or cannot be revalidated",
+    "legal policy or support-channel version changes",
+    "lead-intake Production configuration fingerprint changes",
+    "payment-provider Production configuration fingerprint changes",
+    "Golden Transaction evidence changes or reconciliation becomes uncertain",
+    "decision expires before consumption",
+    "any mandatory gate returns to HOLD"
+  ],
+  "rule": "Evidence existence is not activation authority. A launch decision must be formed from one current, explicit, single-use snapshot; any material input change invalidates it and returns activation to HOLD."
+}
