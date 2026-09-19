@@ -63,3 +63,24 @@ A project may be technically healthy but customer-experience AT_RISK if communic
 ## Evidence rule
 
 Every active P0/P1/P2 risk should carry evidence refs. If a risk is asserted without evidence, the automation must HOLD rather than invent a diagnosis.
+
+
+## Additional early-warning detectors
+
+### Silent dissatisfaction
+No complaint is not treated as proof of satisfaction. After material milestones, text-based pulse evidence may be collected as:
+- SATISFIED
+- MINOR_ISSUE
+- NEED_ATTENTION
+- NO_RESPONSE
+
+Repeated reopen/follow-up patterns can raise risk even without a formal complaint.
+
+### Handoff context loss
+Internal owner/support handoffs must preserve confirmed scope, decisions, UAT history and current blockers. The customer should not need to repeat information already confirmed.
+
+### Response vs resolution SLA
+First response and actual resolution are separate metrics. A fast acknowledgement cannot mask a stalled unresolved ticket.
+
+### Adoption after UAT
+Technical UAT PASS does not prove successful adoption. Quick-start completion, core-workflow use and repeated how-to queries are separate post-handover signals.
