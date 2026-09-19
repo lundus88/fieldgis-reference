@@ -31,9 +31,18 @@ if release.get("preview_visual_qa") != "PASS":
 if release.get("preview_workflow_qa") != "PASS":
     errors.append("Preview workflow QA must be PASS")
 
+domain_email = data.get("domain_email", {})
+if domain_email.get("manifest") != "docs/commercial/LDS_DOMAIN_EMAIL_READINESS.json":
+    errors.append("domain/email readiness manifest missing or drifted")
+if domain_email.get("final_commercial_domain") != "lundusdigital.com":
+    errors.append("final commercial domain drift")
+if domain_email.get("domain_ownership") != "PASS":
+    errors.append("domain ownership evidence must be PASS")
+
 required_gate_sections = {
     "business_licence": "LICENCE_READY",
     "legal_trust": "LEGAL_TRUST_READY",
+    "domain_email": "DOMAIN_EMAIL_READY",
     "lead_intake": "LIVE_LEAD_INTAKE",
     "payment": "PAYMENT_PRODUCTION_READY",
     "golden_transaction": "GOLDEN_TRANSACTION_PASS",
@@ -53,10 +62,20 @@ if authorized is False:
     if not blockers:
         errors.append("HOLD snapshot must list blockers")
     for section in required_gate_sections:
-        if data.get(section, {}).get("status") != "HOLD" and section != "golden_transaction":
-            errors.append(f"{section} must remain HOLD in the current pre-licence snapshot")
+        if data.get(section, {}).get("status") != "HOLD":
+            errors.append(f"{section} must remain HOLD in the current pre-activation snapshot")
     if data.get("golden_transaction", {}).get("status") != "HOLD":
         errors.append("live Golden Transaction must remain HOLD")
+    if domain_email.get("dns_production_binding") != "HOLD":
+        errors.append("DNS Production binding must remain HOLD")
+    if domain_email.get("email_provider_selected") != "HOLD":
+        errors.append("email provider selection must remain HOLD")
+    if domain_email.get("email_dns_authentication") != "HOLD":
+        errors.append("email DNS authentication must remain HOLD")
+    if domain_email.get("official_commercial_email") != "HOLD":
+        errors.append("official commercial email must remain HOLD")
+    if domain_email.get("production_config_fingerprint") is not None:
+        errors.append("domain/email Production fingerprint must remain null")
     if data.get("lead_intake", {}).get("production_activation_authorized") is not False:
         errors.append("live lead intake must not be authorized")
     if data.get("payment", {}).get("production_activation_authorized") is not False:
@@ -82,6 +101,16 @@ else:
     ]:
         if not legal.get(key):
             errors.append(f"authorized snapshot missing legal/trust {key}")
+    if domain_email.get("dns_production_binding") != "PASS":
+        errors.append("authorized snapshot requires DNS Production binding PASS")
+    if domain_email.get("email_provider_selected") != "PASS":
+        errors.append("authorized snapshot requires email provider selection PASS")
+    if domain_email.get("email_dns_authentication") != "PASS":
+        errors.append("authorized snapshot requires email DNS authentication PASS")
+    if domain_email.get("official_commercial_email") != "PASS":
+        errors.append("authorized snapshot requires official commercial email PASS")
+    if not domain_email.get("production_config_fingerprint"):
+        errors.append("authorized snapshot requires domain/email Production config fingerprint")
     if data.get("lead_intake", {}).get("production_activation_authorized") is not True:
         errors.append("authorized snapshot requires lead intake Production authority")
     if not data.get("lead_intake", {}).get("production_config_fingerprint"):
@@ -104,6 +133,7 @@ required_invalidation_phrases = [
     "artifact or release SHA changes",
     "Preview deployment",
     "business/licence evidence",
+    "domain ownership/DNS/email",
     "legal policy",
     "lead-intake Production configuration",
     "payment-provider Production configuration",
@@ -128,4 +158,6 @@ if errors:
 print("LDS activation snapshot: PASS")
 print(f"snapshot_status={status}")
 print(f"launch_authorized={authorized}")
+print("domain=lundusdigital.com")
+print("domain_ownership=PASS")
 print(f"blockers={','.join(blockers)}")

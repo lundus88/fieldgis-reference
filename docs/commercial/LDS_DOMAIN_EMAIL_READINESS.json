@@ -1,0 +1,108 @@
+{
+  "schema": "lds.domain-email-readiness/1",
+  "as_of": "2026-09-19",
+  "domain": {
+    "name": "lundusdigital.com",
+    "brand": "LUNDUS DIGITAL",
+    "legal_business_name": "LUNDUS DIGITAL SYSTEMS",
+    "registrar": "Exabytes",
+    "ownership_status": "PASS",
+    "registrar_portal_status": "Active",
+    "auto_renew": "Enabled",
+    "next_due": "2027-09-19",
+    "registration_period": {
+      "start": "2026-09-19",
+      "end": "2027-09-18"
+    },
+    "purchase_amount_myr": 44.70,
+    "evidence_level": "user_supplied_registrar_invoice_and_portal_screenshots"
+  },
+  "dns": {
+    "current_nameserver_state": "registrar_default_or_unverified",
+    "nameserver_change_authorized": false,
+    "records_applied": false,
+    "production_binding_authorized": false,
+    "root_domain": {
+      "host": "@",
+      "target": null,
+      "status": "HOLD_NOT_APPLIED"
+    },
+    "www": {
+      "host": "www",
+      "target": null,
+      "status": "HOLD_NOT_APPLIED"
+    },
+    "verification_records": [],
+    "rule": "Do not invent or publish A/CNAME/TXT values before the selected service supplies exact verified values."
+  },
+  "email": {
+    "provider": null,
+    "provider_selection_status": "PENDING",
+    "mailboxes_planned": [
+      "hello@lundusdigital.com",
+      "support@lundusdigital.com",
+      "billing@lundusdigital.com"
+    ],
+    "official_commercial_email": null,
+    "mx": {
+      "records": [],
+      "status": "HOLD_NOT_APPLIED"
+    },
+    "spf": {
+      "record": null,
+      "status": "HOLD_NOT_APPLIED"
+    },
+    "dkim": {
+      "records": [],
+      "status": "HOLD_NOT_APPLIED"
+    },
+    "dmarc": {
+      "record": null,
+      "initial_policy_after_authentication": "p=none",
+      "status": "HOLD_NOT_APPLIED",
+      "promotion_rule": "Move toward quarantine/reject only after legitimate senders, SPF alignment, DKIM alignment and report monitoring are verified."
+    }
+  },
+  "security": {
+    "registrar_2fa": "NOT_EVIDENCED",
+    "domain_transfer_lock": "NOT_EVIDENCED",
+    "auto_renew": "VERIFIED_ENABLED",
+    "dnssec": "NOT_EVALUATED"
+  },
+  "website": {
+    "preview_project": "lundus-digital-systems-preview",
+    "preview_project_id": "prj_9areW7U50izhbz8yNrXK2r1YcJ1F",
+    "production_domain_binding_status": "HOLD",
+    "production_promotion_authorized": false
+  },
+  "gate_status": {
+    "FINAL_COMMERCIAL_DOMAIN": "PASS",
+    "DOMAIN_OWNERSHIP_VERIFIED": "PASS",
+    "DNS_PRODUCTION_BINDING": "HOLD",
+    "EMAIL_PROVIDER_SELECTED": "HOLD",
+    "EMAIL_DNS_AUTHENTICATION": "HOLD",
+    "OFFICIAL_COMMERCIAL_EMAIL": "HOLD",
+    "LEGAL_TRUST_READY": "HOLD",
+    "PUBLIC_LAUNCH": "HOLD"
+  },
+  "safe_sequence": [
+    "select email provider",
+    "obtain exact provider MX/SPF/DKIM verification records",
+    "prepare DNS change set without applying it",
+    "human review exact DNS change set",
+    "apply only approved email verification records",
+    "verify inbound and outbound mail",
+    "verify SPF and DKIM alignment",
+    "publish DMARC p=none and monitor reports",
+    "verify official support/commercial mailbox ownership",
+    "separately prepare Vercel Production domain binding",
+    "bind website domain only after explicit Production authorization"
+  ],
+  "authority": {
+    "dns_mutation_authorized": false,
+    "email_activation_authorized": false,
+    "vercel_production_binding_authorized": false,
+    "payment_activation_authorized": false,
+    "public_launch_authorized": false
+  }
+}

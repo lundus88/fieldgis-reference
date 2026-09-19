@@ -68,6 +68,7 @@
     "commercial surface artifact or release SHA changes",
     "Preview deployment or artifact fingerprint changes",
     "business/licence evidence changes, expires, is superseded, or cannot be revalidated",
+    "domain ownership/DNS/email configuration or official mailbox evidence changes",
     "legal policy or support-channel version changes",
     "lead-intake Production configuration fingerprint changes",
     "payment-provider Production configuration fingerprint changes",
@@ -75,5 +76,16 @@
     "decision expires before consumption",
     "any mandatory gate returns to HOLD"
   ],
-  "rule": "Evidence existence is not activation authority. A launch decision must be formed from one current, explicit, single-use snapshot; any material input change invalidates it and returns activation to HOLD."
+  "rule": "Evidence existence is not activation authority. A launch decision must be formed from one current, explicit, single-use snapshot; any material input change invalidates it and returns activation to HOLD.",
+  "domain_email": {
+    "manifest": "docs/commercial/LDS_DOMAIN_EMAIL_READINESS.json",
+    "final_commercial_domain": "lundusdigital.com",
+    "domain_ownership": "PASS",
+    "dns_production_binding": "HOLD",
+    "email_provider_selected": "HOLD",
+    "email_dns_authentication": "HOLD",
+    "official_commercial_email": "HOLD",
+    "production_config_fingerprint": null,
+    "status": "HOLD"
+  }
 }

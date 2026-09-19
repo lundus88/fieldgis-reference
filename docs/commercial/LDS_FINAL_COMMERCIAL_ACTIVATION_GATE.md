@@ -66,6 +66,7 @@ Baseline PASS:
 - Preview V4 deployment
 - Preview V4 visual QA
 - Preview V4 workflow QA
+- final commercial domain ownership verification: `lundusdigital.com`
 
 Still HOLD or not live-verified:
 - LICENCE_READY
@@ -85,7 +86,7 @@ The following values must be verified and inserted into the public commercial su
 
 - registered legal/business entity name
 - registration/licence particulars applicable to the commercial activity
-- final commercial domain
+- final commercial domain — VERIFIED: `lundusdigital.com` (Exabytes portal status Active; Auto Renew Enabled; next due 19/09/2027)
 - official commercial email
 - official commercial telephone
 - official trade/business address
@@ -95,6 +96,8 @@ The following values must be verified and inserted into the public commercial su
 - effective date for Refund & Cancellation Policy
 
 No placeholder, inferred or historical address/contact may be substituted.
+
+Domain ownership is now verified, but domain ownership alone does not set LEGAL_TRUST_READY to PASS. Official commercial email, telephone, trade address, support/complaint channel and policy effective dates remain evidence-gated.
 
 ## 6. Licence evidence gate
 
@@ -135,6 +138,16 @@ Preview constraints remain:
 - no commercial Production domain binding
 
 ## 8. Production configuration gate
+
+Current domain/email readiness:
+- FINAL_COMMERCIAL_DOMAIN: PASS / `lundusdigital.com`
+- DOMAIN_OWNERSHIP_VERIFIED: PASS
+- DNS_PRODUCTION_BINDING: HOLD
+- EMAIL_PROVIDER_SELECTED: HOLD
+- EMAIL_DNS_AUTHENTICATION: HOLD
+- OFFICIAL_COMMERCIAL_EMAIL: HOLD
+- DNS record mutation authorized: false
+- Vercel Production domain binding authorized: false
 
 Before any controlled Production commercial transaction:
 - final commercial origin confirmed
@@ -253,6 +266,11 @@ A dry-run PASS is not a live Golden Transaction PASS.
 - SUPPORT_ROLLBACK_PASS: BASELINE_PASS / commercial live proof pending
 - SECURITY_QA_PASS: RC_BASELINE_PASS / Production activation HOLD
 - MEASUREMENT_READY: CONTRACT_READY / live evidence pending
+- FINAL_COMMERCIAL_DOMAIN: PASS / lundusdigital.com
+- DNS_PRODUCTION_BINDING: HOLD
+- EMAIL_PROVIDER_SELECTED: HOLD
+- EMAIL_DNS_AUTHENTICATION: HOLD
+- OFFICIAL_COMMERCIAL_EMAIL: HOLD
 - ACTIVATION_SNAPSHOT: HOLD_NOT_FORMED
 - PUBLIC_PAYMENT_ACTIVATION: HOLD
 - PUBLIC_LAUNCH: HOLD
@@ -262,6 +280,8 @@ A dry-run PASS is not a live Golden Transaction PASS.
 Do not activate public payment if any of these are true:
 - licence/business authority not ready
 - required legal/business particulars still placeholder or unverified
+- official commercial email or support mailbox ownership remains unverified
+- domain/DNS/email Production configuration fingerprint is missing or stale
 - live lead-intake Production authority unresolved
 - Production secrets/configuration unverified
 - required configuration fingerprint missing or stale
@@ -285,6 +305,8 @@ This document does not authorize:
 - live billing activation
 - live customer charging
 - Production domain binding
+- DNS record mutation
+- email Production activation
 - secret/configuration changes
 - public launch
 - widening of payment, fulfilment, notification or deployment authority
