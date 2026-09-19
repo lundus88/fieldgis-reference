@@ -1,0 +1,263 @@
+{
+  "schema": "lds.customer-disappointment-prevention/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "objective": "Detect and mitigate customer disappointment risk before it becomes a complaint, refund dispute, churn or reputational issue.",
+  "severity": {
+    "P0": "Trust/data/money/security failure requiring immediate human escalation",
+    "P1": "Material delivery/support/expectation risk requiring same-business-day mitigation plan",
+    "P2": "Customer frustration risk requiring proactive communication or workflow correction",
+    "P3": "Minor/cosmetic issue tracked but not delivery-blocking"
+  },
+  "risks": [
+    {
+      "id": "CDP-001",
+      "name": "Expectation mismatch",
+      "severity": "P1",
+      "triggers": [
+        "scope_ambiguity",
+        "acceptance_criteria_missing",
+        "out_of_scope_missing"
+      ],
+      "controls": [
+        "approved_sow",
+        "explicit_exclusions",
+        "acceptance_criteria"
+      ],
+      "client_message_required": true
+    },
+    {
+      "id": "CDP-002",
+      "name": "Unrealistic delivery promise",
+      "severity": "P1",
+      "triggers": [
+        "eta_without_dependency_readiness",
+        "capacity_overcommit"
+      ],
+      "controls": [
+        "capacity_gate",
+        "dependency_check",
+        "human_approved_eta"
+      ],
+      "client_message_required": true
+    },
+    {
+      "id": "CDP-003",
+      "name": "No visible progress",
+      "severity": "P2",
+      "triggers": [
+        "no_visible_artifact_within_72h_when_eligible"
+      ],
+      "controls": [
+        "first_visible_value_target",
+        "prototype_or_status_update"
+      ],
+      "client_message_required": true
+    },
+    {
+      "id": "CDP-004",
+      "name": "Customer dependency delay",
+      "severity": "P2",
+      "triggers": [
+        "awaiting_customer_input",
+        "awaiting_access",
+        "awaiting_approval"
+      ],
+      "controls": [
+        "timestamp_dependency",
+        "client_action_required",
+        "rebaseline_eta"
+      ],
+      "client_message_required": true
+    },
+    {
+      "id": "CDP-005",
+      "name": "Scope creep",
+      "severity": "P1",
+      "triggers": [
+        "new_material_requirement_after_scope_lock"
+      ],
+      "controls": [
+        "change_request",
+        "variation_approval"
+      ],
+      "client_message_required": true
+    },
+    {
+      "id": "CDP-006",
+      "name": "Defect after delivery",
+      "severity": "P1",
+      "triggers": [
+        "production_bug",
+        "uat_escape"
+      ],
+      "controls": [
+        "regression",
+        "warranty_path",
+        "incident_ticket"
+      ],
+      "client_message_required": true
+    },
+    {
+      "id": "CDP-007",
+      "name": "Support response delay",
+      "severity": "P1",
+      "triggers": [
+        "sla_breach_risk",
+        "ticket_unowned"
+      ],
+      "controls": [
+        "owner_assignment",
+        "severity_sla",
+        "escalation"
+      ],
+      "client_message_required": true
+    },
+    {
+      "id": "CDP-008",
+      "name": "Refund/payment dispute",
+      "severity": "P0",
+      "triggers": [
+        "duplicate_charge",
+        "refund_dispute",
+        "payment_state_uncertain"
+      ],
+      "controls": [
+        "provider_evidence",
+        "order_ledger",
+        "human_financial_review"
+      ],
+      "client_message_required": true
+    },
+    {
+      "id": "CDP-009",
+      "name": "Data loss or failed recovery",
+      "severity": "P0",
+      "triggers": [
+        "restore_failure",
+        "backup_missing",
+        "data_integrity_incident"
+      ],
+      "controls": [
+        "backup",
+        "restore_verification",
+        "recovery_sop",
+        "human_incident_escalation"
+      ],
+      "client_message_required": true
+    },
+    {
+      "id": "CDP-010",
+      "name": "Security incident",
+      "severity": "P0",
+      "triggers": [
+        "credential_exposure",
+        "unauthorized_access",
+        "suspected_breach"
+      ],
+      "controls": [
+        "containment",
+        "audit_evidence",
+        "human_security_escalation"
+      ],
+      "client_message_required": true
+    },
+    {
+      "id": "CDP-011",
+      "name": "Third-party dependency failure",
+      "severity": "P1",
+      "triggers": [
+        "api_outage",
+        "email_provider_failure",
+        "payment_provider_failure"
+      ],
+      "controls": [
+        "dependency_register",
+        "fallback_or_hold",
+        "status_update"
+      ],
+      "client_message_required": true
+    },
+    {
+      "id": "CDP-012",
+      "name": "AI output error",
+      "severity": "P1",
+      "triggers": [
+        "consequential_ai_output_unverified"
+      ],
+      "controls": [
+        "human_validation",
+        "limitations_notice"
+      ],
+      "client_message_required": false
+    },
+    {
+      "id": "CDP-013",
+      "name": "Online-only feels unresponsive",
+      "severity": "P2",
+      "triggers": [
+        "customer_followup_without_ack",
+        "long_silence"
+      ],
+      "controls": [
+        "text_first_ack",
+        "named_owner",
+        "scheduled_status_update"
+      ],
+      "client_message_required": true
+    },
+    {
+      "id": "CDP-014",
+      "name": "Ownership or exit misunderstanding",
+      "severity": "P1",
+      "triggers": [
+        "source_code_ownership_unclear",
+        "data_export_unclear",
+        "hosting_transfer_unclear"
+      ],
+      "controls": [
+        "sow_ownership_clause",
+        "exit_path"
+      ],
+      "client_message_required": true
+    },
+    {
+      "id": "CDP-015",
+      "name": "Training/adoption failure",
+      "severity": "P2",
+      "triggers": [
+        "repeated_how_to_queries",
+        "uat_pass_but_usage_failure"
+      ],
+      "controls": [
+        "quick_start_guide",
+        "recorded_walkthrough",
+        "support_onboarding"
+      ],
+      "client_message_required": true
+    },
+    {
+      "id": "CDP-016",
+      "name": "Client not fit for service",
+      "severity": "P2",
+      "triggers": [
+        "budget_scope_mismatch",
+        "governance_bypass_request",
+        "unbounded_customisation"
+      ],
+      "controls": [
+        "qualify",
+        "decline_or_refer",
+        "waitlist"
+      ],
+      "client_message_required": true
+    }
+  ],
+  "mandatory_rules": [
+    "P0 always HUMAN_ESCALATION",
+    "No claim of READY/COMPLETE/ACCEPTED without evidence",
+    "ETA must be rebaselined when material customer dependency blocks delivery",
+    "Fast-track may not bypass QA/security/UAT",
+    "Complaint prevention communication must be factual and must not conceal blockers",
+    "Financial/refund/security decisions remain human-controlled"
+  ]
+}
