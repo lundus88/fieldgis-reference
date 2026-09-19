@@ -435,6 +435,178 @@
         "human_financial_review"
       ],
       "client_message_required": true
+    },
+    {
+      "id": "CDP-027",
+      "name": "Account lockout or service suspension coupling",
+      "severity": "P0",
+      "triggers": [
+        "paid_customer_locked_out",
+        "staff_account_failure_impacts_client_system",
+        "billing_issue_suspends_customer_runtime"
+      ],
+      "controls": [
+        "grace_recovery_path",
+        "separate_staff_and_customer_runtime",
+        "human_access_escalation"
+      ],
+      "client_message_required": true
+    },
+    {
+      "id": "CDP-028",
+      "name": "Unsaved context or work loss",
+      "severity": "P1",
+      "triggers": [
+        "session_state_not_persisted",
+        "reload_loses_decisions",
+        "checkpoint_missing"
+      ],
+      "controls": [
+        "persist_project_state",
+        "checkpoint_evidence",
+        "decision_ledger"
+      ],
+      "client_message_required": true
+    },
+    {
+      "id": "CDP-029",
+      "name": "Destructive action wrong-target damage",
+      "severity": "P0",
+      "triggers": [
+        "delete_without_snapshot",
+        "drop_without_target_confirmation",
+        "reset_without_blast_radius_check",
+        "purge_without_rollback"
+      ],
+      "controls": [
+        "snapshot_before_destructive_action",
+        "target_confirmation",
+        "blast_radius_check",
+        "rollback_evidence",
+        "human_gate_for_consequential_delete"
+      ],
+      "client_message_required": true
+    },
+    {
+      "id": "CDP-030",
+      "name": "Domain SSL or email activation false-ready",
+      "severity": "P1",
+      "triggers": [
+        "dns_set_but_unverified",
+        "ssl_not_active",
+        "https_health_fail",
+        "mail_auth_incomplete"
+      ],
+      "controls": [
+        "dns_verified",
+        "ssl_active",
+        "https_health_pass",
+        "spf_dkim_dmarc_verification_when_applicable"
+      ],
+      "client_message_required": true
+    },
+    {
+      "id": "CDP-031",
+      "name": "Collaboration permission mismatch",
+      "severity": "P1",
+      "triggers": [
+        "deploy_permission_missing",
+        "approval_role_missing",
+        "billing_admin_missing",
+        "acceptance_authority_unclear"
+      ],
+      "controls": [
+        "role_preflight",
+        "permission_matrix",
+        "named_approver",
+        "named_admin"
+      ],
+      "client_message_required": true
+    },
+    {
+      "id": "CDP-032",
+      "name": "Subscription or plan change surprise",
+      "severity": "P1",
+      "triggers": [
+        "plan_changed_without_notice",
+        "renewal_terms_changed_without_record",
+        "usage_pricing_changed_without_customer_ack"
+      ],
+      "controls": [
+        "advance_notice",
+        "effective_date",
+        "commercial_change_record",
+        "human_customer_ack_when_required"
+      ],
+      "client_message_required": true
+    },
+    {
+      "id": "CDP-033",
+      "name": "Support mis-triage",
+      "severity": "P1",
+      "triggers": [
+        "generic_response_no_progress",
+        "p0_p1_handled_by_bot_only",
+        "two_responses_without_resolution_progress"
+      ],
+      "controls": [
+        "severity_reclassification",
+        "human_escalation",
+        "resolution_owner"
+      ],
+      "client_message_required": true
+    },
+    {
+      "id": "CDP-034",
+      "name": "Duplicate autonomous action",
+      "severity": "P0",
+      "triggers": [
+        "duplicate_charge_action",
+        "duplicate_external_comment",
+        "duplicate_notification_with_side_effect",
+        "retry_without_idempotency"
+      ],
+      "controls": [
+        "idempotency_key",
+        "deduplication_guard",
+        "at_most_once_or_exactly_once_semantics",
+        "side_effect_ledger"
+      ],
+      "client_message_required": true
+    },
+    {
+      "id": "CDP-035",
+      "name": "Account ownership or business asset continuity",
+      "severity": "P1",
+      "triggers": [
+        "developer_personal_account_owns_client_asset",
+        "single_admin_no_recovery",
+        "ownership_ambiguous"
+      ],
+      "controls": [
+        "company_or_client_owned_account",
+        "designated_admin",
+        "recovery_contact",
+        "ownership_record"
+      ],
+      "client_message_required": true
+    },
+    {
+      "id": "CDP-036",
+      "name": "Offboarding data retention risk",
+      "severity": "P1",
+      "triggers": [
+        "termination_before_export",
+        "migration_without_completion_evidence",
+        "data_retention_window_unknown"
+      ],
+      "controls": [
+        "export_before_termination",
+        "migration_completion_evidence",
+        "retention_window_record",
+        "customer_copy_confirmation"
+      ],
+      "client_message_required": true
     }
   ],
   "mandatory_rules": [
@@ -454,6 +626,16 @@
     "Conflicting project/payment/support/delivery states must fail closed and reconcile to an authoritative evidence source",
     "Agent execution must have bounded steps, retries, cost and wall-clock budgets with a kill switch",
     "Agreed portability and exit artifacts must be available before final handover",
-    "Internal AI retries, failed builds, hallucinations, regressions and bug fixes may not be charged as extra customer work unless a genuine scope change is human-approved"
+    "Internal AI retries, failed builds, hallucinations, regressions and bug fixes may not be charged as extra customer work unless a genuine scope change is human-approved",
+    "No single staff account, billing error or authentication failure may be allowed to silently destroy customer runtime continuity",
+    "Material project state and decisions must be persisted outside ephemeral chat or session context",
+    "Destructive actions require target verification, blast-radius evidence and recoverability before execution",
+    "DNS configuration alone is not proof of domain readiness; service-specific verification must pass",
+    "Required edit, approve, deploy, billing, admin and acceptance permissions must be verified before kickoff or release",
+    "Commercial plan changes require a dated change record and required customer notice",
+    "P0/P1 or repeated no-progress support interactions must escalate to a human owner",
+    "Consequential retries must be idempotent and deduplicated",
+    "Customer business assets must not depend solely on a developer personal account",
+    "Required customer export and migration evidence must exist before termination or destructive offboarding"
   ]
 }
