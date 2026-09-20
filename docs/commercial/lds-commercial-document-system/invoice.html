@@ -1,0 +1,10 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Invoice — LUNDUS DIGITAL SYSTEMS</title><link rel="stylesheet" href="commercial-doc.css"></head><body><main class="page">
+<header class="header"><div class="brand"><h1>LUNDUS DIGITAL SYSTEMS</h1><p>Practical Digital Systems for Real Work</p></div><div class="doc-title"><h2>INVOICE</h2><p>{{INVOICE_REFERENCE}}</p></div></header>
+<section class="meta"><div class="box"><div class="label">Issue Date</div><div class="value">{{ISSUE_DATE}}</div><div class="label" style="margin-top:8px">Due Date</div><div class="value">{{DUE_DATE}}</div></div><div class="box"><div class="label">Bill To</div><div class="value">{{CUSTOMER_NAME}}</div><div class="value">{{CUSTOMER_ADDRESS_OR_CONTACT}}</div></div></section>
+<section class="party"><div class="box"><div class="label">Quotation Ref</div><div class="value">{{QUOTE_REFERENCE}}</div></div><div class="box"><div class="label">Order Ref</div><div class="value">{{ORDER_REFERENCE}}</div></div></section>
+<table><thead><tr><th>Description / Milestone</th><th>Qty</th><th class="num">Unit</th><th class="num">Amount</th></tr></thead><tbody><tr><td>{{LINE_ITEM_1}}</td><td>1</td><td class="num">{{LINE_AMOUNT_1}}</td><td class="num">{{LINE_AMOUNT_1}}</td></tr></tbody></table>
+<div class="totals"><div><span>Subtotal</span><strong>{{SUBTOTAL}}</strong></div><div><span>Tax / Other Charges</span><strong>{{TAX_OR_OTHER_COST}}</strong></div><div><span>Amount Paid</span><strong>{{AMOUNT_PAID}}</strong></div><div class="grand"><span>Balance Due</span><span>{{BALANCE_DUE}}</span></div></div>
+<section class="section"><h3>Payment Instructions</h3><p>{{PAYMENT_INSTRUCTIONS}}</p></section>
+<div class="notice">Commercial invoice only. This document must not be represented as a Malaysian tax e-Invoice unless a separately verified MyInvois/e-Invoice compliance flow authorises that claim.</div>
+<footer class="footer"><span>{{OFFICIAL_EMAIL}} · {{OFFICIAL_PHONE}}</span><span>{{BUSINESS_REGISTRATION_OR_LICENCE}}</span></footer>
+</main></body></html>

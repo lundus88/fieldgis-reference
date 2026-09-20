@@ -1,0 +1,108 @@
+{
+  "schema": "lds.fast-delivery-system/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "planning_targets": {
+    "acknowledgement_business_hours": 24,
+    "initial_scope_business_hours": 48,
+    "first_visible_value_hours": {
+      "min": 48,
+      "max": 72
+    }
+  },
+  "lanes": {
+    "STANDARD": {
+      "premium": false
+    },
+    "FAST_TRACK": {
+      "premium": true,
+      "requires": [
+        "bounded_scope",
+        "dependencies_ready",
+        "reserved_capacity",
+        "qa_unchanged",
+        "human_release_authority"
+      ]
+    }
+  },
+  "project_classes": {
+    "QUICK_AUTOMATION": {
+      "target_business_days": {
+        "min": 3,
+        "max": 7
+      },
+      "effort_points": {
+        "min": 1,
+        "max": 3
+      }
+    },
+    "STARTER_SYSTEM": {
+      "target_business_days": {
+        "min": 5,
+        "max": 15
+      },
+      "effort_points": {
+        "min": 3,
+        "max": 8
+      }
+    },
+    "SEMI_CUSTOM": {
+      "target_business_days": {
+        "min": 15,
+        "max": 30
+      },
+      "effort_points": {
+        "min": 8,
+        "max": 20
+      }
+    },
+    "COMPLEX": {
+      "target": "MILESTONE_BASED",
+      "effort_points": {
+        "min": 20,
+        "max": null
+      }
+    }
+  },
+  "states": [
+    "INTAKE",
+    "QUALIFIED",
+    "SCHEDULED",
+    "BUILDING",
+    "QA",
+    "UAT",
+    "DELIVERY",
+    "SUPPORT",
+    "CLIENT_ACTION_REQUIRED",
+    "AT_RISK",
+    "BLOCKED",
+    "HOLD"
+  ],
+  "build_entry_requires": [
+    "qualified",
+    "scope_bounded",
+    "dependencies_ready",
+    "capacity_available"
+  ],
+  "uat": {
+    "lom_may": [
+      "prepare_test_cases",
+      "collect_evidence",
+      "classify_failures",
+      "open_remediation_ticket",
+      "prepare_acceptance_package"
+    ],
+    "human_required": [
+      "business_validation",
+      "final_acceptance"
+    ],
+    "vl_may": [
+      "technical_remediation",
+      "regression_test"
+    ]
+  },
+  "online_only_default": true,
+  "onsite_required_default": false,
+  "release_authority": "HUMAN_ONLY",
+  "production_activation_authorized": false,
+  "payment_activation_authorized": false
+}

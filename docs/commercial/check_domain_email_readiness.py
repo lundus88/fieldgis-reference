@@ -39,14 +39,29 @@ for key in ["root_domain", "www"]:
 email = data.get("email", {})
 if email.get("provider") != "Zoho Mail":
     errors.append("email provider must be Zoho Mail")
-if email.get("plan") != "Mail Lite 5 GB":
-    errors.append("selected email plan drift")
+if email.get("plan") != "Mail Lite 10 GB":
+    errors.append("selected email plan must be Mail Lite 10 GB")
 if email.get("provider_selection_status") != "PASS":
     errors.append("email provider selection must be PASS")
-if email.get("subscription_purchase_authorized") is not False:
-    errors.append("email subscription purchase must remain unauthorized")
-if email.get("subscription_purchased") is not False:
-    errors.append("email subscription must remain unpurchased")
+if email.get("subscription_purchase_authorized") is not True:
+    errors.append("email subscription purchase evidence must record human-authorized purchase")
+if email.get("subscription_purchased") is not True:
+    errors.append("email subscription must be recorded as purchased")
+
+sub = email.get("subscription_evidence", {})
+if sub.get("status") != "PASS":
+    errors.append("subscription evidence must be PASS")
+if sub.get("term") != "1 year":
+    errors.append("subscription term drift")
+if sub.get("next_renewal_date") != "2027-09-19":
+    errors.append("subscription renewal date drift")
+if sub.get("credit_earned_myr") != 7.20:
+    errors.append("subscription credit evidence drift")
+if sub.get("charged_amount_myr") is not None:
+    errors.append("charged amount must remain null until receipt/invoice evidence is captured")
+if sub.get("charged_amount_evidence_status") != "PENDING_RECEIPT_OR_INVOICE":
+    errors.append("charged amount evidence status must remain pending receipt/invoice")
+
 if email.get("transactional_email_provider") != "Resend":
     errors.append("transactional email provider separation drift")
 if email.get("official_commercial_email") is not None:
@@ -55,8 +70,14 @@ if email.get("official_commercial_email") is not None:
 architecture = email.get("mailbox_architecture", {})
 if architecture.get("licensed_users_planned") != 1:
     errors.append("initial mailbox architecture must plan one licensed user")
+if architecture.get("licensed_users_purchased") != 1:
+    errors.append("one licensed user must be recorded as purchased")
 if architecture.get("primary_mailbox") != "hello@lundusdigital.com":
     errors.append("primary mailbox plan drift")
+if architecture.get("primary_mailbox_status") != "PLANNED_NOT_YET_VERIFIED":
+    errors.append("primary mailbox must remain unverified")
+if architecture.get("alias_status") != "PLANNED_NOT_YET_VERIFIED":
+    errors.append("aliases must remain unverified")
 aliases = set(architecture.get("aliases", []))
 for address in ["support@lundusdigital.com", "billing@lundusdigital.com"]:
     if address not in aliases:
@@ -81,6 +102,7 @@ expected = {
     "DOMAIN_OWNERSHIP_VERIFIED": "PASS",
     "DNS_PRODUCTION_BINDING": "HOLD",
     "EMAIL_PROVIDER_SELECTED": "PASS",
+    "EMAIL_SUBSCRIPTION_ACTIVE": "PASS",
     "EMAIL_DNS_AUTHENTICATION": "HOLD",
     "OFFICIAL_COMMERCIAL_EMAIL": "HOLD",
     "LEGAL_TRUST_READY": "HOLD",
@@ -111,7 +133,10 @@ print("LDS domain/email readiness: PASS")
 print("domain=lundusdigital.com")
 print("domain_ownership=PASS")
 print("email_provider=Zoho Mail")
-print("email_plan=Mail Lite 5 GB")
-print("subscription_purchase=HOLD")
+print("email_plan=Mail Lite 10 GB")
+print("email_subscription=PASS")
+print("charged_amount=PENDING_RECEIPT_OR_INVOICE")
 print("dns_mutation=HOLD")
+print("email_dns_authentication=HOLD")
+print("official_commercial_email=HOLD")
 print("production_binding=HOLD")
