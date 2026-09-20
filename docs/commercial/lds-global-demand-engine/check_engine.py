@@ -7,7 +7,7 @@ errors=[]
 required=[
     "README.md","contract.json","engine.py","test_engine.py",
     "diagnostic.py","test_diagnostic.py","proof_engine.py","test_proof_engine.py",
-    "productized_offers.json","buyer_confidence_center.json"
+    "productized_offers.json","buyer_confidence_center.json","validation_playbook.md","validation_cohort.py","test_validation_cohort.py"
 ]
 for f in required:
     if not (root/f).is_file():
@@ -36,7 +36,7 @@ if (root/"contract.json").exists():
         errors.append("growth flywheel incomplete")
     if c.get("digital_business_check",{}).get("commercial_authority") is not False:
         errors.append("digital business check must remain advisory")
-    p0=c.get("p0_conversion_system",{})
+    v=c.get("controlled_validation",{})\n    if v.get("scale_authority") is not False:\n        errors.append("controlled validation must not grant scale authority")\n    if v.get("production_authority")!="HUMAN_ONLY":\n        errors.append("controlled validation production authority drift")\n    p0=c.get("p0_conversion_system",{})
     if set(p0.keys())!={"trust_and_proof_engine","buyer_confidence_center","productized_offers"}:
         errors.append("P0 conversion system incomplete")
     if p0.get("productized_offers",{}).get("payment_authority") is not False:
