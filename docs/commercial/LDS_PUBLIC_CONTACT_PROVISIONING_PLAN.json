@@ -1,7 +1,7 @@
 {
   "schema": "lds.public-contact-provisioning-plan/1",
   "as_of": "2026-09-21",
-  "status": "READY_FOR_PHONE_PROVISIONING",
+  "status": "PHONE_PROVIDER_SELECTED_AWAITING_EXTERNAL_SIGNUP",
   "phone": {
     "goal": "Provision one dedicated customer-facing mobile number for LUNDUS DIGITAL SYSTEMS under a business-appropriate account.",
     "must_have": [
@@ -35,7 +35,22 @@
       "Maxis Business Postpaid 80",
       "CelcomDigi Business entry/SIM-only"
     ],
-    "next_action": "VERIFY_MAXIS_BUSINESS_ACCOUNT_ELIGIBILITY_AND_LABUAN_COVERAGE"
+    "next_action": "COMPLETE_EXTERNAL_MAXIS_BUSINESS_SIGNUP_AND_RETURN_VERIFIABLE_ACCOUNT_EVIDENCE",
+    "selected_provider": {
+      "provider": "Maxis Business",
+      "plan": "Business Postpaid 80",
+      "selection_status": "APPROVED_FOR_PROVISIONING_PATH",
+      "selected_on": "2026-09-21",
+      "device_contract_required": false,
+      "requested_signup_mode": "new business line / SIM-only or eSIM",
+      "account_name_required": "LUNDUS DIGITAL SYSTEMS",
+      "verification_required_after_activation": [
+        "active phone number",
+        "business account evidence showing LUNDUS DIGITAL SYSTEMS control",
+        "plan/account evidence sufficient to establish ownership/control",
+        "successful inbound/outbound test before public publication"
+      ]
+    }
   },
   "address": {
     "goal": "Use the existing SSM-registered business address as LD's authoritative and public business address; do not procure a replacement address.",
