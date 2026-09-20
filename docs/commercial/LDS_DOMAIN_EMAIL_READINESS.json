@@ -22,7 +22,10 @@
     "nameserver_change_authorized": false,
     "records_applied": true,
     "production_binding_authorized": false,
-    "exact_zoho_records_captured": false,
+    "exact_zoho_records_captured": true,
+    "dns_manager_access_verified": true,
+    "dns_zone_created": true,
+    "dns_zone_created_with_exabytes_support": true,
     "root_domain": {
       "host": "@",
       "target": "103.7.9.22",
@@ -39,88 +42,51 @@
         "host": "@",
         "value": "zoho-verification=zb36894990.zmverify.zoho.com",
         "source": "Zoho Mail Admin Console",
-        "evidence_status": "APPLIED_PENDING_ZOHO_VERIFICATION",
+        "evidence_status": "VERIFIED",
         "observed_at": "2026-09-20",
         "applied_ttl": 14440,
-        "applied_evidence": "user_supplied_exabytes_dns_manager_screenshot"
+        "applied_evidence": "user_supplied_exabytes_dns_manager_and_zoho_verification_screenshots"
       }
     ],
-    "rule": "Do not invent or publish A/CNAME/TXT/MX values. Exact Zoho records must be copied from the LD Zoho Admin Console for lundusdigital.com and independently reviewed before DNS mutation.",
-    "dns_manager_access_verified": true,
-    "dns_zone_created": true,
-    "dns_zone_created_with_exabytes_support": true,
-    "observed_zone_inventory": {
-      "observed_at": "2026-09-20",
-      "evidence_level": "user_supplied_exabytes_dns_manager_screenshot",
-      "records": [
+    "observed_email_records": {
+      "mx": [
         {
-          "name": "@",
-          "type": "A",
-          "ttl": 14400,
-          "rdata": "103.7.9.22",
-          "action": "KEEP_UNTIL_WEBSITE_BINDING_REVIEW"
+          "host": "@",
+          "priority": 10,
+          "value": "mx.zoho.com",
+          "status": "VERIFIED"
         },
         {
-          "name": "@",
-          "type": "NS",
-          "ttl": 86400,
-          "rdata": "ns186.mschosting.com",
-          "action": "KEEP"
+          "host": "@",
+          "priority": 20,
+          "value": "mx2.zoho.com",
+          "status": "VERIFIED"
         },
         {
-          "name": "@",
-          "type": "NS",
-          "ttl": 86400,
-          "rdata": "ns185.mschosting.com",
-          "action": "KEEP"
-        },
-        {
-          "name": "@",
-          "type": "NS",
-          "ttl": 86400,
-          "rdata": "ns184.mschosting.com",
-          "action": "KEEP"
-        },
-        {
-          "name": "@",
-          "type": "MX",
-          "ttl": 14400,
-          "rdata": "0 lundusdigital.com",
-          "action": "REPLACE_ONLY_AFTER_EXACT_ZOHO_MX_EVIDENCE"
-        },
-        {
-          "name": "mail",
-          "type": "CNAME",
-          "ttl": 14400,
-          "rdata": "lundusdigital.com",
-          "action": "KEEP_PENDING_MAIL_HOST_REVIEW"
-        },
-        {
-          "name": "www",
-          "type": "CNAME",
-          "ttl": 14400,
-          "rdata": "lundusdigital.com",
-          "action": "KEEP"
-        },
-        {
-          "name": "ftp",
-          "type": "CNAME",
-          "ttl": 14400,
-          "rdata": "lundusdigital.com",
-          "action": "KEEP"
-        },
-        {
-          "name": "@",
-          "type": "TXT",
-          "ttl": 14440,
-          "rdata": "zoho-verification=zb36894990.zmverify.zoho.com",
-          "action": "KEEP_PENDING_ZOHO_PROVIDER_VERIFICATION"
+          "host": "@",
+          "priority": 50,
+          "value": "mx3.zoho.com",
+          "status": "VERIFIED"
         }
       ],
-      "txt_record_count_observed": 1,
-      "mx_conflict_detected": true,
-      "mx_conflict_note": "Existing root MX points to lundusdigital.com and must not remain when Zoho MX becomes authoritative. Exact deletion/addition sequence is blocked until Zoho Admin Console evidence is captured."
-    }
+      "spf": {
+        "host": "@",
+        "value": "v=spf1 include:zohomail.com ~all",
+        "status": "VERIFIED"
+      },
+      "dkim": {
+        "selector": "ld2026",
+        "host": "ld2026._domainkey",
+        "public_key_value_status": "NOT_TRANSCRIBED_IN_REPOSITORY",
+        "status": "VERIFIED_BY_ZOHO_AND_EXTERNAL_GMAIL_AUTHENTICATION"
+      },
+      "dmarc": {
+        "host": "_dmarc",
+        "value": "v=DMARC1; p=none; rua=mailto:dmarc@lundusdigital.com; ruf=mailto:dmarc@lundusdigital.com; sp=none; adkim=r; aspf=r; pct=100",
+        "status": "VERIFIED"
+      }
+    },
+    "rule": "Do not invent DNS values. Preserve existing website A/CNAME/NS records unless separately reviewed. Further DNS mutation requires explicit human approval."
   },
   "email": {
     "provider": "Zoho Mail",
@@ -131,113 +97,101 @@
     "official_channel_selection": {
       "primary_commercial_email": {
         "value": "hello@lundusdigital.com",
-        "status": "SELECTED_NOT_VERIFIED"
+        "status": "VERIFIED_ACTIVE"
       },
       "support_complaint_email": {
         "value": "support@lundusdigital.com",
-        "status": "SELECTED_NOT_VERIFIED"
+        "status": "INBOUND_ROUTING_VERIFIED"
       },
       "billing_email": {
         "value": "billing@lundusdigital.com",
-        "status": "SELECTED_NOT_VERIFIED"
+        "status": "INBOUND_ROUTING_VERIFIED"
+      },
+      "dmarc_reporting_email": {
+        "value": "dmarc@lundusdigital.com",
+        "status": "INBOUND_ROUTING_VERIFIED"
       }
     },
     "official_commercial_email": "hello@lundusdigital.com",
-    "official_commercial_email_status": "CREATED_ACTIVE_PENDING_MAIL_ROUTING_VERIFICATION",
+    "official_commercial_email_status": "PASS_OUTBOUND_DELIVERY_AND_AUTHENTICATION",
+    "sender_display_name": "LUNDUS DIGITAL SYSTEMS",
+    "sender_display_name_status": "PASS",
     "support_complaint_channel": "support@lundusdigital.com",
-    "support_complaint_channel_status": "SELECTED_NOT_VERIFIED",
+    "support_complaint_channel_status": "PASS_INBOUND_ROUTING",
+    "billing_channel": "billing@lundusdigital.com",
+    "billing_channel_status": "PASS_INBOUND_ROUTING",
     "mailbox_architecture": {
       "licensed_users_planned": 1,
       "licensed_users_purchased": 1,
       "primary_mailbox": "hello@lundusdigital.com",
-      "primary_mailbox_status": "CREATED_ACTIVE_PENDING_MAIL_ROUTING_VERIFICATION",
+      "primary_mailbox_status": "ACTIVE",
       "aliases": [
         "support@lundusdigital.com",
-        "billing@lundusdigital.com"
+        "billing@lundusdigital.com",
+        "dmarc@lundusdigital.com"
       ],
-      "alias_status": "SELECTED_NOT_VERIFIED",
-      "rationale": "Initial single-operator setup minimizes cost while preserving distinct customer-facing commercial, support and billing addresses."
+      "alias_receive_status": "PASS",
+      "alias_send_as_status": "NOT_TESTED",
+      "rationale": "Single licensed mailbox with role aliases minimizes cost while preserving distinct commercial, support, billing and DMARC channels."
+    },
+    "authentication": {
+      "external_test_target": "Gmail",
+      "external_delivery_status": "PASS",
+      "observed_delivery_latency_seconds": 3,
+      "spf": "PASS",
+      "dkim": "PASS",
+      "dmarc": "PASS",
+      "dkim_domain": "lundusdigital.com",
+      "evidence_level": "user_supplied_gmail_original_message_screenshot",
+      "observed_at": "2026-09-20"
     },
     "exact_provider_records": {
       "domain_verification": {
         "type": "TXT",
         "host": "@",
         "value": "zoho-verification=zb36894990.zmverify.zoho.com",
-        "status": "APPLIED_PENDING_ZOHO_VERIFICATION"
+        "status": "VERIFIED"
       },
       "mx": [
         {
           "host": "@",
           "priority": 10,
           "value": "mx.zoho.com",
-          "status": "CAPTURED_NOT_APPLIED"
+          "status": "VERIFIED"
         },
         {
           "host": "@",
           "priority": 20,
           "value": "mx2.zoho.com",
-          "status": "CAPTURED_NOT_APPLIED"
+          "status": "VERIFIED"
         },
         {
           "host": "@",
           "priority": 50,
           "value": "mx3.zoho.com",
-          "status": "CAPTURED_NOT_APPLIED"
+          "status": "VERIFIED"
         }
       ],
       "spf": {
-        "host": null,
-        "value": null,
-        "status": "EVIDENCE_REQUIRED"
+        "host": "@",
+        "value": "v=spf1 include:zohomail.com ~all",
+        "status": "VERIFIED"
       },
       "dkim": {
-        "selector": null,
-        "host": null,
+        "selector": "ld2026",
+        "host": "ld2026._domainkey",
         "value": null,
-        "status": "EVIDENCE_REQUIRED"
+        "value_recording_note": "Exact public-key TXT value was applied and verified in Zoho but is intentionally not reconstructed from screenshot evidence.",
+        "status": "VERIFIED"
       },
       "dmarc": {
         "host": "_dmarc",
-        "value": null,
-        "status": "DEFER_UNTIL_SPF_DKIM_VERIFIED"
+        "value": "v=DMARC1; p=none; rua=mailto:dmarc@lundusdigital.com; ruf=mailto:dmarc@lundusdigital.com; sp=none; adkim=r; aspf=r; pct=100",
+        "status": "VERIFIED"
       }
     },
-    "mx": {
-      "records": [
-        {
-          "host": "@",
-          "priority": 10,
-          "value": "mx.zoho.com"
-        },
-        {
-          "host": "@",
-          "priority": 20,
-          "value": "mx2.zoho.com"
-        },
-        {
-          "host": "@",
-          "priority": 50,
-          "value": "mx3.zoho.com"
-        }
-      ],
-      "status": "CAPTURED_NOT_APPLIED"
-    },
-    "spf": {
-      "record": null,
-      "status": "HOLD_EVIDENCE_REQUIRED"
-    },
-    "dkim": {
-      "records": [],
-      "status": "HOLD_EVIDENCE_REQUIRED"
-    },
-    "dmarc": {
-      "record": null,
-      "initial_policy_after_authentication": "p=none",
-      "status": "HOLD_UNTIL_SPF_DKIM_VERIFIED",
-      "promotion_rule": "Move toward quarantine/reject only after legitimate senders, SPF alignment, DKIM alignment and report monitoring are verified."
-    },
     "transactional_email_provider": "Resend",
-    "transactional_email_rule": "Zoho Mail is for human business correspondence. Transactional/system email remains on Resend and must not be routed through Zoho Mail.",
+    "transactional_email_rule": "Zoho Mail is for human business correspondence. Transactional/system email remains on Resend; DMARC enforcement must account for every legitimate sender before policy is strengthened.",
     "subscription_evidence": {
       "status": "PASS",
       "provider_confirmation": "You've successfully subscribed to our Mail Lite 10GB plan.",
@@ -248,12 +202,15 @@
       "charged_amount_evidence_status": "PENDING_RECEIPT_OR_INVOICE",
       "evidence_level": "user_supplied_checkout_summary_and_subscription_confirmation_screenshots"
     },
-    "mailbox_creation_evidence": {
-      "mailbox": "hello@lundusdigital.com",
-      "status": "CREATED_ACTIVE",
-      "observed_at": "2026-09-20",
-      "evidence_level": "user_supplied_zoho_admin_users_screenshot",
-      "note": "Zoho Users page shows hello@lundusdigital.com with active status. One additional address/alias indicator is visible but its identity is not yet verified."
+    "uat": {
+      "hello_outbound_to_gmail": "PASS",
+      "sender_display_name": "PASS",
+      "support_alias_inbound_to_hello": "PASS",
+      "billing_alias_inbound_to_hello": "PASS",
+      "dmarc_alias_inbound_to_hello": "PASS",
+      "support_alias_send_as": "NOT_TESTED",
+      "billing_alias_send_as": "NOT_TESTED",
+      "overall_basic_email_uat": "PASS"
     }
   },
   "security": {
@@ -274,43 +231,39 @@
     "EMAIL_PROVIDER_SELECTED": "PASS",
     "EMAIL_SUBSCRIPTION_ACTIVE": "PASS",
     "OFFICIAL_CHANNELS_SELECTED": "PASS",
-    "ZOHO_EXACT_DNS_RECORDS_CAPTURED": "HOLD",
+    "ZOHO_EXACT_DNS_RECORDS_CAPTURED": "PASS_WITH_DKIM_PUBLIC_KEY_NOT_TRANSCRIBED",
     "DNS_PRODUCTION_BINDING": "HOLD",
-    "EMAIL_DNS_AUTHENTICATION": "HOLD",
-    "OFFICIAL_COMMERCIAL_EMAIL": "HOLD",
-    "SUPPORT_COMPLAINT_CHANNEL": "HOLD",
+    "EMAIL_DNS_AUTHENTICATION": "PASS",
+    "OFFICIAL_COMMERCIAL_EMAIL": "PASS",
+    "SUPPORT_COMPLAINT_CHANNEL": "PASS_INBOUND",
+    "BILLING_CHANNEL": "PASS_INBOUND",
+    "DMARC_REPORTING_CHANNEL": "PASS_INBOUND",
     "LEGAL_TRUST_READY": "HOLD",
     "PUBLIC_LAUNCH": "HOLD",
     "DNS_ZONE_PRESENT": "PASS",
     "EXISTING_DNS_INVENTORY_CAPTURED": "PASS",
     "ZOHO_DOMAIN_VERIFICATION_RECORD_CAPTURED": "PASS",
     "ZOHO_DOMAIN_VERIFICATION_DNS_APPLIED": "PASS",
-    "ZOHO_DOMAIN_OWNERSHIP_VERIFIED": "HOLD",
+    "ZOHO_DOMAIN_OWNERSHIP_VERIFIED": "PASS",
     "OFFICIAL_MAILBOX_CREATED": "PASS",
-    "ZOHO_MX_RECORDS_CAPTURED": "PASS"
+    "ZOHO_MX_RECORDS_CAPTURED": "PASS",
+    "ZOHO_MX_VERIFIED": "PASS",
+    "ZOHO_SPF_VERIFIED": "PASS",
+    "ZOHO_DKIM_VERIFIED": "PASS",
+    "ZOHO_DMARC_VERIFIED": "PASS",
+    "OFFICIAL_ALIASES_CREATED": "PASS",
+    "BASIC_EMAIL_UAT": "PASS"
   },
-  "safe_sequence": [
-    "sign in to Zoho Mail Admin Console as an authorized administrator",
-    "select Domains and lundusdigital.com",
-    "capture exact domain-verification record shown for this Zoho organization",
-    "capture exact MX values and priorities shown for this domain/data center",
-    "capture exact SPF value shown by Zoho and reconcile with any existing SPF sender sources",
-    "create/select DKIM selector in Zoho and capture the exact TXT host and public-key value",
-    "prepare a DNS change set only; do not apply",
-    "human-review host, type, value, priority, TTL, existing-record conflicts and rollback",
-    "apply only the explicitly approved DNS records",
-    "verify domain ownership and MX in Zoho",
-    "verify inbound and outbound mail for hello@lundusdigital.com",
-    "verify support@ and billing@ aliases can receive and send as intended",
-    "verify SPF and DKIM alignment",
-    "only then prepare DMARC p=none and monitor reports before stronger policy",
-    "separately verify official commercial/support channel ownership",
-    "website Production binding remains a separate gate"
+  "remaining_email_checks": [
+    "Optional: verify Send As using support@lundusdigital.com if customer replies must originate from the support identity.",
+    "Optional: verify Send As using billing@lundusdigital.com if billing replies must originate from the billing identity.",
+    "Monitor DMARC aggregate reports while p=none before considering quarantine/reject.",
+    "Reconcile Resend SPF/DKIM alignment before stronger DMARC enforcement."
   ],
   "authority": {
     "dns_mutation_authorized": false,
     "nameserver_change_authorized": false,
-    "email_activation_authorized": false,
+    "email_activation_authorized": true,
     "vercel_production_binding_authorized": false,
     "payment_activation_authorized": false,
     "public_launch_authorized": false
