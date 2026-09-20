@@ -313,3 +313,60 @@ Each offer must define:
 - change-request trigger
 
 Productized offers improve buying clarity but do not create automatic quotation or payment authority.
+
+
+## Controlled Marketing Validation Phase
+
+Marketing architecture is considered sufficiently mature for controlled validation.
+
+### Architecture freeze
+
+Do not add major new marketing modules unless validation evidence identifies a specific missing capability.
+
+Current focus:
+- real traffic quality
+- qualified-lead conversion
+- quotation conversion
+- paid conversion
+- delivery acceptance
+- evidence-backed case study creation
+- referral generation
+- repeat / expansion behavior
+
+### Initial validation target
+
+Use the first controlled cohort as a learning target:
+
+100 relevant visitors
+→ 10 qualified leads
+→ 3–5 quotations
+→ at least 1 paid customer
+→ at least 1 evidence-backed case study
+
+These are validation targets, not guaranteed conversion rates.
+
+### Required metrics
+
+- relevant visitor count
+- visitor → qualified lead rate
+- qualified lead → quotation rate
+- quotation → paid conversion rate
+- cost per qualified lead, where paid acquisition exists
+- delivery acceptance rate
+- time to first response
+- time from lead to quotation
+- referral rate
+- repeat / expansion rate
+- evidence-backed case-study count
+
+### Decision rule
+
+After each validation cohort:
+1. identify the largest funnel leak,
+2. inspect evidence,
+3. improve only the relevant stage,
+4. re-test,
+5. avoid adding unrelated marketing complexity.
+
+Scale paid acquisition only after conversion, delivery, proof and downstream commercial controls are demonstrably stable.
+
