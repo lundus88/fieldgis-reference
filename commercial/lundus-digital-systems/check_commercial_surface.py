@@ -90,9 +90,13 @@ if legal_path.exists():
         if not verified.get(key):
             errors.append(f"legal trust: verified value missing {key}")
     pending=set(legal.get("pending_verified_values",[]))
-    for key in ["official_email","official_phone","official_trade_address_publication_approval","support_complaint_channel","policy_effective_dates"]:
-        if key not in pending:
-            errors.append(f"legal trust: pending verified value missing {key}")
+    expected_pending={"official_phone","official_trade_address_publication_approval","policy_effective_dates"}
+    if pending != expected_pending:
+        errors.append(f"legal trust: pending verified values drift: {sorted(pending)}")
+    if verified.get("official_email") != "hello@lundusdigital.com" or verified.get("official_email_status") != "PASS":
+        errors.append("legal trust: verified official email evidence drift")
+    if verified.get("support_complaint_channel") != "support@lundusdigital.com" or verified.get("support_complaint_channel_status") != "PASS_INBOUND":
+        errors.append("legal trust: verified support channel evidence drift")
     required_disclosures=set(legal.get("required_disclosures_bm",[]))
     for key in ["supplier_or_company_name","website_address","email","telephone","trade_address","service_main_characteristics","full_price_including_tax_and_other_cost","payment_method","sale_terms","estimated_supply_time"]:
         if key not in required_disclosures:
