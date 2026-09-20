@@ -15,4 +15,4 @@ jobs:
         run: python docs/commercial/lds-global-demand-engine/check_engine.py
       - name: Unit tests
         working-directory: docs/commercial/lds-global-demand-engine
-        run: python -m unittest test_engine.py
+        run: python -m unittest discover -p 'test_*.py'
