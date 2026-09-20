@@ -33,7 +33,7 @@ Current evidence state:
 - [x] OFFER_LOCKED — PASS
 - [x] COMMERCIAL_SURFACE_RC — merged; isolated Preview QA PASS
 - [ ] LEGAL_TRUST_READY — HOLD
-- [ ] DOMAIN_EMAIL_READY — HOLD
+- [ ] DOMAIN_EMAIL_READY — HOLD; email UAT PASS, Production domain binding/configuration fingerprint pending
 - [ ] LIVE_LEAD_INTAKE — HOLD
 - [ ] PAYMENT_PRODUCTION_READY — HOLD
 - [x] GOLDEN_TRANSACTION_DRY_RUN — PASS
@@ -67,13 +67,6 @@ Public charging remains HOLD while any mandatory gate is unresolved.
 ### HOLD / not live-verified
 
 - LEGAL_TRUST_READY
-- Zoho domain ownership verification completion
-- MX application and routing verification
-- SPF evidence
-- DKIM evidence
-- DMARC activation
-- official commercial email verification
-- support / complaint channel verification
 - effective Privacy / Terms / Refund policy versions
 - official telephone and approved public trade-address disclosure
 - LIVE_LEAD_INTAKE
@@ -93,13 +86,15 @@ Current bounded evidence:
 - DNS zone present: PASS
 - Zoho Mail provider selected: PASS
 - Mail Lite 10 GB subscription: PASS
-- primary mailbox hello@lundusdigital.com created: PASS, routing verification pending
-- support@lundusdigital.com and billing@lundusdigital.com: selected / alias verification pending
-- Zoho domain-verification TXT applied: pending provider verification
-- Zoho MX values captured: not applied
-- SPF: evidence required
-- DKIM: evidence required
-- DMARC: deferred until SPF/DKIM verified
+- hello@lundusdigital.com outbound delivery/authentication: PASS
+- support@lundusdigital.com inbound routing: PASS
+- billing@lundusdigital.com inbound routing: PASS
+- dmarc@lundusdigital.com inbound routing: PASS
+- Zoho domain ownership verification: PASS
+- MX: PASS
+- SPF: PASS
+- DKIM: PASS
+- DMARC: PASS with monitoring policy p=none
 - DNS Production binding: HOLD
 - website Production binding: HOLD
 
@@ -111,10 +106,8 @@ LEGAL_TRUST_READY remains HOLD while required public-commercial particulars or p
 
 Pending evidence includes:
 
-- official commercial email
 - official telephone
 - public trade-address publication approval
-- support / complaint channel
 - effective Privacy Notice version/date
 - effective Terms of Service version/date
 - effective Refund & Cancellation Policy version/date
@@ -223,7 +216,7 @@ Rule: evidence existence is not activation authority.
 
 ## 11. Controlled activation sequence
 
-1. Complete domain / email verification and legal / trust particulars.
+1. Complete the remaining legal / trust particulars: official phone, trade-address publication approval, and effective policy versions/dates.
 2. Verify current Production lead-intake, payment, notification and security configuration without enabling public charging.
 3. Capture current configuration fingerprints.
 4. Obtain explicit human authority for one minimum controlled Production transaction.
