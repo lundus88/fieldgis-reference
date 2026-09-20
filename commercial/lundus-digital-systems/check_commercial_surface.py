@@ -52,11 +52,15 @@ for token in ["billplz.com","functions/v1/vl-billplz-create-production","fetch("
         errors.append(f"site.js: live network/payment token forbidden in RC: {token}")
 
 for policy in ["privacy.html","terms.html","refund.html"]:
-    if "Effective date: to be confirmed before public commercial launch." not in html.get(policy,""):
-        errors.append(f"{policy}: RC effective-date guard missing")
+    text=html.get(policy,"")
+    for token in ["Candidate version:","1.0-RC2","Effective date:","pending explicit human approval"]:
+        if token not in text:
+            errors.append(f"{policy}: policy candidate guard missing {token}")
 for policy in ["privacy-bm.html","terms-bm.html","refund-bm.html"]:
-    if "Tarikh kuat kuasa: akan disahkan sebelum pelancaran komersial awam." not in html.get(policy,""):
-        errors.append(f"{policy}: BM RC effective-date guard missing")
+    text=html.get(policy,"")
+    for token in ["Versi calon:","1.0-RC2","Tarikh kuat kuasa:","menunggu kelulusan manusia"]:
+        if token not in text:
+            errors.append(f"{policy}: BM policy candidate guard missing {token}")
 
 analytics_path=root/"analytics-contract.json"
 if analytics_path.exists():

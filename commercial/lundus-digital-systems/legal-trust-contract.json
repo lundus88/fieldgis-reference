@@ -62,5 +62,22 @@
     "personal_owner_email_or_phone_must_not_be_used_as_official_commercial_contact_without_explicit_approval": true,
     "official_trade_address_requires_publication_approval": true
   },
-  "launch_rule": "LEGAL_TRUST_READY remains HOLD while pending_verified_values is non-empty or policy effective versions are not explicitly approved."
+  "launch_rule": "LEGAL_TRUST_READY remains HOLD while official_phone or trade-address publication approval is pending, or while any policy candidate lacks explicit human approval and an effective date.",
+  "policy_candidates": {
+    "privacy": {
+      "version": "1.0-RC2",
+      "human_approved": false,
+      "effective_date": null
+    },
+    "terms": {
+      "version": "1.0-RC2",
+      "human_approved": false,
+      "effective_date": null
+    },
+    "refund_cancellation": {
+      "version": "1.0-RC2",
+      "human_approved": false,
+      "effective_date": null
+    }
+  }
 }

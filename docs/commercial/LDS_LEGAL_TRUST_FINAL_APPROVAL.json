@@ -1,0 +1,65 @@
+{
+  "schema": "lds.legal-trust-final-approval/1",
+  "as_of": "2026-09-20",
+  "status": "HOLD_HUMAN_APPROVAL_REQUIRED",
+  "policy_candidates": {
+    "privacy": {
+      "version": "1.0-RC2",
+      "english_path": "commercial/lundus-digital-systems/privacy.html",
+      "bm_path": "commercial/lundus-digital-systems/privacy-bm.html",
+      "effective_date": null,
+      "human_approved": false
+    },
+    "terms": {
+      "version": "1.0-RC2",
+      "english_path": "commercial/lundus-digital-systems/terms.html",
+      "bm_path": "commercial/lundus-digital-systems/terms-bm.html",
+      "effective_date": null,
+      "human_approved": false
+    },
+    "refund_cancellation": {
+      "version": "1.0-RC2",
+      "english_path": "commercial/lundus-digital-systems/refund.html",
+      "bm_path": "commercial/lundus-digital-systems/refund-bm.html",
+      "effective_date": null,
+      "human_approved": false
+    }
+  },
+  "commercial_particulars": {
+    "official_email": {
+      "value": "hello@lundusdigital.com",
+      "status": "PASS"
+    },
+    "support_complaint_channel": {
+      "value": "support@lundusdigital.com",
+      "status": "PASS_INBOUND"
+    },
+    "official_phone": {
+      "value": null,
+      "status": "HOLD_EVIDENCE_REQUIRED"
+    },
+    "trade_address": {
+      "value": null,
+      "verified_from_registration": true,
+      "public_display_approved": false,
+      "status": "HOLD_PUBLICATION_APPROVAL_REQUIRED"
+    }
+  },
+  "remaining_human_decisions": [
+    "OFFICIAL_COMMERCIAL_PHONE_VERIFIED",
+    "TRADE_ADDRESS_PUBLICATION_APPROVED",
+    "PRIVACY_EFFECTIVE_VERSION_APPROVED",
+    "TERMS_EFFECTIVE_VERSION_APPROVED",
+    "REFUND_EFFECTIVE_VERSION_APPROVED"
+  ],
+  "legal_trust_ready": false,
+  "production_activation_authorized": false,
+  "live_payment_authorized": false,
+  "public_launch_authorized": false,
+  "rules": [
+    "No phone number may be invented or inferred.",
+    "No trade address may be published until explicit human approval is recorded.",
+    "No policy candidate becomes effective without explicit human approval and an effective date.",
+    "Policy approval does not authorize Production deployment, live charging, or public launch."
+  ]
+}

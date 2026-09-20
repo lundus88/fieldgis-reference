@@ -24,7 +24,7 @@ for token,label in [
     ("BELUM DISAHKAN","unverified business particulars"),
     ("Live payment is not yet enabled.","checkout HOLD"),
     ("No information is transmitted in this Release Candidate.","lead form disabled"),
-    ("Effective date: to be confirmed before public commercial launch.","policy effective dates pending"),
+    ("pending explicit human approval","policy effective dates pending"),
 ]:
     found=any(token in p.read_text() for p in pages)
     if found:

@@ -31,8 +31,23 @@
     "TERMS_EFFECTIVE_VERSION_APPROVED",
     "REFUND_EFFECTIVE_VERSION_APPROVED"
   ],
-  "legal_review_posture": "Compliance preparation only; not a legal opinion. Human review remains required before policy versions become effective and before the trade address is published.",
+  "legal_review_posture": "Compliance preparation only; not a legal opinion. Policy candidates are ready for human review but remain non-effective. Human approval remains required for policy effective versions, official phone verification, and trade-address publication.",
   "production_activation_authorized": false,
   "live_payment_authorized": false,
-  "public_launch_authorized": false
+  "public_launch_authorized": false,
+  "final_approval_manifest": "docs/commercial/LDS_LEGAL_TRUST_FINAL_APPROVAL.json",
+  "policy_candidates": {
+    "privacy": {
+      "version": "1.0-RC2",
+      "status": "READY_FOR_HUMAN_REVIEW"
+    },
+    "terms": {
+      "version": "1.0-RC2",
+      "status": "READY_FOR_HUMAN_REVIEW"
+    },
+    "refund_cancellation": {
+      "version": "1.0-RC2",
+      "status": "READY_FOR_HUMAN_REVIEW"
+    }
+  }
 }
