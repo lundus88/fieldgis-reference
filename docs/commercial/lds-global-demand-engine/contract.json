@@ -1,0 +1,76 @@
+{
+  "schema": "lds.global-demand-engine/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "principle": "Any qualified customer. Any supported market. One digital workflow.",
+  "north_star": "From any legitimate lead in the world to a completed paid digital service with minimal human friction.",
+  "channels": {
+    "P0": [
+      "GOOGLE_SEARCH",
+      "CLUTCH",
+      "UPWORK",
+      "SEO_CONTENT"
+    ],
+    "P1": [
+      "LINKEDIN",
+      "REFERRAL_PARTNERS",
+      "AFFILIATE_PARTNERS"
+    ],
+    "P2": [
+      "PRODUCT_HUNT",
+      "EVIDENCE_APPROVED_LOCAL_CHANNELS"
+    ]
+  },
+  "acquisition_flow": [
+    "DISCOVERY",
+    "VISITOR",
+    "LEAD_CAPTURED",
+    "QUALIFICATION",
+    "QUALIFIED_LEAD",
+    "MARKET_SUPPORT_CHECK",
+    "SERVICE_FIT_CHECK",
+    "COMMERCIAL_HANDOFF"
+  ],
+  "kpi_chain": [
+    "VISITOR",
+    "QUALIFIED_LEAD",
+    "QUOTATION",
+    "PAYMENT",
+    "DELIVERY",
+    "ACCEPTANCE",
+    "REPEAT_OR_REFERRAL"
+  ],
+  "qualification_requirements": [
+    "valid_contact_method",
+    "consent_or_lawful_contact_basis_where_required",
+    "source_attribution",
+    "intelligible_customer_need",
+    "service_offer_or_paid_discovery_match",
+    "country_identified_for_market_support_evaluation",
+    "no_unresolved_fraud_or_abuse_hold",
+    "no_explicit_unsupported_market_or_prohibited_service_condition"
+  ],
+  "dependencies": {
+    "pr_296_global_commerce_readiness": "NOT_SATISFIED_UNTIL_MERGED_TO_MAIN",
+    "pr_317_integrated_customer_lifecycle": "NOT_SATISFIED_UNTIL_MERGED_TO_MAIN"
+  },
+  "authority": {
+    "global_discovery": "ALLOWED",
+    "global_lead_capture": "ALLOWED_WITH_GUARDRAILS",
+    "global_qualification": "ALLOWED",
+    "global_commercial_handoff": "CONDITIONAL",
+    "global_paid_order": "HOLD",
+    "public_global_checkout": "HOLD",
+    "production_activation": "NOT_AUTHORIZED"
+  },
+  "invariants": [
+    "No channel may bypass lead qualification",
+    "No qualified lead may bypass market-support evaluation",
+    "No channel may imply worldwide paid-order support without evidence",
+    "No automatic payment without downstream commerce authority",
+    "Purchased or spam lists are not valid acquisition sources",
+    "Consent and applicable anti-spam and privacy requirements must be respected",
+    "Attribution never grants commercial authority",
+    "Unknown legal tax privacy sanctions payment or market conditions fail closed",
+    "Production and deployment authority remain HUMAN_ONLY"
+  ]
+}
