@@ -71,6 +71,72 @@
     "Consent and applicable anti-spam and privacy requirements must be respected",
     "Attribution never grants commercial authority",
     "Unknown legal tax privacy sanctions payment or market conditions fail closed",
-    "Production and deployment authority remain HUMAN_ONLY"
+    "Production and deployment authority remain HUMAN_ONLY",
+    "Referral rewards require accepted delivery verified sale attribution and fraud checks",
+    "Case studies and testimonials require evidence and appropriate customer permission handling",
+    "Expansion must not bypass scope quotation payment or lifecycle controls",
+    "The Digital Business Check is advisory and never grants commercial authority",
+    "Marketing must not fabricate ROI guaranteed savings or unsupported customer outcomes"
+  ],
+  "marketing_hook": "Tell us the business problem. We build the digital system.",
+  "growth_flywheel": {
+    "demand_loop": [
+      "CONTENT",
+      "SEARCH",
+      "SOCIAL",
+      "BRAND_MEMORY"
+    ],
+    "capture_loop": [
+      "HIGH_INTENT_CHANNEL",
+      "LANDING_PAGE",
+      "LEAD_CAPTURE",
+      "QUALIFICATION"
+    ],
+    "proof_loop": [
+      "DELIVERY",
+      "MEASURABLE_RESULT",
+      "CASE_STUDY",
+      "REVIEW_OR_TESTIMONIAL",
+      "TRUST"
+    ],
+    "referral_loop": [
+      "ACCEPTED_DELIVERY",
+      "SATISFIED_CUSTOMER",
+      "REFERRAL",
+      "QUALIFIED_LEAD",
+      "VERIFIED_SALE",
+      "APPROVED_REWARD"
+    ],
+    "expansion_loop": [
+      "INITIAL_SERVICE",
+      "DELIVERED_OUTCOME",
+      "ADJACENT_NEED",
+      "NEW_SCOPE",
+      "QUOTATION",
+      "ADDITIONAL_SERVICE",
+      "SUPPORT_OR_RENEWAL"
+    ]
+  },
+  "digital_business_check": {
+    "name": "LD Digital Business Check",
+    "status": "PRE_LAUNCH_ADVISORY",
+    "output": [
+      "DIGITAL_EFFICIENCY_SCORE",
+      "PRIORITY_OPPORTUNITY_AREAS",
+      "RECOMMENDED_NEXT_ACTIONS"
+    ],
+    "cta": "GET_MY_LD_SYSTEM_PLAN",
+    "commercial_authority": false,
+    "roi_guarantee": false
+  },
+  "growth_metrics": [
+    "qualified_lead_rate_by_channel",
+    "quotation_rate_from_qualified_leads",
+    "paid_conversion_rate_after_downstream_approval",
+    "delivery_acceptance_rate",
+    "referral_rate_from_accepted_deliveries",
+    "repeat_or_expansion_rate",
+    "cost_per_qualified_lead_where_spend_exists",
+    "evidence_backed_case_study_count"
   ]
 }
