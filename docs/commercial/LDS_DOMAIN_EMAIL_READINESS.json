@@ -20,7 +20,7 @@
   "dns": {
     "current_nameserver_state": "EXABYTES_DNS_ZONE_PRESENT_WITH_MSCHOSTING_NS_RECORDS_OBSERVED",
     "nameserver_change_authorized": false,
-    "records_applied": false,
+    "records_applied": true,
     "production_binding_authorized": false,
     "exact_zoho_records_captured": false,
     "root_domain": {
@@ -39,8 +39,10 @@
         "host": "@",
         "value": "zoho-verification=zb36894990.zmverify.zoho.com",
         "source": "Zoho Mail Admin Console",
-        "evidence_status": "CAPTURED_NOT_APPLIED",
-        "observed_at": "2026-09-20"
+        "evidence_status": "APPLIED_PENDING_ZOHO_VERIFICATION",
+        "observed_at": "2026-09-20",
+        "applied_ttl": 14440,
+        "applied_evidence": "user_supplied_exabytes_dns_manager_screenshot"
       }
     ],
     "rule": "Do not invent or publish A/CNAME/TXT/MX values. Exact Zoho records must be copied from the LD Zoho Admin Console for lundusdigital.com and independently reviewed before DNS mutation.",
@@ -106,9 +108,16 @@
           "ttl": 14400,
           "rdata": "lundusdigital.com",
           "action": "KEEP"
+        },
+        {
+          "name": "@",
+          "type": "TXT",
+          "ttl": 14440,
+          "rdata": "zoho-verification=zb36894990.zmverify.zoho.com",
+          "action": "KEEP_PENDING_ZOHO_PROVIDER_VERIFICATION"
         }
       ],
-      "txt_record_count_observed": 0,
+      "txt_record_count_observed": 1,
       "mx_conflict_detected": true,
       "mx_conflict_note": "Existing root MX points to lundusdigital.com and must not remain when Zoho MX becomes authoritative. Exact deletion/addition sequence is blocked until Zoho Admin Console evidence is captured."
     }
@@ -154,7 +163,7 @@
         "type": "TXT",
         "host": "@",
         "value": "zoho-verification=zb36894990.zmverify.zoho.com",
-        "status": "CAPTURED_NOT_APPLIED"
+        "status": "APPLIED_PENDING_ZOHO_VERIFICATION"
       },
       "mx": [],
       "spf": {
@@ -232,7 +241,9 @@
     "PUBLIC_LAUNCH": "HOLD",
     "DNS_ZONE_PRESENT": "PASS",
     "EXISTING_DNS_INVENTORY_CAPTURED": "PASS",
-    "ZOHO_DOMAIN_VERIFICATION_RECORD_CAPTURED": "PASS"
+    "ZOHO_DOMAIN_VERIFICATION_RECORD_CAPTURED": "PASS",
+    "ZOHO_DOMAIN_VERIFICATION_DNS_APPLIED": "PASS",
+    "ZOHO_DOMAIN_OWNERSHIP_VERIFIED": "HOLD"
   },
   "safe_sequence": [
     "sign in to Zoho Mail Admin Console as an authorized administrator",
