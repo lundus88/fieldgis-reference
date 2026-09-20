@@ -28,8 +28,8 @@ if (root/"contract.json").exists():
         errors.append("production must remain unauthorized")
     deps=c.get("dependencies",{})
     for key in ["pr_296_global_commerce_readiness","pr_317_integrated_customer_lifecycle"]:
-        if "NOT_SATISFIED" not in deps.get(key,""):
-            errors.append(f"dependency {key} must remain unsatisfied until merged")
+        if deps.get(key)!="SATISFIED_ON_MAIN":
+            errors.append(f"dependency {key} must be satisfied on main")
     if c.get("marketing_hook")!="Tell us the business problem. We build the digital system.":
         errors.append("marketing hook drift")
     if sorted(c.get("growth_flywheel",{}).keys())!=["capture_loop","demand_loop","expansion_loop","proof_loop","referral_loop"]:
