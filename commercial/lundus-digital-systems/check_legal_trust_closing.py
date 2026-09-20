@@ -231,8 +231,8 @@ for token in [
     "lundusdigital.com",
     "hello@lundusdigital.com",
     "support@lundusdigital.com",
-    "Nombor telefon rasmi: <strong>BELUM DISAHKAN</strong>",
-    "BELUM DILULUSKAN",
+    "Nombor telefon awam LD: <strong>BELUM DISEDIAKAN / DISAHKAN</strong>",
+    "BELUM DIKENAL PASTI / DISAHKAN",
 ]:
     if token not in bm:
         errors.append(f"BM disclosure missing guard/evidence: {token}")
