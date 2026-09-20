@@ -1,6 +1,17 @@
 {
   "schema": "lds.integrated-customer-lifecycle-gate/1",
   "status": "DEVELOPMENT_NON_PRODUCTION",
+  "global_transaction_principle": "Any qualified customer. Any supported market. One digital workflow.",
+  "north_star": "From any legitimate lead in the world to a completed paid digital service with minimal human friction.",
+  "commercial_kpi_chain": [
+    "VISITOR",
+    "QUALIFIED_LEAD",
+    "QUOTATION",
+    "PAYMENT",
+    "DELIVERY",
+    "ACCEPTANCE",
+    "REPEAT_OR_REFERRAL"
+  ],
   "canonical_flow": [
     "ASSESSMENT",
     "BLUEPRINT",
@@ -13,8 +24,40 @@
     "UAT",
     "DELIVERY",
     "SUPPORT",
-    "RENEWAL_OR_EXIT"
+    "RENEWAL_REPEAT_REFERRAL_OR_EXIT"
   ],
+  "funnel_to_lifecycle": {
+    "VISITOR": [
+      "ACQUISITION_SIGNAL_ONLY"
+    ],
+    "QUALIFIED_LEAD": [
+      "ASSESSMENT",
+      "BLUEPRINT"
+    ],
+    "QUOTATION": [
+      "PRICING_REVIEW",
+      "QUOTATION"
+    ],
+    "PAYMENT": [
+      "PAYMENT_RECONCILIATION"
+    ],
+    "DELIVERY": [
+      "KICKOFF",
+      "BUILD",
+      "QA",
+      "UAT",
+      "DELIVERY"
+    ],
+    "ACCEPTANCE": [
+      "CUSTOMER_ACCEPTANCE_EVIDENCE"
+    ],
+    "REPEAT_OR_REFERRAL": [
+      "SUPPORT",
+      "RENEWAL",
+      "REFERRAL",
+      "EXIT"
+    ]
+  },
   "hard_gates": [
     "approved_scope",
     "human_approved_quotation",
@@ -28,7 +71,8 @@
     "change_request_if_material_scope_change",
     "support_plan_if_recurring_support_selected",
     "handover_exit_if_project_closure_or_exit",
-    "renewal_review_if_plan_expiring_or_expansion_signal"
+    "renewal_review_if_plan_expiring_or_expansion_signal",
+    "referral_or_testimonial_only_after_delivery_and_acceptance"
   ],
   "advisory_inputs": [
     "pricing_estimation_intelligence",
@@ -40,11 +84,15 @@
   "invariants": [
     "This gate composes source evidence and must not create a second source of truth",
     "Advisory modules must never become implicit authority to advance a hard lifecycle state",
+    "Commercial KPI progression must never authorize a hard lifecycle transition",
+    "Visitor state carries no project or payment authority",
+    "Qualified lead status must not bypass market support or global commerce readiness",
     "Payment evidence alone must not advance a project to BUILDING",
     "Material scope change requires approved Change Request before build continues on changed scope",
     "QA PASS requires QA evidence",
     "UAT or customer acceptance requires customer evidence",
     "Delivery complete requires delivery evidence",
+    "Repeat or referral status requires completed delivery and customer acceptance evidence",
     "Unknown stale missing or contradictory hard-gate evidence returns HOLD",
     "Project size may reduce optional process but cannot bypass mandatory consequential gates",
     "Production deployment authority remains separate and HUMAN_ONLY"
