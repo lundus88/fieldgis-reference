@@ -1,0 +1,82 @@
+{
+  "schema": "lds.smart-client-discovery/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "principle": "Ask only what changes the solution.",
+  "flow": [
+    "QUALIFIED_LEAD",
+    "SMART_CLIENT_DISCOVERY",
+    "REQUIREMENT_BRIEF_DRAFT",
+    "CUSTOMER_CONFIRMATION",
+    "SCOPE_REVIEW",
+    "QUOTATION"
+  ],
+  "primary_question_target": {
+    "min": 5,
+    "max": 8
+  },
+  "materiality_dimensions": [
+    "solution_type",
+    "scope",
+    "pricing_basis",
+    "delivery_effort",
+    "dependency",
+    "compliance",
+    "acceptance_criteria",
+    "implementation_risk"
+  ],
+  "brief_required_fields": [
+    "objective",
+    "solution_type",
+    "target_users",
+    "must_have",
+    "optional",
+    "exclusions",
+    "existing_assets",
+    "integrations",
+    "data_sensitivity",
+    "delivery_constraints",
+    "assumptions",
+    "unresolved_questions",
+    "acceptance_criteria_draft",
+    "confidence_state",
+    "customer_confirmation_state"
+  ],
+  "states": [
+    "DISCOVERY_IN_PROGRESS",
+    "READY_FOR_CUSTOMER_CONFIRMATION",
+    "CUSTOMER_CONFIRMED",
+    "NEEDS_HUMAN_REVIEW",
+    "INSUFFICIENT_INFORMATION",
+    "DECLINED_OR_UNSUPPORTED"
+  ],
+  "privacy": {
+    "prohibited_default_requests": [
+      "passwords",
+      "private_api_secrets",
+      "full_payment_card_details",
+      "unnecessary_identity_documents",
+      "production_database_dumps"
+    ],
+    "sensitive_integration_policy": "ASK_CLASSIFICATION_NOT_SECRET"
+  },
+  "human_review_triggers": [
+    "material_legal_or_regulatory_interpretation",
+    "high_risk_personal_or_confidential_data",
+    "request_to_bypass_security_contractual_or_legal_control",
+    "material_requirement_contradiction",
+    "quotation_ambiguity",
+    "unverified_material_integration_feasibility"
+  ],
+  "authority": {
+    "requirement_brief": true,
+    "scope_candidates": true,
+    "complexity_indicators": true,
+    "recommended_offer_family": true,
+    "authoritative_quotation": false,
+    "contract_approval": false,
+    "payment": false,
+    "delivery_date_promise": false,
+    "feasibility_guarantee": false,
+    "production_activation": false
+  }
+}
