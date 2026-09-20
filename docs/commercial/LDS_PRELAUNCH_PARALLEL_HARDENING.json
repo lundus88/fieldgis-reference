@@ -137,7 +137,13 @@
         {
           "pr": 218,
           "ahead_by": 2,
-          "classification": "DIVERGED_UNIQUE_COMMITS_REVIEW_REQUIRED"
+          "classification": "DIVERGED_UNIQUE_SECURITY_HARDENING_KEEP_OPEN_FOR_DEDICATED_REVIEW",
+          "evidence": [
+            "vl/migrations/20260914_security_invoker_rpc_guarded_entry.sql absent from main",
+            "vl/tests/check_database_security_rpc.py absent from main",
+            "vl/tests/database-security fixture absent from main"
+          ],
+          "action": "DO_NOT_CLOSE_OR_MERGE_IN_THIS_LD_HARDENING_PR"
         }
       ],
       "close_authorized": false,
