@@ -49,8 +49,8 @@ if verified.get("trade_address_evidence_status") != "VERIFIED_PRESENT_VALUE_REDA
     errors.append("trade address SSM evidence must be verified and redacted")
 
 expected_pending = {
-    "official_phone_public_use_approval",
-    "official_trade_address_publication_approval",
+    "ld_dedicated_business_phone",
+    "ld_public_business_address",
 }
 pending = set(contract.get("pending_verified_values", []))
 if pending != expected_pending:
@@ -98,8 +98,8 @@ if gates.get("LEGAL_TRUST_READY") != "HOLD":
     errors.append("LEGAL_TRUST_READY must remain HOLD until remaining blockers close")
 
 expected_blockers = {
-    "OFFICIAL_COMMERCIAL_PHONE_PUBLIC_USE_APPROVED",
-    "TRADE_ADDRESS_PUBLICATION_APPROVED",
+    "LD_DEDICATED_BUSINESS_PHONE_VERIFIED",
+    "LD_PUBLIC_BUSINESS_ADDRESS_VALIDATED",
 }
 
 pack = load_json(docs / "LDS_LEGAL_TRUST_CLOSING_PACK.json")
@@ -134,11 +134,29 @@ for key in ["privacy", "terms", "refund_cancellation"]:
     if candidate.get("effective_date") != "2026-09-20":
         errors.append(f"closing pack policy effective-date drift: {key}")
 
+contact_policy = load_json(docs / "LDS_PUBLIC_CONTACT_SEPARATION_POLICY.json")
+if contact_policy.get("schema") != "lds.public-contact-separation-policy/1":
+    errors.append("public contact separation policy schema drift")
+if contact_policy.get("decision_status") != "APPROVED":
+    errors.append("public contact separation policy must be APPROVED")
+if contact_policy.get("public_identity_strategy") != "SEPARATE_BUSINESS_CONTACTS":
+    errors.append("public identity strategy drift")
+decisions = contact_policy.get("decisions", {})
+if decisions.get("ssm_registered_phone", {}).get("use_as_public_ld_phone") is not False:
+    errors.append("SSM phone must not be public LD phone")
+if decisions.get("ssm_trade_address", {}).get("publish_as_public_ld_address") is not False:
+    errors.append("SSM trade address must not be public LD address")
+if contact_policy.get("legal_trust_ready") is not False:
+    errors.append("contact policy must keep legal_trust_ready=false")
+for key in ["production_activation_authorized","live_payment_authorized","public_launch_authorized"]:
+    if contact_policy.get(key) is not False:
+        errors.append(f"contact policy authority must remain false: {key}")
+
 approval = load_json(docs / "LDS_LEGAL_TRUST_FINAL_APPROVAL.json")
 if approval.get("schema") != "lds.legal-trust-final-approval/1":
     errors.append("final approval schema drift")
-if approval.get("status") != "HOLD_SENSITIVE_PARTICULARS_APPROVAL_REQUIRED":
-    errors.append("final approval manifest must remain HOLD_SENSITIVE_PARTICULARS_APPROVAL_REQUIRED")
+if approval.get("status") != "HOLD_SEPARATE_PUBLIC_CONTACTS_REQUIRED":
+    errors.append("final approval manifest must remain HOLD_SEPARATE_PUBLIC_CONTACTS_REQUIRED")
 if approval.get("legal_trust_ready") is not False:
     errors.append("final approval manifest must keep legal_trust_ready=false")
 for key in ["production_activation_authorized", "live_payment_authorized", "public_launch_authorized"]:
@@ -159,29 +177,29 @@ if particulars.get("support_complaint_channel", {}).get("status") != "PASS_INBOU
 
 phone = particulars.get("official_phone", {})
 if phone.get("value") is not None:
-    errors.append("official phone value must remain excluded from the public repository")
-if phone.get("evidence_present") is not True:
-    errors.append("official phone evidence must be present")
-if phone.get("evidence_status") != "VERIFIED_PRESENT":
-    errors.append("official phone evidence status drift")
-if phone.get("public_use_approved") is not False:
-    errors.append("official phone public use must remain unapproved")
-if phone.get("status") != "HOLD_PUBLIC_USE_APPROVAL_REQUIRED":
-    errors.append("official phone must remain HOLD_PUBLIC_USE_APPROVAL_REQUIRED")
+    errors.append("public LD phone must remain unset until a dedicated business line is verified")
+if phone.get("source_strategy") != "SEPARATE_LD_BUSINESS_PHONE":
+    errors.append("official phone source strategy drift")
+if phone.get("ssm_value_public_use_approved") is not False:
+    errors.append("SSM phone must remain not approved for public use")
+if phone.get("ssm_value_rejected_for_public_identity") is not True:
+    errors.append("SSM phone must remain rejected for public LD identity")
+if phone.get("status") != "HOLD_PROVISION_AND_VERIFY":
+    errors.append("dedicated LD phone must remain HOLD_PROVISION_AND_VERIFY")
 
 address = particulars.get("trade_address", {})
 if address.get("value") is not None:
-    errors.append("trade address value must not be published in approval manifest")
-if address.get("verified_from_registration") is not True:
-    errors.append("trade address registration evidence state drift")
-if address.get("evidence_present") is not True:
-    errors.append("trade address evidence must be present")
+    errors.append("public LD business address must remain unset until a separate address is validated")
+if address.get("source_strategy") != "SEPARATE_PUBLIC_BUSINESS_ADDRESS":
+    errors.append("trade address source strategy drift")
+if address.get("ssm_value_public_display_approved") is not False:
+    errors.append("SSM trade address must remain not approved for public display")
+if address.get("ssm_value_rejected_for_public_identity") is not True:
+    errors.append("SSM trade address must remain rejected for public LD identity")
 if address.get("overlaps_owner_residential_information") is not True:
     errors.append("trade address residential-overlap privacy signal missing")
-if address.get("public_display_approved") is not False:
-    errors.append("trade address public display must remain unapproved")
-if address.get("status") != "HOLD_PUBLICATION_APPROVAL_REQUIRED":
-    errors.append("trade address must remain HOLD_PUBLICATION_APPROVAL_REQUIRED")
+if address.get("status") != "HOLD_IDENTIFY_VALIDATE_AND_APPROVE":
+    errors.append("separate public business address must remain HOLD_IDENTIFY_VALIDATE_AND_APPROVE")
 
 approval_candidates = approval.get("policy_candidates", {})
 for key in ["privacy", "terms", "refund_cancellation"]:
@@ -286,6 +304,6 @@ print("legal_trust=HOLD")
 print("official_email=PASS")
 print("support_channel=PASS_INBOUND")
 print("policy_versions=1.0_APPROVED_EFFECTIVE_2026-09-20")
-print("official_phone_evidence=PASS_REDACTED; public_use=HOLD")
-print("trade_address_publication=HOLD")
+print("dedicated_ld_phone=HOLD_PROVISION_AND_VERIFY")
+print("separate_public_business_address=HOLD_IDENTIFY_VALIDATE_AND_APPROVE")
 print("policy_effective_versions=PASS")
