@@ -1,0 +1,29 @@
+{
+  "schema": "lds.global-transaction-compliance/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "inputs": [
+    "customer_country",
+    "merchant_country",
+    "transaction_currency",
+    "fx_rate_source",
+    "fx_rate_timestamp",
+    "tax_treatment_evidence",
+    "market_support_status",
+    "compliance_evidence_current"
+  ],
+  "outputs": [
+    "status",
+    "risk_flags",
+    "fx_evidence_status",
+    "tax_evidence_status",
+    "human_review_required"
+  ],
+  "invariants": [
+    "FX rates must be evidence-backed and current; the engine must not invent or silently infer an exchange rate",
+    "Tax treatment must be supplied from verified policy or professional evidence; this engine does not provide tax advice",
+    "Unsupported markets return HOLD",
+    "Missing or stale compliance evidence returns REVIEW or HOLD",
+    "Customer charging and Production activation remain separately human-authorized"
+  ],
+  "production_activation_authorized": false
+}
