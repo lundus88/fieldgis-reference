@@ -19,7 +19,7 @@
     "support_complaint_channel": "support@lundusdigital.com",
     "support_complaint_channel_status": "PASS_INBOUND",
     "official_phone_evidence_status": "VERIFIED_PRESENT_VALUE_REDACTED",
-    "trade_address_evidence_status": "VERIFIED_PRESENT_VALUE_REDACTED",
+    "trade_address_evidence_status": "VERIFIED_PRESENT_PUBLICATION_APPROVED",
     "registered_business_address": "NO F165 SECTION HOUSING, KG DURIAN TUNJONG, 87007 LABUAN, W.P. LABUAN",
     "registered_business_address_status": "PASS_EXPLICITLY_APPROVED_FOR_PUBLICATION"
   },
