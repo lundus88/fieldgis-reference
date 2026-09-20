@@ -1,0 +1,47 @@
+{
+  "schema": "lds.third-party-dependency-risk/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "dependency_types": [
+    "hosting",
+    "database",
+    "email",
+    "payment",
+    "ai_api",
+    "map_provider",
+    "domain_dns",
+    "storage",
+    "analytics",
+    "other"
+  ],
+  "criticality": [
+    "LOW",
+    "MEDIUM",
+    "HIGH",
+    "CRITICAL"
+  ],
+  "required_fields": [
+    "provider_key",
+    "dependency_type",
+    "affected_projects",
+    "criticality",
+    "fallback_available",
+    "fallback_verified",
+    "data_sensitivity",
+    "commercial_impact",
+    "owner",
+    "last_verified_at"
+  ],
+  "invariants": [
+    "A provider outage must map to affected customer projects before impact is represented as known",
+    "Critical dependencies without a verified fallback must surface REVIEW or HOLD",
+    "Fallback existence is not enough; fallback readiness must be evidenced",
+    "Provider risk assessment must not auto-switch provider or mutate Production",
+    "Customer notification requires separate communication authority",
+    "Unknown or stale dependency ownership returns REVIEW",
+    "Secrets, API keys and credentials must never be stored in the dependency register",
+    "Third-party contractual or data-residency obligations must be recorded where relevant",
+    "A single provider may have different criticality across different customer projects",
+    "Provider health evidence and project impact evidence must be kept distinct"
+  ],
+  "production_activation_authorized": false
+}

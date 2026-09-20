@@ -1,0 +1,22 @@
+{
+  "schema": "lds.country-support-matrix/1",
+  "status": "HOLD_NO_COUNTRY_ACTIVATED",
+  "note": "Template only. No country is marked SUPPORTED by this file.",
+  "countries": {},
+  "required_evidence_fields": [
+    "country_code",
+    "currency_support_evidence",
+    "tax_treatment_evidence",
+    "contract_jurisdiction_evidence",
+    "privacy_evidence",
+    "data_residency_evidence",
+    "payment_method_evidence",
+    "support_timezone_evidence",
+    "builder_capability_evidence",
+    "delivery_uat_evidence",
+    "invoice_export_evidence",
+    "restrictions_check_evidence",
+    "evidence_reviewed_at",
+    "approved_by"
+  ]
+}
