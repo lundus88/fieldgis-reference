@@ -44,10 +44,10 @@
       "verification_evidence_id": "ZOHO_MX_VERIFIED_2026-09-20"
     },
     "spf": {
-      "host": null,
-      "value": null,
-      "evidence_id": null,
-      "status": "REQUIRED"
+      "host": "@",
+      "value": "v=spf1 include:zohomail.com ~all",
+      "evidence_id": "ZOHO_ADMIN_SPF_2026-09-20",
+      "status": "CAPTURED_NOT_APPLIED"
     },
     "dkim": {
       "selector": null,
@@ -189,7 +189,7 @@
     ]
   },
   "change_set_draft": {
-    "status": "MX_VERIFIED_SPF_DKIM_PENDING",
+    "status": "MX_VERIFIED_SPF_CAPTURED_DKIM_PENDING",
     "keep": [
       "@ A 103.7.9.22",
       "@ NS ns184.mschosting.com",
@@ -205,11 +205,12 @@
       "@ MX priority 0 lundusdigital.com"
     ],
     "add_pending_exact_zoho_admin_console": [
-      "single SPF TXT policy containing the authorized Zoho sender include/value",
       "DKIM TXT record for the exact LD selector/public key"
     ],
     "dns_mutation_authorized": false,
-    "add_ready_for_human_application_review": [],
+    "add_ready_for_human_application_review": [
+      "TXT @ = v=spf1 include:zohomail.com ~all"
+    ],
     "applied_pending_provider_verification": [
       "TXT @ TTL 14440 = zoho-verification=zb36894990.zmverify.zoho.com",
       "MX @ priority 10 = mx.zoho.com",
