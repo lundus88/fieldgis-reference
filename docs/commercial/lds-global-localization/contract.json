@@ -1,0 +1,32 @@
+{
+  "schema": "lds.global-localization/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "inputs": [
+    "market",
+    "requested_locale",
+    "approved_locale_pack_version",
+    "language",
+    "display_currency",
+    "timezone",
+    "policy_content_version",
+    "translation_review_status"
+  ],
+  "outputs": [
+    "resolution_status",
+    "resolved_locale",
+    "resolved_currency_display",
+    "policy_version",
+    "risk_flags",
+    "human_review_required"
+  ],
+  "invariants": [
+    "Locale packs must be approved and versioned before customer-facing activation",
+    "Legal, tax and regulatory text must not be invented or materially altered by automatic translation",
+    "Currency display is presentation only and does not authorize exchange-rate conversion or customer charging",
+    "Unsupported market or locale must return fallback review rather than silently assuming another jurisdiction",
+    "Translations affecting customer rights, price, scope or obligations require reviewed source content",
+    "Localization evidence does not itself authorize Production activation"
+  ],
+  "production_activation_authorized": false,
+  "automatic_legal_translation_authorized": false
+}

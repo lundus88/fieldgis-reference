@@ -1,0 +1,24 @@
+{
+  "schema": "lds.customer-success-referral/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "states": [
+    "DELIVERED",
+    "SUCCESS_CHECK_PENDING",
+    "SATISFACTION_CONFIRMED",
+    "TESTIMONIAL_ELIGIBLE",
+    "REFERRAL_ELIGIBLE",
+    "FOLLOW_UP_REQUIRED"
+  ],
+  "invariants": [
+    "No complaint must never be treated as proof of customer satisfaction",
+    "Customer success requires delivery evidence plus explicit satisfaction confirmation or equivalent evidence",
+    "Testimonial publication requires explicit customer permission",
+    "Referral request may only occur after customer success evidence exists",
+    "Referral contact details must not be harvested or contacted without appropriate customer/referral consent",
+    "A negative or unresolved satisfaction signal routes to follow-up, not testimonial or referral solicitation",
+    "Customer success evidence must be traceable to the relevant project and acceptance record",
+    "Testimonials must not be edited into materially different claims without customer approval",
+    "No incentive or reward may be promised unless separately approved and disclosed"
+  ],
+  "production_activation_authorized": false
+}
