@@ -52,5 +52,10 @@
       "effective_date": "2026-09-20"
     }
   },
-  "public_contact_policy": "docs/commercial/LDS_PUBLIC_CONTACT_SEPARATION_POLICY.json"
+  "public_contact_policy": "docs/commercial/LDS_PUBLIC_CONTACT_SEPARATION_POLICY.json",
+  "public_contact_provisioning_plan": "docs/commercial/LDS_PUBLIC_CONTACT_PROVISIONING_PLAN.json",
+  "next_external_actions": [
+    "Provision dedicated LD business phone and retain ownership/control evidence.",
+    "Validate and select separate lawful public business/correspondence address with written permitted-use evidence."
+  ]
 }
