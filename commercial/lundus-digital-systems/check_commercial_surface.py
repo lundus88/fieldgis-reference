@@ -111,7 +111,7 @@ if legal_path.exists():
             errors.append(f"legal trust: missing BM disclosure contract {key}")
 
 bm=(root/"maklumat-urusniaga.html").read_text() if (root/"maklumat-urusniaga.html").exists() else ""
-for token in ['lang="ms"',"Maklumat Pembekal & Urus Niaga","202603248473 (003891235-V)","lundusdigital.com","BELUM DISAHKAN","Harga penuh","Kaedah pembayaran","Anggaran masa pembekalan perkhidmatan","Pembetulan kesilapan & pengakuterimaan pesanan"]:
+for token in ['lang="ms"',"Maklumat Pembekal & Urus Niaga","202603248473 (003891235-V)","lundusdigital.com","BELUM DISEDIAKAN / DISAHKAN","BELUM DIKENAL PASTI / DISAHKAN","Harga penuh","Kaedah pembayaran","Anggaran masa pembekalan perkhidmatan","Pembetulan kesilapan & pengakuterimaan pesanan"]:
     if token not in bm:
         errors.append(f"BM disclosure: missing {token}")
 
