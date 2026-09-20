@@ -1,0 +1,86 @@
+{
+  "schema": "lds.public-contact-due-diligence/1",
+  "as_of": "2026-09-21",
+  "status": "EVIDENCE_REVIEW_COMPLETE_NO_PURCHASE",
+  "phone": {
+    "verification_order": [
+      {
+        "provider": "Maxis Business",
+        "candidate": "Business Postpaid 80",
+        "position": 1,
+        "reason": "Public Maxis Business material clearly states the plan is for registered businesses; current published entry price is RM80/month and Business eSIM is supported.",
+        "published_price": "RM80/month",
+        "published_data": "300GB",
+        "published_calls_sms": "unlimited",
+        "esim": "supported for Maxis Business Postpaid",
+        "remaining_checks": [
+          "confirm sole proprietorship account opening under LUNDUS DIGITAL SYSTEMS using current SSM documents",
+          "confirm Labuan coverage at intended operating locations",
+          "confirm no unwanted device contract",
+          "retain business account / ownership evidence after activation"
+        ],
+        "sources": [
+          "https://www.business.maxis.com.my/en/faq/plans/postpaid-plan/",
+          "https://www.business.maxis.com.my/en/mobile/postpaid-plan/",
+          "https://www.business.maxis.com.my/en/faq/mobile/esim/"
+        ]
+      },
+      {
+        "provider": "CelcomDigi Business",
+        "candidate": "Business Postpaid 5G entry / SIM-only",
+        "position": 2,
+        "reason": "Current published business offers can be cheaper, including tiers/promotions from RM58, but the public eligibility wording references Enterprise / Corporate Officer / Corporate Individual categories and should be confirmed for this sole proprietorship before purchase.",
+        "published_price": "from RM58/month on current business page",
+        "published_calls_sms": "unlimited",
+        "remaining_checks": [
+          "confirm LUNDUS DIGITAL SYSTEMS sole proprietorship qualifies under the applicable business-account category",
+          "confirm exact SIM-only plan price and contract term at signup",
+          "confirm Labuan coverage",
+          "retain business account / ownership evidence after activation"
+        ],
+        "sources": [
+          "https://business.celcomdigi.com/plan/postpaid-phone"
+        ]
+      }
+    ],
+    "decision": "VERIFY_MAXIS_FIRST",
+    "purchase_authorized": false
+  },
+  "address": {
+    "decision": "USE_EXISTING_SSM_REGISTERED_BUSINESS_ADDRESS",
+    "authoritative_source": "SSM registered business certificate/business information",
+    "address_value_persisted_in_public_repository": true,
+    "separate_address_required": false,
+    "external_address_provider_due_diligence_required": false,
+    "ssm_change_required": false,
+    "reason": "User confirmed the actual LD business address is the address stated in the business registration/certificate. No address change is being made.",
+    "public_disclosure": {
+      "status": "PASS_EXPLICITLY_APPROVED",
+      "approved_on": "2026-09-21",
+      "approved_scope": "Publish the SSM-registered business address as the official LD business address on public commercial surfaces.",
+      "value": "NO F165 SECTION HOUSING, KG DURIAN TUNJONG, 87007 LABUAN, W.P. LABUAN"
+    },
+    "legal_context": {
+      "ssm_change_rule": "SSM change notification applies only if the registered business address actually changes.",
+      "electronic_trade_schedule": "For an online marketplace supplier, the 2024 Schedule lists the address from which the trade or advertisement is operated among required disclosures."
+    },
+    "sources": [
+      "https://www.ssm.com.my/Pages/Register_Business_Company_LLP/Business/Making_Changes.aspx",
+      "https://repositori.kpdn.gov.my/bitstream/123456789/5299/1/PERATURAN%20URUSNIAGA%20PERDAGANGAN%20DALAM%20ELEKTRONIK%202024.pdf"
+    ],
+    "authoritative_value": "NO F165 SECTION HOUSING, KG DURIAN TUNJONG, 87007 LABUAN, W.P. LABUAN"
+  },
+  "legal_trust": {
+    "status": "HOLD",
+    "remaining_blockers": [
+      "LD_DEDICATED_BUSINESS_PHONE_VERIFIED"
+    ]
+  },
+  "authority": {
+    "external_signup_authorized": false,
+    "address_contract_authorized": false,
+    "production_activation_authorized": false,
+    "live_payment_authorized": false,
+    "public_launch_authorized": false
+  }
+}

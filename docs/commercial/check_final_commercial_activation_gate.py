@@ -97,9 +97,17 @@ else:
     if gates.get("LEGAL_TRUST_READY") != "HOLD":
         errors.append("LEGAL_TRUST_READY must remain HOLD")
     privacy = evidence.get("privacy", {})
-    for key in ["owner_personal_identifiers_persisted","personal_contact_details_persisted","exact_trade_address_persisted"]:
+    for key in ["owner_personal_identifiers_persisted","personal_contact_details_persisted"]:
         if privacy.get(key) is not False:
             errors.append(f"privacy guardrail must remain false: {key}")
+    if privacy.get("exact_trade_address_persisted") is not True:
+        errors.append("registered business address must be persisted after explicit publication approval")
+    if privacy.get("publication_approval_pending") is not False:
+        errors.append("registered business address publication approval must be closed")
+    if identity.get("official_trade_address", {}).get("value") != "NO F165 SECTION HOUSING, KG DURIAN TUNJONG, 87007 LABUAN, W.P. LABUAN":
+        errors.append("business/licence registered address drift")
+    if identity.get("official_trade_address", {}).get("public_display_approved") is not True:
+        errors.append("business/licence registered address must be publication-approved")
 
 if not domain_path.exists():
     errors.append("domain/email readiness manifest missing")

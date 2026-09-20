@@ -104,11 +104,12 @@ Verified SSM phone/address evidence is retained only as registration evidence an
 
 Approved public-contact strategy:
 - do not use the SSM-recorded telephone as the public LD commercial phone
-- do not publish the SSM trade address because it overlaps owner residential information
 - provision and verify a dedicated LD business phone
-- identify, validate and approve a separate lawful public business/correspondence address
+- keep the address stated in the SSM certificate/registration as LD's authoritative business address
+- do not procure a replacement address unless the business actually moves
+- publish the verified SSM-registered business address on approved LD commercial surfaces; publication approval recorded on 21 September 2026
 
-Exact sensitive SSM phone/address values remain excluded from this public repository.
+Registered business address approved for public display: `NO F165 SECTION HOUSING, KG DURIAN TUNJONG, 87007 LABUAN, W.P. LABUAN`.
 
 ## 6. Business registration / licence evidence gate
 
@@ -223,7 +224,7 @@ Rule:
 ## 10. Controlled activation sequence from current state
 
 1. **COMPLETE:** capture and verify official business-registration/licence evidence.
-2. Provision and verify a dedicated LD business phone, then identify, validate and approve a separate lawful public business/correspondence address. The SSM phone/address are not approved for LD public identity. Policy versions 1.0 are already approved effective 20 September 2026.
+2. Provision and verify a dedicated LD business phone. The existing SSM-registered business address is already verified and approved for public display; no replacement address is required while it remains current. Policy versions 1.0 are already approved effective 20 September 2026.
 3. Verify Production lead-intake, WAF, Turnstile, payment and notification configuration; capture configuration fingerprints without enabling public charging.
 4. Obtain separate explicit human authority for the minimum controlled Production configuration needed to perform one Golden Transaction; this authority is not public-launch authority.
 5. Perform one controlled paid Commercial Golden Transaction only after LEGAL_TRUST_READY is PASS and all Production transaction prerequisites are current.

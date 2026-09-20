@@ -1,7 +1,7 @@
 {
   "schema": "lds.public-contact-provisioning-plan/1",
   "as_of": "2026-09-21",
-  "status": "READY_FOR_EXTERNAL_PROVISIONING",
+  "status": "READY_FOR_PHONE_PROVISIONING",
   "phone": {
     "goal": "Provision one dedicated customer-facing mobile number for LUNDUS DIGITAL SYSTEMS under a business-appropriate account.",
     "must_have": [
@@ -30,51 +30,30 @@
       }
     ],
     "selection_rule": "Choose the lowest-friction business-registered line with acceptable Labuan coverage, no unnecessary device contract, and clear business-account evidence. Coverage/availability must be confirmed at registration time.",
-    "status": "HOLD_EXTERNAL_SIGNUP_AND_VERIFICATION"
+    "status": "HOLD_EXTERNAL_SIGNUP_AND_VERIFICATION",
+    "preferred_verification_order": [
+      "Maxis Business Postpaid 80",
+      "CelcomDigi Business entry/SIM-only"
+    ],
+    "next_action": "VERIFY_MAXIS_BUSINESS_ACCOUNT_ELIGIBILITY_AND_LABUAN_COVERAGE"
   },
   "address": {
-    "goal": "Obtain a separate lawful public business/correspondence address without exposing the owner's residential-overlapping SSM address.",
-    "must_have": [
-      "provider confirms in writing the exact permitted use of the address",
-      "physical location exists and mail can be received",
-      "not represented as a private office unless the service legitimately provides one",
-      "acceptable for LD's intended public disclosure purpose",
-      "if used as a changed principal place of business, SSM change process is completed within the applicable 30-day period"
-    ],
-    "current_labuan_candidates": [
-      {
-        "provider": "Universal Serviced Offices",
-        "location": "Financial Park Complex Labuan",
-        "status": "DUE_DILIGENCE_REQUIRED"
-      },
-      {
-        "provider": "Regus Labuan Financial Park",
-        "location": "Financial Park, Labuan",
-        "status": "DUE_DILIGENCE_REQUIRED"
-      },
-      {
-        "provider": "SOCOWO Labuan",
-        "location": "Financial Park Labuan Complex",
-        "status": "DUE_DILIGENCE_REQUIRED"
-      }
-    ],
-    "mandatory_questions_before_purchase": [
-      "Can this exact address lawfully be used by a Malaysian sole proprietorship as its public trade/business correspondence address?",
-      "Can it be used as the SSM principal place of business if LD decides to change that registered address?",
-      "Will the provider issue a service agreement or letter confirming LD's right to use the address?",
-      "Is mail/registered mail accepted and how is receipt evidenced?",
-      "Are there restrictions on displaying the address on website, invoices, quotations, receipts and marketplace profiles?",
-      "Is the facility a real physical business centre and what office/coworking access is included?",
-      "What is the monthly fee, deposit, setup fee, minimum term and cancellation rule?"
-    ],
-    "rule": "Do not treat a virtual-office marketing claim as sufficient legal evidence. Validate permitted use before relying on the address.",
-    "status": "HOLD_PROVIDER_VALIDATION_AND_SELECTION"
+    "goal": "Use the existing SSM-registered business address as LD's authoritative and public business address; do not procure a replacement address.",
+    "authoritative_source": "SSM registered business certificate/business information",
+    "value": "NO F165 SECTION HOUSING, KG DURIAN TUNJONG, 87007 LABUAN, W.P. LABUAN",
+    "separate_address_required": false,
+    "external_provider_required": false,
+    "ssm_change_required": false,
+    "value_persisted_in_public_repository": true,
+    "public_display_status": "PASS_EXPLICITLY_APPROVED",
+    "public_display_approved_on": "2026-09-21",
+    "next_action": "NONE_ADDRESS_GATE_CLOSED",
+    "rule": "The existing SSM-registered business address is approved for public LD commercial disclosure. No replacement address is required while the registered address remains current."
   },
   "legal_trust": {
     "status": "HOLD",
     "remaining_blockers": [
-      "LD_DEDICATED_BUSINESS_PHONE_VERIFIED",
-      "LD_PUBLIC_BUSINESS_ADDRESS_VALIDATED"
+      "LD_DEDICATED_BUSINESS_PHONE_VERIFIED"
     ]
   },
   "authority": {
@@ -82,5 +61,6 @@
     "production_activation_authorized": false,
     "live_payment_authorized": false,
     "public_launch_authorized": false
-  }
+  },
+  "due_diligence_evidence": "docs/commercial/LDS_PUBLIC_CONTACT_DUE_DILIGENCE_2026-09-21.json"
 }

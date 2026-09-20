@@ -1,6 +1,6 @@
 {
   "schema": "lds.legal-trust-readiness/1",
-  "as_of": "2026-09-20",
+  "as_of": "2026-09-21",
   "production_ready": false,
   "applicable_basis": {
     "pdpa": "Personal Data Protection Act 2010 [Act 709] as amended",
@@ -19,7 +19,9 @@
     "support_complaint_channel": "support@lundusdigital.com",
     "support_complaint_channel_status": "PASS_INBOUND",
     "official_phone_evidence_status": "VERIFIED_PRESENT_VALUE_REDACTED",
-    "trade_address_evidence_status": "VERIFIED_PRESENT_VALUE_REDACTED"
+    "trade_address_evidence_status": "VERIFIED_PRESENT_PUBLICATION_APPROVED",
+    "registered_business_address": "NO F165 SECTION HOUSING, KG DURIAN TUNJONG, 87007 LABUAN, W.P. LABUAN",
+    "registered_business_address_status": "PASS_EXPLICITLY_APPROVED_FOR_PUBLICATION"
   },
   "required_disclosures_bm": [
     "supplier_or_company_name",
@@ -35,8 +37,7 @@
     "safety_health_certificate_if_applicable"
   ],
   "pending_verified_values": [
-    "ld_dedicated_business_phone",
-    "ld_public_business_address"
+    "ld_dedicated_business_phone"
   ],
   "language_readiness": {
     "supplier_disclosure_bm": "RC_PRESENT",
@@ -71,9 +72,10 @@
     "official_phone_requires_public_use_approval": true,
     "trade_address_overlaps_owner_residential_information": true,
     "ssm_phone_must_not_be_public_ld_contact": true,
-    "ssm_trade_address_must_not_be_public_ld_address": true
+    "ssm_trade_address_must_not_be_public_ld_address": false,
+    "registered_business_address_requires_publication_approval": false
   },
-  "launch_rule": "LEGAL_TRUST_READY remains HOLD until a dedicated LD business phone is verified and a separate lawful public business/correspondence address is validated and approved. Sensitive SSM phone/address values remain excluded from the public repository.",
+  "launch_rule": "LEGAL_TRUST_READY remains HOLD only until a dedicated LD business phone is verified. The existing SSM-registered business address is authoritative and explicitly approved for public commercial disclosure.",
   "policy_candidates": {
     "privacy": {
       "version": "1.0",
@@ -97,8 +99,10 @@
   "public_contact_strategy": {
     "policy": "docs/commercial/LDS_PUBLIC_CONTACT_SEPARATION_POLICY.json",
     "ssm_phone_public_use": false,
-    "ssm_trade_address_publication": false,
     "dedicated_ld_phone_required": true,
-    "separate_public_business_address_required": true
+    "ssm_registered_business_address_authoritative": true,
+    "replacement_business_address_required": false,
+    "registered_business_address_publication_approved": true,
+    "registered_business_address_value": "NO F165 SECTION HOUSING, KG DURIAN TUNJONG, 87007 LABUAN, W.P. LABUAN"
   }
 }

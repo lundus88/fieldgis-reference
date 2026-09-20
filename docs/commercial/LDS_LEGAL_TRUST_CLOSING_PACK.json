@@ -1,6 +1,6 @@
 {
   "schema": "lds.legal-trust-closing-pack/1",
-  "as_of": "2026-09-20",
+  "as_of": "2026-09-21",
   "status": "HOLD",
   "dependency": {
     "business_registration_pr": 332,
@@ -24,13 +24,16 @@
     "bm_terms_surface": "RC_PRESENT",
     "bm_refund_surface": "RC_PRESENT",
     "commercial_phone_evidence": "SSM_FORM_A_VERIFIED_PRESENT_VALUE_REDACTED",
-    "trade_address_evidence": "SSM_BUSINESS_INFO_VERIFIED_PRESENT_VALUE_REDACTED"
+    "trade_address_evidence": "SSM_BUSINESS_INFO_VERIFIED_PUBLICATION_APPROVED",
+    "registered_business_address_evidence": "SSM_BUSINESS_INFO_VERIFIED_PRESENT_VALUE_REDACTED",
+    "registered_business_address_is_authoritative": true,
+    "registered_business_address": "NO F165 SECTION HOUSING, KG DURIAN TUNJONG, 87007 LABUAN, W.P. LABUAN",
+    "registered_business_address_publication": "PASS_EXPLICITLY_APPROVED"
   },
   "remaining_blockers": [
-    "LD_DEDICATED_BUSINESS_PHONE_VERIFIED",
-    "LD_PUBLIC_BUSINESS_ADDRESS_VALIDATED"
+    "LD_DEDICATED_BUSINESS_PHONE_VERIFIED"
   ],
-  "legal_review_posture": "Compliance preparation only; not a legal opinion. LD has approved separation of public business contacts from sensitive SSM phone/address evidence. Legal & Trust remains HOLD until a dedicated LD business phone and a separate lawful public business/correspondence address are verified.",
+  "legal_review_posture": "Compliance preparation only; not a legal opinion. The SSM-registered address is confirmed as LD's actual business address and is explicitly approved for public commercial display. Legal & Trust remains HOLD only for a dedicated LD business phone.",
   "production_activation_authorized": false,
   "live_payment_authorized": false,
   "public_launch_authorized": false,
@@ -55,7 +58,6 @@
   "public_contact_policy": "docs/commercial/LDS_PUBLIC_CONTACT_SEPARATION_POLICY.json",
   "public_contact_provisioning_plan": "docs/commercial/LDS_PUBLIC_CONTACT_PROVISIONING_PLAN.json",
   "next_external_actions": [
-    "Provision dedicated LD business phone and retain ownership/control evidence.",
-    "Validate and select separate lawful public business/correspondence address with written permitted-use evidence."
+    "Provision dedicated LD business phone and retain ownership/control evidence."
   ]
 }

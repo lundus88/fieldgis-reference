@@ -1,6 +1,6 @@
 {
   "schema": "lds.activation-snapshot/1",
-  "as_of": "2026-09-20",
+  "as_of": "2026-09-21",
   "snapshot_id": null,
   "snapshot_status": "HOLD_NOT_FORMED",
   "single_use": true,
@@ -34,10 +34,13 @@
     "policy_effective_date": "2026-09-20",
     "policy_approval_evidence_id": "LDS_LEGAL_TRUST_POLICY_APPROVAL_2026-09-20",
     "remaining_particulars": [
-      "LD_DEDICATED_BUSINESS_PHONE_VERIFIED",
-      "LD_PUBLIC_BUSINESS_ADDRESS_VALIDATED"
+      "LD_DEDICATED_BUSINESS_PHONE_VERIFIED"
     ],
-    "public_contact_policy": "docs/commercial/LDS_PUBLIC_CONTACT_SEPARATION_POLICY.json"
+    "public_contact_policy": "docs/commercial/LDS_PUBLIC_CONTACT_SEPARATION_POLICY.json",
+    "registered_business_address_authoritative": true,
+    "replacement_business_address_required": false,
+    "registered_business_address": "NO F165 SECTION HOUSING, KG DURIAN TUNJONG, 87007 LABUAN, W.P. LABUAN",
+    "registered_business_address_publication": "PASS_EXPLICITLY_APPROVED"
   },
   "lead_intake": {
     "repository": "lundus88/lundus-lead",

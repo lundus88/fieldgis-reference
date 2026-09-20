@@ -45,12 +45,15 @@ if verified.get("support_complaint_channel_status") != "PASS_INBOUND":
     errors.append("support channel evidence must be PASS_INBOUND")
 if verified.get("official_phone_evidence_status") != "VERIFIED_PRESENT_VALUE_REDACTED":
     errors.append("official phone SSM evidence must be verified and redacted")
-if verified.get("trade_address_evidence_status") != "VERIFIED_PRESENT_VALUE_REDACTED":
-    errors.append("trade address SSM evidence must be verified and redacted")
+if verified.get("trade_address_evidence_status") != "VERIFIED_PRESENT_PUBLICATION_APPROVED":
+    errors.append("trade address SSM evidence must be verified and publication-approved")
+if verified.get("registered_business_address") != "NO F165 SECTION HOUSING, KG DURIAN TUNJONG, 87007 LABUAN, W.P. LABUAN":
+    errors.append("registered business address drift")
+if verified.get("registered_business_address_status") != "PASS_EXPLICITLY_APPROVED_FOR_PUBLICATION":
+    errors.append("registered business address publication status drift")
 
 expected_pending = {
     "ld_dedicated_business_phone",
-    "ld_public_business_address",
 }
 pending = set(contract.get("pending_verified_values", []))
 if pending != expected_pending:
@@ -99,7 +102,6 @@ if gates.get("LEGAL_TRUST_READY") != "HOLD":
 
 expected_blockers = {
     "LD_DEDICATED_BUSINESS_PHONE_VERIFIED",
-    "LD_PUBLIC_BUSINESS_ADDRESS_VALIDATED",
 }
 
 pack = load_json(docs / "LDS_LEGAL_TRUST_CLOSING_PACK.json")
@@ -122,8 +124,12 @@ if pack_verified.get("support_complaint_channel") != "support@lundusdigital.com"
     errors.append("closing pack support channel drift")
 if pack_verified.get("commercial_phone_evidence") != "SSM_FORM_A_VERIFIED_PRESENT_VALUE_REDACTED":
     errors.append("closing pack phone evidence must remain verified/redacted")
-if pack_verified.get("trade_address_evidence") != "SSM_BUSINESS_INFO_VERIFIED_PRESENT_VALUE_REDACTED":
-    errors.append("closing pack trade address evidence must remain verified/redacted")
+if pack_verified.get("trade_address_evidence") != "SSM_BUSINESS_INFO_VERIFIED_PUBLICATION_APPROVED":
+    errors.append("closing pack trade address evidence publication status drift")
+if pack_verified.get("registered_business_address") != "NO F165 SECTION HOUSING, KG DURIAN TUNJONG, 87007 LABUAN, W.P. LABUAN":
+    errors.append("closing pack registered business address drift")
+if pack_verified.get("registered_business_address_publication") != "PASS_EXPLICITLY_APPROVED":
+    errors.append("closing pack registered business address publication drift")
 
 for key in ["privacy", "terms", "refund_cancellation"]:
     candidate = pack.get("policy_candidates", {}).get(key, {})
@@ -134,15 +140,50 @@ for key in ["privacy", "terms", "refund_cancellation"]:
     if candidate.get("effective_date") != "2026-09-20":
         errors.append(f"closing pack policy effective-date drift: {key}")
 
+due_diligence = load_json(docs / "LDS_PUBLIC_CONTACT_DUE_DILIGENCE_2026-09-21.json")
+if due_diligence.get("schema") != "lds.public-contact-due-diligence/1":
+    errors.append("public contact due diligence schema drift")
+if due_diligence.get("status") != "EVIDENCE_REVIEW_COMPLETE_NO_PURCHASE":
+    errors.append("public contact due diligence must remain evidence-only")
+if due_diligence.get("phone", {}).get("decision") != "VERIFY_MAXIS_FIRST":
+    errors.append("phone verification order drift")
+if due_diligence.get("address", {}).get("decision") != "USE_EXISTING_SSM_REGISTERED_BUSINESS_ADDRESS":
+    errors.append("registered business address decision drift")
+if due_diligence.get("address", {}).get("separate_address_required") is not False:
+    errors.append("replacement address must not be required")
+if due_diligence.get("address", {}).get("ssm_change_required") is not False:
+    errors.append("SSM change must not be required while address is unchanged")
+if due_diligence.get("address", {}).get("public_disclosure", {}).get("status") != "PASS_EXPLICITLY_APPROVED":
+    errors.append("registered address publication must be explicitly approved")
+if due_diligence.get("address", {}).get("authoritative_value") != "NO F165 SECTION HOUSING, KG DURIAN TUNJONG, 87007 LABUAN, W.P. LABUAN":
+    errors.append("due diligence registered address drift")
+if set(due_diligence.get("legal_trust", {}).get("remaining_blockers", [])) != expected_blockers:
+    errors.append("due diligence blocker set drift")
+for key in ["external_signup_authorized","address_contract_authorized","production_activation_authorized","live_payment_authorized","public_launch_authorized"]:
+    if due_diligence.get("authority", {}).get(key) is not False:
+        errors.append(f"due diligence authority must remain false: {key}")
+
 provisioning = load_json(docs / "LDS_PUBLIC_CONTACT_PROVISIONING_PLAN.json")
 if provisioning.get("schema") != "lds.public-contact-provisioning-plan/1":
     errors.append("public contact provisioning plan schema drift")
-if provisioning.get("status") != "READY_FOR_EXTERNAL_PROVISIONING":
-    errors.append("public contact provisioning plan must be READY_FOR_EXTERNAL_PROVISIONING")
+if provisioning.get("status") != "READY_FOR_PHONE_PROVISIONING":
+    errors.append("public contact provisioning plan status drift")
 if provisioning.get("phone", {}).get("status") != "HOLD_EXTERNAL_SIGNUP_AND_VERIFICATION":
     errors.append("dedicated LD phone must remain external-signup HOLD")
-if provisioning.get("address", {}).get("status") != "HOLD_PROVIDER_VALIDATION_AND_SELECTION":
-    errors.append("public business address must remain provider-validation HOLD")
+if provisioning.get("address", {}).get("authoritative_source") != "SSM registered business certificate/business information":
+    errors.append("registered business address source drift")
+if provisioning.get("address", {}).get("separate_address_required") is not False:
+    errors.append("replacement address must not be required in provisioning plan")
+if provisioning.get("address", {}).get("public_display_status") != "PASS_EXPLICITLY_APPROVED":
+    errors.append("registered business address publication must be PASS_EXPLICITLY_APPROVED")
+if provisioning.get("address", {}).get("value") != "NO F165 SECTION HOUSING, KG DURIAN TUNJONG, 87007 LABUAN, W.P. LABUAN":
+    errors.append("provisioning registered business address drift")
+if provisioning.get("due_diligence_evidence") != "docs/commercial/LDS_PUBLIC_CONTACT_DUE_DILIGENCE_2026-09-21.json":
+    errors.append("provisioning due diligence evidence link drift")
+if provisioning.get("phone", {}).get("next_action") != "VERIFY_MAXIS_BUSINESS_ACCOUNT_ELIGIBILITY_AND_LABUAN_COVERAGE":
+    errors.append("phone next action drift")
+if provisioning.get("address", {}).get("next_action") != "NONE_ADDRESS_GATE_CLOSED":
+    errors.append("registered address next action drift")
 if set(provisioning.get("legal_trust", {}).get("remaining_blockers", [])) != expected_blockers:
     errors.append("provisioning plan blocker set drift")
 for key in ["purchase_authorized","production_activation_authorized","live_payment_authorized","public_launch_authorized"]:
@@ -154,13 +195,19 @@ if contact_policy.get("schema") != "lds.public-contact-separation-policy/1":
     errors.append("public contact separation policy schema drift")
 if contact_policy.get("decision_status") != "APPROVED":
     errors.append("public contact separation policy must be APPROVED")
-if contact_policy.get("public_identity_strategy") != "SEPARATE_BUSINESS_CONTACTS":
+if contact_policy.get("public_identity_strategy") != "SEPARATE_BUSINESS_PHONE_REGISTERED_BUSINESS_ADDRESS":
     errors.append("public identity strategy drift")
 decisions = contact_policy.get("decisions", {})
 if decisions.get("ssm_registered_phone", {}).get("use_as_public_ld_phone") is not False:
     errors.append("SSM phone must not be public LD phone")
-if decisions.get("ssm_trade_address", {}).get("publish_as_public_ld_address") is not False:
-    errors.append("SSM trade address must not be public LD address")
+if decisions.get("ssm_trade_address", {}).get("use_as_authoritative_ld_business_address") is not True:
+    errors.append("SSM registered address must remain authoritative LD business address")
+if decisions.get("ssm_trade_address", {}).get("publish_as_public_ld_address") is not True:
+    errors.append("registered business address publication must be approved")
+if decisions.get("ssm_trade_address", {}).get("publication_status") != "PASS_EXPLICITLY_APPROVED":
+    errors.append("registered business address publication status drift")
+if decisions.get("ssm_trade_address", {}).get("value") != "NO F165 SECTION HOUSING, KG DURIAN TUNJONG, 87007 LABUAN, W.P. LABUAN":
+    errors.append("contact policy registered business address drift")
 if contact_policy.get("legal_trust_ready") is not False:
     errors.append("contact policy must keep legal_trust_ready=false")
 for key in ["production_activation_authorized","live_payment_authorized","public_launch_authorized"]:
@@ -170,8 +217,8 @@ for key in ["production_activation_authorized","live_payment_authorized","public
 approval = load_json(docs / "LDS_LEGAL_TRUST_FINAL_APPROVAL.json")
 if approval.get("schema") != "lds.legal-trust-final-approval/1":
     errors.append("final approval schema drift")
-if approval.get("status") != "HOLD_SEPARATE_PUBLIC_CONTACTS_REQUIRED":
-    errors.append("final approval manifest must remain HOLD_SEPARATE_PUBLIC_CONTACTS_REQUIRED")
+if approval.get("status") != "HOLD_DEDICATED_PHONE_REQUIRED":
+    errors.append("final approval manifest status drift")
 if approval.get("legal_trust_ready") is not False:
     errors.append("final approval manifest must keep legal_trust_ready=false")
 for key in ["production_activation_authorized", "live_payment_authorized", "public_launch_authorized"]:
@@ -203,18 +250,18 @@ if phone.get("status") != "HOLD_PROVISION_AND_VERIFY":
     errors.append("dedicated LD phone must remain HOLD_PROVISION_AND_VERIFY")
 
 address = particulars.get("trade_address", {})
-if address.get("value") is not None:
-    errors.append("public LD business address must remain unset until a separate address is validated")
-if address.get("source_strategy") != "SEPARATE_PUBLIC_BUSINESS_ADDRESS":
+if address.get("value") != "NO F165 SECTION HOUSING, KG DURIAN TUNJONG, 87007 LABUAN, W.P. LABUAN":
+    errors.append("registered business address value drift")
+if address.get("source_strategy") != "SSM_REGISTERED_BUSINESS_ADDRESS":
     errors.append("trade address source strategy drift")
-if address.get("ssm_value_public_display_approved") is not False:
-    errors.append("SSM trade address must remain not approved for public display")
-if address.get("ssm_value_rejected_for_public_identity") is not True:
-    errors.append("SSM trade address must remain rejected for public LD identity")
-if address.get("overlaps_owner_residential_information") is not True:
-    errors.append("trade address residential-overlap privacy signal missing")
-if address.get("status") != "HOLD_IDENTIFY_VALIDATE_AND_APPROVE":
-    errors.append("separate public business address must remain HOLD_IDENTIFY_VALIDATE_AND_APPROVE")
+if address.get("authoritative_business_address") is not True:
+    errors.append("registered address must remain authoritative")
+if address.get("separate_address_required") is not False:
+    errors.append("replacement address must not be required")
+if address.get("public_display_approved") is not True:
+    errors.append("registered business address public display must be approved")
+if address.get("status") != "PASS":
+    errors.append("registered business address status must be PASS")
 
 approval_candidates = approval.get("policy_candidates", {})
 for key in ["privacy", "terms", "refund_cancellation"]:
@@ -247,7 +294,7 @@ for token in [
     "hello@lundusdigital.com",
     "support@lundusdigital.com",
     "Nombor telefon awam LD: <strong>BELUM DISEDIAKAN / DISAHKAN</strong>",
-    "BELUM DIKENAL PASTI / DISAHKAN",
+    "NO F165 SECTION HOUSING, KG DURIAN TUNJONG, 87007 LABUAN, W.P. LABUAN",
 ]:
     if token not in bm:
         errors.append(f"BM disclosure missing guard/evidence: {token}")
@@ -320,5 +367,5 @@ print("official_email=PASS")
 print("support_channel=PASS_INBOUND")
 print("policy_versions=1.0_APPROVED_EFFECTIVE_2026-09-20")
 print("dedicated_ld_phone=HOLD_PROVISION_AND_VERIFY")
-print("separate_public_business_address=HOLD_IDENTIFY_VALIDATE_AND_APPROVE")
+print("registered_business_address=PASS_VERIFIED_AND_PUBLICATION_APPROVED")
 print("policy_effective_versions=PASS")
