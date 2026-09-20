@@ -1,0 +1,18 @@
+name: LUNDUS DIGITAL SYSTEMS Data Governance Retention
+on:
+  pull_request:
+    paths:
+      - 'docs/commercial/lds-data-governance-retention/**'
+      - '.github/workflows/lds-data-governance-retention.yml'
+permissions:
+  contents: read
+jobs:
+  data-governance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with: {python-version: '3.12'}
+      - run: python3 docs/commercial/lds-data-governance-retention/check.py
+      - working-directory: docs/commercial/lds-data-governance-retention
+        run: python3 -m unittest -v test_engine.py

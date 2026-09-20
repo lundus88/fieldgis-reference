@@ -1,0 +1,33 @@
+{
+  "schema": "lds.data-governance-retention/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "inputs": [
+    "customer_org_id",
+    "data_class",
+    "retention_policy_version",
+    "record_age_days",
+    "retention_days",
+    "deletion_request",
+    "legal_hold",
+    "export_request",
+    "identity_authorized"
+  ],
+  "outputs": [
+    "retention_status",
+    "deletion_status",
+    "export_status",
+    "risk_flags",
+    "human_review_required"
+  ],
+  "invariants": [
+    "Data classification and retention decisions must use an approved and versioned policy",
+    "Deletion requests do not themselves authorize destructive deletion",
+    "Legal hold blocks destructive deletion until the hold is explicitly released by authorized process",
+    "Cross-tenant export is denied and customer export requires verified identity and organization authorization",
+    "Deletion evidence must prove the action without retaining deleted customer payload content",
+    "Production deletion or bulk export remains separately human-authorized"
+  ],
+  "production_activation_authorized": false,
+  "automatic_destructive_deletion_authorized": false,
+  "automatic_bulk_export_authorized": false
+}
