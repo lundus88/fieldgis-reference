@@ -84,5 +84,37 @@ class LOM45Tests(unittest.TestCase):
         with self.assertRaisesRegex(PermissionError,'HUMAN_APPROVAL_REQUIRED'):
             self.rt.allocate_production_capacity()
 
+    def test_resource_mode_reserves_capacity_before_exhaustion(self):
+        self.assertEqual(self.rt.resource_mode(70,100)['decision'],'SHED_NON_CRITICAL')
+        self.assertEqual(self.rt.resource_mode(85,100)['decision'],'CONTROLLED_MODE')
+        self.assertEqual(self.rt.resource_mode(95,100)['decision'],'CRITICAL_ONLY')
+
+    def test_internal_experiment_shed_first(self):
+        r=self.rt.admission_control('INTERNAL_EXPERIMENT','SHED_NON_CRITICAL')
+        self.assertEqual(r['decision'],'QUEUE')
+
+    def test_critical_only_preserves_p0_p1(self):
+        self.assertEqual(self.rt.admission_control('P0','CRITICAL_ONLY')['decision'],'ALLOW')
+        self.assertEqual(self.rt.admission_control('P3','CRITICAL_ONLY')['decision'],'QUEUE')
+
+    def test_checkpoint_requires_evidence(self):
+        r=self.rt.checkpoint('w1',3,[],[],'continue')
+        self.assertEqual(r['decision'],'HOLD')
+
+    def test_resume_never_restarts_from_zero(self):
+        cp=self.rt.checkpoint('w1',3,['artifact-1'],[],'run-tests')
+        r=self.rt.resume_plan(cp,['provider-b'])
+        self.assertEqual(r['decision'],'RESUME')
+        self.assertFalse(r['restart_from_zero'])
+        self.assertEqual(r['resume_step'],3)
+
+    def test_resource_exhaustion_prefers_fallback(self):
+        r=self.rt.handle_resource_exhaustion(True,['provider-b'])
+        self.assertEqual(r['decision'],'FALLBACK_ROUTE')
+
+    def test_resource_exhaustion_without_checkpoint_holds(self):
+        r=self.rt.handle_resource_exhaustion(False,['provider-b'])
+        self.assertEqual(r['decision'],'HOLD')
+
 if __name__ == '__main__':
     unittest.main()
