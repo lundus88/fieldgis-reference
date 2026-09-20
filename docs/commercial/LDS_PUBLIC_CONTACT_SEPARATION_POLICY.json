@@ -43,5 +43,11 @@
   "production_activation_authorized": false,
   "live_payment_authorized": false,
   "public_launch_authorized": false,
-  "rule": "SSM evidence remains authoritative registration evidence, but sensitive phone/address values are not public LD identity. Legal & Trust stays HOLD until separate customer-facing business contact particulars are verified."
+  "rule": "SSM evidence remains authoritative registration evidence, but sensitive phone/address values are not public LD identity. Legal & Trust stays HOLD until separate customer-facing business contact particulars are verified.",
+  "provisioning_plan": "docs/commercial/LDS_PUBLIC_CONTACT_PROVISIONING_PLAN.json",
+  "next_actions": [
+    "Select and provision a dedicated LD business mobile line.",
+    "Obtain written provider confirmation for a separate public business/correspondence address before purchase or reliance.",
+    "Verify both artifacts, then reassess LEGAL_TRUST_READY."
+  ]
 }

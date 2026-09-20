@@ -6,6 +6,7 @@ on:
       - 'docs/commercial/LDS_LEGAL_TRUST_CLOSING_PACK.json'
       - 'docs/commercial/LDS_LEGAL_TRUST_FINAL_APPROVAL.json'
       - 'docs/commercial/LDS_PUBLIC_CONTACT_SEPARATION_POLICY.json'
+      - 'docs/commercial/LDS_PUBLIC_CONTACT_PROVISIONING_PLAN.json'
       - '.github/workflows/lds-legal-trust-closing.yml'
 permissions:
   contents: read
