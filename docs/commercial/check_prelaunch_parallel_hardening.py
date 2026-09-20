@@ -79,8 +79,10 @@ for item in hygiene.get("superseded_candidates",[]):
     if item.get("pr") in [199,200,201,202,203,204] and item.get("ahead_by")!=0:
         errors.append(f"superseded candidate unexpectedly has unique commits: PR #{item.get('pr')}")
 review={x.get("pr"):x for x in hygiene.get("review_required",[])}
-if review.get(218,{}).get("classification")!="DIVERGED_UNIQUE_COMMITS_REVIEW_REQUIRED":
-    errors.append("PR #218 review-required classification missing")
+if review.get(218,{}).get("classification")!="DIVERGED_UNIQUE_SECURITY_HARDENING_KEEP_OPEN_FOR_DEDICATED_REVIEW":
+    errors.append("PR #218 dedicated security-review classification missing")
+if review.get(218,{}).get("action")!="DO_NOT_CLOSE_OR_MERGE_IN_THIS_LD_HARDENING_PR":
+    errors.append("PR #218 must remain outside this LD hardening merge scope")
 
 if errors:
     print("LDS Prelaunch Parallel Hardening: FAIL")
