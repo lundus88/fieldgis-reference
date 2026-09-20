@@ -143,14 +143,14 @@
       }
     },
     "official_commercial_email": "hello@lundusdigital.com",
-    "official_commercial_email_status": "SELECTED_NOT_VERIFIED",
+    "official_commercial_email_status": "CREATED_ACTIVE_PENDING_MAIL_ROUTING_VERIFICATION",
     "support_complaint_channel": "support@lundusdigital.com",
     "support_complaint_channel_status": "SELECTED_NOT_VERIFIED",
     "mailbox_architecture": {
       "licensed_users_planned": 1,
       "licensed_users_purchased": 1,
       "primary_mailbox": "hello@lundusdigital.com",
-      "primary_mailbox_status": "SELECTED_NOT_VERIFIED",
+      "primary_mailbox_status": "CREATED_ACTIVE_PENDING_MAIL_ROUTING_VERIFICATION",
       "aliases": [
         "support@lundusdigital.com",
         "billing@lundusdigital.com"
@@ -212,6 +212,13 @@
       "renewal_mode": "automatic using provided payment method",
       "charged_amount_evidence_status": "PENDING_RECEIPT_OR_INVOICE",
       "evidence_level": "user_supplied_checkout_summary_and_subscription_confirmation_screenshots"
+    },
+    "mailbox_creation_evidence": {
+      "mailbox": "hello@lundusdigital.com",
+      "status": "CREATED_ACTIVE",
+      "observed_at": "2026-09-20",
+      "evidence_level": "user_supplied_zoho_admin_users_screenshot",
+      "note": "Zoho Users page shows hello@lundusdigital.com with active status. One additional address/alias indicator is visible but its identity is not yet verified."
     }
   },
   "security": {
@@ -243,7 +250,8 @@
     "EXISTING_DNS_INVENTORY_CAPTURED": "PASS",
     "ZOHO_DOMAIN_VERIFICATION_RECORD_CAPTURED": "PASS",
     "ZOHO_DOMAIN_VERIFICATION_DNS_APPLIED": "PASS",
-    "ZOHO_DOMAIN_OWNERSHIP_VERIFIED": "HOLD"
+    "ZOHO_DOMAIN_OWNERSHIP_VERIFIED": "HOLD",
+    "OFFICIAL_MAILBOX_CREATED": "PASS"
   },
   "safe_sequence": [
     "sign in to Zoho Mail Admin Console as an authorized administrator",
