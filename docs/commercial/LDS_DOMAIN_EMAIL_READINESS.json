@@ -165,7 +165,26 @@
         "value": "zoho-verification=zb36894990.zmverify.zoho.com",
         "status": "APPLIED_PENDING_ZOHO_VERIFICATION"
       },
-      "mx": [],
+      "mx": [
+        {
+          "host": "@",
+          "priority": 10,
+          "value": "mx.zoho.com",
+          "status": "CAPTURED_NOT_APPLIED"
+        },
+        {
+          "host": "@",
+          "priority": 20,
+          "value": "mx2.zoho.com",
+          "status": "CAPTURED_NOT_APPLIED"
+        },
+        {
+          "host": "@",
+          "priority": 50,
+          "value": "mx3.zoho.com",
+          "status": "CAPTURED_NOT_APPLIED"
+        }
+      ],
       "spf": {
         "host": null,
         "value": null,
@@ -184,8 +203,24 @@
       }
     },
     "mx": {
-      "records": [],
-      "status": "HOLD_EVIDENCE_REQUIRED"
+      "records": [
+        {
+          "host": "@",
+          "priority": 10,
+          "value": "mx.zoho.com"
+        },
+        {
+          "host": "@",
+          "priority": 20,
+          "value": "mx2.zoho.com"
+        },
+        {
+          "host": "@",
+          "priority": 50,
+          "value": "mx3.zoho.com"
+        }
+      ],
+      "status": "CAPTURED_NOT_APPLIED"
     },
     "spf": {
       "record": null,
@@ -251,7 +286,8 @@
     "ZOHO_DOMAIN_VERIFICATION_RECORD_CAPTURED": "PASS",
     "ZOHO_DOMAIN_VERIFICATION_DNS_APPLIED": "PASS",
     "ZOHO_DOMAIN_OWNERSHIP_VERIFIED": "HOLD",
-    "OFFICIAL_MAILBOX_CREATED": "PASS"
+    "OFFICIAL_MAILBOX_CREATED": "PASS",
+    "ZOHO_MX_RECORDS_CAPTURED": "PASS"
   },
   "safe_sequence": [
     "sign in to Zoho Mail Admin Console as an authorized administrator",
