@@ -75,3 +75,60 @@ def commercial_action(profit_status:str,capacity_status:str)->Dict:
     if profit_status in {"AT_RISK","REVIEW"}:
         return {"decision":"HUMAN_REVIEW","allowed_action":"RESCOPE_REPRICE_OR_ACCEPT_WITH_RATIONALE"}
     return {"decision":"PROCEED_TO_EXISTING_COMMERCIAL_GATES","automatic_commitment":False}
+
+
+def daily_order_intake(
+    paid_orders_accepted_today:int,
+    daily_cap:int=3,
+    qa_queue:int=0,
+    overdue_jobs:int=0,
+    critical_incidents:int=0,
+    resource_pressure:bool=False
+)->Dict:
+    if daily_cap < 1:
+        return {"status":"HOLD_CAPACITY","reason":"INVALID_DAILY_CAP","accept_new_paid_order":False}
+    if critical_incidents>0:
+        return {"status":"HOLD_CAPACITY","reason":"CRITICAL_INCIDENT_RESERVE","accept_new_paid_order":False}
+    if resource_pressure:
+        return {"status":"HOLD_CAPACITY","reason":"RESOURCE_PRESSURE","accept_new_paid_order":False}
+    if qa_queue>0 and overdue_jobs>0:
+        return {"status":"REVIEW","reason":"QA_AND_OVERDUE_PRESSURE","accept_new_paid_order":False}
+    if paid_orders_accepted_today>=daily_cap:
+        return {
+            "status":"WAITLIST",
+            "reason":"DAILY_PAID_ORDER_CAP_REACHED",
+            "accept_new_paid_order":False,
+            "customer_action":"NEXT_AVAILABLE_SLOT",
+            "automatic_reject":False
+        }
+    return {
+        "status":"ACCEPT_WITH_EXISTING_GATES",
+        "reason":"DAILY_INTAKE_CAP_AVAILABLE",
+        "accept_new_paid_order":True,
+        "remaining_slots":daily_cap-paid_orders_accepted_today,
+        "automatic_reject":False
+    }
+
+def cap_change_authority(completed_accepted_projects:int, current_stage:str)->Dict:
+    if current_stage=="STAGE_1":
+        evidence_sufficient=completed_accepted_projects>=20
+        return {
+            "suggested_next_cap":5 if evidence_sufficient else 3,
+            "evidence_sufficient":evidence_sufficient,
+            "automatic_change":False,
+            "authority":"HUMAN_ONLY"
+        }
+    if current_stage=="STAGE_2":
+        return {
+            "suggested_next_cap":10,
+            "evidence_sufficient":False,
+            "reason":"STAGE_2_STABILITY_REVIEW_REQUIRED",
+            "automatic_change":False,
+            "authority":"HUMAN_ONLY"
+        }
+    return {
+        "suggested_next_cap":None,
+        "evidence_sufficient":False,
+        "automatic_change":False,
+        "authority":"HUMAN_ONLY"
+    }
