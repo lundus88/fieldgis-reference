@@ -66,5 +66,107 @@
   "pass_condition": "All exact provider records are evidence-backed, approved, applied, propagated and verified; mailbox/alias send-receive tests pass.",
   "dns_mutation_authorized": false,
   "production_website_binding_authorized": false,
-  "public_launch_authorized": false
+  "public_launch_authorized": false,
+  "exabytes_dns_state": {
+    "dns_zone_present": true,
+    "dns_manager_access_verified": true,
+    "support_created_zone": true,
+    "observed_at": "2026-09-20",
+    "evidence_level": "user_supplied_exabytes_dns_manager_screenshot",
+    "existing_records": {
+      "a_root": {
+        "name": "@",
+        "type": "A",
+        "ttl": 14400,
+        "rdata": "103.7.9.22",
+        "decision": "KEEP"
+      },
+      "ns": [
+        {
+          "name": "@",
+          "type": "NS",
+          "ttl": 86400,
+          "rdata": "ns184.mschosting.com",
+          "decision": "KEEP"
+        },
+        {
+          "name": "@",
+          "type": "NS",
+          "ttl": 86400,
+          "rdata": "ns185.mschosting.com",
+          "decision": "KEEP"
+        },
+        {
+          "name": "@",
+          "type": "NS",
+          "ttl": 86400,
+          "rdata": "ns186.mschosting.com",
+          "decision": "KEEP"
+        }
+      ],
+      "mx": [
+        {
+          "name": "@",
+          "type": "MX",
+          "ttl": 14400,
+          "rdata": "0 lundusdigital.com",
+          "decision": "DELETE_ONLY_WHEN_EXACT_ZOHO_MX_IS_APPROVED"
+        }
+      ],
+      "cname": [
+        {
+          "name": "mail",
+          "type": "CNAME",
+          "ttl": 14400,
+          "rdata": "lundusdigital.com",
+          "decision": "KEEP_PENDING_REVIEW"
+        },
+        {
+          "name": "www",
+          "type": "CNAME",
+          "ttl": 14400,
+          "rdata": "lundusdigital.com",
+          "decision": "KEEP"
+        },
+        {
+          "name": "ftp",
+          "type": "CNAME",
+          "ttl": 14400,
+          "rdata": "lundusdigital.com",
+          "decision": "KEEP"
+        }
+      ],
+      "txt": [],
+      "txt_count": 0
+    },
+    "findings": [
+      "Existing root MX will conflict with Zoho mail delivery once Zoho MX is activated",
+      "No TXT records were visible in the supplied DNS inventory, so no SPF/DKIM TXT conflict is currently evidenced",
+      "Website-related A/CNAME records are preserved and are outside the email-only change set"
+    ]
+  },
+  "change_set_draft": {
+    "status": "DRAFT_BLOCKED_ON_ZOHO_EXACT_VALUES",
+    "keep": [
+      "@ A 103.7.9.22",
+      "@ NS ns184.mschosting.com",
+      "@ NS ns185.mschosting.com",
+      "@ NS ns186.mschosting.com",
+      "www CNAME lundusdigital.com",
+      "ftp CNAME lundusdigital.com"
+    ],
+    "review_separately": [
+      "mail CNAME lundusdigital.com"
+    ],
+    "delete_later_after_exact_zoho_evidence": [
+      "@ MX priority 0 lundusdigital.com"
+    ],
+    "add_pending_exact_zoho_admin_console": [
+      "Zoho domain verification record",
+      "Zoho MX records with exact priorities",
+      "single SPF TXT policy containing the authorized Zoho sender include/value",
+      "DKIM TXT record for the exact LD selector/public key"
+    ],
+    "dns_mutation_authorized": false
+  }
 }

@@ -18,23 +18,91 @@
     "evidence_level": "user_supplied_registrar_invoice_and_portal_screenshots"
   },
   "dns": {
-    "current_nameserver_state": "registrar_default_or_unverified",
+    "current_nameserver_state": "EXABYTES_DNS_ZONE_PRESENT_WITH_MSCHOSTING_NS_RECORDS_OBSERVED",
     "nameserver_change_authorized": false,
     "records_applied": false,
     "production_binding_authorized": false,
     "exact_zoho_records_captured": false,
     "root_domain": {
       "host": "@",
-      "target": null,
-      "status": "HOLD_NOT_APPLIED"
+      "target": "103.7.9.22",
+      "status": "OBSERVED_EXISTING_A_KEEP"
     },
     "www": {
       "host": "www",
-      "target": null,
-      "status": "HOLD_NOT_APPLIED"
+      "target": "lundusdigital.com",
+      "status": "OBSERVED_EXISTING_CNAME_KEEP"
     },
     "verification_records": [],
-    "rule": "Do not invent or publish A/CNAME/TXT/MX values. Exact Zoho records must be copied from the LD Zoho Admin Console for lundusdigital.com and independently reviewed before DNS mutation."
+    "rule": "Do not invent or publish A/CNAME/TXT/MX values. Exact Zoho records must be copied from the LD Zoho Admin Console for lundusdigital.com and independently reviewed before DNS mutation.",
+    "dns_manager_access_verified": true,
+    "dns_zone_created": true,
+    "dns_zone_created_with_exabytes_support": true,
+    "observed_zone_inventory": {
+      "observed_at": "2026-09-20",
+      "evidence_level": "user_supplied_exabytes_dns_manager_screenshot",
+      "records": [
+        {
+          "name": "@",
+          "type": "A",
+          "ttl": 14400,
+          "rdata": "103.7.9.22",
+          "action": "KEEP_UNTIL_WEBSITE_BINDING_REVIEW"
+        },
+        {
+          "name": "@",
+          "type": "NS",
+          "ttl": 86400,
+          "rdata": "ns186.mschosting.com",
+          "action": "KEEP"
+        },
+        {
+          "name": "@",
+          "type": "NS",
+          "ttl": 86400,
+          "rdata": "ns185.mschosting.com",
+          "action": "KEEP"
+        },
+        {
+          "name": "@",
+          "type": "NS",
+          "ttl": 86400,
+          "rdata": "ns184.mschosting.com",
+          "action": "KEEP"
+        },
+        {
+          "name": "@",
+          "type": "MX",
+          "ttl": 14400,
+          "rdata": "0 lundusdigital.com",
+          "action": "REPLACE_ONLY_AFTER_EXACT_ZOHO_MX_EVIDENCE"
+        },
+        {
+          "name": "mail",
+          "type": "CNAME",
+          "ttl": 14400,
+          "rdata": "lundusdigital.com",
+          "action": "KEEP_PENDING_MAIL_HOST_REVIEW"
+        },
+        {
+          "name": "www",
+          "type": "CNAME",
+          "ttl": 14400,
+          "rdata": "lundusdigital.com",
+          "action": "KEEP"
+        },
+        {
+          "name": "ftp",
+          "type": "CNAME",
+          "ttl": 14400,
+          "rdata": "lundusdigital.com",
+          "action": "KEEP"
+        }
+      ],
+      "txt_record_count_observed": 0,
+      "mx_conflict_detected": true,
+      "mx_conflict_note": "Existing root MX points to lundusdigital.com and must not remain when Zoho MX becomes authoritative. Exact deletion/addition sequence is blocked until Zoho Admin Console evidence is captured."
+    }
   },
   "email": {
     "provider": "Zoho Mail",
@@ -152,7 +220,9 @@
     "OFFICIAL_COMMERCIAL_EMAIL": "HOLD",
     "SUPPORT_COMPLAINT_CHANNEL": "HOLD",
     "LEGAL_TRUST_READY": "HOLD",
-    "PUBLIC_LAUNCH": "HOLD"
+    "PUBLIC_LAUNCH": "HOLD",
+    "DNS_ZONE_PRESENT": "PASS",
+    "EXISTING_DNS_INVENTORY_CAPTURED": "PASS"
   },
   "safe_sequence": [
     "sign in to Zoho Mail Admin Console as an authorized administrator",

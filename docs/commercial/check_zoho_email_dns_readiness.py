@@ -58,3 +58,21 @@ print("official_channels_selected=PASS")
 print("exact_zoho_dns_records=HOLD")
 print("dns_mutation_authorized=false")
 print("legal_trust=HOLD")
+
+# Exabytes DNS inventory evidence
+ex=pack.get("exabytes_dns_state",{})
+if ex.get("dns_zone_present") is not True:
+    errors.append("Exabytes DNS zone must be evidenced as present")
+if ex.get("dns_manager_access_verified") is not True:
+    errors.append("Exabytes DNS Manager access must be evidenced")
+existing=ex.get("existing_records",{})
+mx=existing.get("mx",[])
+if not mx or mx[0].get("rdata")!="0 lundusdigital.com":
+    errors.append("existing root MX evidence drift")
+if existing.get("txt_count")!=0:
+    errors.append("observed TXT count drift")
+draft=pack.get("change_set_draft",{})
+if draft.get("status")!="DRAFT_BLOCKED_ON_ZOHO_EXACT_VALUES":
+    errors.append("change-set must remain blocked on exact Zoho values")
+if draft.get("dns_mutation_authorized") is not False:
+    errors.append("change-set must not authorize DNS mutation")
