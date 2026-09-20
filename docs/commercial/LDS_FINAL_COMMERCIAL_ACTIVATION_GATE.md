@@ -100,7 +100,7 @@ Approved effective policy versions:
 - Terms of Service v1.0 — effective 20 September 2026
 - Refund & Cancellation Policy v1.0 — effective 20 September 2026
 
-Verified SSM phone/address evidence is retained only as registration evidence and is not selected for LD's public identity.
+Verified SSM telephone evidence remains registration-only and is not selected as the public LD phone. The SSM-registered business address is authoritative and was explicitly approved for public commercial display on 21 September 2026.
 
 Approved public-contact strategy:
 - do not use the SSM-recorded telephone as the public LD commercial phone
