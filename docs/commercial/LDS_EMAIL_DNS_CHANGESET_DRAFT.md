@@ -1,8 +1,18 @@
 # LD Email DNS Change Set — Draft
 
-Status: BLOCKED ON EXACT ZOHO ADMIN CONSOLE VALUES  
+Status: PARTIAL EXACT VALUES CAPTURED — MX / SPF / DKIM STILL PENDING  
 Domain: `lundusdigital.com`  
-DNS mutation authorized: **NO**
+DNS mutation authorized by repository: **NO**
+
+## Exact Zoho record now captured
+
+### READY FOR HUMAN APPLICATION REVIEW
+- Type: `TXT`
+- Host / Name: `@` (Zoho also states blank is acceptable)
+- Value / Content: `zoho-verification=zb36894990.zmverify.zoho.com`
+- Purpose: Zoho domain ownership verification
+
+Use the DNS provider's default TTL unless an exact TTL is explicitly supplied by Zoho or an approved DNS policy. Do not infer a TTL from unrelated existing records.
 
 ## Evidence-backed current Exabytes zone
 
@@ -17,34 +27,21 @@ DNS mutation authorized: **NO**
 ### REVIEW SEPARATELY
 - `mail  CNAME  lundusdigital.com`
 
-Do not delete this record yet. It is not required for Zoho MX activation, but its future purpose should be reviewed after mailbox activation.
-
 ### DELETE ONLY WHEN EXACT ZOHO MX IS APPROVED
 - `@  MX  priority 0  lundusdigital.com`
 
-This existing MX would conflict with Zoho becoming the authoritative inbound mail route. It must not be removed until the exact Zoho MX replacement set is captured and approved.
-
-### ADD — PENDING EXACT ZOHO EVIDENCE
-- Domain verification record
-- MX record set and priorities
-- SPF TXT value
-- DKIM TXT host/value for the exact selector
+### ADD — STILL PENDING EXACT ZOHO EVIDENCE
+- Zoho MX records with exact priorities
+- Single SPF TXT policy containing the exact authorized Zoho sender include/value
+- DKIM TXT record for the exact LD selector/public key
 
 No generic Zoho example may be substituted.
 
-## Current conflict assessment
+## Safe sequence now
 
-- Existing root MX conflict: **YES**
-- Existing TXT/SPF conflict evidenced: **NO**
-- Existing DKIM TXT conflict evidenced: **NO**
-- Website A/CNAME mutation required for email setup: **NO**
-
-## Next evidence required
-
-Capture screenshots from Zoho Mail Admin Console for `lundusdigital.com` showing:
-1. Domain Verification
-2. MX
-3. SPF
-4. DKIM
-
-The final change set will be generated only from those exact values.
+1. Add only the exact Zoho verification TXT record above.
+2. Do not change A/CNAME/NS/MX yet.
+3. Wait for DNS propagation.
+4. Return to Zoho and click `Verify TXT Record`.
+5. After ownership PASS, capture exact Zoho MX, SPF and DKIM values.
+6. Generate and approve the final mail-routing change set before replacing the existing MX.

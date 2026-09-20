@@ -12,11 +12,11 @@
   },
   "exact_record_capture": {
     "domain_verification": {
-      "record_type": null,
-      "host": null,
-      "value": null,
-      "evidence_id": null,
-      "status": "REQUIRED"
+      "record_type": "TXT",
+      "host": "@",
+      "value": "zoho-verification=zb36894990.zmverify.zoho.com",
+      "evidence_id": "ZOHO_ADMIN_DOMAIN_VERIFY_2026-09-20",
+      "status": "CAPTURED_NOT_APPLIED"
     },
     "mx": {
       "records": [],
@@ -146,7 +146,7 @@
     ]
   },
   "change_set_draft": {
-    "status": "DRAFT_BLOCKED_ON_ZOHO_EXACT_VALUES",
+    "status": "PARTIAL_EXACT_VALUES_CAPTURED_MX_SPF_DKIM_PENDING",
     "keep": [
       "@ A 103.7.9.22",
       "@ NS ns184.mschosting.com",
@@ -162,11 +162,13 @@
       "@ MX priority 0 lundusdigital.com"
     ],
     "add_pending_exact_zoho_admin_console": [
-      "Zoho domain verification record",
       "Zoho MX records with exact priorities",
       "single SPF TXT policy containing the authorized Zoho sender include/value",
       "DKIM TXT record for the exact LD selector/public key"
     ],
-    "dns_mutation_authorized": false
+    "dns_mutation_authorized": false,
+    "add_ready_for_human_application_review": [
+      "TXT @ = zoho-verification=zb36894990.zmverify.zoho.com"
+    ]
   }
 }

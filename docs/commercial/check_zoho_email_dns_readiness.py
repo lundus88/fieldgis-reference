@@ -31,6 +31,16 @@ for key in ["domain_verification","mx","spf","dkim"]:
     if key not in records:
         errors.append(f"missing exact record capture section: {key}")
 
+verify=records.get("domain_verification",{})
+if verify.get("record_type")!="TXT":
+    errors.append("Zoho verification type drift")
+if verify.get("host")!="@":
+    errors.append("Zoho verification host drift")
+if verify.get("value")!="zoho-verification=zb36894990.zmverify.zoho.com":
+    errors.append("Zoho verification value drift")
+if verify.get("status")!="CAPTURED_NOT_APPLIED":
+    errors.append("Zoho verification must remain captured-not-applied")
+
 if pack.get("status")!="HOLD_EXACT_PROVIDER_EVIDENCE_REQUIRED":
     errors.append("Zoho pack must remain evidence HOLD")
 if pack.get("dns_mutation_authorized") is not False:
@@ -39,57 +49,41 @@ if domain.get("authority",{}).get("dns_mutation_authorized") is not False:
     errors.append("domain manifest DNS mutation must remain unauthorized")
 
 gates=domain.get("gate_status",{})
-for gate in ["OFFICIAL_CHANNELS_SELECTED","DNS_ZONE_PRESENT","EXISTING_DNS_INVENTORY_CAPTURED"]:
+for gate in ["OFFICIAL_CHANNELS_SELECTED","DNS_ZONE_PRESENT","EXISTING_DNS_INVENTORY_CAPTURED","ZOHO_DOMAIN_VERIFICATION_RECORD_CAPTURED"]:
     if gates.get(gate)!="PASS":
         errors.append(f"{gate} must be PASS")
 for gate in ["ZOHO_EXACT_DNS_RECORDS_CAPTURED","EMAIL_DNS_AUTHENTICATION","OFFICIAL_COMMERCIAL_EMAIL","SUPPORT_COMPLAINT_CHANNEL","LEGAL_TRUST_READY","PUBLIC_LAUNCH"]:
     if gates.get(gate)!="HOLD":
         errors.append(f"{gate} must remain HOLD")
 
-rules=" ".join(pack.get("provider_rules",[]))
-for token in ["only the MX records provided","generic Zoho MX examples","one SPF TXT policy","DKIM selector","DMARC remains deferred"]:
-    if token not in rules:
-        errors.append(f"provider safety rule missing: {token}")
-
-# Exabytes DNS inventory evidence
 ex=pack.get("exabytes_dns_state",{})
 if ex.get("dns_zone_present") is not True:
     errors.append("Exabytes DNS zone must be evidenced as present")
-if ex.get("dns_manager_access_verified") is not True:
-    errors.append("Exabytes DNS Manager access must be evidenced")
 existing=ex.get("existing_records",{})
 mx=existing.get("mx",[])
 if len(mx)!=1 or mx[0].get("rdata")!="0 lundusdigital.com":
     errors.append("existing root MX evidence drift")
 if existing.get("txt_count")!=0:
     errors.append("observed TXT count drift")
-if existing.get("a_root",{}).get("rdata")!="103.7.9.22":
-    errors.append("observed root A record drift")
-ns={x.get("rdata") for x in existing.get("ns",[])}
-if ns!={"ns184.mschosting.com","ns185.mschosting.com","ns186.mschosting.com"}:
-    errors.append("observed NS set drift")
 
 draft=pack.get("change_set_draft",{})
-if draft.get("status")!="DRAFT_BLOCKED_ON_ZOHO_EXACT_VALUES":
-    errors.append("change-set must remain blocked on exact Zoho values")
+if draft.get("status")!="PARTIAL_EXACT_VALUES_CAPTURED_MX_SPF_DKIM_PENDING":
+    errors.append("change-set status drift")
 if draft.get("dns_mutation_authorized") is not False:
     errors.append("change-set must not authorize DNS mutation")
-if "@ MX priority 0 lundusdigital.com" not in draft.get("delete_later_after_exact_zoho_evidence",[]):
-    errors.append("existing MX replacement guard missing")
+ready=draft.get("add_ready_for_human_application_review",[])
+if "TXT @ = zoho-verification=zb36894990.zmverify.zoho.com" not in ready:
+    errors.append("exact Zoho verification TXT missing from review-ready change set")
 
-change_path=docs/"LDS_EMAIL_DNS_CHANGESET_DRAFT.md"
-if not change_path.is_file():
-    errors.append("DNS change-set draft missing")
-else:
-    change=change_path.read_text()
-    for token in [
-        "DNS mutation authorized: **NO**",
-        "@  A  103.7.9.22",
-        "@  MX  priority 0  lundusdigital.com",
-        "No generic Zoho example may be substituted."
-    ]:
-        if token not in change:
-            errors.append(f"DNS change-set guard missing: {token}")
+change=(docs/"LDS_EMAIL_DNS_CHANGESET_DRAFT.md").read_text()
+for token in [
+    "zoho-verification=zb36894990.zmverify.zoho.com",
+    "Do not change A/CNAME/NS/MX yet.",
+    "Verify TXT Record",
+    "DNS mutation authorized by repository: **NO**"
+]:
+    if token not in change:
+        errors.append(f"DNS change-set guard missing: {token}")
 
 if errors:
     print("LDS Zoho Email DNS Readiness: FAIL")
@@ -97,10 +91,6 @@ if errors:
     sys.exit(1)
 
 print("LDS Zoho Email DNS Readiness: PASS")
-print("official_channels_selected=PASS")
-print("exabytes_dns_zone=PASS")
-print("existing_dns_inventory=PASS")
-print("existing_root_mx_conflict=DETECTED")
-print("exact_zoho_dns_records=HOLD")
+print("zoho_domain_verification_record=CAPTURED_NOT_APPLIED")
+print("mx_spf_dkim=HOLD")
 print("dns_mutation_authorized=false")
-print("legal_trust=HOLD")

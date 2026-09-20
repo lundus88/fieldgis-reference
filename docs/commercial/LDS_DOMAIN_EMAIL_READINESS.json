@@ -33,7 +33,16 @@
       "target": "lundusdigital.com",
       "status": "OBSERVED_EXISTING_CNAME_KEEP"
     },
-    "verification_records": [],
+    "verification_records": [
+      {
+        "type": "TXT",
+        "host": "@",
+        "value": "zoho-verification=zb36894990.zmverify.zoho.com",
+        "source": "Zoho Mail Admin Console",
+        "evidence_status": "CAPTURED_NOT_APPLIED",
+        "observed_at": "2026-09-20"
+      }
+    ],
     "rule": "Do not invent or publish A/CNAME/TXT/MX values. Exact Zoho records must be copied from the LD Zoho Admin Console for lundusdigital.com and independently reviewed before DNS mutation.",
     "dns_manager_access_verified": true,
     "dns_zone_created": true,
@@ -142,10 +151,10 @@
     },
     "exact_provider_records": {
       "domain_verification": {
-        "type": null,
-        "host": null,
-        "value": null,
-        "status": "EVIDENCE_REQUIRED"
+        "type": "TXT",
+        "host": "@",
+        "value": "zoho-verification=zb36894990.zmverify.zoho.com",
+        "status": "CAPTURED_NOT_APPLIED"
       },
       "mx": [],
       "spf": {
@@ -222,7 +231,8 @@
     "LEGAL_TRUST_READY": "HOLD",
     "PUBLIC_LAUNCH": "HOLD",
     "DNS_ZONE_PRESENT": "PASS",
-    "EXISTING_DNS_INVENTORY_CAPTURED": "PASS"
+    "EXISTING_DNS_INVENTORY_CAPTURED": "PASS",
+    "ZOHO_DOMAIN_VERIFICATION_RECORD_CAPTURED": "PASS"
   },
   "safe_sequence": [
     "sign in to Zoho Mail Admin Console as an authorized administrator",
