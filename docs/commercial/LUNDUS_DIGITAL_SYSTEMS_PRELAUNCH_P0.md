@@ -68,7 +68,7 @@ Public charging remains HOLD while any mandatory gate is unresolved.
 
 - LEGAL_TRUST_READY
 - dedicated LD business phone not yet provisioned/verified
-- existing SSM-registered business address is verified, but public-display approval is still pending
+- existing SSM-registered business address is verified and approved for public display
 - LIVE_LEAD_INTAKE
 - Production payment-provider configuration fingerprint
 - Production commercial checkout
@@ -102,7 +102,7 @@ No DNS or mail mutation is authorized by this document.
 
 ## 5. Legal and trust state
 
-LEGAL_TRUST_READY remains HOLD until LD has a dedicated public-facing business phone and an explicit publication decision for the existing SSM-registered business address.
+LEGAL_TRUST_READY remains HOLD only until LD has a dedicated public-facing business phone. The registered business address publication gate is closed.
 
 Approved policy versions:
 - Privacy Notice v1.0 — effective 20 September 2026
@@ -114,9 +114,9 @@ Approved public-contact strategy:
 - provision and verify a dedicated LD business phone
 - retain the address in the SSM certificate/registration as LD's authoritative business address
 - no replacement address is required unless the business actually moves
-- full public display of the registered address remains explicitly human-gated because it overlaps residential information
+- full public display of the registered address was explicitly approved on 21 September 2026
 
-Sensitive SSM values remain redacted in the repository until the relevant public-use decision is recorded.
+The SSM-recorded telephone remains redacted and is not used as the public LD phone. The registered business address is approved for public disclosure.
 
 ## 6. Payment Production readiness
 
@@ -220,7 +220,7 @@ Rule: evidence existence is not activation authority.
 
 ## 11. Controlled activation sequence
 
-1. Provision and verify a dedicated LD business phone and obtain explicit publication approval for the existing SSM-registered business address.
+1. Provision and verify a dedicated LD business phone.
 2. Verify current Production lead-intake, payment, notification and security configuration without enabling public charging.
 3. Capture current configuration fingerprints.
 4. Obtain explicit human authority for one minimum controlled Production transaction.
