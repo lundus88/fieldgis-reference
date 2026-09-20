@@ -1,0 +1,31 @@
+{
+  "schema": "lds.automated-commercial-document-lifecycle/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "flow": [
+    "QUOTATION_APPROVED",
+    "INVOICE_ISSUED",
+    "PAYMENT_PENDING",
+    "PAYMENT_RECONCILED",
+    "RECEIPT_ISSUED",
+    "MILESTONE_FUNDED",
+    "BUILDING"
+  ],
+  "invariants": [
+    "Quotation approval is required before invoice issue",
+    "Invoice amount must reconcile to the human-approved quotation/order",
+    "Payment may become PAID only from verified provider/backend evidence",
+    "Receipt may be issued only after payment reconciliation succeeds",
+    "Funded milestone evidence is required before BUILDING when funding is contractually required",
+    "Milestone activation remains human-controlled",
+    "Notification events must follow authoritative lifecycle state",
+    "Voids and corrections preserve original document references and audit history",
+    "No lifecycle state may claim Malaysian tax e-Invoice status without a separately verified compliance flow"
+  ],
+  "notifications": [
+    "INVOICE_ISSUED",
+    "PAYMENT_CONFIRMED",
+    "RECEIPT_ISSUED",
+    "MILESTONE_FUNDED"
+  ],
+  "production_activation_authorized": false
+}
