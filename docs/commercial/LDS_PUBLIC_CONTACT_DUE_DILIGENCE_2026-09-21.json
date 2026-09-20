@@ -43,8 +43,17 @@
         ]
       }
     ],
-    "decision": "VERIFY_MAXIS_FIRST",
-    "purchase_authorized": false
+    "decision": "SELECT_MAXIS_BUSINESS_POSTPAID_80_FOR_PROVISIONING",
+    "purchase_authorized": false,
+    "selection": {
+      "provider": "Maxis Business",
+      "plan": "Business Postpaid 80",
+      "selected_on": "2026-09-21",
+      "status": "APPROVED_PATH_AWAITING_EXTERNAL_SIGNUP",
+      "purchase_completed": false,
+      "phone_number_verified": false,
+      "business_account_control_verified": false
+    }
   },
   "address": {
     "decision": "USE_EXISTING_SSM_REGISTERED_BUSINESS_ADDRESS",
