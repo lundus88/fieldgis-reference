@@ -1,18 +1,20 @@
 # LD Email DNS Change Set — Draft
 
-Status: PARTIAL EXACT VALUES CAPTURED — MX / SPF / DKIM STILL PENDING  
+Status: DOMAIN VERIFICATION TXT APPLIED — ZOHO CONFIRMATION + MX / SPF / DKIM PENDING  
 Domain: `lundusdigital.com`  
-DNS mutation authorized by repository: **NO**
+General DNS mutation authority: **NO**
 
-## Exact Zoho record now captured
+## Applied with human action
 
-### READY FOR HUMAN APPLICATION REVIEW
+### Zoho ownership verification TXT
 - Type: `TXT`
-- Host / Name: `@` (Zoho also states blank is acceptable)
-- Value / Content: `zoho-verification=zb36894990.zmverify.zoho.com`
-- Purpose: Zoho domain ownership verification
+- Host / Name: `@`
+- TTL: `14440`
+- Value: `zoho-verification=zb36894990.zmverify.zoho.com`
+- Exabytes evidence: **PRESENT**
+- Zoho verification: **PENDING**
 
-Use the DNS provider's default TTL unless an exact TTL is explicitly supplied by Zoho or an approved DNS policy. Do not infer a TTL from unrelated existing records.
+Do not edit or remove this record until Zoho ownership verification has passed.
 
 ## Evidence-backed current Exabytes zone
 
@@ -21,6 +23,7 @@ Use the DNS provider's default TTL unless an exact TTL is explicitly supplied by
 - `@  NS  ns184.mschosting.com`
 - `@  NS  ns185.mschosting.com`
 - `@  NS  ns186.mschosting.com`
+- `@  TXT  zoho-verification=zb36894990.zmverify.zoho.com`
 - `www  CNAME  lundusdigital.com`
 - `ftp  CNAME  lundusdigital.com`
 
@@ -39,9 +42,9 @@ No generic Zoho example may be substituted.
 
 ## Safe sequence now
 
-1. Add only the exact Zoho verification TXT record above.
-2. Do not change A/CNAME/NS/MX yet.
-3. Wait for DNS propagation.
-4. Return to Zoho and click `Verify TXT Record`.
-5. After ownership PASS, capture exact Zoho MX, SPF and DKIM values.
+1. Return to Zoho Mail Admin Console.
+2. Click `Verify TXT Record`.
+3. If Zoho does not detect it yet, do not edit the DNS record; allow propagation and retry.
+4. After ownership PASS, capture exact Zoho MX values/priorities.
+5. Capture exact SPF and DKIM values.
 6. Generate and approve the final mail-routing change set before replacing the existing MX.
