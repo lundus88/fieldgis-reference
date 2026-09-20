@@ -21,9 +21,25 @@
       "applied_evidence_id": "EXABYTES_DNS_TXT_APPLIED_2026-09-20"
     },
     "mx": {
-      "records": [],
-      "evidence_id": null,
-      "status": "REQUIRED"
+      "records": [
+        {
+          "host": "@",
+          "priority": 10,
+          "value": "mx.zoho.com"
+        },
+        {
+          "host": "@",
+          "priority": 20,
+          "value": "mx2.zoho.com"
+        },
+        {
+          "host": "@",
+          "priority": 50,
+          "value": "mx3.zoho.com"
+        }
+      ],
+      "evidence_id": "ZOHO_ADMIN_MX_2026-09-20",
+      "status": "CAPTURED_NOT_APPLIED"
     },
     "spf": {
       "host": null,
@@ -157,7 +173,7 @@
     ]
   },
   "change_set_draft": {
-    "status": "DOMAIN_VERIFICATION_APPLIED_MX_SPF_DKIM_PENDING",
+    "status": "MX_CAPTURED_SPF_DKIM_PENDING",
     "keep": [
       "@ A 103.7.9.22",
       "@ NS ns184.mschosting.com",
@@ -173,14 +189,20 @@
       "@ MX priority 0 lundusdigital.com"
     ],
     "add_pending_exact_zoho_admin_console": [
-      "Zoho MX records with exact priorities",
       "single SPF TXT policy containing the authorized Zoho sender include/value",
       "DKIM TXT record for the exact LD selector/public key"
     ],
     "dns_mutation_authorized": false,
-    "add_ready_for_human_application_review": [],
+    "add_ready_for_human_application_review": [
+      "@ MX priority 10 mx.zoho.com",
+      "@ MX priority 20 mx2.zoho.com",
+      "@ MX priority 50 mx3.zoho.com"
+    ],
     "applied_pending_provider_verification": [
       "TXT @ TTL 14440 = zoho-verification=zb36894990.zmverify.zoho.com"
+    ],
+    "delete_ready_for_human_application_review": [
+      "@ MX priority 0 lundusdigital.com"
     ]
   },
   "mailbox_state": {
