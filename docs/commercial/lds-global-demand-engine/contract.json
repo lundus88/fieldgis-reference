@@ -76,7 +76,10 @@
     "Case studies and testimonials require evidence and appropriate customer permission handling",
     "Expansion must not bypass scope quotation payment or lifecycle controls",
     "The Digital Business Check is advisory and never grants commercial authority",
-    "Marketing must not fabricate ROI guaranteed savings or unsupported customer outcomes"
+    "Marketing must not fabricate ROI guaranteed savings or unsupported customer outcomes",
+    "Proof claims must be evidence-backed and respect customer permission requirements",
+    "Unknown Buyer Confidence Center answers must fail to NEEDS_REVIEW rather than be guessed",
+    "Productized offers improve buying clarity but never grant automatic quotation or payment authority"
   ],
   "marketing_hook": "Tell us the business problem. We build the digital system.",
   "growth_flywheel": {
@@ -138,5 +141,67 @@
     "repeat_or_expansion_rate",
     "cost_per_qualified_lead_where_spend_exists",
     "evidence_backed_case_study_count"
-  ]
+  ],
+  "p0_conversion_system": {
+    "trust_and_proof_engine": {
+      "states": [
+        "HOLD",
+        "INTERNAL_ONLY",
+        "PUBLISHABLE"
+      ],
+      "required_fields": [
+        "problem_category",
+        "evidence_source",
+        "outcome",
+        "customer_permission_state",
+        "verification_state",
+        "publication_state",
+        "claim_limitations"
+      ],
+      "publish_requires": [
+        "evidence_present",
+        "verification_pass",
+        "permission_valid_where_required"
+      ]
+    },
+    "buyer_confidence_center": {
+      "required_topics": [
+        "how_ld_works",
+        "service_scope_and_offer_types",
+        "pricing_logic",
+        "delivery_stages",
+        "uat_customer_acceptance",
+        "ownership_and_handover",
+        "security_and_data_handling",
+        "change_requests",
+        "support_and_maintenance",
+        "payment_process",
+        "cancellation_refund_rules_where_applicable",
+        "faq_and_escalation"
+      ],
+      "unknown_answer_policy": "NEEDS_REVIEW"
+    },
+    "productized_offers": {
+      "offer_families": [
+        "LD_LAUNCH",
+        "LD_AUTOMATE",
+        "LD_AI",
+        "LD_SYSTEM",
+        "LD_DISCOVERY"
+      ],
+      "required_fields": [
+        "ideal_problem",
+        "inclusions",
+        "exclusions",
+        "prerequisite_information",
+        "delivery_evidence",
+        "acceptance_criteria",
+        "support_boundary",
+        "pricing_mode",
+        "change_request_trigger"
+      ],
+      "automatic_quotation_authority": false,
+      "payment_authority": false
+    }
+  }
 }
