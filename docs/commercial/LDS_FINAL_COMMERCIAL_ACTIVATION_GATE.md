@@ -91,11 +91,13 @@ Verified from official SSM evidence:
 - registration validity through 18/09/2027
 - registered activity scope covers the current LD software / SaaS / AI / automation / IT consultancy offer
 
+Verified commercial channels:
+- official commercial email: hello@lundusdigital.com — PASS
+- official support / complaint channel: support@lundusdigital.com — PASS_INBOUND
+
 Still evidence-gated for public commercial use:
-- official commercial email
 - official commercial telephone
 - official trade/business address publication approval
-- official support / complaint channel
 - effective date for Privacy Notice
 - effective date for Terms of Service
 - effective date for Refund & Cancellation Policy
@@ -152,10 +154,11 @@ Current domain/email readiness:
 - DNS_PRODUCTION_BINDING: HOLD
 - EMAIL_PROVIDER_SELECTED: PASS / Zoho Mail Lite 10 GB
 - EMAIL_SUBSCRIPTION_ACTIVE: PASS / Zoho Mail Lite 10 GB / renewal 19/09/2027
-- EMAIL_DNS_AUTHENTICATION: HOLD
-- OFFICIAL_COMMERCIAL_EMAIL: HOLD
+- EMAIL_DNS_AUTHENTICATION: PASS
+- OFFICIAL_COMMERCIAL_EMAIL: PASS / `hello@lundusdigital.com`
+- SUPPORT_COMPLAINT_CHANNEL: PASS_INBOUND / `support@lundusdigital.com`
 - email provider: Zoho Mail / Mail Lite 10 GB — SELECTED, subscription PURCHASED / 1-year term / next renewal 19/09/2027
-- planned mailbox architecture: 1 licensed mailbox `hello@lundusdigital.com`; aliases `support@lundusdigital.com`, `billing@lundusdigital.com`
+- mailbox architecture: 1 licensed mailbox `hello@lundusdigital.com`; verified inbound aliases `support@lundusdigital.com`, `billing@lundusdigital.com`, `dmarc@lundusdigital.com`
 - transactional/system email remains on Resend
 - DNS record mutation authorized: false
 - Vercel Production domain binding authorized: false
@@ -214,7 +217,7 @@ Rule:
 ## 10. Controlled activation sequence from current state
 
 1. **COMPLETE:** capture and verify official business-registration/licence evidence.
-2. Verify remaining legal/trust particulars and replace customer-facing placeholders with evidence-backed values and effective policy dates.
+2. Verify the remaining legal/trust particulars: official commercial phone, approval to publish the trade address, and effective versions/dates for Privacy, Terms and Refund/Cancellation policies.
 3. Verify Production lead-intake, WAF, Turnstile, payment and notification configuration; capture configuration fingerprints without enabling public charging.
 4. Obtain separate explicit human authority for the minimum controlled Production configuration needed to perform one Golden Transaction; this authority is not public-launch authority.
 5. Perform one controlled paid Commercial Golden Transaction only after LEGAL_TRUST_READY is PASS and all Production transaction prerequisites are current.
@@ -272,8 +275,9 @@ A dry-run PASS is not a live Golden Transaction PASS.
 - FINAL_COMMERCIAL_DOMAIN: PASS / `lundusdigital.com`
 - DNS_PRODUCTION_BINDING: HOLD
 - EMAIL_PROVIDER_SELECTED: PASS / Zoho Mail Lite 10 GB
-- EMAIL_DNS_AUTHENTICATION: HOLD
-- OFFICIAL_COMMERCIAL_EMAIL: HOLD
+- EMAIL_DNS_AUTHENTICATION: PASS
+- OFFICIAL_COMMERCIAL_EMAIL: PASS
+- SUPPORT_COMPLAINT_CHANNEL: PASS_INBOUND
 - ACTIVATION_SNAPSHOT: HOLD_NOT_FORMED
 - PUBLIC_PAYMENT_ACTIVATION: HOLD
 - PUBLIC_LAUNCH: HOLD
@@ -283,7 +287,6 @@ A dry-run PASS is not a live Golden Transaction PASS.
 Do not activate public payment if any of these are true:
 - business-registration evidence is expired, superseded or cannot be revalidated
 - required legal/business particulars for public use remain placeholder or unverified
-- official commercial email or support mailbox ownership remains unverified
 - domain/DNS/email Production configuration fingerprint is missing or stale
 - live lead-intake Production authority unresolved
 - Production secrets/configuration unverified
