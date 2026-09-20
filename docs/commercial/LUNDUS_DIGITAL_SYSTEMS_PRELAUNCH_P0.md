@@ -33,7 +33,7 @@ Current evidence state:
 - [x] OFFER_LOCKED — PASS
 - [x] COMMERCIAL_SURFACE_RC — merged; isolated Preview QA PASS
 - [ ] LEGAL_TRUST_READY — HOLD
-- [x] DOMAIN_EMAIL_READY — PASS
+- [ ] DOMAIN_EMAIL_READY — HOLD; email UAT PASS, Production domain binding/configuration fingerprint pending
 - [ ] LIVE_LEAD_INTAKE — HOLD
 - [ ] PAYMENT_PRODUCTION_READY — HOLD
 - [x] GOLDEN_TRANSACTION_DRY_RUN — PASS
