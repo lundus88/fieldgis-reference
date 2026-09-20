@@ -1,7 +1,7 @@
 {
   "schema": "lds.legal-trust-final-approval/1",
   "as_of": "2026-09-21",
-  "status": "HOLD_PHONE_AND_ADDRESS_PUBLICATION_REQUIRED",
+  "status": "HOLD_DEDICATED_PHONE_REQUIRED",
   "policy_candidates": {
     "privacy": {
       "version": "1.0",
@@ -45,18 +45,17 @@
       "status": "HOLD_PROVISION_AND_VERIFY"
     },
     "trade_address": {
-      "value": null,
+      "value": "NO F165 SECTION HOUSING, KG DURIAN TUNJONG, 87007 LABUAN, W.P. LABUAN",
       "source_strategy": "SSM_REGISTERED_BUSINESS_ADDRESS",
       "authoritative_business_address": true,
       "separate_address_required": false,
-      "public_display_approved": false,
-      "overlaps_owner_residential_information": true,
-      "status": "HOLD_EXPLICIT_PUBLICATION_APPROVAL"
+      "public_display_approved": true,
+      "public_display_approved_on": "2026-09-21",
+      "status": "PASS"
     }
   },
   "remaining_human_decisions": [
-    "LD_DEDICATED_BUSINESS_PHONE_VERIFIED",
-    "LD_REGISTERED_BUSINESS_ADDRESS_PUBLICATION_APPROVED"
+    "LD_DEDICATED_BUSINESS_PHONE_VERIFIED"
   ],
   "legal_trust_ready": false,
   "production_activation_authorized": false,
@@ -65,8 +64,8 @@
   "rules": [
     "The telephone recorded in SSM evidence must not be published or used as the LD public commercial phone.",
     "A separate LD business phone must be provisioned and verified before publication.",
-    "The existing SSM-registered address is the authoritative LD business address; no replacement address is required.",
-    "Public display of the registered business address remains separately human-gated because it overlaps residential information.",
+    "The existing SSM-registered address is the authoritative LD business address and is approved for public commercial display.",
+    "No replacement address is required while the registered business address remains unchanged.",
     "Policy approval does not authorize Production deployment, live charging, or public launch."
   ],
   "policy_approval": {
