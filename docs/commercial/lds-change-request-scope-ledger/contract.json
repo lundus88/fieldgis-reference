@@ -1,0 +1,42 @@
+{
+  "schema": "lds.change-request-scope-ledger/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "states": [
+    "REQUESTED",
+    "IMPACT_REVIEW",
+    "CUSTOMER_DECISION",
+    "APPROVED",
+    "REJECTED",
+    "SUPERSEDED",
+    "APPLIED"
+  ],
+  "required_fields": [
+    "change_request_id",
+    "project_id",
+    "base_scope_version",
+    "requested_change",
+    "requested_by",
+    "requested_at",
+    "scope_impact",
+    "cost_impact",
+    "time_impact",
+    "dependency_impact",
+    "risk_impact",
+    "decision",
+    "decision_by",
+    "decision_at"
+  ],
+  "invariants": [
+    "Approved scope snapshot remains immutable",
+    "No material scope change may be built before an approved Change Request exists",
+    "Change Request cannot silently alter the original quotation or invoice",
+    "Cost and time impact must be shown before customer approval",
+    "Customer approval must be explicit and evidence-backed",
+    "Internal bug fixes, agreed-scope defects and remediation are not automatically billable scope changes",
+    "Unknown impact or missing evidence returns HOLD or REVIEW",
+    "Rejected or superseded Change Requests must not alter active scope",
+    "Applied Change Requests create a new scope version and preserve prior scope history",
+    "Commercial or Production consequences remain human-gated"
+  ],
+  "production_activation_authorized": false
+}
