@@ -92,14 +92,15 @@ Qualification does not mean the customer may pay.
 ## Dependency gates
 
 This engine depends on:
-- PR #296 — LD Global Commerce Readiness Gate v1
-- PR #317 — LD Integrated Customer Lifecycle Gate v1
+- PR #296 — LD Global Commerce Readiness Gate v1 — SATISFIED_ON_MAIN
+- PR #317 — LD Integrated Customer Lifecycle Gate v1 — SATISFIED_ON_MAIN
 
-Until those contracts are merged to main:
-- country-support authority = NOT_SATISFIED
+Current posture:
+- repository dependency readiness = SATISFIED_ON_MAIN
+- country-support authority still requires evidence-backed market evaluation
 - paid-order authority = HOLD
 - automatic checkout = HOLD
-- commercial handoff may be prepared but must not be treated as paid-order readiness
+- commercial handoff remains conditional on runtime market/support and downstream commercial gates
 
 ## Channel strategy
 
