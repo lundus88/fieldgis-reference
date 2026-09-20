@@ -38,8 +38,8 @@
           "value": "mx3.zoho.com"
         }
       ],
-      "evidence_id": "ZOHO_ADMIN_MX_2026-09-20",
-      "status": "CAPTURED_NOT_APPLIED"
+      "evidence_id": "EXABYTES_ZOHO_MX_APPLIED_2026-09-20",
+      "status": "APPLIED_PENDING_ZOHO_VERIFICATION"
     },
     "spf": {
       "host": null,
@@ -127,9 +127,23 @@
         {
           "name": "@",
           "type": "MX",
-          "ttl": 14400,
-          "rdata": "0 lundusdigital.com",
-          "decision": "DELETE_ONLY_WHEN_EXACT_ZOHO_MX_IS_APPROVED"
+          "ttl": 14440,
+          "rdata": "10 mx.zoho.com",
+          "decision": "KEEP"
+        },
+        {
+          "name": "@",
+          "type": "MX",
+          "ttl": 14440,
+          "rdata": "20 mx2.zoho.com",
+          "decision": "KEEP"
+        },
+        {
+          "name": "@",
+          "type": "MX",
+          "ttl": 14440,
+          "rdata": "50 mx3.zoho.com",
+          "decision": "KEEP"
         }
       ],
       "cname": [
@@ -167,13 +181,13 @@
       "txt_count": 1
     },
     "findings": [
-      "Existing root MX will conflict with Zoho mail delivery once Zoho MX is activated",
       "Website-related A/CNAME records are preserved and are outside the email-only change set",
-      "Zoho ownership-verification TXT is now present in Exabytes DNS and awaits Zoho provider verification"
+      "Zoho ownership-verification TXT is now present in Exabytes DNS and awaits Zoho provider verification",
+      "Legacy root MX 0 lundusdigital.com has been removed and replaced with the exact Zoho MX set; Zoho verification remains pending."
     ]
   },
   "change_set_draft": {
-    "status": "MX_CAPTURED_SPF_DKIM_PENDING",
+    "status": "MX_APPLIED_PENDING_ZOHO_VERIFICATION_SPF_DKIM_PENDING",
     "keep": [
       "@ A 103.7.9.22",
       "@ NS ns184.mschosting.com",
@@ -193,17 +207,14 @@
       "DKIM TXT record for the exact LD selector/public key"
     ],
     "dns_mutation_authorized": false,
-    "add_ready_for_human_application_review": [
-      "@ MX priority 10 mx.zoho.com",
-      "@ MX priority 20 mx2.zoho.com",
-      "@ MX priority 50 mx3.zoho.com"
-    ],
+    "add_ready_for_human_application_review": [],
     "applied_pending_provider_verification": [
-      "TXT @ TTL 14440 = zoho-verification=zb36894990.zmverify.zoho.com"
+      "TXT @ TTL 14440 = zoho-verification=zb36894990.zmverify.zoho.com",
+      "MX @ priority 10 = mx.zoho.com",
+      "MX @ priority 20 = mx2.zoho.com",
+      "MX @ priority 50 = mx3.zoho.com"
     ],
-    "delete_ready_for_human_application_review": [
-      "@ MX priority 0 lundusdigital.com"
-    ]
+    "delete_ready_for_human_application_review": []
   },
   "mailbox_state": {
     "primary_mailbox": "hello@lundusdigital.com",
