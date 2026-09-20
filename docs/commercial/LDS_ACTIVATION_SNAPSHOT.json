@@ -27,10 +27,16 @@
   "legal_trust": {
     "status": "HOLD",
     "registered_particulars_evidence_id": "SSM_BIS_INFO_003891235-V_2026-09-20",
-    "privacy_policy_version": null,
-    "terms_policy_version": null,
-    "refund_policy_version": null,
-    "support_channel_evidence_id": "PR337_EMAIL_UAT_SUPPORT_INBOUND"
+    "privacy_policy_version": "1.0",
+    "terms_policy_version": "1.0",
+    "refund_policy_version": "1.0",
+    "support_channel_evidence_id": "PR337_EMAIL_UAT_SUPPORT_INBOUND",
+    "policy_effective_date": "2026-09-20",
+    "policy_approval_evidence_id": "LDS_LEGAL_TRUST_POLICY_APPROVAL_2026-09-20",
+    "remaining_particulars": [
+      "OFFICIAL_COMMERCIAL_PHONE_VERIFIED",
+      "TRADE_ADDRESS_PUBLICATION_APPROVED"
+    ]
   },
   "lead_intake": {
     "repository": "lundus88/lundus-lead",

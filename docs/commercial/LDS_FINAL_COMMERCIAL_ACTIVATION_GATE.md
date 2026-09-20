@@ -95,12 +95,14 @@ Verified commercial channels:
 - official commercial email: hello@lundusdigital.com — PASS
 - official support / complaint channel: support@lundusdigital.com — PASS_INBOUND
 
+Approved effective policy versions:
+- Privacy Notice v1.0 — effective 20 September 2026
+- Terms of Service v1.0 — effective 20 September 2026
+- Refund & Cancellation Policy v1.0 — effective 20 September 2026
+
 Still evidence-gated for public commercial use:
 - official commercial telephone
 - official trade/business address publication approval
-- effective date for Privacy Notice
-- effective date for Terms of Service
-- effective date for Refund & Cancellation Policy
 
 The official SSM documents contain an official business address, but the exact address is intentionally not persisted or published by this repository until explicit public-display approval. Personal owner identifiers and personal contact details from registration documents must not be copied into public commercial surfaces.
 
@@ -217,7 +219,7 @@ Rule:
 ## 10. Controlled activation sequence from current state
 
 1. **COMPLETE:** capture and verify official business-registration/licence evidence.
-2. Verify the remaining legal/trust particulars: official commercial phone, approval to publish the trade address, and effective versions/dates for Privacy, Terms and Refund/Cancellation policies.
+2. Verify the remaining legal/trust particulars: official commercial phone and approval to publish the trade address. Policy versions 1.0 are already approved effective 20 September 2026.
 3. Verify Production lead-intake, WAF, Turnstile, payment and notification configuration; capture configuration fingerprints without enabling public charging.
 4. Obtain separate explicit human authority for the minimum controlled Production configuration needed to perform one Golden Transaction; this authority is not public-launch authority.
 5. Perform one controlled paid Commercial Golden Transaction only after LEGAL_TRUST_READY is PASS and all Production transaction prerequisites are current.

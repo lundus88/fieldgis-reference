@@ -34,15 +34,20 @@
   ],
   "pending_verified_values": [
     "official_phone",
-    "official_trade_address_publication_approval",
-    "policy_effective_dates"
+    "official_trade_address_publication_approval"
   ],
   "language_readiness": {
     "supplier_disclosure_bm": "RC_PRESENT",
     "privacy_notice_bm": "RC_PRESENT",
     "terms_bm": "RC_PRESENT",
     "refund_cancellation_bm": "RC_PRESENT",
-    "effective_versions_approved": false
+    "effective_versions_approved": true,
+    "effective_versions": {
+      "privacy": "1.0",
+      "terms": "1.0",
+      "refund_cancellation": "1.0",
+      "effective_date": "2026-09-20"
+    }
   },
   "order_controls": [
     "customer_can_correct_errors",
@@ -62,22 +67,25 @@
     "personal_owner_email_or_phone_must_not_be_used_as_official_commercial_contact_without_explicit_approval": true,
     "official_trade_address_requires_publication_approval": true
   },
-  "launch_rule": "LEGAL_TRUST_READY remains HOLD while official_phone or trade-address publication approval is pending, or while any policy candidate lacks explicit human approval and an effective date.",
+  "launch_rule": "LEGAL_TRUST_READY remains HOLD while official_phone or trade-address publication approval is pending. Policy versions 1.0 are approved effective 2026-09-20 but do not authorize Production deployment, live charging, or public launch.",
   "policy_candidates": {
     "privacy": {
-      "version": "1.0-RC2",
-      "human_approved": false,
-      "effective_date": null
+      "version": "1.0",
+      "human_approved": true,
+      "effective_date": "2026-09-20",
+      "approved_from": "1.0-RC2"
     },
     "terms": {
-      "version": "1.0-RC2",
-      "human_approved": false,
-      "effective_date": null
+      "version": "1.0",
+      "human_approved": true,
+      "effective_date": "2026-09-20",
+      "approved_from": "1.0-RC2"
     },
     "refund_cancellation": {
-      "version": "1.0-RC2",
-      "human_approved": false,
-      "effective_date": null
+      "version": "1.0",
+      "human_approved": true,
+      "effective_date": "2026-09-20",
+      "approved_from": "1.0-RC2"
     }
   }
 }

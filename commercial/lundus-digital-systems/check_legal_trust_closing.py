@@ -47,7 +47,6 @@ if verified.get("support_complaint_channel_status") != "PASS_INBOUND":
 expected_pending = {
     "official_phone",
     "official_trade_address_publication_approval",
-    "policy_effective_dates",
 }
 pending = set(contract.get("pending_verified_values", []))
 if pending != expected_pending:
@@ -62,18 +61,26 @@ for key in [
 ]:
     if lang.get(key) != "RC_PRESENT":
         errors.append(f"BM readiness missing: {key}")
-if lang.get("effective_versions_approved") is not False:
-    errors.append("effective versions must remain unapproved")
+if lang.get("effective_versions_approved") is not True:
+    errors.append("effective versions must be approved")
+effective_versions = lang.get("effective_versions", {})
+for key in ["privacy", "terms", "refund_cancellation"]:
+    if effective_versions.get(key) != "1.0":
+        errors.append(f"effective policy version drift: {key}")
+if effective_versions.get("effective_date") != "2026-09-20":
+    errors.append("effective policy date drift")
 
 contract_candidates = contract.get("policy_candidates", {})
 for key in ["privacy", "terms", "refund_cancellation"]:
     candidate = contract_candidates.get(key, {})
-    if candidate.get("version") != "1.0-RC2":
+    if candidate.get("version") != "1.0":
         errors.append(f"contract policy version drift: {key}")
-    if candidate.get("human_approved") is not False:
-        errors.append(f"contract policy must remain human_approved=false: {key}")
-    if candidate.get("effective_date") is not None:
-        errors.append(f"contract policy effective date must remain null: {key}")
+    if candidate.get("human_approved") is not True:
+        errors.append(f"contract policy must be human_approved=true: {key}")
+    if candidate.get("effective_date") != "2026-09-20":
+        errors.append(f"contract policy effective date drift: {key}")
+    if candidate.get("approved_from") != "1.0-RC2":
+        errors.append(f"contract policy approval lineage drift: {key}")
 
 domain = load_json(docs / "LDS_DOMAIN_EMAIL_READINESS.json")
 gates = domain.get("gate_status", {})
@@ -89,9 +96,6 @@ if gates.get("LEGAL_TRUST_READY") != "HOLD":
 expected_blockers = {
     "OFFICIAL_COMMERCIAL_PHONE_VERIFIED",
     "TRADE_ADDRESS_PUBLICATION_APPROVED",
-    "PRIVACY_EFFECTIVE_VERSION_APPROVED",
-    "TERMS_EFFECTIVE_VERSION_APPROVED",
-    "REFUND_EFFECTIVE_VERSION_APPROVED",
 }
 
 pack = load_json(docs / "LDS_LEGAL_TRUST_CLOSING_PACK.json")
@@ -115,16 +119,18 @@ if pack_verified.get("support_complaint_channel") != "support@lundusdigital.com"
 
 for key in ["privacy", "terms", "refund_cancellation"]:
     candidate = pack.get("policy_candidates", {}).get(key, {})
-    if candidate.get("version") != "1.0-RC2":
-        errors.append(f"closing pack candidate version drift: {key}")
-    if candidate.get("status") != "READY_FOR_HUMAN_REVIEW":
-        errors.append(f"closing pack candidate not review-ready: {key}")
+    if candidate.get("version") != "1.0":
+        errors.append(f"closing pack approved version drift: {key}")
+    if candidate.get("status") != "APPROVED_EFFECTIVE":
+        errors.append(f"closing pack policy must be APPROVED_EFFECTIVE: {key}")
+    if candidate.get("effective_date") != "2026-09-20":
+        errors.append(f"closing pack policy effective-date drift: {key}")
 
 approval = load_json(docs / "LDS_LEGAL_TRUST_FINAL_APPROVAL.json")
 if approval.get("schema") != "lds.legal-trust-final-approval/1":
     errors.append("final approval schema drift")
-if approval.get("status") != "HOLD_HUMAN_APPROVAL_REQUIRED":
-    errors.append("final approval manifest must remain HOLD_HUMAN_APPROVAL_REQUIRED")
+if approval.get("status") != "HOLD_PARTICULARS_REQUIRED":
+    errors.append("final approval manifest must remain HOLD_PARTICULARS_REQUIRED")
 if approval.get("legal_trust_ready") is not False:
     errors.append("final approval manifest must keep legal_trust_ready=false")
 for key in ["production_activation_authorized", "live_payment_authorized", "public_launch_authorized"]:
@@ -162,12 +168,14 @@ if address.get("status") != "HOLD_PUBLICATION_APPROVAL_REQUIRED":
 approval_candidates = approval.get("policy_candidates", {})
 for key in ["privacy", "terms", "refund_cancellation"]:
     candidate = approval_candidates.get(key, {})
-    if candidate.get("version") != "1.0-RC2":
+    if candidate.get("version") != "1.0":
         errors.append(f"final approval policy version drift: {key}")
-    if candidate.get("human_approved") is not False:
-        errors.append(f"final approval policy must remain unapproved: {key}")
-    if candidate.get("effective_date") is not None:
-        errors.append(f"final approval policy effective date must remain null: {key}")
+    if candidate.get("human_approved") is not True:
+        errors.append(f"final approval policy must be approved: {key}")
+    if candidate.get("effective_date") != "2026-09-20":
+        errors.append(f"final approval policy effective date drift: {key}")
+    if candidate.get("approved_from") != "1.0-RC2":
+        errors.append(f"final approval policy lineage drift: {key}")
 
 for page in [
     "maklumat-urusniaga.html",
@@ -195,9 +203,10 @@ for token in [
 
 privacy_en = (root / "privacy.html").read_text()
 for token in [
-    "Candidate version:",
-    "1.0-RC2",
-    "pending explicit human approval",
+    "Version:",
+    "1.0",
+    "Effective date:",
+    "20 September 2026",
     "Personal data we may collect",
     "Sources of personal data",
     "Purposes of processing",
@@ -216,9 +225,10 @@ for token in [
 
 privacy_bm = (root / "privacy-bm.html").read_text()
 for token in [
-    "Versi calon:",
-    "1.0-RC2",
-    "menunggu kelulusan manusia",
+    "Versi:",
+    "1.0",
+    "Tarikh kuat kuasa:",
+    "20 September 2026",
     "Data peribadi yang mungkin dikumpul",
     "Sumber data peribadi",
     "Tujuan pemprosesan",
@@ -237,13 +247,13 @@ for token in [
 
 for page in ["terms.html", "refund.html"]:
     text = (root / page).read_text()
-    for token in ["Candidate version:", "1.0-RC2", "pending explicit human approval", "support@lundusdigital.com"]:
+    for token in ["Version:", "1.0", "Effective date:", "20 September 2026", "support@lundusdigital.com"]:
         if token not in text:
             errors.append(f"{page} candidate guard missing: {token}")
 
 for page in ["terms-bm.html", "refund-bm.html"]:
     text = (root / page).read_text()
-    for token in ["Versi calon:", "1.0-RC2", "menunggu kelulusan manusia", "support@lundusdigital.com"]:
+    for token in ["Versi:", "1.0", "Tarikh kuat kuasa:", "20 September 2026", "support@lundusdigital.com"]:
         if token not in text:
             errors.append(f"{page} BM candidate guard missing: {token}")
 
@@ -257,7 +267,7 @@ print("LDS Legal Trust Closing Pack: PASS")
 print("legal_trust=HOLD")
 print("official_email=PASS")
 print("support_channel=PASS_INBOUND")
-print("policy_candidates=1.0-RC2_READY_FOR_HUMAN_REVIEW")
+print("policy_versions=1.0_APPROVED_EFFECTIVE_2026-09-20")
 print("official_phone=HOLD_EVIDENCE_REQUIRED")
 print("trade_address_publication=HOLD")
-print("policy_effective_versions=HOLD_HUMAN_APPROVAL_REQUIRED")
+print("policy_effective_versions=PASS")

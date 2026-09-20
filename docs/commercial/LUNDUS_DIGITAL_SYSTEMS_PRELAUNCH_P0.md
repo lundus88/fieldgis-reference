@@ -67,7 +67,6 @@ Public charging remains HOLD while any mandatory gate is unresolved.
 ### HOLD / not live-verified
 
 - LEGAL_TRUST_READY
-- effective Privacy / Terms / Refund policy versions
 - official telephone and approved public trade-address disclosure
 - LIVE_LEAD_INTAKE
 - Production payment-provider configuration fingerprint
@@ -102,15 +101,16 @@ No DNS or mail mutation is authorized by this document.
 
 ## 5. Legal and trust state
 
-LEGAL_TRUST_READY remains HOLD while required public-commercial particulars or policy versions remain unverified.
+LEGAL_TRUST_READY remains HOLD while required public-commercial particulars remain unverified.
+
+Approved policy versions:
+- Privacy Notice v1.0 — effective 20 September 2026
+- Terms of Service v1.0 — effective 20 September 2026
+- Refund & Cancellation Policy v1.0 — effective 20 September 2026
 
 Pending evidence includes:
-
 - official telephone
 - public trade-address publication approval
-- effective Privacy Notice version/date
-- effective Terms of Service version/date
-- effective Refund & Cancellation Policy version/date
 
 Personal owner identity or personal contact details must not be substituted for official commercial channels without explicit approval.
 
@@ -216,7 +216,7 @@ Rule: evidence existence is not activation authority.
 
 ## 11. Controlled activation sequence
 
-1. Complete the remaining legal / trust particulars: official phone, trade-address publication approval, and effective policy versions/dates.
+1. Complete the remaining legal / trust particulars: official phone and trade-address publication approval.
 2. Verify current Production lead-intake, payment, notification and security configuration without enabling public charging.
 3. Capture current configuration fingerprints.
 4. Obtain explicit human authority for one minimum controlled Production transaction.

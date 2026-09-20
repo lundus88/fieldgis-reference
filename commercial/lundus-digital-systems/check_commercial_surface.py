@@ -53,14 +53,14 @@ for token in ["billplz.com","functions/v1/vl-billplz-create-production","fetch("
 
 for policy in ["privacy.html","terms.html","refund.html"]:
     text=html.get(policy,"")
-    for token in ["Candidate version:","1.0-RC2","Effective date:","pending explicit human approval"]:
+    for token in ["Version:","1.0","Effective date:","20 September 2026"]:
         if token not in text:
-            errors.append(f"{policy}: policy candidate guard missing {token}")
+            errors.append(f"{policy}: approved policy version/effective-date guard missing {token}")
 for policy in ["privacy-bm.html","terms-bm.html","refund-bm.html"]:
     text=html.get(policy,"")
-    for token in ["Versi calon:","1.0-RC2","Tarikh kuat kuasa:","menunggu kelulusan manusia"]:
+    for token in ["Versi:","1.0","Tarikh kuat kuasa:","20 September 2026"]:
         if token not in text:
-            errors.append(f"{policy}: BM policy candidate guard missing {token}")
+            errors.append(f"{policy}: BM approved policy version/effective-date guard missing {token}")
 
 analytics_path=root/"analytics-contract.json"
 if analytics_path.exists():
@@ -94,7 +94,7 @@ if legal_path.exists():
         if not verified.get(key):
             errors.append(f"legal trust: verified value missing {key}")
     pending=set(legal.get("pending_verified_values",[]))
-    expected_pending={"official_phone","official_trade_address_publication_approval","policy_effective_dates"}
+    expected_pending={"official_phone","official_trade_address_publication_approval"}
     if pending != expected_pending:
         errors.append(f"legal trust: pending verified values drift: {sorted(pending)}")
     if verified.get("official_email") != "hello@lundusdigital.com" or verified.get("official_email_status") != "PASS":
