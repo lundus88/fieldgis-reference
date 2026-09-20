@@ -1,0 +1,24 @@
+name: LUNDUS DIGITAL SYSTEMS Autonomous Operations
+
+on:
+  pull_request:
+    paths:
+      - 'docs/commercial/lds-autonomous-operations/**'
+      - 'docs/commercial/lds-integrated-customer-lifecycle-gate/**'
+      - '.github/workflows/lds-autonomous-operations.yml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Autonomous operations contract
+        run: python docs/commercial/lds-autonomous-operations/check_engine.py
+      - name: Autonomous operations tests
+        working-directory: docs/commercial/lds-autonomous-operations
+        run: python -m unittest discover -p 'test_*.py'
+      - name: Lifecycle contract
+        run: python docs/commercial/lds-integrated-customer-lifecycle-gate/check_lifecycle_gate.py
+      - name: Lifecycle tests
+        working-directory: docs/commercial/lds-integrated-customer-lifecycle-gate
+        run: python -m unittest discover -p 'test_*.py'
