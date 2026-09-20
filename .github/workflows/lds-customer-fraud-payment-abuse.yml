@@ -1,0 +1,29 @@
+name: LUNDUS DIGITAL SYSTEMS Customer Fraud Payment Abuse Protection
+
+on:
+  pull_request:
+    paths:
+      - 'docs/commercial/lds-customer-fraud-payment-abuse/**'
+      - '.github/workflows/lds-customer-fraud-payment-abuse.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'docs/commercial/lds-customer-fraud-payment-abuse/**'
+      - '.github/workflows/lds-customer-fraud-payment-abuse.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  fraud-abuse-protection:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Validate fraud protection policy
+        run: python3 docs/commercial/lds-customer-fraud-payment-abuse/check_policy.py
+      - name: Run fraud protection tests
+        working-directory: docs/commercial/lds-customer-fraud-payment-abuse
+        run: python3 -m unittest -v test_fraud_gate.py
