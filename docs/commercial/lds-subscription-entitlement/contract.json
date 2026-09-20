@@ -1,0 +1,26 @@
+{
+  "schema": "lds.subscription-entitlement/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "inputs": [
+    "customer_org_id",
+    "approved_plan_id",
+    "billing_cycle",
+    "subscription_state",
+    "paid_through",
+    "entitlement_catalog"
+  ],
+  "outputs": [
+    "entitlements",
+    "renewal_state",
+    "service_state_recommendation",
+    "human_review_required"
+  ],
+  "invariants": [
+    "Entitlements must derive from an approved plan or explicit human grant",
+    "Payment execution and customer charging are outside this engine",
+    "Failed or expired payment evidence must not automatically delete customer data or irreversibly revoke service",
+    "Plan upgrades, downgrades, cancellations, credits and refunds require auditable state transitions",
+    "Production service activation remains separately authorized"
+  ],
+  "production_activation_authorized": false
+}

@@ -1,0 +1,221 @@
+{
+  "schema": "lds.global-demand-engine/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "principle": "Any qualified customer. Any supported market. One digital workflow.",
+  "north_star": "From any legitimate lead in the world to a completed paid digital service with minimal human friction.",
+  "channels": {
+    "P0": [
+      "GOOGLE_SEARCH",
+      "CLUTCH",
+      "UPWORK",
+      "SEO_CONTENT"
+    ],
+    "P1": [
+      "LINKEDIN",
+      "REFERRAL_PARTNERS",
+      "AFFILIATE_PARTNERS"
+    ],
+    "P2": [
+      "PRODUCT_HUNT",
+      "EVIDENCE_APPROVED_LOCAL_CHANNELS"
+    ]
+  },
+  "acquisition_flow": [
+    "DISCOVERY",
+    "VISITOR",
+    "LEAD_CAPTURED",
+    "QUALIFICATION",
+    "QUALIFIED_LEAD",
+    "MARKET_SUPPORT_CHECK",
+    "SERVICE_FIT_CHECK",
+    "COMMERCIAL_HANDOFF"
+  ],
+  "kpi_chain": [
+    "VISITOR",
+    "QUALIFIED_LEAD",
+    "QUOTATION",
+    "PAYMENT",
+    "DELIVERY",
+    "ACCEPTANCE",
+    "REPEAT_OR_REFERRAL"
+  ],
+  "qualification_requirements": [
+    "valid_contact_method",
+    "consent_or_lawful_contact_basis_where_required",
+    "source_attribution",
+    "intelligible_customer_need",
+    "service_offer_or_paid_discovery_match",
+    "country_identified_for_market_support_evaluation",
+    "no_unresolved_fraud_or_abuse_hold",
+    "no_explicit_unsupported_market_or_prohibited_service_condition"
+  ],
+  "dependencies": {
+    "pr_296_global_commerce_readiness": "SATISFIED_ON_MAIN",
+    "pr_317_integrated_customer_lifecycle": "SATISFIED_ON_MAIN"
+  },
+  "authority": {
+    "global_discovery": "ALLOWED",
+    "global_lead_capture": "ALLOWED_WITH_GUARDRAILS",
+    "global_qualification": "ALLOWED",
+    "global_commercial_handoff": "CONDITIONAL",
+    "global_paid_order": "HOLD",
+    "public_global_checkout": "HOLD",
+    "production_activation": "NOT_AUTHORIZED"
+  },
+  "invariants": [
+    "No channel may bypass lead qualification",
+    "No qualified lead may bypass market-support evaluation",
+    "No channel may imply worldwide paid-order support without evidence",
+    "No automatic payment without downstream commerce authority",
+    "Purchased or spam lists are not valid acquisition sources",
+    "Consent and applicable anti-spam and privacy requirements must be respected",
+    "Attribution never grants commercial authority",
+    "Unknown legal tax privacy sanctions payment or market conditions fail closed",
+    "Production and deployment authority remain HUMAN_ONLY",
+    "Referral rewards require accepted delivery verified sale attribution and fraud checks",
+    "Case studies and testimonials require evidence and appropriate customer permission handling",
+    "Expansion must not bypass scope quotation payment or lifecycle controls",
+    "The Digital Business Check is advisory and never grants commercial authority",
+    "Marketing must not fabricate ROI guaranteed savings or unsupported customer outcomes",
+    "Proof claims must be evidence-backed and respect customer permission requirements",
+    "Unknown Buyer Confidence Center answers must fail to NEEDS_REVIEW rather than be guessed",
+    "Productized offers improve buying clarity but never grant automatic quotation or payment authority"
+  ],
+  "marketing_hook": "Tell us the business problem. We build the digital system.",
+  "growth_flywheel": {
+    "demand_loop": [
+      "CONTENT",
+      "SEARCH",
+      "SOCIAL",
+      "BRAND_MEMORY"
+    ],
+    "capture_loop": [
+      "HIGH_INTENT_CHANNEL",
+      "LANDING_PAGE",
+      "LEAD_CAPTURE",
+      "QUALIFICATION"
+    ],
+    "proof_loop": [
+      "DELIVERY",
+      "MEASURABLE_RESULT",
+      "CASE_STUDY",
+      "REVIEW_OR_TESTIMONIAL",
+      "TRUST"
+    ],
+    "referral_loop": [
+      "ACCEPTED_DELIVERY",
+      "SATISFIED_CUSTOMER",
+      "REFERRAL",
+      "QUALIFIED_LEAD",
+      "VERIFIED_SALE",
+      "APPROVED_REWARD"
+    ],
+    "expansion_loop": [
+      "INITIAL_SERVICE",
+      "DELIVERED_OUTCOME",
+      "ADJACENT_NEED",
+      "NEW_SCOPE",
+      "QUOTATION",
+      "ADDITIONAL_SERVICE",
+      "SUPPORT_OR_RENEWAL"
+    ]
+  },
+  "digital_business_check": {
+    "name": "LD Digital Business Check",
+    "status": "PRE_LAUNCH_ADVISORY",
+    "output": [
+      "DIGITAL_EFFICIENCY_SCORE",
+      "PRIORITY_OPPORTUNITY_AREAS",
+      "RECOMMENDED_NEXT_ACTIONS"
+    ],
+    "cta": "GET_MY_LD_SYSTEM_PLAN",
+    "commercial_authority": false,
+    "roi_guarantee": false
+  },
+  "growth_metrics": [
+    "qualified_lead_rate_by_channel",
+    "quotation_rate_from_qualified_leads",
+    "paid_conversion_rate_after_downstream_approval",
+    "delivery_acceptance_rate",
+    "referral_rate_from_accepted_deliveries",
+    "repeat_or_expansion_rate",
+    "cost_per_qualified_lead_where_spend_exists",
+    "evidence_backed_case_study_count"
+  ],
+  "p0_conversion_system": {
+    "trust_and_proof_engine": {
+      "states": [
+        "HOLD",
+        "INTERNAL_ONLY",
+        "PUBLISHABLE"
+      ],
+      "required_fields": [
+        "problem_category",
+        "evidence_source",
+        "outcome",
+        "customer_permission_state",
+        "verification_state",
+        "publication_state",
+        "claim_limitations"
+      ],
+      "publish_requires": [
+        "evidence_present",
+        "verification_pass",
+        "permission_valid_where_required"
+      ]
+    },
+    "buyer_confidence_center": {
+      "required_topics": [
+        "how_ld_works",
+        "service_scope_and_offer_types",
+        "pricing_logic",
+        "delivery_stages",
+        "uat_customer_acceptance",
+        "ownership_and_handover",
+        "security_and_data_handling",
+        "change_requests",
+        "support_and_maintenance",
+        "payment_process",
+        "cancellation_refund_rules_where_applicable",
+        "faq_and_escalation"
+      ],
+      "unknown_answer_policy": "NEEDS_REVIEW"
+    },
+    "productized_offers": {
+      "offer_families": [
+        "LD_LAUNCH",
+        "LD_AUTOMATE",
+        "LD_AI",
+        "LD_SYSTEM",
+        "LD_DISCOVERY"
+      ],
+      "required_fields": [
+        "ideal_problem",
+        "inclusions",
+        "exclusions",
+        "prerequisite_information",
+        "delivery_evidence",
+        "acceptance_criteria",
+        "support_boundary",
+        "pricing_mode",
+        "change_request_trigger"
+      ],
+      "automatic_quotation_authority": false,
+      "payment_authority": false
+    }
+  },
+  "controlled_validation": {
+    "status": "READY_FOR_CONTROLLED_EVIDENCE_COLLECTION",
+    "initial_learning_target": {
+      "relevant_visitors": 100,
+      "qualified_leads": 10,
+      "quotations_min": 3,
+      "quotations_max": 5,
+      "paid_customers_min": 1,
+      "evidence_backed_case_studies_min": 1
+    },
+    "scale_authority": false,
+    "production_authority": "HUMAN_ONLY",
+    "optimize_rule": "Fix the largest evidence-backed funnel leak before adding unrelated complexity"
+  }
+}

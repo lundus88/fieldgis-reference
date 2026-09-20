@@ -1,0 +1,38 @@
+{
+  "schema": "lds.customer-knowledge-self-service/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "article_types": [
+    "GETTING_STARTED",
+    "HOW_TO",
+    "TROUBLESHOOTING",
+    "KNOWN_LIMITATION",
+    "FAQ",
+    "SUPPORT_PATH",
+    "CHANGE_REQUEST_PATH",
+    "HANDOVER_REFERENCE"
+  ],
+  "required_fields": [
+    "article_id",
+    "title",
+    "article_type",
+    "product_or_project_scope",
+    "version",
+    "last_verified_at",
+    "owner",
+    "evidence_ref",
+    "customer_visibility",
+    "content"
+  ],
+  "invariants": [
+    "Customer knowledge must be scoped to the relevant product or project version",
+    "Known limitations must not be hidden or rewritten as successful behavior",
+    "Stale or unverified articles must not be presented as current operational guidance",
+    "Self-service guidance must not instruct customers to bypass security, payment, approval or Production controls",
+    "Project-specific private information must only be visible to authorized customers",
+    "Troubleshooting guidance must distinguish safe customer actions from actions requiring LD support",
+    "Support and Change Request paths must remain visible when self-service is insufficient",
+    "Handover references must point to the governed handover package rather than duplicate ownership truth",
+    "Knowledge content may reduce repetitive support but does not replace incident escalation for security or P0 issues"
+  ],
+  "production_activation_authorized": false
+}

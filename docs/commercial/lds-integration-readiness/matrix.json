@@ -1,0 +1,92 @@
+{
+  "schema": "lds.integration-readiness-matrix/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "base_main_sha": "998034ae0c99a4c9326879b75ac0a382d4bfe19f",
+  "release_train": [
+    {
+      "phase": 1,
+      "name": "commercial_foundation",
+      "prs": [
+        291,
+        292,
+        293,
+        294,
+        295,
+        296,
+        297,
+        298,
+        299
+      ]
+    },
+    {
+      "phase": 2,
+      "name": "customer_intake_and_scope",
+      "prs": [
+        300,
+        302,
+        310,
+        303
+      ]
+    },
+    {
+      "phase": 3,
+      "name": "customer_control_and_start",
+      "prs": [
+        301,
+        309
+      ]
+    },
+    {
+      "phase": 4,
+      "name": "delivery_economics_and_reuse",
+      "prs": [
+        305,
+        311,
+        314,
+        313
+      ]
+    },
+    {
+      "phase": 5,
+      "name": "support_success_and_exit",
+      "prs": [
+        304,
+        306,
+        315,
+        307,
+        316
+      ]
+    },
+    {
+      "phase": 6,
+      "name": "executive_visibility",
+      "prs": [
+        308,
+        312
+      ]
+    },
+    {
+      "phase": 7,
+      "name": "integrated_lifecycle",
+      "prs": [
+        317
+      ]
+    }
+  ],
+  "hard_rules": [
+    "Every PR must have exact-head CI green before merge consideration",
+    "Independent reviewer submission must exist before merge consideration when requested",
+    "Any base drift after an earlier merge requires fresh exact-head validation before the next merge",
+    "A downstream PR must not be merged merely because its standalone branch is green if an upstream contract it depends on changes",
+    "Production activation authority remains separate from repository merge authority",
+    "PR 317 integrated lifecycle gate must be merged only after its referenced prerequisite contracts are present on main"
+  ],
+  "current_observations": {
+    "prs_300_317": "standalone exact-head CI green at audit time",
+    "prs_291_299": "all green except PR 292 was patched and is awaiting rerun result",
+    "reviews": "reviewer requested on most PRs but no submitted reviews observed at audit time",
+    "production": "HOLD"
+  },
+  "merge_authorized": false,
+  "production_activation_authorized": false
+}
