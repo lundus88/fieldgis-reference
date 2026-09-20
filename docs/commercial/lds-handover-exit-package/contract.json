@@ -1,0 +1,33 @@
+{
+  "schema": "lds.handover-exit-package/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "package_sections": [
+    "deliverables_inventory",
+    "source_code_or_artifact_inventory",
+    "deployment_targets",
+    "domains_and_dns",
+    "databases_and_exports",
+    "third_party_accounts",
+    "credentials_transfer_plan",
+    "documentation",
+    "known_limitations",
+    "support_or_warranty_boundary",
+    "ownership_and_licensing",
+    "revocation_plan",
+    "customer_acceptance",
+    "final_evidence_manifest"
+  ],
+  "invariants": [
+    "Ownership and licensing terms must be stated explicitly before final handover",
+    "Customer-owned assets must not remain solely controlled by an LD staff account after handover",
+    "Secrets and credentials must never be transmitted in plaintext inside ordinary handover documents",
+    "Credential transfer requires a secure approved channel and post-transfer rotation where appropriate",
+    "Data export or portability evidence must exist before an exit is represented as complete",
+    "Third-party subscriptions and recurring provider obligations must be disclosed",
+    "LD access must be revoked or reduced according to the agreed post-handover support model",
+    "A completed handover must preserve an evidence manifest of what was transferred, retained, excluded and revoked",
+    "Customer acceptance of handover must be explicit",
+    "Unresolved ownership, export, credential or access-revocation issues keep handover in REVIEW or HOLD"
+  ],
+  "production_activation_authorized": false
+}

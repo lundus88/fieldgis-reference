@@ -1,0 +1,26 @@
+{
+  "schema": "lds.delivery-benchmark-learning/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "metrics": [
+    "first_visible_progress_days",
+    "delivery_cycle_days",
+    "internal_cost_minor",
+    "rework_pct",
+    "support_burden_pct",
+    "dependency_delay_days",
+    "uat_cycle_days"
+  ],
+  "invariants": [
+    "Historical benchmark must identify comparable project class and sample size",
+    "Small or non-comparable samples must not produce a confident ETA or pricing recommendation",
+    "Benchmark output must expose variance or spread rather than only a single average",
+    "Stale historical evidence returns REVIEW",
+    "Customer-caused dependency delay must be separated from internal delivery cycle time",
+    "Internal rework and regression time must remain visible in learning data",
+    "Benchmark learning must not overwrite an approved customer ETA, quotation or scope",
+    "Benchmark output is planning evidence only and cannot create a customer commitment automatically",
+    "Outliers must not be silently deleted; exclusion requires documented rationale",
+    "Production or release authority is not created by benchmark evidence"
+  ],
+  "production_activation_authorized": false
+}
