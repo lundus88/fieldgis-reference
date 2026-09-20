@@ -1,7 +1,7 @@
 {
   "schema": "lds.legal-trust-final-approval/1",
   "as_of": "2026-09-20",
-  "status": "HOLD_SENSITIVE_PARTICULARS_APPROVAL_REQUIRED",
+  "status": "HOLD_SEPARATE_PUBLIC_CONTACTS_REQUIRED",
   "policy_candidates": {
     "privacy": {
       "version": "1.0",
@@ -39,34 +39,33 @@
     },
     "official_phone": {
       "value": null,
-      "evidence_present": true,
-      "evidence_id": "SSM_FORM_A_003891235-V_2026-09-18",
-      "evidence_status": "VERIFIED_PRESENT",
-      "public_use_approved": false,
-      "status": "HOLD_PUBLIC_USE_APPROVAL_REQUIRED"
+      "source_strategy": "SEPARATE_LD_BUSINESS_PHONE",
+      "ssm_value_public_use_approved": false,
+      "ssm_value_rejected_for_public_identity": true,
+      "status": "HOLD_PROVISION_AND_VERIFY"
     },
     "trade_address": {
       "value": null,
-      "evidence_present": true,
-      "evidence_id": "SSM_BIS_INFO_003891235-V_2026-09-20",
-      "verified_from_registration": true,
+      "source_strategy": "SEPARATE_PUBLIC_BUSINESS_ADDRESS",
+      "ssm_value_public_display_approved": false,
+      "ssm_value_rejected_for_public_identity": true,
       "overlaps_owner_residential_information": true,
-      "public_display_approved": false,
-      "status": "HOLD_PUBLICATION_APPROVAL_REQUIRED"
+      "status": "HOLD_IDENTIFY_VALIDATE_AND_APPROVE"
     }
   },
   "remaining_human_decisions": [
-    "OFFICIAL_COMMERCIAL_PHONE_PUBLIC_USE_APPROVED",
-    "TRADE_ADDRESS_PUBLICATION_APPROVED"
+    "LD_DEDICATED_BUSINESS_PHONE_VERIFIED",
+    "LD_PUBLIC_BUSINESS_ADDRESS_VALIDATED"
   ],
   "legal_trust_ready": false,
   "production_activation_authorized": false,
   "live_payment_authorized": false,
   "public_launch_authorized": false,
   "rules": [
-    "No phone number may be published or adopted as the LD public commercial phone until explicit human approval is recorded.",
-    "No trade address may be published until explicit human approval is recorded.",
-    "Sensitive personal/contact values must remain excluded from the public repository unless publication is explicitly approved.",
+    "The telephone recorded in SSM evidence must not be published or used as the LD public commercial phone.",
+    "The SSM trade address must not be published as the LD public business address because it overlaps owner residential information.",
+    "A separate LD business phone must be provisioned and verified before publication.",
+    "A separate lawful public business/correspondence address must be identified, validated and approved before publication.",
     "Policy approval does not authorize Production deployment, live charging, or public launch."
   ],
   "policy_approval": {
@@ -74,5 +73,6 @@
     "approved_at_date": "2026-09-20",
     "approval_scope": "Privacy Notice, Terms of Service, and Refund & Cancellation Policy promoted from 1.0-RC2 to effective version 1.0.",
     "production_authority_granted": false
-  }
+  },
+  "public_contact_policy": "docs/commercial/LDS_PUBLIC_CONTACT_SEPARATION_POLICY.json"
 }
