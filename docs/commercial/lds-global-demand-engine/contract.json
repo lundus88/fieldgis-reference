@@ -50,8 +50,8 @@
     "no_explicit_unsupported_market_or_prohibited_service_condition"
   ],
   "dependencies": {
-    "pr_296_global_commerce_readiness": "NOT_SATISFIED_UNTIL_MERGED_TO_MAIN",
-    "pr_317_integrated_customer_lifecycle": "NOT_SATISFIED_UNTIL_MERGED_TO_MAIN"
+    "pr_296_global_commerce_readiness": "SATISFIED_ON_MAIN",
+    "pr_317_integrated_customer_lifecycle": "SATISFIED_ON_MAIN"
   },
   "authority": {
     "global_discovery": "ALLOWED",
@@ -205,7 +205,7 @@
     }
   },
   "controlled_validation": {
-    "status": "READY_FOR_EVIDENCE_COLLECTION_AFTER_DEPENDENCY_GATES",
+    "status": "READY_FOR_CONTROLLED_EVIDENCE_COLLECTION",
     "initial_learning_target": {
       "relevant_visitors": 100,
       "qualified_leads": 10,
