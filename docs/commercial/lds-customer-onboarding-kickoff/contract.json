@@ -1,0 +1,36 @@
+{
+  "schema": "lds.customer-onboarding-kickoff/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "required_readiness": [
+    "approved_scope_snapshot",
+    "acceptance_criteria_confirmed",
+    "milestone_funding_evidence",
+    "customer_owner_assigned",
+    "ld_owner_assigned",
+    "communication_channel_confirmed",
+    "required_dependencies_ready",
+    "required_access_ready",
+    "environment_target_confirmed",
+    "data_handling_requirements_confirmed",
+    "kickoff_record_created"
+  ],
+  "states": [
+    "NOT_READY",
+    "CLIENT_ACTION_REQUIRED",
+    "LD_ACTION_REQUIRED",
+    "READY_FOR_KICKOFF",
+    "KICKED_OFF"
+  ],
+  "invariants": [
+    "Payment or funded milestone alone does not make a project ready to build",
+    "BUILDING must not start before scope, acceptance criteria, dependencies and required access are ready",
+    "Missing customer dependency produces CLIENT_ACTION_REQUIRED rather than silently consuming delivery time",
+    "Material customer-caused dependency delay requires schedule or ETA rebaseline before a new commitment is made",
+    "Credentials and secrets must not be collected through ordinary onboarding documents",
+    "Customer owner and LD owner must both be identified before kickoff",
+    "Communication channel and decision path must be explicit",
+    "Kickoff does not authorize Production deployment or any consequential release action",
+    "Unknown or contradictory readiness evidence returns NOT_READY or review"
+  ],
+  "production_activation_authorized": false
+}
