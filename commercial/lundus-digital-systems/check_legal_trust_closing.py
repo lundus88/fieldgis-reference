@@ -134,6 +134,21 @@ for key in ["privacy", "terms", "refund_cancellation"]:
     if candidate.get("effective_date") != "2026-09-20":
         errors.append(f"closing pack policy effective-date drift: {key}")
 
+due_diligence = load_json(docs / "LDS_PUBLIC_CONTACT_DUE_DILIGENCE_2026-09-21.json")
+if due_diligence.get("schema") != "lds.public-contact-due-diligence/1":
+    errors.append("public contact due diligence schema drift")
+if due_diligence.get("status") != "EVIDENCE_REVIEW_COMPLETE_NO_PURCHASE":
+    errors.append("public contact due diligence must remain evidence-only")
+if due_diligence.get("phone", {}).get("decision") != "VERIFY_MAXIS_FIRST":
+    errors.append("phone verification order drift")
+if due_diligence.get("address", {}).get("decision") != "CONTACT_REGUS_AND_UNIVERSAL_BEFORE_SELECTION":
+    errors.append("address due diligence decision drift")
+if set(due_diligence.get("legal_trust", {}).get("remaining_blockers", [])) != expected_blockers:
+    errors.append("due diligence blocker set drift")
+for key in ["external_signup_authorized","address_contract_authorized","production_activation_authorized","live_payment_authorized","public_launch_authorized"]:
+    if due_diligence.get("authority", {}).get(key) is not False:
+        errors.append(f"due diligence authority must remain false: {key}")
+
 provisioning = load_json(docs / "LDS_PUBLIC_CONTACT_PROVISIONING_PLAN.json")
 if provisioning.get("schema") != "lds.public-contact-provisioning-plan/1":
     errors.append("public contact provisioning plan schema drift")
@@ -143,6 +158,12 @@ if provisioning.get("phone", {}).get("status") != "HOLD_EXTERNAL_SIGNUP_AND_VERI
     errors.append("dedicated LD phone must remain external-signup HOLD")
 if provisioning.get("address", {}).get("status") != "HOLD_PROVIDER_VALIDATION_AND_SELECTION":
     errors.append("public business address must remain provider-validation HOLD")
+if provisioning.get("due_diligence_evidence") != "docs/commercial/LDS_PUBLIC_CONTACT_DUE_DILIGENCE_2026-09-21.json":
+    errors.append("provisioning due diligence evidence link drift")
+if provisioning.get("phone", {}).get("next_action") != "VERIFY_MAXIS_BUSINESS_ACCOUNT_ELIGIBILITY_AND_LABUAN_COVERAGE":
+    errors.append("phone next action drift")
+if provisioning.get("address", {}).get("next_action") != "REQUEST_WRITTEN_PERMITTED_USE_CONFIRMATION_FROM_BOTH_PROVIDERS":
+    errors.append("address next action drift")
 if set(provisioning.get("legal_trust", {}).get("remaining_blockers", [])) != expected_blockers:
     errors.append("provisioning plan blocker set drift")
 for key in ["purchase_authorized","production_activation_authorized","live_payment_authorized","public_launch_authorized"]:
