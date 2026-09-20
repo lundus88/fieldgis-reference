@@ -1,0 +1,32 @@
+{
+  "schema": "lds.observability-cost-anomaly/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "inputs": [
+    "metric_name",
+    "current_value",
+    "baseline_value",
+    "warning_threshold_pct",
+    "critical_threshold_pct",
+    "evidence_current",
+    "tenant_match",
+    "baseline_version"
+  ],
+  "outputs": [
+    "anomaly_status",
+    "deviation_pct",
+    "risk_flags",
+    "remediation_recommendation",
+    "human_review_required"
+  ],
+  "invariants": [
+    "Anomaly decisions must use current evidence and an approved versioned baseline",
+    "Cross-tenant metric correlation must preserve organization isolation",
+    "Anomaly detection must not be presented as a confirmed root cause without supporting evidence",
+    "Automatic shutdown throttling price change or customer charging is not authorized",
+    "Alert suppression or threshold changes require auditable policy and human authority",
+    "Observability evidence does not itself authorize Production remediation"
+  ],
+  "production_activation_authorized": false,
+  "automatic_shutdown_authorized": false,
+  "automatic_price_change_authorized": false
+}
