@@ -1,0 +1,33 @@
+{
+  "schema": "lds.sla-reliability/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "inputs": [
+    "sla_policy_version",
+    "severity",
+    "incident_started_at",
+    "first_response_minutes",
+    "resolution_minutes",
+    "target_response_minutes",
+    "target_resolution_minutes",
+    "monitoring_evidence_current",
+    "customer_impact_confirmed"
+  ],
+  "outputs": [
+    "sla_status",
+    "response_status",
+    "resolution_status",
+    "risk_flags",
+    "service_credit_review",
+    "human_review_required"
+  ],
+  "invariants": [
+    "SLA targets must come from an approved and versioned customer agreement or service policy",
+    "Uptime, response and resolution claims require current monitoring or incident evidence",
+    "Service credits, refunds and contractual remedies are never automatic",
+    "Severity must be based on defined customer impact criteria and must not be inflated or minimized silently",
+    "Customer-facing commitments must not exceed approved contractual terms",
+    "SLA evidence does not itself authorize Production changes or compensation"
+  ],
+  "production_activation_authorized": false,
+  "automatic_service_credit_authorized": false
+}
