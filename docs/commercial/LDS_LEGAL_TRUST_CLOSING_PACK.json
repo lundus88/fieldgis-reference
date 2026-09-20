@@ -22,13 +22,15 @@
     "bm_transaction_disclosure_surface": "RC_PRESENT",
     "bm_privacy_surface": "RC_PRESENT",
     "bm_terms_surface": "RC_PRESENT",
-    "bm_refund_surface": "RC_PRESENT"
+    "bm_refund_surface": "RC_PRESENT",
+    "commercial_phone_evidence": "SSM_FORM_A_VERIFIED_PRESENT_VALUE_REDACTED",
+    "trade_address_evidence": "SSM_BUSINESS_INFO_VERIFIED_PRESENT_VALUE_REDACTED"
   },
   "remaining_blockers": [
-    "OFFICIAL_COMMERCIAL_PHONE_VERIFIED",
+    "OFFICIAL_COMMERCIAL_PHONE_PUBLIC_USE_APPROVED",
     "TRADE_ADDRESS_PUBLICATION_APPROVED"
   ],
-  "legal_review_posture": "Compliance preparation only; not a legal opinion. Privacy, Terms and Refund/Cancellation version 1.0 are human-approved effective 2026-09-20. Legal & Trust remains HOLD for official phone verification and trade-address publication approval.",
+  "legal_review_posture": "Compliance preparation only; not a legal opinion. Phone and trade-address evidence are now verified from official SSM documents, but public use/publication remains explicitly human-gated because the values are sensitive and the trade address overlaps owner residential information.",
   "production_activation_authorized": false,
   "live_payment_authorized": false,
   "public_launch_authorized": false,
