@@ -91,13 +91,17 @@
       "from": "PAYMENT_RECONCILED",
       "to": "KICKOFF_APPROVED",
       "evidence": [
-        "kickoff_ready",
+        "kickoff_ready"
+      ],
+      "any_evidence": [
+        "autonomous_kickoff_eligibility",
         "human_kickoff_approval"
       ],
       "dependencies": [
-        "customer_onboarding"
+        "customer_onboarding",
+        "autonomous_operations"
       ],
-      "human_authority": true
+      "human_authority": false
     },
     {
       "from": "KICKOFF_APPROVED",
@@ -193,6 +197,8 @@
     "material_scope_change_requires_approved_change_request",
     "cross_organization_authority_denied",
     "stale_or_contradictory_hard_gate_evidence_holds",
+    "standard_order_auto_kickoff_requires_autonomous_kickoff_eligibility",
+    "exception_kickoff_requires_explicit_human_approval",
     "production_authority_is_outside_control_plane"
   ]
 }
