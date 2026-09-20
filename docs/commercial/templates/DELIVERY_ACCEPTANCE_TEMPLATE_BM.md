@@ -10,6 +10,9 @@
 ## Delivery evidence
 {{DELIVERY_EVIDENCE}}
 
+## UAT evidence
+{{UAT_EVIDENCE}}
+
 ## Receipt reference
 {{RECEIPT_REFERENCE}}
 
@@ -24,10 +27,13 @@ Saya mengesahkan deliverables telah diterima untuk semakan / diterima sebagai le
 **Accepted / queried by:** {{CUSTOMER_REPRESENTATIVE}}  
 **Date:** {{DATE}}
 
+**Final acceptance authority:** HUMAN — wakil pelanggan yang diberi kuasa. LOM boleh menyediakan checklist/evidence tetapi tidak boleh menerima bagi pihak pelanggan.
+
 ## Internal close control
 Order hanya boleh ditanda Closed selepas:
 - payment = paid;
 - fulfilment = fulfilled;
 - receipt evidence wujud;
 - fulfilment event evidence wujud;
+- UAT/acceptance evidence wujud;
 - human close approval direkod.
