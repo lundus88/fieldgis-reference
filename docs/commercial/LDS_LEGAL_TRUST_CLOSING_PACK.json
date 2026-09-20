@@ -1,0 +1,33 @@
+{
+  "schema": "lds.legal-trust-closing-pack/1",
+  "as_of": "2026-09-20",
+  "status": "HOLD",
+  "dependency": {
+    "pr": 332,
+    "requirement": "Official SSM business-registration evidence gate must be merged or equivalently evidenced on the target branch before this pack can become merge-independent."
+  },
+  "verified": {
+    "business_name": "LUNDUS DIGITAL SYSTEMS",
+    "registration_number": "202603248473 (003891235-V)",
+    "business_registration_status": "ACTIVE",
+    "registration_valid_through": "2027-09-18",
+    "website_domain": "lundusdigital.com",
+    "bm_transaction_disclosure_surface": "RC_PRESENT",
+    "bm_privacy_surface": "RC_PRESENT",
+    "bm_terms_surface": "RC_PRESENT",
+    "bm_refund_surface": "RC_PRESENT"
+  },
+  "remaining_blockers": [
+    "OFFICIAL_COMMERCIAL_EMAIL_VERIFIED",
+    "OFFICIAL_COMMERCIAL_PHONE_VERIFIED",
+    "TRADE_ADDRESS_PUBLICATION_APPROVED",
+    "SUPPORT_COMPLAINT_CHANNEL_VERIFIED",
+    "PRIVACY_EFFECTIVE_VERSION_APPROVED",
+    "TERMS_EFFECTIVE_VERSION_APPROVED",
+    "REFUND_EFFECTIVE_VERSION_APPROVED"
+  ],
+  "legal_review_posture": "Compliance preparation only; not a legal opinion. Human review remains required before policy versions become effective.",
+  "production_activation_authorized": false,
+  "live_payment_authorized": false,
+  "public_launch_authorized": false
+}
