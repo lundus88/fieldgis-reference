@@ -60,11 +60,13 @@
       "registered_description_summary": "Software, systems and internet-based application development; SaaS; AI solutions; process automation; IT consultancy; website development; data-system management and related IT services."
     },
     "official_trade_address": {
-      "value": null,
-      "status": "verified_from_ssm_evidence_publication_not_approved",
+      "value": "NO F165 SECTION HOUSING, KG DURIAN TUNJONG, 87007 LABUAN, W.P. LABUAN",
+      "status": "verified_from_ssm_evidence_publication_approved",
       "evidence_id": "SSM_BIS_INFO_003891235-V_2026-09-20",
       "publication_sensitive": true,
-      "note": "Official SSM evidence confirms the principal business address. The same location also appears as owner residential information in the evidence; exact address remains intentionally excluded from this public repository until explicit publication approval."
+      "public_display_approved": true,
+      "public_display_approved_on": "2026-09-21",
+      "note": "User explicitly approved publication of the SSM-registered business address as the official LD business address."
     },
     "official_email": {
       "value": null,
@@ -145,10 +147,10 @@
   "privacy": {
     "owner_personal_identifiers_persisted": false,
     "personal_contact_details_persisted": false,
-    "exact_trade_address_persisted": false,
+    "exact_trade_address_persisted": true,
     "commercial_phone_evidence_present": true,
     "trade_address_evidence_present": true,
-    "publication_approval_pending": true
+    "publication_approval_pending": false
   },
   "rule": "Official SSM business-registration evidence is sufficient to set the LD business/licence readiness gate to PASS for the registered commercial scope. This does not itself authorize public launch, live charging, Production activation, or imply a separate sector-specific licence.",
   "domain_gate": {
