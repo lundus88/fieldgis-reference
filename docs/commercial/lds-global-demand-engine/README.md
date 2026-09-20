@@ -245,3 +245,71 @@ Track at minimum:
 - evidence-backed case-study count
 
 Optimize for qualified revenue and customer outcomes, not raw traffic or vanity metrics.
+
+
+## P0 Trust & Proof Engine
+
+Purpose: convert completed work into verifiable buyer confidence.
+
+Every proof item must carry:
+- project/problem category
+- evidence source
+- measurable outcome or clearly labeled qualitative outcome
+- customer-permission state
+- verification state
+- publication state
+- claim limitations
+
+Allowed publication states:
+- HOLD
+- INTERNAL_ONLY
+- PUBLISHABLE
+
+A case study or testimonial is PUBLISHABLE only when required evidence exists and customer permission is valid where required.
+
+Proof CTA pattern:
+Problem → Solution → Evidence → Outcome → Build Something Similar
+
+## P0 Buyer Confidence Center
+
+The Buyer Confidence Center is the self-service trust layer for remote/global buyers.
+
+Required topics:
+- how LD works
+- service scope and offer types
+- pricing logic
+- delivery stages
+- UAT / customer acceptance
+- ownership and handover
+- security and data handling
+- change requests
+- support and maintenance
+- payment process
+- cancellation/refund rules where applicable
+- FAQ and escalation path
+
+Every answer must have a source/owner and review state. Unknown or unresolved claims must display as NEEDS_REVIEW rather than being guessed.
+
+## P0 Productized Offer Architecture
+
+LD should sell clear outcomes rather than vague technology hours.
+
+Initial offer families:
+- LD LAUNCH — website / digital presence foundation
+- LD AUTOMATE — workflow and repetitive-process automation
+- LD AI — AI-assisted business workflow or assistant
+- LD SYSTEM — custom business system / portal / internal tool
+- LD DISCOVERY — paid discovery when scope is not yet sufficiently defined
+
+Each offer must define:
+- ideal problem
+- inclusions
+- exclusions
+- prerequisite information
+- delivery evidence
+- UAT / acceptance criteria
+- support boundary
+- pricing mode
+- change-request trigger
+
+Productized offers improve buying clarity but do not create automatic quotation or payment authority.
