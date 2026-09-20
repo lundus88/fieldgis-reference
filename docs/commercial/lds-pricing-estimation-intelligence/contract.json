@@ -1,0 +1,37 @@
+{
+  "schema": "lds.pricing-estimation-intelligence/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "inputs": [
+    "approved_scope_snapshot",
+    "complexity_class",
+    "estimated_delivery_cost",
+    "historical_comparable_projects",
+    "historical_rework_rate",
+    "historical_support_burden",
+    "third_party_costs",
+    "risk_contingency",
+    "target_margin_policy",
+    "capacity_pressure"
+  ],
+  "outputs": [
+    "evidence_confidence",
+    "estimated_cost_floor",
+    "internal_price_range_low",
+    "internal_price_range_high",
+    "risk_flags",
+    "human_review_reason"
+  ],
+  "invariants": [
+    "Factory Credit is an execution/resource estimate and must not be converted directly into a customer price",
+    "Pricing intelligence is internal decision support only and cannot publish or activate a customer quotation",
+    "Customer price requires separate human commercial approval",
+    "Insufficient historical evidence must not produce a high-confidence recommendation",
+    "Stale or incomplete cost evidence returns REVIEW or INSUFFICIENT_EVIDENCE",
+    "Approved scope snapshot is required before producing a scope-specific price range",
+    "Internal AI/build failures, regressions and implementation mistakes must inform cost learning but are not automatically billable to the customer",
+    "Third-party recurring costs must be separated from one-time implementation price where applicable",
+    "Capacity pressure may inform scheduling or contingency review but must not silently increase customer price",
+    "Price range is advisory and must not overwrite an existing approved quotation"
+  ],
+  "production_activation_authorized": false
+}

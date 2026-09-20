@@ -1,0 +1,38 @@
+{
+  "schema": "lds.executive-commercial-mission-control/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "mode": "READ_ONLY_EXECUTIVE_COMPOSITION",
+  "panels": [
+    "pipeline",
+    "revenue",
+    "margin",
+    "capacity",
+    "customer_health",
+    "recurring_revenue",
+    "risk_and_exceptions"
+  ],
+  "authoritative_sources": [
+    "lunduslead_pipeline",
+    "human_approved_commercial_offers",
+    "authoritative_payment_orders",
+    "commercial_order_documents",
+    "project_profitability_capacity",
+    "support_requests_and_incidents",
+    "customer_success_evidence",
+    "support_maintenance_plans",
+    "lom_project_state_truth"
+  ],
+  "invariants": [
+    "Dashboard does not create a second project or commercial source of truth",
+    "Revenue is confirmed only from authoritative paid-order evidence",
+    "Margin is confirmed only when cost inputs are current and sufficiently complete",
+    "Pipeline stage must reflect authoritative lead/commercial state rather than inferred website behaviour",
+    "Capacity status must consume governed capacity evidence and cannot invent availability",
+    "Customer health must not equate absence of complaints with satisfaction",
+    "Recurring revenue is confirmed only for active customer-accepted support or maintenance commitments",
+    "Missing, stale or contradictory evidence renders REVIEW or HOLD",
+    "Every executive metric must expose source status, freshness and evidence completeness",
+    "Dashboard cannot send customer outreach, change price, approve quotation, charge payment, alter scope, merge code or deploy Production"
+  ],
+  "production_activation_authorized": false
+}

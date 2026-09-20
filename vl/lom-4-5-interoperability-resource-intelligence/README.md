@@ -25,3 +25,33 @@ Purpose: add provider-neutral model interoperability and bounded resource optimi
 
 ## Autonomous ceiling
 `PREPARE_PR`
+
+
+## Resource continuity
+
+The runtime should preserve capacity before token/quota exhaustion rather than react only after failure.
+
+Default planning thresholds:
+- <70% used: NORMAL
+- 70-84%: SHED_NON_CRITICAL
+- 85-94%: CONTROLLED_MODE
+- >=95%: CRITICAL_ONLY
+
+Priority shedding order protects P0/P1 customer support and recovery work before P2/P3 and internal experiments.
+
+### Checkpoint and resume
+Long work should create evidence-backed checkpoints containing:
+- current step;
+- artifact references;
+- decision references;
+- next action.
+
+A resource-exhausted run should resume from the latest valid checkpoint. Restart-from-zero is not an accepted recovery strategy when checkpoint evidence exists.
+
+### Exhaustion handling
+RESOURCE_CONSTRAINED may route to:
+- a certified compatible fallback adapter;
+- WAITING_CAPACITY when no safe fallback exists;
+- HOLD when no valid checkpoint exists.
+
+The runtime must not widen budgets automatically. Additional spend/capacity remains human-controlled.

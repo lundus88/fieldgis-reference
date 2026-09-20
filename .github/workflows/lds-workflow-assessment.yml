@@ -1,0 +1,35 @@
+name: LUNDUS DIGITAL SYSTEMS Workflow Assessment
+
+on:
+  pull_request:
+    paths:
+      - 'commercial/lundus-digital-systems/workflow-assessment*'
+      - 'commercial/lundus-digital-systems/assessment_engine.py'
+      - 'commercial/lundus-digital-systems/test_assessment_engine.py'
+      - 'commercial/lundus-digital-systems/check_workflow_assessment.py'
+      - '.github/workflows/lds-workflow-assessment.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'commercial/lundus-digital-systems/workflow-assessment*'
+      - 'commercial/lundus-digital-systems/assessment_engine.py'
+      - 'commercial/lundus-digital-systems/test_assessment_engine.py'
+      - 'commercial/lundus-digital-systems/check_workflow_assessment.py'
+      - '.github/workflows/lds-workflow-assessment.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  assessment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Validate assessment contract and pages
+        run: python3 commercial/lundus-digital-systems/check_workflow_assessment.py
+      - name: Run assessment tests
+        working-directory: commercial/lundus-digital-systems
+        run: python3 -m unittest -v test_assessment_engine.py
