@@ -1,0 +1,40 @@
+{
+  "schema": "lds.autonomous-operations.governance-closure/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "layers": {
+    "policy_as_code": {
+      "mode": "VERSIONED_FAIL_CLOSED_POLICY",
+      "purpose": "Machine-testable policy decisions for autonomous action boundaries."
+    },
+    "identity_credential_permission_broker": {
+      "mode": "JIT_LEAST_PRIVILEGE_TASK_SCOPED",
+      "purpose": "Issue bounded access leases without storing long-lived credentials in agent state."
+    },
+    "software_supply_chain_provenance_guard": {
+      "mode": "PROVENANCE_EVIDENCE_GATE",
+      "purpose": "Require source, dependency, build and artifact integrity evidence before release claims."
+    },
+    "continuous_resilience_chaos_verification": {
+      "mode": "NON_PRODUCTION_SIMULATION_ONLY",
+      "purpose": "Continuously exercise failure scenarios without Production execution authority."
+    },
+    "customer_portability_exit_guarantee": {
+      "mode": "COMPOSES_HANDOVER_EXIT_PACKAGE",
+      "purpose": "Require portability and exit evidence before representing handover as complete."
+    },
+    "autonomous_business_health_governor": {
+      "mode": "ADMISSION_AND_PRIORITY_ADVISORY",
+      "purpose": "Use verified business-health evidence to constrain admission or prioritisation without silently changing commercial commitments."
+    }
+  },
+  "invariants": [
+    "Unknown policy or authority state fails closed",
+    "Agent access is least privilege, task scoped and time bounded",
+    "Secrets are never embedded in ordinary work packages, logs or evidence manifests",
+    "Release claims require immutable provenance and artifact integrity evidence",
+    "Chaos and resilience verification is non-production and has no customer-impacting execution authority",
+    "Customer portability composes the existing Handover & Exit Package rather than creating a competing source of truth",
+    "Business health automation may constrain admission and priority but may not invent pricing, contractual promises or customer commitments",
+    "Production deployment, destructive production data action and privilege widening remain human-only"
+  ]
+}
