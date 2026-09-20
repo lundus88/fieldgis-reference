@@ -126,3 +126,68 @@ class InteropResourceRuntime:
 
     def allocate_production_capacity(self):
         raise PermissionError('HUMAN_APPROVAL_REQUIRED')
+
+
+    def resource_mode(self, used_tokens:int, total_tokens:int) -> Dict[str,str]:
+        if total_tokens <= 0 or used_tokens < 0 or used_tokens > total_tokens:
+            return {'decision':'HOLD','reason':'INVALID_RESOURCE_COUNTER'}
+        pct = used_tokens / total_tokens
+        if pct >= 0.95:
+            return {'decision':'CRITICAL_ONLY','state':'RESOURCE_CONSTRAINED','reserve':'5%'}
+        if pct >= 0.85:
+            return {'decision':'CONTROLLED_MODE','state':'RESOURCE_CONSTRAINED','reserve':'15%'}
+        if pct >= 0.70:
+            return {'decision':'SHED_NON_CRITICAL','state':'RESOURCE_PRESSURE','reserve':'30%'}
+        return {'decision':'NORMAL','state':'RESOURCE_HEALTHY','reserve':'30%+'}
+
+    def admission_control(self, priority_class:str, mode:str) -> Dict[str,str]:
+        allowed={'P0','P1','P2','P3','INTERNAL_EXPERIMENT'}
+        if priority_class not in allowed:
+            return {'decision':'HOLD','reason':'UNKNOWN_PRIORITY'}
+        if mode == 'CRITICAL_ONLY':
+            return {'decision':'ALLOW' if priority_class in {'P0','P1'} else 'QUEUE','reason':'CRITICAL_RESERVE'}
+        if mode == 'CONTROLLED_MODE':
+            return {'decision':'ALLOW' if priority_class in {'P0','P1','P2'} else 'QUEUE','reason':'CONTROLLED_RESERVE'}
+        if mode == 'SHED_NON_CRITICAL':
+            return {'decision':'QUEUE' if priority_class == 'INTERNAL_EXPERIMENT' else 'ALLOW','reason':'PRESERVE_CUSTOMER_CAPACITY'}
+        if mode == 'NORMAL':
+            return {'decision':'ALLOW','reason':'RESOURCE_HEALTHY'}
+        return {'decision':'HOLD','reason':'UNKNOWN_RESOURCE_MODE'}
+
+    def checkpoint(self, work_id:str, step:int, artifact_refs:List[str], decision_refs:List[str], next_action:str) -> Dict[str,Any]:
+        if not work_id or step < 0 or not next_action:
+            return {'decision':'HOLD','reason':'INVALID_CHECKPOINT'}
+        if not artifact_refs and not decision_refs:
+            return {'decision':'HOLD','reason':'EMPTY_CHECKPOINT_EVIDENCE'}
+        return {
+            'decision':'CHECKPOINTED',
+            'state':'CHECKPOINTED',
+            'work_id':work_id,
+            'step':step,
+            'artifact_refs':list(artifact_refs),
+            'decision_refs':list(decision_refs),
+            'next_action':next_action,
+            'resume_from_zero':False
+        }
+
+    def resume_plan(self, checkpoint:Dict[str,Any], fallback_chain:List[str]) -> Dict[str,Any]:
+        if checkpoint.get('decision') != 'CHECKPOINTED':
+            return {'decision':'HOLD','reason':'VALID_CHECKPOINT_REQUIRED'}
+        if not checkpoint.get('work_id') or checkpoint.get('step',-1) < 0:
+            return {'decision':'HOLD','reason':'INVALID_CHECKPOINT'}
+        return {
+            'decision':'RESUME',
+            'state':'RESUMED',
+            'work_id':checkpoint['work_id'],
+            'resume_step':checkpoint['step'],
+            'next_action':checkpoint['next_action'],
+            'fallback_chain':list(fallback_chain),
+            'restart_from_zero':False
+        }
+
+    def handle_resource_exhaustion(self, checkpoint_available:bool, fallback_chain:List[str]) -> Dict[str,Any]:
+        if checkpoint_available:
+            if fallback_chain:
+                return {'decision':'FALLBACK_ROUTE','state':'RESOURCE_CONSTRAINED','next_adapter':fallback_chain[0]}
+            return {'decision':'WAIT_CAPACITY','state':'WAITING_CAPACITY'}
+        return {'decision':'HOLD','state':'RESOURCE_CONSTRAINED','reason':'NO_CHECKPOINT_NO_SAFE_RESTART'}
