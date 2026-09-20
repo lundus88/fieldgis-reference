@@ -35,8 +35,8 @@
     "safety_health_certificate_if_applicable"
   ],
   "pending_verified_values": [
-    "official_phone_public_use_approval",
-    "official_trade_address_publication_approval"
+    "ld_dedicated_business_phone",
+    "ld_public_business_address"
   ],
   "language_readiness": {
     "supplier_disclosure_bm": "RC_PRESENT",
@@ -69,9 +69,11 @@
     "personal_owner_email_or_phone_must_not_be_used_as_official_commercial_contact_without_explicit_approval": true,
     "official_trade_address_requires_publication_approval": true,
     "official_phone_requires_public_use_approval": true,
-    "trade_address_overlaps_owner_residential_information": true
+    "trade_address_overlaps_owner_residential_information": true,
+    "ssm_phone_must_not_be_public_ld_contact": true,
+    "ssm_trade_address_must_not_be_public_ld_address": true
   },
-  "launch_rule": "LEGAL_TRUST_READY remains HOLD while the verified SSM telephone lacks explicit public-use approval or the verified trade address lacks explicit publication approval. Sensitive values remain excluded from the public repository.",
+  "launch_rule": "LEGAL_TRUST_READY remains HOLD until a dedicated LD business phone is verified and a separate lawful public business/correspondence address is validated and approved. Sensitive SSM phone/address values remain excluded from the public repository.",
   "policy_candidates": {
     "privacy": {
       "version": "1.0",
@@ -91,5 +93,12 @@
       "effective_date": "2026-09-20",
       "approved_from": "1.0-RC2"
     }
+  },
+  "public_contact_strategy": {
+    "policy": "docs/commercial/LDS_PUBLIC_CONTACT_SEPARATION_POLICY.json",
+    "ssm_phone_public_use": false,
+    "ssm_trade_address_publication": false,
+    "dedicated_ld_phone_required": true,
+    "separate_public_business_address_required": true
   }
 }

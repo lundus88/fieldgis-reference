@@ -100,11 +100,15 @@ Approved effective policy versions:
 - Terms of Service v1.0 — effective 20 September 2026
 - Refund & Cancellation Policy v1.0 — effective 20 September 2026
 
-Verified from official SSM evidence but still approval-gated for public commercial use:
-- a telephone value is present in SSM Form A; exact value remains redacted in this public repository and is not yet approved as the LD public commercial phone
-- the principal business address is verified from SSM evidence; exact value remains redacted and public display is not yet approved
+Verified SSM phone/address evidence is retained only as registration evidence and is not selected for LD's public identity.
 
-The trade address overlaps owner residential information in the official evidence. Exact address and telephone values are intentionally not persisted in this public repository until explicit public-use/publication approval. Evidence existence is not publication authority.
+Approved public-contact strategy:
+- do not use the SSM-recorded telephone as the public LD commercial phone
+- do not publish the SSM trade address because it overlaps owner residential information
+- provision and verify a dedicated LD business phone
+- identify, validate and approve a separate lawful public business/correspondence address
+
+Exact sensitive SSM phone/address values remain excluded from this public repository.
 
 ## 6. Business registration / licence evidence gate
 
@@ -219,7 +223,7 @@ Rule:
 ## 10. Controlled activation sequence from current state
 
 1. **COMPLETE:** capture and verify official business-registration/licence evidence.
-2. Obtain explicit human approval to use the verified SSM telephone as the LD public commercial phone and to publish the verified trade address. Policy versions 1.0 are already approved effective 20 September 2026.
+2. Provision and verify a dedicated LD business phone, then identify, validate and approve a separate lawful public business/correspondence address. The SSM phone/address are not approved for LD public identity. Policy versions 1.0 are already approved effective 20 September 2026.
 3. Verify Production lead-intake, WAF, Turnstile, payment and notification configuration; capture configuration fingerprints without enabling public charging.
 4. Obtain separate explicit human authority for the minimum controlled Production configuration needed to perform one Golden Transaction; this authority is not public-launch authority.
 5. Perform one controlled paid Commercial Golden Transaction only after LEGAL_TRUST_READY is PASS and all Production transaction prerequisites are current.

@@ -67,8 +67,8 @@ Public charging remains HOLD while any mandatory gate is unresolved.
 ### HOLD / not live-approved
 
 - LEGAL_TRUST_READY
-- verified SSM telephone requires explicit approval for LD public commercial use
-- verified trade address requires explicit public-display approval
+- dedicated LD business phone not yet provisioned/verified
+- separate lawful public business/correspondence address not yet validated
 - LIVE_LEAD_INTAKE
 - Production payment-provider configuration fingerprint
 - Production commercial checkout
@@ -102,18 +102,20 @@ No DNS or mail mutation is authorized by this document.
 
 ## 5. Legal and trust state
 
-LEGAL_TRUST_READY remains HOLD while verified sensitive public-commercial particulars lack explicit public-use/publication approval.
+LEGAL_TRUST_READY remains HOLD until LD has separate public-facing business contact particulars that do not expose sensitive SSM phone/address values.
 
 Approved policy versions:
 - Privacy Notice v1.0 — effective 20 September 2026
 - Terms of Service v1.0 — effective 20 September 2026
 - Refund & Cancellation Policy v1.0 — effective 20 September 2026
 
-Verified evidence now exists for both remaining particulars:
-- a telephone value is present in SSM Form A, but exact value remains redacted and public commercial use is not approved
-- the principal business address is verified from SSM evidence, but exact value remains redacted and public display is not approved
+Approved public-contact strategy:
+- do not use the SSM-recorded telephone as the public LD commercial phone
+- do not publish the SSM trade address because it overlaps owner residential information
+- provision and verify a dedicated LD business phone
+- identify, validate and approve a separate lawful public business/correspondence address
 
-The address overlaps owner residential information. Personal owner identity, contact details or residential information must not be exposed merely because they exist in registration evidence.
+Sensitive SSM phone/address values remain redacted and must not be exposed merely because they exist in registration evidence.
 
 ## 6. Payment Production readiness
 
@@ -217,7 +219,7 @@ Rule: evidence existence is not activation authority.
 
 ## 11. Controlled activation sequence
 
-1. Obtain explicit human approval for public use of the verified SSM telephone and public display of the verified trade address.
+1. Provision and verify a dedicated LD business phone and validate a separate lawful public business/correspondence address.
 2. Verify current Production lead-intake, payment, notification and security configuration without enabling public charging.
 3. Capture current configuration fingerprints.
 4. Obtain explicit human authority for one minimum controlled Production transaction.
