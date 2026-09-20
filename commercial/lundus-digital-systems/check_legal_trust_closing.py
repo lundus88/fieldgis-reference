@@ -145,8 +145,19 @@ if due_diligence.get("schema") != "lds.public-contact-due-diligence/1":
     errors.append("public contact due diligence schema drift")
 if due_diligence.get("status") != "EVIDENCE_REVIEW_COMPLETE_NO_PURCHASE":
     errors.append("public contact due diligence must remain evidence-only")
-if due_diligence.get("phone", {}).get("decision") != "VERIFY_MAXIS_FIRST":
-    errors.append("phone verification order drift")
+if due_diligence.get("phone", {}).get("decision") != "SELECT_MAXIS_BUSINESS_POSTPAID_80_FOR_PROVISIONING":
+    errors.append("phone provider selection drift")
+phone_selection = due_diligence.get("phone", {}).get("selection", {})
+if phone_selection.get("provider") != "Maxis Business" or phone_selection.get("plan") != "Business Postpaid 80":
+    errors.append("selected Maxis business plan drift")
+if phone_selection.get("status") != "APPROVED_PATH_AWAITING_EXTERNAL_SIGNUP":
+    errors.append("selected phone path status drift")
+if phone_selection.get("purchase_completed") is not False:
+    errors.append("phone purchase must not be claimed complete")
+if phone_selection.get("phone_number_verified") is not False:
+    errors.append("phone number must remain unverified")
+if phone_selection.get("business_account_control_verified") is not False:
+    errors.append("business account control must remain unverified")
 if due_diligence.get("address", {}).get("decision") != "USE_EXISTING_SSM_REGISTERED_BUSINESS_ADDRESS":
     errors.append("registered business address decision drift")
 if due_diligence.get("address", {}).get("separate_address_required") is not False:
@@ -166,7 +177,7 @@ for key in ["external_signup_authorized","address_contract_authorized","producti
 provisioning = load_json(docs / "LDS_PUBLIC_CONTACT_PROVISIONING_PLAN.json")
 if provisioning.get("schema") != "lds.public-contact-provisioning-plan/1":
     errors.append("public contact provisioning plan schema drift")
-if provisioning.get("status") != "READY_FOR_PHONE_PROVISIONING":
+if provisioning.get("status") != "PHONE_PROVIDER_SELECTED_AWAITING_EXTERNAL_SIGNUP":
     errors.append("public contact provisioning plan status drift")
 if provisioning.get("phone", {}).get("status") != "HOLD_EXTERNAL_SIGNUP_AND_VERIFICATION":
     errors.append("dedicated LD phone must remain external-signup HOLD")
@@ -180,8 +191,15 @@ if provisioning.get("address", {}).get("value") != "NO F165 SECTION HOUSING, KG 
     errors.append("provisioning registered business address drift")
 if provisioning.get("due_diligence_evidence") != "docs/commercial/LDS_PUBLIC_CONTACT_DUE_DILIGENCE_2026-09-21.json":
     errors.append("provisioning due diligence evidence link drift")
-if provisioning.get("phone", {}).get("next_action") != "VERIFY_MAXIS_BUSINESS_ACCOUNT_ELIGIBILITY_AND_LABUAN_COVERAGE":
+if provisioning.get("phone", {}).get("next_action") != "COMPLETE_EXTERNAL_MAXIS_BUSINESS_SIGNUP_AND_RETURN_VERIFIABLE_ACCOUNT_EVIDENCE":
     errors.append("phone next action drift")
+selected_provider = provisioning.get("phone", {}).get("selected_provider", {})
+if selected_provider.get("provider") != "Maxis Business" or selected_provider.get("plan") != "Business Postpaid 80":
+    errors.append("provisioning selected provider drift")
+if selected_provider.get("selection_status") != "APPROVED_FOR_PROVISIONING_PATH":
+    errors.append("provisioning provider selection status drift")
+if selected_provider.get("account_name_required") != "LUNDUS DIGITAL SYSTEMS":
+    errors.append("business account name requirement drift")
 if provisioning.get("address", {}).get("next_action") != "NONE_ADDRESS_GATE_CLOSED":
     errors.append("registered address next action drift")
 if set(provisioning.get("legal_trust", {}).get("remaining_blockers", [])) != expected_blockers:
