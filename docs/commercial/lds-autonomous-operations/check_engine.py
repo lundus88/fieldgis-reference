@@ -8,7 +8,8 @@ required=[
     "value_adds.json","intent_compiler.py","exception_autopilot.py","completion_gate.py",
     "automation_extensions.py","test_value_adds.py",
     "governance_closure.json","governance_closure.py","test_governance_closure.py",
-    "sample_order.json","e2e_simulation.py","test_e2e_simulation.py"
+    "sample_order.json","e2e_simulation.py","test_e2e_simulation.py",
+    "anti_bottleneck.py","test_anti_bottleneck.py","bottleneck_policy.json"
 ]
 for f in required:
     if not (root/f).is_file(): errors.append(f"missing {f}")
@@ -33,7 +34,8 @@ if (root/"contract.json").exists():
       "autonomous_change_impact_analyzer","global_kill_switch_circuit_breaker",
       "policy_as_code_governance_engine","identity_credential_permission_broker",
       "software_supply_chain_provenance_guard","continuous_resilience_chaos_verification",
-      "customer_portability_exit_guarantee","autonomous_business_health_governor"
+      "customer_portability_exit_guarantee","autonomous_business_health_governor",
+      "anti_bottleneck_guard"
     }
     if set(c.get("components",{}).keys())!=expected_components:
         errors.append("autonomous component set incomplete")
@@ -42,11 +44,15 @@ if (root/"contract.json").exists():
       "learning_policy_mutation","automatic_customer_charge","automatic_contract_mutation",
       "automatic_compensation","production_deployment","live_charging",
       "contract_exception_approval","destructive_production_action",
-      "privilege_widening","production_admin_lease","customer_commitment_mutation"
+      "privilege_widening","production_admin_lease","customer_commitment_mutation",
+      "automatic_human_gate_approval","safety_gate_bypass"
     ]:
         if a.get(key) is not False: errors.append(f"{key} must remain false")
-    if c.get("no_idle_policy",{}).get("documented_blocker_required") is not True:
+    nip=c.get("no_idle_policy",{})
+    if nip.get("documented_blocker_required") is not True:
         errors.append("no-idle blocker rule missing")
+    for key in ["owner_required","release_condition_required","next_check_required","bounded_timeout_required"]:
+        if nip.get(key) is not True: errors.append(f"anti-bottleneck no-idle control missing {key}")
 
 if (root/"capability_registry.json").exists():
     r=json.loads((root/"capability_registry.json").read_text())
@@ -91,6 +97,21 @@ if (root/"governance_closure.json").exists():
       "Production deployment, destructive production data action and privilege widening remain human-only"
     ]:
         if token not in inv: errors.append(f"missing governance invariant {token}")
+
+if (root/"bottleneck_policy.json").exists():
+    b=json.loads((root/"bottleneck_policy.json").read_text())
+    if b.get("schema")!="lds.autonomous-operations.anti-bottleneck/1":
+        errors.append("anti-bottleneck schema drift")
+    inv=" ".join(b.get("invariants",[]))
+    for token in [
+      "never automatically approved",
+      "accountable owner and explicit release condition",
+      "bounded escalation window",
+      "prevents indefinite starvation",
+      "Repeated same-state re-entry is treated as a loop",
+      "must not weaken fraud, compliance, security, commercial or Production gates"
+    ]:
+        if token not in inv: errors.append(f"missing anti-bottleneck invariant {token}")
 
 if errors:
     print("LDS Autonomous Operations Layer: FAIL")
