@@ -25,8 +25,9 @@ required = [
     "FINAL_COMMERCIAL_DOMAIN: PASS / `lundusdigital.com`",
     "DNS_PRODUCTION_BINDING: HOLD",
     "EMAIL_PROVIDER_SELECTED: PASS / Zoho Mail Lite 10 GB",
-    "EMAIL_DNS_AUTHENTICATION: HOLD",
-    "OFFICIAL_COMMERCIAL_EMAIL: HOLD",
+    "EMAIL_DNS_AUTHENTICATION: PASS",
+    "OFFICIAL_COMMERCIAL_EMAIL: PASS",
+    "SUPPORT_COMPLAINT_CHANNEL: PASS_INBOUND",
     "LIVE_LEAD_INTAKE: HOLD",
     "ACTIVATION_SNAPSHOT: HOLD_NOT_FORMED",
     "PUBLIC_PAYMENT_ACTIVATION: HOLD",
@@ -112,6 +113,15 @@ else:
         errors.append("DNS mutation must remain unauthorized")
     if domain.get("authority", {}).get("vercel_production_binding_authorized") is not False:
         errors.append("Vercel Production binding must remain unauthorized")
+    domain_gates = domain.get("gate_status", {})
+    if domain_gates.get("EMAIL_DNS_AUTHENTICATION") != "PASS":
+        errors.append("EMAIL_DNS_AUTHENTICATION must be PASS")
+    if domain_gates.get("OFFICIAL_COMMERCIAL_EMAIL") != "PASS":
+        errors.append("OFFICIAL_COMMERCIAL_EMAIL must be PASS")
+    if domain_gates.get("SUPPORT_COMPLAINT_CHANNEL") != "PASS_INBOUND":
+        errors.append("SUPPORT_COMPLAINT_CHANNEL must be PASS_INBOUND")
+    if domain_gates.get("DNS_PRODUCTION_BINDING") != "HOLD":
+        errors.append("DNS_PRODUCTION_BINDING must remain HOLD")
 
 if not snapshot_path.exists():
     errors.append("activation snapshot contract missing")
@@ -138,6 +148,6 @@ if errors:
 
 print("Final commercial activation gate: PASS")
 print("business_registration=PASS; licence_compatibility_gate=PASS")
-print("legal_trust=HOLD; domain_email=HOLD")
+print("legal_trust=HOLD; email_authentication=PASS; domain_production_binding=HOLD")
 print("activation_snapshot=HOLD_NOT_FORMED")
 print("production_activation=HOLD")
