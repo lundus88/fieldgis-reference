@@ -1,0 +1,37 @@
+{
+  "schema": "lds.system-blueprint/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "purpose": "Convert a qualified workflow assessment into a buildable, reviewable scope artifact without starting build or creating commercial authority.",
+  "sections": [
+    "problem_statement",
+    "current_workflow",
+    "proposed_workflow",
+    "user_roles",
+    "modules",
+    "integrations",
+    "dependencies",
+    "assumptions",
+    "out_of_scope",
+    "acceptance_criteria",
+    "milestones",
+    "risks",
+    "data_and_security_notes",
+    "open_questions"
+  ],
+  "modes": [
+    "LIGHTWEIGHT_FREE",
+    "PAID_DISCOVERY"
+  ],
+  "rules": [
+    "LIGHTWEIGHT_FREE may summarize scope direction but must not provide full implementation architecture",
+    "PAID_DISCOVERY may contain deeper technical planning when commercially authorised",
+    "Blueprint approval does not authorize BUILDING",
+    "Blueprint approval does not create a binding price",
+    "Quotation remains a separate human-approved commercial artifact",
+    "Material unresolved assumptions prevent quote-ready status",
+    "Dependencies and third-party access must be evidenced before they are treated as ready",
+    "Customer-approved scope snapshot must be versioned and immutable after approval; later changes use Change Request"
+  ],
+  "authority": "discovery and scope-definition only",
+  "production_activation_authorized": false
+}
