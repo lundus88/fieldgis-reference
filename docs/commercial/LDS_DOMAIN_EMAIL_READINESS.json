@@ -170,19 +170,19 @@
           "host": "@",
           "priority": 10,
           "value": "mx.zoho.com",
-          "status": "CAPTURED_NOT_APPLIED"
+          "status": "APPLIED_PENDING_ZOHO_VERIFICATION"
         },
         {
           "host": "@",
           "priority": 20,
           "value": "mx2.zoho.com",
-          "status": "CAPTURED_NOT_APPLIED"
+          "status": "APPLIED_PENDING_ZOHO_VERIFICATION"
         },
         {
           "host": "@",
           "priority": 50,
           "value": "mx3.zoho.com",
-          "status": "CAPTURED_NOT_APPLIED"
+          "status": "APPLIED_PENDING_ZOHO_VERIFICATION"
         }
       ],
       "spf": {
@@ -220,7 +220,10 @@
           "value": "mx3.zoho.com"
         }
       ],
-      "status": "CAPTURED_NOT_APPLIED"
+      "status": "APPLIED_PENDING_ZOHO_VERIFICATION",
+      "evidence_level": "user_supplied_exabytes_dns_manager_screenshot",
+      "observed_at": "2026-09-20",
+      "legacy_root_mx_removed": true
     },
     "spf": {
       "record": null,
@@ -287,7 +290,9 @@
     "ZOHO_DOMAIN_VERIFICATION_DNS_APPLIED": "PASS",
     "ZOHO_DOMAIN_OWNERSHIP_VERIFIED": "HOLD",
     "OFFICIAL_MAILBOX_CREATED": "PASS",
-    "ZOHO_MX_RECORDS_CAPTURED": "PASS"
+    "ZOHO_MX_RECORDS_CAPTURED": "PASS",
+    "ZOHO_MX_DNS_APPLIED": "PASS",
+    "ZOHO_MX_VERIFIED": "HOLD"
   },
   "safe_sequence": [
     "sign in to Zoho Mail Admin Console as an authorized administrator",
