@@ -184,3 +184,37 @@ Prepares scope, cost, time, dependency, risk and regression impact evidence, the
 Security signals, cost spikes, repeated agent loops, systemic failures or stale hard-gate evidence open the circuit and stop affected autonomous actions. Recovery requires governed review.
 
 These extensions compose existing LD modules rather than replacing their authoritative ledgers.
+
+
+## Governance closure layer
+
+The architecture is closed with six governance controls:
+
+1. **Policy-as-Code Governance Engine** — versioned, machine-testable, fail-closed autonomous authority rules.
+2. **Identity, Credential & Permission Broker** — just-in-time, least-privilege, task-scoped access leases; no long-lived secret embedding.
+3. **Software Supply-Chain & Provenance Guard** — source, dependency, build identity, artifact digest, attestation and regression evidence before release claims.
+4. **Continuous Resilience / Chaos Verification** — isolated non-Production failure simulation only.
+5. **Customer Portability & Exit Guarantee** — composes the existing LD Handover & Exit Package as the source of truth.
+6. **Autonomous Business Health Governor** — may constrain admission/priority from verified business-health evidence, but cannot silently alter pricing or customer commitments.
+
+Mature operating loop:
+
+**DISCOVER → UNDERSTAND → SIMULATE → AUTHORIZE → PLAN → EXECUTE → VERIFY → RECOVER → DELIVER → SUPPORT → LEARN → OPTIMIZE**
+
+Global invariant:
+
+**No autonomous action without authority, evidence, bounded impact and a recoverable path.**
+
+## End-to-end standard-order simulation
+
+A deterministic non-Production simulation is included for a standard `LD_LAUNCH` order. It exercises lead qualification, scope/quotation authority, contract acceptance, payment reconciliation, governed auto-kickoff, intent compilation, build access, no-idle control, QA, completion evidence, supply-chain provenance, customer acceptance, delivery, portability and business-health governance.
+
+The simulation explicitly records:
+- LD human touchpoints;
+- customer action touchpoints;
+- idle failures;
+- unsafe authority events;
+- unexpected failures;
+- observed bottlenecks.
+
+No Production action or live payment is executed by the simulation.
