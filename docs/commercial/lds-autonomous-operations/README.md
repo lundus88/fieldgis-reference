@@ -218,3 +218,24 @@ The simulation explicitly records:
 - observed bottlenecks.
 
 No Production action or live payment is executed by the simulation.
+
+
+## Anti-Bottleneck Guard
+
+LD must not solve bottlenecks by bypassing governance. It removes **unnecessary waiting**, not required authority.
+
+Controls:
+- every waiting state requires an accountable owner;
+- every waiting state requires a release condition;
+- every wait has a next-check time plus soft and hard timeout;
+- soft timeout triggers reminder/reassignment within policy;
+- hard timeout escalates and replans, but never auto-approves a human gate;
+- queue priority uses aging so lower-priority work cannot starve indefinitely;
+- provider failure may use only certified, reversible non-Production fallback paths;
+- progress heartbeat detects silent no-progress states;
+- repeated same-state re-entry is classified as a loop, not progress;
+- projects with neither a next trigger nor a documented blocker fail closed.
+
+Anti-bottleneck principle:
+
+**No silent waiting. No unowned blocker. No infinite queue. No automatic bypass of authority.**
