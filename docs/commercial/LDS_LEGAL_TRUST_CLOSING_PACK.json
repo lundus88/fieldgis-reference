@@ -24,7 +24,7 @@
     "bm_terms_surface": "RC_PRESENT",
     "bm_refund_surface": "RC_PRESENT",
     "commercial_phone_evidence": "SSM_FORM_A_VERIFIED_PRESENT_VALUE_REDACTED",
-    "trade_address_evidence": "SSM_BUSINESS_INFO_VERIFIED_PRESENT_VALUE_REDACTED",
+    "trade_address_evidence": "SSM_BUSINESS_INFO_VERIFIED_PUBLICATION_APPROVED",
     "registered_business_address_evidence": "SSM_BUSINESS_INFO_VERIFIED_PRESENT_VALUE_REDACTED",
     "registered_business_address_is_authoritative": true,
     "registered_business_address": "NO F165 SECTION HOUSING, KG DURIAN TUNJONG, 87007 LABUAN, W.P. LABUAN",
