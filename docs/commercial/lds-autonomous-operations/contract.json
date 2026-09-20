@@ -56,6 +56,24 @@
     },
     "global_kill_switch_circuit_breaker": {
       "mode": "FAIL_CLOSED"
+    },
+    "policy_as_code_governance_engine": {
+      "mode": "VERSIONED_FAIL_CLOSED_POLICY"
+    },
+    "identity_credential_permission_broker": {
+      "mode": "JIT_LEAST_PRIVILEGE_TASK_SCOPED"
+    },
+    "software_supply_chain_provenance_guard": {
+      "mode": "PROVENANCE_EVIDENCE_GATE"
+    },
+    "continuous_resilience_chaos_verification": {
+      "mode": "NON_PRODUCTION_SIMULATION_ONLY"
+    },
+    "customer_portability_exit_guarantee": {
+      "mode": "COMPOSES_HANDOVER_EXIT_PACKAGE"
+    },
+    "autonomous_business_health_governor": {
+      "mode": "ADMISSION_AND_PRIORITY_ADVISORY"
     }
   },
   "no_idle_policy": {
@@ -84,13 +102,18 @@
     "no_unverified_material_integration"
   ],
   "closed_loop": [
+    "DISCOVER",
     "UNDERSTAND",
+    "SIMULATE",
+    "AUTHORIZE",
     "PLAN",
     "EXECUTE",
     "VERIFY",
     "RECOVER",
     "DELIVER",
-    "LEARN"
+    "SUPPORT",
+    "LEARN",
+    "OPTIMIZE"
   ],
   "human_only": [
     "production_deployment_or_promotion",
@@ -118,6 +141,15 @@
     "production_deployment": false,
     "live_charging": false,
     "contract_exception_approval": false,
-    "destructive_production_action": false
+    "destructive_production_action": false,
+    "autonomous_policy_evaluation": true,
+    "jit_nonproduction_access_lease": true,
+    "autonomous_provenance_verification": true,
+    "nonproduction_resilience_simulation": true,
+    "autonomous_portability_readiness_check": true,
+    "business_health_admission_constraint": true,
+    "privilege_widening": false,
+    "production_admin_lease": false,
+    "customer_commitment_mutation": false
   }
 }
