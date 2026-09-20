@@ -1,50 +1,41 @@
 # LD Email DNS Change Set — Draft
 
-Status: DOMAIN VERIFICATION TXT APPLIED — ZOHO CONFIRMATION + MX / SPF / DKIM PENDING  
+Status: EXACT ZOHO MX CAPTURED — SPF / DKIM STILL PENDING  
 Domain: `lundusdigital.com`  
 General DNS mutation authority: **NO**
 
-## Applied with human action
+## Already applied and retained
 
-### Zoho ownership verification TXT
-- Type: `TXT`
-- Host / Name: `@`
-- TTL: `14440`
-- Value: `zoho-verification=zb36894990.zmverify.zoho.com`
-- Exabytes evidence: **PRESENT**
-- Zoho verification: **PENDING**
+- `@ TXT 14440 zoho-verification=zb36894990.zmverify.zoho.com` — Zoho ownership verification
+- `@ A 103.7.9.22` — KEEP
+- `@ NS ns184.mschosting.com` — KEEP
+- `@ NS ns185.mschosting.com` — KEEP
+- `@ NS ns186.mschosting.com` — KEEP
+- `www CNAME lundusdigital.com` — KEEP
+- `ftp CNAME lundusdigital.com` — KEEP
+- `mail CNAME lundusdigital.com` — REVIEW SEPARATELY / DO NOT DELETE YET
 
-Do not edit or remove this record until Zoho ownership verification has passed.
+## MX replacement — exact Zoho values captured
 
-## Evidence-backed current Exabytes zone
+### DELETE
+- `@ MX priority 0 lundusdigital.com`
 
-### KEEP
-- `@  A  103.7.9.22`
-- `@  NS  ns184.mschosting.com`
-- `@  NS  ns185.mschosting.com`
-- `@  NS  ns186.mschosting.com`
-- `@  TXT  zoho-verification=zb36894990.zmverify.zoho.com`
-- `www  CNAME  lundusdigital.com`
-- `ftp  CNAME  lundusdigital.com`
+### ADD
+- `@ MX priority 10 mx.zoho.com`
+- `@ MX priority 20 mx2.zoho.com`
+- `@ MX priority 50 mx3.zoho.com`
 
-### REVIEW SEPARATELY
-- `mail  CNAME  lundusdigital.com`
+Use the DNS provider's default TTL unless Zoho supplies an exact TTL.
 
-### DELETE ONLY WHEN EXACT ZOHO MX IS APPROVED
-- `@  MX  priority 0  lundusdigital.com`
+## Still pending exact Zoho evidence
 
-### ADD — STILL PENDING EXACT ZOHO EVIDENCE
-- Zoho MX records with exact priorities
-- Single SPF TXT policy containing the exact authorized Zoho sender include/value
-- DKIM TXT record for the exact LD selector/public key
+- SPF TXT value
+- DKIM selector / TXT public-key value
 
-No generic Zoho example may be substituted.
+## Safe sequence
 
-## Safe sequence now
-
-1. Return to Zoho Mail Admin Console.
-2. Click `Verify TXT Record`.
-3. If Zoho does not detect it yet, do not edit the DNS record; allow propagation and retry.
-4. After ownership PASS, capture exact Zoho MX values/priorities.
-5. Capture exact SPF and DKIM values.
-6. Generate and approve the final mail-routing change set before replacing the existing MX.
+1. Delete only the existing root MX `0 lundusdigital.com`.
+2. Add the three exact Zoho MX records above.
+3. Do not change A, NS, CNAME or verification TXT records.
+4. Return to Zoho and click `Verify` on the MX page.
+5. After MX PASS, capture exact SPF and DKIM values before adding them.
