@@ -1,0 +1,109 @@
+{
+  "schema": "lds.public-contact-due-diligence/1",
+  "as_of": "2026-09-21",
+  "status": "EVIDENCE_REVIEW_COMPLETE_NO_PURCHASE",
+  "phone": {
+    "verification_order": [
+      {
+        "provider": "Maxis Business",
+        "candidate": "Business Postpaid 80",
+        "position": 1,
+        "reason": "Public Maxis Business material clearly states the plan is for registered businesses; current published entry price is RM80/month and Business eSIM is supported.",
+        "published_price": "RM80/month",
+        "published_data": "300GB",
+        "published_calls_sms": "unlimited",
+        "esim": "supported for Maxis Business Postpaid",
+        "remaining_checks": [
+          "confirm sole proprietorship account opening under LUNDUS DIGITAL SYSTEMS using current SSM documents",
+          "confirm Labuan coverage at intended operating locations",
+          "confirm no unwanted device contract",
+          "retain business account / ownership evidence after activation"
+        ],
+        "sources": [
+          "https://www.business.maxis.com.my/en/faq/plans/postpaid-plan/",
+          "https://www.business.maxis.com.my/en/mobile/postpaid-plan/",
+          "https://www.business.maxis.com.my/en/faq/mobile/esim/"
+        ]
+      },
+      {
+        "provider": "CelcomDigi Business",
+        "candidate": "Business Postpaid 5G entry / SIM-only",
+        "position": 2,
+        "reason": "Current published business offers can be cheaper, including tiers/promotions from RM58, but the public eligibility wording references Enterprise / Corporate Officer / Corporate Individual categories and should be confirmed for this sole proprietorship before purchase.",
+        "published_price": "from RM58/month on current business page",
+        "published_calls_sms": "unlimited",
+        "remaining_checks": [
+          "confirm LUNDUS DIGITAL SYSTEMS sole proprietorship qualifies under the applicable business-account category",
+          "confirm exact SIM-only plan price and contract term at signup",
+          "confirm Labuan coverage",
+          "retain business account / ownership evidence after activation"
+        ],
+        "sources": [
+          "https://business.celcomdigi.com/plan/postpaid-phone"
+        ]
+      }
+    ],
+    "decision": "VERIFY_MAXIS_FIRST",
+    "purchase_authorized": false
+  },
+  "address": {
+    "verification_order": [
+      {
+        "provider": "Regus - Labuan, Financial Park",
+        "position": 1,
+        "reason": "Regus terms explicitly contemplate use of a centre address as a registered office only where permitted by law and with Regus prior written consent. This is a stronger starting point for written-use verification, but the Labuan centre must still confirm the exact Malaysian sole-proprietorship use case and fees in writing.",
+        "location": "Financial Park, Labuan",
+        "remaining_checks": [
+          "obtain written confirmation that the exact Labuan address may be used as LD public business/correspondence address",
+          "ask separately whether it may be used as SSM principal place of business for a Malaysian sole proprietorship",
+          "obtain service agreement / consent letter wording",
+          "confirm mail and registered-mail handling",
+          "confirm website/invoice/quotation/receipt display rights",
+          "confirm fees, deposit, setup fee, minimum term and cancellation rule"
+        ],
+        "sources": [
+          "https://assets.regus.com/terms-and-conditions/en-gb-site-terms-and-conditions.pdf"
+        ]
+      },
+      {
+        "provider": "Universal Serviced Offices & Management Limited",
+        "position": 2,
+        "reason": "Official provider material confirms a Labuan location at Financial Park Complex and offers virtual-office services, but the public material reviewed does not itself establish that a Malaysian sole proprietorship may use the address as SSM principal place of business.",
+        "location": "Financial Park Complex Labuan",
+        "remaining_checks": [
+          "obtain written permitted-use confirmation for LD",
+          "confirm whether SSM principal-place use is permitted",
+          "confirm mail handling and evidence of receipt",
+          "confirm public website/invoice/quotation/receipt display rights",
+          "confirm fees, deposit, setup fee, minimum term and cancellation rule"
+        ],
+        "sources": [
+          "https://universalservicedoffices.com.my/virtual-office-mid-valley/",
+          "https://universalservicedoffices.com.my/contactus/"
+        ]
+      }
+    ],
+    "decision": "CONTACT_REGUS_AND_UNIVERSAL_BEFORE_SELECTION",
+    "ssm_change_rule": {
+      "rule": "If the actual registered business address changes, notify SSM within 30 days using the applicable process.",
+      "channel": "Form B over the counter or EzBiz Online",
+      "published_fee": "RM20 business change fee",
+      "source": "https://www.ssm.com.my/Pages/Register_Business_Company_LLP/Business/Making_Changes.aspx"
+    },
+    "purchase_authorized": false
+  },
+  "legal_trust": {
+    "status": "HOLD",
+    "remaining_blockers": [
+      "LD_DEDICATED_BUSINESS_PHONE_VERIFIED",
+      "LD_PUBLIC_BUSINESS_ADDRESS_VALIDATED"
+    ]
+  },
+  "authority": {
+    "external_signup_authorized": false,
+    "address_contract_authorized": false,
+    "production_activation_authorized": false,
+    "live_payment_authorized": false,
+    "public_launch_authorized": false
+  }
+}
