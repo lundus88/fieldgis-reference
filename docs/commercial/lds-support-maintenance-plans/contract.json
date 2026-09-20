@@ -1,0 +1,33 @@
+{
+  "schema": "lds.support-maintenance-plans/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "plan_keys": [
+    "ESSENTIAL_CARE",
+    "BUSINESS_CARE",
+    "MANAGED_SYSTEM"
+  ],
+  "plan_dimensions": [
+    "coverage",
+    "support_window",
+    "response_target",
+    "included_maintenance",
+    "monitoring",
+    "backup_or_recovery_scope",
+    "improvement_allowance",
+    "third_party_cost_treatment",
+    "exclusions",
+    "renewal_terms"
+  ],
+  "invariants": [
+    "Support plans must distinguish response target from resolution target",
+    "No response or resolution SLA may be advertised unless operationally evidenced and human-approved",
+    "Third-party hosting, API, model, storage, domain and provider costs must be disclosed separately where applicable",
+    "Recurring charges require explicit customer agreement and authoritative billing evidence",
+    "Plan activation does not expand Production, security or support authority",
+    "Security incidents and P0 operational incidents may bypass normal support queue for human escalation",
+    "Agreed-scope defects and warranty remediation must not be misclassified as paid enhancement work",
+    "Enhancements outside covered support require approved Change Request or separate quotation",
+    "Cancellation, renewal and notice terms must be stated before acceptance"
+  ],
+  "production_activation_authorized": false
+}

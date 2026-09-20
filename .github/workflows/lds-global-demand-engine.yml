@@ -1,0 +1,18 @@
+name: LUNDUS DIGITAL SYSTEMS Global Demand Engine
+
+on:
+  pull_request:
+    paths:
+      - 'docs/commercial/lds-global-demand-engine/**'
+      - '.github/workflows/lds-global-demand-engine.yml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Contract validation
+        run: python docs/commercial/lds-global-demand-engine/check_engine.py
+      - name: Unit tests
+        working-directory: docs/commercial/lds-global-demand-engine
+        run: python -m unittest discover -p 'test_*.py'

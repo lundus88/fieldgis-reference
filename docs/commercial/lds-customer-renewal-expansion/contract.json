@@ -1,0 +1,35 @@
+{
+  "schema": "lds.customer-renewal-expansion/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "signals": [
+    "support_plan_expiry",
+    "customer_success_evidence",
+    "unresolved_support_issues",
+    "usage_or_adoption_evidence",
+    "profitability_status",
+    "capacity_status",
+    "new_workflow_need",
+    "change_request_history",
+    "system_age_or_upgrade_need"
+  ],
+  "outputs": [
+    "RENEWAL_REVIEW",
+    "RETENTION_FOLLOW_UP",
+    "EXPANSION_REVIEW",
+    "NO_ACTION",
+    "HOLD"
+  ],
+  "invariants": [
+    "Renewal or expansion eligibility must be based on customer-specific evidence",
+    "Unresolved support or satisfaction issues must route to RETENTION_FOLLOW_UP before any upsell",
+    "No complaint must not be treated as renewal intent or expansion demand",
+    "Customer success evidence may create review eligibility but never automatic outreach",
+    "Renewal must not occur automatically without customer acceptance and approved commercial terms",
+    "Expansion recommendations must not bypass Change Request, Blueprint, pricing or capacity gates",
+    "Low-margin or capacity-constrained work must route to human review before expansion commitment",
+    "Discounts, incentives or pricing changes require separate human commercial approval",
+    "Customer contact preferences and approved communication channels must be respected",
+    "This engine cannot auto-contact, auto-renew, auto-upgrade, auto-discount or create a binding offer"
+  ],
+  "production_activation_authorized": false
+}
