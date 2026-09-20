@@ -2,7 +2,29 @@
 
 Status: DEVELOPMENT / NON-PRODUCTION
 
-Purpose: prevent LUNDUS DIGITAL SYSTEMS from treating worldwide enquiries as worldwide paid-order readiness.
+Purpose: prevent LUNDUS DIGITAL SYSTEMS from treating worldwide enquiries as worldwide paid-order readiness while implementing the approved LD Global Transaction Principle.
+
+## LD Global Transaction Principle
+
+**Any qualified customer. Any supported market. One digital workflow.**
+
+North Star:
+
+**From any legitimate lead in the world to a completed paid digital service with minimal human friction.**
+
+This is an operating objective, not an authorization to serve every jurisdiction. "Qualified customer" and "supported market" are mandatory gates. The principle must never bypass legal, tax, privacy, sanctions, payment, fraud, delivery, human-approval or Production controls.
+
+## Commercial KPI chain
+
+Visitor
+→ Qualified Lead
+→ Quotation
+→ Payment
+→ Delivery
+→ Acceptance
+→ Repeat / Referral
+
+The funnel is measured end-to-end, but funnel progress does not grant hard-state authority. A lead may be globally accepted for enquiry while paid-order authority remains HOLD or MANUAL_REVIEW.
 
 ## Core model
 
@@ -53,6 +75,8 @@ Even a SUPPORTED country remains quote-only when public payment readiness is fal
 - Stale evidence cannot produce SUPPORTED.
 - Legal/tax/privacy conclusions require appropriate current evidence and human approval.
 - Builder support must be real for the requested software category.
+- A legitimate or qualified lead cannot override market-support evidence.
+- A SUPPORTED market cannot bypass quotation, payment, acceptance or delivery controls.
 - Production release remains human-gated.
 
 ## Initial rollout recommendation
