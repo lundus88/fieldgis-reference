@@ -1,0 +1,32 @@
+{
+  "schema": "lds.usage-cost-metering/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "inputs": [
+    "customer_org_id",
+    "project_id",
+    "usage_source",
+    "usage_quantity",
+    "unit_cost_minor",
+    "usage_timestamp",
+    "evidence_current",
+    "tenant_match",
+    "billing_policy_version"
+  ],
+  "outputs": [
+    "metering_status",
+    "internal_cost_minor",
+    "risk_flags",
+    "billing_candidate",
+    "human_review_required"
+  ],
+  "invariants": [
+    "Usage measurements must come from evidence-backed metering sources",
+    "Cross-tenant usage attribution is denied",
+    "Internal resource cost is not automatically a customer price or invoice amount",
+    "Stale or missing usage evidence must not produce a billable recommendation",
+    "Customer billing must follow an approved quotation subscription or service policy",
+    "No automatic customer charging is authorized by this engine"
+  ],
+  "production_activation_authorized": false,
+  "automatic_customer_charge_authorized": false
+}
