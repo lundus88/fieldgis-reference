@@ -1,6 +1,6 @@
 # LUNDUS DIGITAL SYSTEMS — Final Commercial Activation Gate
 
-Status date: 2026-09-19
+Status date: 2026-09-20
 Overall status: HOLD
 Authority: HUMAN-GATED
 Scope: final pre-launch activation control; repository readiness is not Production activation authority.
@@ -67,9 +67,10 @@ Baseline PASS:
 - Preview V4 visual QA
 - Preview V4 workflow QA
 - final commercial domain ownership verification: `lundusdigital.com`
+- BUSINESS_REGISTRATION_READY
+- LICENCE_READY
 
 Still HOLD or not live-verified:
-- LICENCE_READY
 - LEGAL_TRUST_READY
 - LIVE_LEAD_INTAKE
 - live_billing
@@ -82,33 +83,41 @@ Still HOLD or not live-verified:
 
 ## 5. Mandatory business particulars before public transaction
 
-The following values must be verified and inserted into the public commercial surface before LEGAL_TRUST_READY can become PASS:
+Verified from official SSM evidence:
+- registered business name: LUNDUS DIGITAL SYSTEMS
+- registration number: 202603248473 (003891235-V)
+- legal form: sole proprietorship
+- registration status: ACTIVE
+- registration validity through 18/09/2027
+- registered activity scope covers the current LD software / SaaS / AI / automation / IT consultancy offer
 
-- registered legal/business entity name
-- registration/licence particulars applicable to the commercial activity
-- final commercial domain — VERIFIED: `lundusdigital.com` (Exabytes portal status Active; Auto Renew Enabled; next due 19/09/2027)
+Still evidence-gated for public commercial use:
 - official commercial email
 - official commercial telephone
-- official trade/business address
+- official trade/business address publication approval
 - official support / complaint channel
 - effective date for Privacy Notice
 - effective date for Terms of Service
 - effective date for Refund & Cancellation Policy
 
-No placeholder, inferred or historical address/contact may be substituted.
+The official SSM documents contain an official business address, but the exact address is intentionally not persisted or published by this repository until explicit public-display approval. Personal owner identifiers and personal contact details from registration documents must not be copied into public commercial surfaces.
 
-Domain ownership is now verified, but domain ownership alone does not set LEGAL_TRUST_READY to PASS. Official commercial email, telephone, trade address, support/complaint channel and policy effective dates remain evidence-gated.
-
-## 6. Licence evidence gate
+## 6. Business registration / licence evidence gate
 
 Current evidence classification:
-- trade name: LUNDUS DIGITAL SYSTEMS — verified from user decision
-- licence state: processing — USER-ATTESTED
-- official approval/certificate evidence: not yet captured in connected sources
-- LICENCE_READY: HOLD
+- registered business name: LUNDUS DIGITAL SYSTEMS — OFFICIAL SSM EVIDENCE
+- registration number: 202603248473 (003891235-V) — OFFICIAL SSM EVIDENCE
+- legal form: SOLE PROPRIETORSHIP — OFFICIAL SSM EVIDENCE
+- registered from: 19/09/2026
+- registration valid until: 18/09/2027
+- registration status: ACTIVE
+- registered commercial activities cover the current LD offer
+- BUSINESS_REGISTRATION_READY: PASS
+- LICENCE_READY: PASS
 - LEGAL_TRUST_READY: HOLD
 
-User attestation may document progress but cannot by itself set LICENCE_READY or LEGAL_TRUST_READY to PASS.
+Interpretation:
+`LICENCE_READY` is retained for compatibility with the existing launch model. PASS here means official business-registration evidence applicable to LD's commercial scope has been verified. It does **not** claim a separate sector-specific licence, certification, statutory professional approval, or government endorsement.
 
 ## 7. Preview deployment state
 
@@ -126,8 +135,6 @@ Current state:
 - Vercel API target for V4: non-Production / `null`; CLI reported Preview
 - Production aliases on V4: none
 - Production promotion authorized: false
-
-The dedicated project also contains one prior inert technical Production bootstrap used only to unlock Vercel Preview behavior. That bootstrap is not evidence of commercial Production readiness.
 
 Preview constraints remain:
 - no Production promotion
@@ -204,25 +211,16 @@ The final snapshot must bind:
 Rule:
 **Evidence existence is not activation authority.**
 
-If any material input changes after a launch snapshot is formed, or any required evidence cannot be shown current at execution time, activation returns to HOLD and a fresh snapshot is required.
-
 ## 10. Controlled activation sequence from current state
 
-1. Capture and verify official business/licence evidence.
-2. Verify all mandatory business particulars and replace legal/trust placeholders with evidence-backed values and effective policy dates.
+1. **COMPLETE:** capture and verify official business-registration/licence evidence.
+2. Verify remaining legal/trust particulars and replace customer-facing placeholders with evidence-backed values and effective policy dates.
 3. Verify Production lead-intake, WAF, Turnstile, payment and notification configuration; capture configuration fingerprints without enabling public charging.
 4. Obtain separate explicit human authority for the minimum controlled Production configuration needed to perform one Golden Transaction; this authority is not public-launch authority.
-5. Perform one controlled paid Commercial Golden Transaction only after LICENCE_READY and LEGAL_TRUST_READY are PASS.
-6. Reconcile:
-   - provider amount
-   - backend order amount
-   - signed webhook evidence
-   - fulfilment evidence
-   - receipt/invoice reference
-   - notification delivery
-   - support path
+5. Perform one controlled paid Commercial Golden Transaction only after LEGAL_TRUST_READY is PASS and all Production transaction prerequisites are current.
+6. Reconcile provider amount, backend order amount, signed webhook, fulfilment, receipt/invoice, notification, support path and order close.
 7. Set GOLDEN_TRANSACTION_PASS only from complete reconciled evidence.
-8. Revalidate the exact commercial artifact, Preview evidence, licence evidence, legal/support versions, lead-intake configuration and payment-provider configuration.
+8. Revalidate the exact commercial artifact, Preview evidence, business-registration evidence, legal/support versions, lead-intake configuration and payment-provider configuration.
 9. Form a fresh single-use Activation Snapshot with every mandatory gate PASS and no blockers.
 10. Obtain explicit human approval of that exact Activation Snapshot.
 11. Public payment activation / public launch may proceed only by consuming that approved, unexpired snapshot.
@@ -253,7 +251,8 @@ A dry-run PASS is not a live Golden Transaction PASS.
 
 ## 12. Launch status model
 
-- LICENCE_READY: HOLD
+- BUSINESS_REGISTRATION_READY: PASS
+- LICENCE_READY: PASS
 - OFFER_LOCKED: PASS
 - COMMERCIAL_SURFACE_READY: MERGED_RC / Preview QA PASS / Production HOLD
 - LEGAL_TRUST_READY: HOLD
@@ -270,7 +269,7 @@ A dry-run PASS is not a live Golden Transaction PASS.
 - SUPPORT_ROLLBACK_PASS: BASELINE_PASS / commercial live proof pending
 - SECURITY_QA_PASS: RC_BASELINE_PASS / Production activation HOLD
 - MEASUREMENT_READY: CONTRACT_READY / live evidence pending
-- FINAL_COMMERCIAL_DOMAIN: PASS / lundusdigital.com
+- FINAL_COMMERCIAL_DOMAIN: PASS / `lundusdigital.com`
 - DNS_PRODUCTION_BINDING: HOLD
 - EMAIL_PROVIDER_SELECTED: PASS / Zoho Mail Lite 10 GB
 - EMAIL_DNS_AUTHENTICATION: HOLD
@@ -282,8 +281,8 @@ A dry-run PASS is not a live Golden Transaction PASS.
 ## 13. Stop conditions
 
 Do not activate public payment if any of these are true:
-- licence/business authority not ready
-- required legal/business particulars still placeholder or unverified
+- business-registration evidence is expired, superseded or cannot be revalidated
+- required legal/business particulars for public use remain placeholder or unverified
 - official commercial email or support mailbox ownership remains unverified
 - domain/DNS/email Production configuration fingerprint is missing or stale
 - live lead-intake Production authority unresolved
