@@ -1,0 +1,47 @@
+{
+  "schema": "lds.public-contact-separation-policy/1",
+  "as_of": "2026-09-20",
+  "decision_status": "APPROVED",
+  "public_identity_strategy": "SEPARATE_BUSINESS_CONTACTS",
+  "decisions": {
+    "ssm_registered_phone": {
+      "use_as_public_ld_phone": false,
+      "reason": "Treat the SSM-recorded telephone as sensitive/private contact evidence; do not expose or adopt it as the public LD business line.",
+      "value_persisted_in_public_repository": false
+    },
+    "ssm_trade_address": {
+      "publish_as_public_ld_address": false,
+      "reason": "The registered business address overlaps owner residential information; do not publish it as the public LD address.",
+      "value_persisted_in_public_repository": false
+    },
+    "new_ld_business_phone": {
+      "required": true,
+      "status": "HOLD_PROVISION_AND_VERIFY",
+      "requirements": [
+        "dedicated to LUNDUS DIGITAL SYSTEMS",
+        "suitable for customer-facing publication",
+        "supports operational handoff or business messaging where appropriate",
+        "ownership/control evidence verified before publication"
+      ]
+    },
+    "separate_business_address": {
+      "required": true,
+      "status": "HOLD_IDENTIFY_VALIDATE_AND_APPROVE",
+      "requirements": [
+        "lawful for the intended business/disclosure purpose",
+        "not represented as an office unless it is legitimately usable as such",
+        "publication explicitly approved",
+        "registration/correspondence records updated where required before reliance"
+      ]
+    }
+  },
+  "legal_trust_ready": false,
+  "remaining_blockers": [
+    "LD_DEDICATED_BUSINESS_PHONE_VERIFIED",
+    "LD_PUBLIC_BUSINESS_ADDRESS_VALIDATED"
+  ],
+  "production_activation_authorized": false,
+  "live_payment_authorized": false,
+  "public_launch_authorized": false,
+  "rule": "SSM evidence remains authoritative registration evidence, but sensitive phone/address values are not public LD identity. Legal & Trust stays HOLD until separate customer-facing business contact particulars are verified."
+}
