@@ -1,7 +1,7 @@
 {
   "schema": "lds.legal-trust-final-approval/1",
-  "as_of": "2026-09-20",
-  "status": "HOLD_SEPARATE_PUBLIC_CONTACTS_REQUIRED",
+  "as_of": "2026-09-21",
+  "status": "HOLD_PHONE_AND_ADDRESS_PUBLICATION_REQUIRED",
   "policy_candidates": {
     "privacy": {
       "version": "1.0",
@@ -46,16 +46,17 @@
     },
     "trade_address": {
       "value": null,
-      "source_strategy": "SEPARATE_PUBLIC_BUSINESS_ADDRESS",
-      "ssm_value_public_display_approved": false,
-      "ssm_value_rejected_for_public_identity": true,
+      "source_strategy": "SSM_REGISTERED_BUSINESS_ADDRESS",
+      "authoritative_business_address": true,
+      "separate_address_required": false,
+      "public_display_approved": false,
       "overlaps_owner_residential_information": true,
-      "status": "HOLD_IDENTIFY_VALIDATE_AND_APPROVE"
+      "status": "HOLD_EXPLICIT_PUBLICATION_APPROVAL"
     }
   },
   "remaining_human_decisions": [
     "LD_DEDICATED_BUSINESS_PHONE_VERIFIED",
-    "LD_PUBLIC_BUSINESS_ADDRESS_VALIDATED"
+    "LD_REGISTERED_BUSINESS_ADDRESS_PUBLICATION_APPROVED"
   ],
   "legal_trust_ready": false,
   "production_activation_authorized": false,
@@ -63,9 +64,9 @@
   "public_launch_authorized": false,
   "rules": [
     "The telephone recorded in SSM evidence must not be published or used as the LD public commercial phone.",
-    "The SSM trade address must not be published as the LD public business address because it overlaps owner residential information.",
     "A separate LD business phone must be provisioned and verified before publication.",
-    "A separate lawful public business/correspondence address must be identified, validated and approved before publication.",
+    "The existing SSM-registered address is the authoritative LD business address; no replacement address is required.",
+    "Public display of the registered business address remains separately human-gated because it overlaps residential information.",
     "Policy approval does not authorize Production deployment, live charging, or public launch."
   ],
   "policy_approval": {
