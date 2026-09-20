@@ -43,9 +43,13 @@ if verified.get("support_complaint_channel") != "support@lundusdigital.com":
     errors.append("support channel drift")
 if verified.get("support_complaint_channel_status") != "PASS_INBOUND":
     errors.append("support channel evidence must be PASS_INBOUND")
+if verified.get("official_phone_evidence_status") != "VERIFIED_PRESENT_VALUE_REDACTED":
+    errors.append("official phone SSM evidence must be verified and redacted")
+if verified.get("trade_address_evidence_status") != "VERIFIED_PRESENT_VALUE_REDACTED":
+    errors.append("trade address SSM evidence must be verified and redacted")
 
 expected_pending = {
-    "official_phone",
+    "official_phone_public_use_approval",
     "official_trade_address_publication_approval",
 }
 pending = set(contract.get("pending_verified_values", []))
@@ -94,7 +98,7 @@ if gates.get("LEGAL_TRUST_READY") != "HOLD":
     errors.append("LEGAL_TRUST_READY must remain HOLD until remaining blockers close")
 
 expected_blockers = {
-    "OFFICIAL_COMMERCIAL_PHONE_VERIFIED",
+    "OFFICIAL_COMMERCIAL_PHONE_PUBLIC_USE_APPROVED",
     "TRADE_ADDRESS_PUBLICATION_APPROVED",
 }
 
@@ -116,6 +120,10 @@ if pack_verified.get("official_commercial_email") != "hello@lundusdigital.com":
     errors.append("closing pack official email drift")
 if pack_verified.get("support_complaint_channel") != "support@lundusdigital.com":
     errors.append("closing pack support channel drift")
+if pack_verified.get("commercial_phone_evidence") != "SSM_FORM_A_VERIFIED_PRESENT_VALUE_REDACTED":
+    errors.append("closing pack phone evidence must remain verified/redacted")
+if pack_verified.get("trade_address_evidence") != "SSM_BUSINESS_INFO_VERIFIED_PRESENT_VALUE_REDACTED":
+    errors.append("closing pack trade address evidence must remain verified/redacted")
 
 for key in ["privacy", "terms", "refund_cancellation"]:
     candidate = pack.get("policy_candidates", {}).get(key, {})
@@ -129,8 +137,8 @@ for key in ["privacy", "terms", "refund_cancellation"]:
 approval = load_json(docs / "LDS_LEGAL_TRUST_FINAL_APPROVAL.json")
 if approval.get("schema") != "lds.legal-trust-final-approval/1":
     errors.append("final approval schema drift")
-if approval.get("status") != "HOLD_PARTICULARS_REQUIRED":
-    errors.append("final approval manifest must remain HOLD_PARTICULARS_REQUIRED")
+if approval.get("status") != "HOLD_SENSITIVE_PARTICULARS_APPROVAL_REQUIRED":
+    errors.append("final approval manifest must remain HOLD_SENSITIVE_PARTICULARS_APPROVAL_REQUIRED")
 if approval.get("legal_trust_ready") is not False:
     errors.append("final approval manifest must keep legal_trust_ready=false")
 for key in ["production_activation_authorized", "live_payment_authorized", "public_launch_authorized"]:
@@ -151,15 +159,25 @@ if particulars.get("support_complaint_channel", {}).get("status") != "PASS_INBOU
 
 phone = particulars.get("official_phone", {})
 if phone.get("value") is not None:
-    errors.append("official phone must remain null until independently verified")
-if phone.get("status") != "HOLD_EVIDENCE_REQUIRED":
-    errors.append("official phone must remain HOLD_EVIDENCE_REQUIRED")
+    errors.append("official phone value must remain excluded from the public repository")
+if phone.get("evidence_present") is not True:
+    errors.append("official phone evidence must be present")
+if phone.get("evidence_status") != "VERIFIED_PRESENT":
+    errors.append("official phone evidence status drift")
+if phone.get("public_use_approved") is not False:
+    errors.append("official phone public use must remain unapproved")
+if phone.get("status") != "HOLD_PUBLIC_USE_APPROVAL_REQUIRED":
+    errors.append("official phone must remain HOLD_PUBLIC_USE_APPROVAL_REQUIRED")
 
 address = particulars.get("trade_address", {})
 if address.get("value") is not None:
     errors.append("trade address value must not be published in approval manifest")
 if address.get("verified_from_registration") is not True:
     errors.append("trade address registration evidence state drift")
+if address.get("evidence_present") is not True:
+    errors.append("trade address evidence must be present")
+if address.get("overlaps_owner_residential_information") is not True:
+    errors.append("trade address residential-overlap privacy signal missing")
 if address.get("public_display_approved") is not False:
     errors.append("trade address public display must remain unapproved")
 if address.get("status") != "HOLD_PUBLICATION_APPROVAL_REQUIRED":
@@ -268,6 +286,6 @@ print("legal_trust=HOLD")
 print("official_email=PASS")
 print("support_channel=PASS_INBOUND")
 print("policy_versions=1.0_APPROVED_EFFECTIVE_2026-09-20")
-print("official_phone=HOLD_EVIDENCE_REQUIRED")
+print("official_phone_evidence=PASS_REDACTED; public_use=HOLD")
 print("trade_address_publication=HOLD")
 print("policy_effective_versions=PASS")

@@ -17,7 +17,9 @@
     "official_email": "hello@lundusdigital.com",
     "official_email_status": "PASS",
     "support_complaint_channel": "support@lundusdigital.com",
-    "support_complaint_channel_status": "PASS_INBOUND"
+    "support_complaint_channel_status": "PASS_INBOUND",
+    "official_phone_evidence_status": "VERIFIED_PRESENT_VALUE_REDACTED",
+    "trade_address_evidence_status": "VERIFIED_PRESENT_VALUE_REDACTED"
   },
   "required_disclosures_bm": [
     "supplier_or_company_name",
@@ -33,7 +35,7 @@
     "safety_health_certificate_if_applicable"
   ],
   "pending_verified_values": [
-    "official_phone",
+    "official_phone_public_use_approval",
     "official_trade_address_publication_approval"
   ],
   "language_readiness": {
@@ -65,9 +67,11 @@
   "privacy_guardrails": {
     "personal_owner_identity_must_not_be_published": true,
     "personal_owner_email_or_phone_must_not_be_used_as_official_commercial_contact_without_explicit_approval": true,
-    "official_trade_address_requires_publication_approval": true
+    "official_trade_address_requires_publication_approval": true,
+    "official_phone_requires_public_use_approval": true,
+    "trade_address_overlaps_owner_residential_information": true
   },
-  "launch_rule": "LEGAL_TRUST_READY remains HOLD while official_phone or trade-address publication approval is pending. Policy versions 1.0 are approved effective 2026-09-20 but do not authorize Production deployment, live charging, or public launch.",
+  "launch_rule": "LEGAL_TRUST_READY remains HOLD while the verified SSM telephone lacks explicit public-use approval or the verified trade address lacks explicit publication approval. Sensitive values remain excluded from the public repository.",
   "policy_candidates": {
     "privacy": {
       "version": "1.0",
