@@ -39,3 +39,14 @@ Use the DNS provider's default TTL unless Zoho supplies an exact TTL.
 3. Do not change A, NS, CNAME or verification TXT records.
 4. Return to Zoho and click `Verify` on the MX page.
 5. After MX PASS, capture exact SPF and DKIM values before adding them.
+
+
+## SPF exact value captured
+
+### ADD
+- Type: `TXT`
+- Host / Name: `@`
+- Value: `v=spf1 include:zohomail.com ~all`
+
+Keep the existing Zoho verification TXT record. The SPF TXT is an additional TXT record at the same root host.
+Do not publish a second SPF policy beginning with `v=spf1`.
