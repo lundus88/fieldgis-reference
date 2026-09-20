@@ -94,7 +94,7 @@ if legal_path.exists():
         if not verified.get(key):
             errors.append(f"legal trust: verified value missing {key}")
     pending=set(legal.get("pending_verified_values",[]))
-    expected_pending={"ld_dedicated_business_phone","registered_business_address_publication_approval"}
+    expected_pending={"ld_dedicated_business_phone"}
     if pending != expected_pending:
         errors.append(f"legal trust: pending verified values drift: {sorted(pending)}")
     if verified.get("official_email") != "hello@lundusdigital.com" or verified.get("official_email_status") != "PASS":
@@ -103,15 +103,17 @@ if legal_path.exists():
         errors.append("legal trust: verified support channel evidence drift")
     if verified.get("official_phone_evidence_status") != "VERIFIED_PRESENT_VALUE_REDACTED":
         errors.append("legal trust: official phone evidence must remain verified/redacted")
-    if verified.get("trade_address_evidence_status") != "VERIFIED_PRESENT_VALUE_REDACTED":
-        errors.append("legal trust: trade address evidence must remain verified/redacted")
+    if verified.get("trade_address_evidence_status") != "VERIFIED_PRESENT_PUBLICATION_APPROVED":
+        errors.append("legal trust: trade address evidence publication status drift")
+    if verified.get("registered_business_address") != "NO F165 SECTION HOUSING, KG DURIAN TUNJONG, 87007 LABUAN, W.P. LABUAN":
+        errors.append("legal trust: registered business address drift")
     required_disclosures=set(legal.get("required_disclosures_bm",[]))
     for key in ["supplier_or_company_name","website_address","email","telephone","trade_address","service_main_characteristics","full_price_including_tax_and_other_cost","payment_method","sale_terms","estimated_supply_time"]:
         if key not in required_disclosures:
             errors.append(f"legal trust: missing BM disclosure contract {key}")
 
 bm=(root/"maklumat-urusniaga.html").read_text() if (root/"maklumat-urusniaga.html").exists() else ""
-for token in ['lang="ms"',"Maklumat Pembekal & Urus Niaga","202603248473 (003891235-V)","lundusdigital.com","BELUM DISEDIAKAN / DISAHKAN","MENUNGGU KELULUSAN PENERBITAN","Harga penuh","Kaedah pembayaran","Anggaran masa pembekalan perkhidmatan","Pembetulan kesilapan & pengakuterimaan pesanan"]:
+for token in ['lang="ms"',"Maklumat Pembekal & Urus Niaga","202603248473 (003891235-V)","lundusdigital.com","BELUM DISEDIAKAN / DISAHKAN","NO F165 SECTION HOUSING, KG DURIAN TUNJONG, 87007 LABUAN, W.P. LABUAN","Harga penuh","Kaedah pembayaran","Anggaran masa pembekalan perkhidmatan","Pembetulan kesilapan & pengakuterimaan pesanan"]:
     if token not in bm:
         errors.append(f"BM disclosure: missing {token}")
 
