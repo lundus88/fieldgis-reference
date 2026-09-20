@@ -188,7 +188,7 @@
       "spf": {
         "host": "@",
         "value": "v=spf1 include:zohomail.com ~all",
-        "status": "CAPTURED_NOT_APPLIED"
+        "status": "VERIFIED"
       },
       "dkim": {
         "selector": null,
@@ -230,9 +230,11 @@
     "spf": {
       "record": "v=spf1 include:zohomail.com ~all",
       "host": "@",
-      "status": "CAPTURED_NOT_APPLIED",
+      "status": "VERIFIED",
       "evidence_level": "user_supplied_zoho_admin_spf_screenshot",
-      "observed_at": "2026-09-20"
+      "observed_at": "2026-09-20",
+      "verified_at": "2026-09-20",
+      "verification_evidence": "user_confirmed_zoho_spf_pass"
     },
     "dkim": {
       "records": [],
@@ -298,7 +300,8 @@
     "ZOHO_MX_RECORDS_CAPTURED": "PASS",
     "ZOHO_MX_DNS_APPLIED": "PASS",
     "ZOHO_MX_VERIFIED": "PASS",
-    "ZOHO_SPF_RECORD_CAPTURED": "PASS"
+    "ZOHO_SPF_RECORD_CAPTURED": "PASS",
+    "ZOHO_SPF_VERIFIED": "PASS"
   },
   "safe_sequence": [
     "sign in to Zoho Mail Admin Console as an authorized administrator",
