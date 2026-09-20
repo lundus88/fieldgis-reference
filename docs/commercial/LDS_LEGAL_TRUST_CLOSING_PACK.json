@@ -1,6 +1,6 @@
 {
   "schema": "lds.legal-trust-closing-pack/1",
-  "as_of": "2026-09-20",
+  "as_of": "2026-09-21",
   "status": "HOLD",
   "dependency": {
     "business_registration_pr": 332,
@@ -24,13 +24,15 @@
     "bm_terms_surface": "RC_PRESENT",
     "bm_refund_surface": "RC_PRESENT",
     "commercial_phone_evidence": "SSM_FORM_A_VERIFIED_PRESENT_VALUE_REDACTED",
-    "trade_address_evidence": "SSM_BUSINESS_INFO_VERIFIED_PRESENT_VALUE_REDACTED"
+    "trade_address_evidence": "SSM_BUSINESS_INFO_VERIFIED_PRESENT_VALUE_REDACTED",
+    "registered_business_address_evidence": "SSM_BUSINESS_INFO_VERIFIED_PRESENT_VALUE_REDACTED",
+    "registered_business_address_is_authoritative": true
   },
   "remaining_blockers": [
     "LD_DEDICATED_BUSINESS_PHONE_VERIFIED",
-    "LD_PUBLIC_BUSINESS_ADDRESS_VALIDATED"
+    "LD_REGISTERED_BUSINESS_ADDRESS_PUBLICATION_APPROVED"
   ],
-  "legal_review_posture": "Compliance preparation only; not a legal opinion. LD has approved separation of public business contacts from sensitive SSM phone/address evidence. Legal & Trust remains HOLD until a dedicated LD business phone and a separate lawful public business/correspondence address are verified.",
+  "legal_review_posture": "Compliance preparation only; not a legal opinion. The SSM-registered address is confirmed as LD's actual business address and no replacement address is required. Legal & Trust remains HOLD for a dedicated LD business phone and explicit approval to display the registered business address on public commercial surfaces.",
   "production_activation_authorized": false,
   "live_payment_authorized": false,
   "public_launch_authorized": false,
@@ -56,6 +58,6 @@
   "public_contact_provisioning_plan": "docs/commercial/LDS_PUBLIC_CONTACT_PROVISIONING_PLAN.json",
   "next_external_actions": [
     "Provision dedicated LD business phone and retain ownership/control evidence.",
-    "Validate and select separate lawful public business/correspondence address with written permitted-use evidence."
+    "Obtain explicit human decision on public display of the existing SSM-registered business address; do not procure a replacement address unless the business actually moves."
   ]
 }
