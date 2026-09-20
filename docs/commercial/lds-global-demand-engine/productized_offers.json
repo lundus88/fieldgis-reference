@@ -1,0 +1,48 @@
+{
+  "schema": "lds.productized-offers/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "offers": [
+    {
+      "id": "LD_LAUNCH",
+      "ideal_problem": "Need a credible conversion-ready digital presence",
+      "pricing_mode": "FIXED_OR_SCOPED",
+      "automatic_quotation": false
+    },
+    {
+      "id": "LD_AUTOMATE",
+      "ideal_problem": "Manual repetitive workflow causing delay or errors",
+      "pricing_mode": "SCOPED",
+      "automatic_quotation": false
+    },
+    {
+      "id": "LD_AI",
+      "ideal_problem": "Business workflow can benefit from bounded AI assistance",
+      "pricing_mode": "SCOPED",
+      "automatic_quotation": false
+    },
+    {
+      "id": "LD_SYSTEM",
+      "ideal_problem": "Need a custom portal internal tool or business system",
+      "pricing_mode": "DISCOVERY_THEN_SCOPED",
+      "automatic_quotation": false
+    },
+    {
+      "id": "LD_DISCOVERY",
+      "ideal_problem": "Problem is real but scope is not yet sufficiently defined",
+      "pricing_mode": "PAID_DISCOVERY",
+      "automatic_quotation": false
+    }
+  ],
+  "required_offer_fields": [
+    "ideal_problem",
+    "inclusions",
+    "exclusions",
+    "prerequisite_information",
+    "delivery_evidence",
+    "acceptance_criteria",
+    "support_boundary",
+    "pricing_mode",
+    "change_request_trigger"
+  ],
+  "payment_authority": false
+}
