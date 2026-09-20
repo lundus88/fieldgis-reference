@@ -1,0 +1,31 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Client Portal — LUNDUS DIGITAL SYSTEMS</title><link rel="stylesheet" href="styles.css"><meta name="robots" content="noindex,nofollow,noarchive"></head><body>
+<nav class="nav"><div class="wrap"><a class="brand" href="index.html"><span class="mark">L</span><span>LUNDUS DIGITAL SYSTEMS</span></a><div class="menu"><a href="client-portal.html" aria-current="page">Client Portal</a><a href="contact.html">Support</a></div></div></nav>
+<main><section><div class="wrap"><div class="eyebrow">Customer Control Center</div><h1 class="section-title">One place to follow your project.</h1><p class="section-copy">Read-only project, commercial and delivery status composed from authoritative records. This portal cannot mark payments, QA, UAT, delivery or acceptance complete by itself.</p>
+<div class="grid2">
+  <article class="card"><span class="pill">PROJECT</span><h2>{{PROJECT_NAME}}</h2><p>{{PROJECT_SUMMARY}}</p><div class="status"><strong>Status:</strong> {{PROJECT_STATUS}}</div><p class="muted">Last verified update: {{LAST_VERIFIED_AT}}</p></article>
+  <article class="card"><span class="pill">NEXT ACTION</span><h2>{{NEXT_ACTION_TITLE}}</h2><p>{{NEXT_ACTION_DESCRIPTION}}</p><div class="status">Authority: {{NEXT_ACTION_AUTHORITY}}</div></article>
+</div>
+<section><h2 class="section-title">Commercial</h2><div class="grid3">
+  <article class="card"><h3>Quotation</h3><p>{{QUOTE_REFERENCE}}</p><div class="status">{{QUOTE_STATUS}}</div></article>
+  <article class="card"><h3>Invoice</h3><p>{{INVOICE_REFERENCE}}</p><div class="status">{{INVOICE_STATUS}}</div></article>
+  <article class="card"><h3>Payment & Receipt</h3><p>{{RECEIPT_REFERENCE}}</p><div class="status">{{PAYMENT_STATUS}}</div></article>
+</div></section>
+<section><h2 class="section-title">Delivery Progress</h2><div class="card">
+  <p><strong>Scope</strong> — {{SCOPE_STATUS}}</p>
+  <p><strong>Milestone Funding</strong> — {{MILESTONE_STATUS}}</p>
+  <p><strong>Build</strong> — {{BUILD_STATUS}}</p>
+  <p><strong>QA</strong> — {{QA_STATUS}}</p>
+  <p><strong>UAT</strong> — {{UAT_STATUS}}</p>
+  <p><strong>Delivery</strong> — {{DELIVERY_STATUS}}</p>
+</div></section>
+<section><h2 class="section-title">Latest verified update</h2><div class="card"><p>{{LATEST_UPDATE}}</p><p class="muted">Evidence: {{LATEST_EVIDENCE_REF}}</p></div></section>
+<section><h2 class="section-title">Documents</h2><div class="grid3">
+  <article class="card"><h3>Quotation</h3><p>{{QUOTE_DOCUMENT_STATE}}</p></article>
+  <article class="card"><h3>Invoice</h3><p>{{INVOICE_DOCUMENT_STATE}}</p></article>
+  <article class="card"><h3>Receipt</h3><p>{{RECEIPT_DOCUMENT_STATE}}</p></article>
+</div></section>
+<section><h2 class="section-title">Support</h2><div class="card"><p>{{SUPPORT_SUMMARY}}</p><div class="actions"><a class="btn ghost" href="contact.html">Ask a Question</a><button class="btn" disabled title="Future gated action">Request a Change — Coming Soon</button><button class="btn" disabled title="Future gated action">UAT Approval — Coming Soon</button></div></div></section>
+<div class="notice"><strong>Evidence before done.</strong> A successful factory build is not the same as Production deployment, customer acceptance or project completion.</div>
+</div></section></main>
+<footer class="footer"><div class="wrap">LUNDUS DIGITAL SYSTEMS · Practical Digital Systems for Real Work</div></footer>
+</body></html>

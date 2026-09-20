@@ -31,6 +31,17 @@ Jumlah penuh yang diluluskan manusia ini ialah amaun autoritatif bagi offer pela
 ## Tempoh pelaksanaan
 {{ESTIMATED_SUPPLY_TIME}}
 
+**Delivery lane:** {{DELIVERY_LANE}}  
+**Sasaran first visible value:** {{FIRST_VISIBLE_VALUE_TARGET}}  
+**Rujukan status delivery:** {{DELIVERY_STATUS_REFERENCE}}
+
+Tempoh ialah anggaran berdasarkan skop, kapasiti dan dependency yang tersedia. Fast-Track tidak memintas QA, security, UAT atau human release gate.
+
+## Dependency pelanggan
+{{CUSTOMER_DEPENDENCIES}}
+
+Kelewatan input, akses, data atau approval pelanggan boleh menyebabkan jadual direbaseline secara telus.
+
 ## Pembayaran
 {{PAYMENT_TERMS}}
 
@@ -41,6 +52,7 @@ Kaedah pembayaran sebenar hanya dipaparkan apabila Production payment gate telah
 - Perubahan skop memerlukan variation / quotation baharu.
 - Output digital atau AI tidak dianggap kelulusan statutory/professional melainkan dinyatakan secara khusus.
 - Polisi Privasi, Terma Perkhidmatan dan Bayaran Balik/Pembatalan yang berkuat kuasa turut terpakai.
+- Delivery standard adalah online-only/asynchronous-first kecuali quotation menyatakan pengecualian khusus.
 
 ## Acceptance
 Saya menerima skop, jumlah penuh, tempoh pelaksanaan dan terma yang dinyatakan.
