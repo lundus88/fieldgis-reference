@@ -16,7 +16,9 @@
       "host": "@",
       "value": "zoho-verification=zb36894990.zmverify.zoho.com",
       "evidence_id": "ZOHO_ADMIN_DOMAIN_VERIFY_2026-09-20",
-      "status": "CAPTURED_NOT_APPLIED"
+      "status": "APPLIED_PENDING_ZOHO_VERIFICATION",
+      "applied_ttl": 14440,
+      "applied_evidence_id": "EXABYTES_DNS_TXT_APPLIED_2026-09-20"
     },
     "mx": {
       "records": [],
@@ -136,17 +138,25 @@
           "decision": "KEEP"
         }
       ],
-      "txt": [],
-      "txt_count": 0
+      "txt": [
+        {
+          "name": "@",
+          "type": "TXT",
+          "ttl": 14440,
+          "rdata": "zoho-verification=zb36894990.zmverify.zoho.com",
+          "decision": "KEEP_PENDING_ZOHO_VERIFICATION"
+        }
+      ],
+      "txt_count": 1
     },
     "findings": [
       "Existing root MX will conflict with Zoho mail delivery once Zoho MX is activated",
-      "No TXT records were visible in the supplied DNS inventory, so no SPF/DKIM TXT conflict is currently evidenced",
-      "Website-related A/CNAME records are preserved and are outside the email-only change set"
+      "Website-related A/CNAME records are preserved and are outside the email-only change set",
+      "Zoho ownership-verification TXT is now present in Exabytes DNS and awaits Zoho provider verification"
     ]
   },
   "change_set_draft": {
-    "status": "PARTIAL_EXACT_VALUES_CAPTURED_MX_SPF_DKIM_PENDING",
+    "status": "DOMAIN_VERIFICATION_APPLIED_MX_SPF_DKIM_PENDING",
     "keep": [
       "@ A 103.7.9.22",
       "@ NS ns184.mschosting.com",
@@ -167,8 +177,9 @@
       "DKIM TXT record for the exact LD selector/public key"
     ],
     "dns_mutation_authorized": false,
-    "add_ready_for_human_application_review": [
-      "TXT @ = zoho-verification=zb36894990.zmverify.zoho.com"
+    "add_ready_for_human_application_review": [],
+    "applied_pending_provider_verification": [
+      "TXT @ TTL 14440 = zoho-verification=zb36894990.zmverify.zoho.com"
     ]
   }
 }
