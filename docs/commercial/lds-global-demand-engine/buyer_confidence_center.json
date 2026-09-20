@@ -1,0 +1,24 @@
+{
+  "schema": "lds.buyer-confidence-center/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "topics": [
+    "how_ld_works",
+    "service_scope_and_offer_types",
+    "pricing_logic",
+    "delivery_stages",
+    "uat_customer_acceptance",
+    "ownership_and_handover",
+    "security_and_data_handling",
+    "change_requests",
+    "support_and_maintenance",
+    "payment_process",
+    "cancellation_refund_rules_where_applicable",
+    "faq_and_escalation"
+  ],
+  "answer_policy": {
+    "source_required": true,
+    "owner_required": true,
+    "review_state_required": true,
+    "unknown_or_unresolved": "NEEDS_REVIEW"
+  }
+}
