@@ -64,10 +64,11 @@ Public charging remains HOLD while any mandatory gate is unresolved.
 - Autonomous Operations Layer v1: merged to main
 - governed standard-order auto-kickoff may proceed only after authoritative payment reconciliation, confirmed scope, supported capability, capacity availability, unit-economics pass, and no unresolved material risk
 
-### HOLD / not live-verified
+### HOLD / not live-approved
 
 - LEGAL_TRUST_READY
-- official telephone and approved public trade-address disclosure
+- verified SSM telephone requires explicit approval for LD public commercial use
+- verified trade address requires explicit public-display approval
 - LIVE_LEAD_INTAKE
 - Production payment-provider configuration fingerprint
 - Production commercial checkout
@@ -101,18 +102,18 @@ No DNS or mail mutation is authorized by this document.
 
 ## 5. Legal and trust state
 
-LEGAL_TRUST_READY remains HOLD while required public-commercial particulars remain unverified.
+LEGAL_TRUST_READY remains HOLD while verified sensitive public-commercial particulars lack explicit public-use/publication approval.
 
 Approved policy versions:
 - Privacy Notice v1.0 — effective 20 September 2026
 - Terms of Service v1.0 — effective 20 September 2026
 - Refund & Cancellation Policy v1.0 — effective 20 September 2026
 
-Pending evidence includes:
-- official telephone
-- public trade-address publication approval
+Verified evidence now exists for both remaining particulars:
+- a telephone value is present in SSM Form A, but exact value remains redacted and public commercial use is not approved
+- the principal business address is verified from SSM evidence, but exact value remains redacted and public display is not approved
 
-Personal owner identity or personal contact details must not be substituted for official commercial channels without explicit approval.
+The address overlaps owner residential information. Personal owner identity, contact details or residential information must not be exposed merely because they exist in registration evidence.
 
 ## 6. Payment Production readiness
 
@@ -216,7 +217,7 @@ Rule: evidence existence is not activation authority.
 
 ## 11. Controlled activation sequence
 
-1. Complete the remaining legal / trust particulars: official phone and trade-address publication approval.
+1. Obtain explicit human approval for public use of the verified SSM telephone and public display of the verified trade address.
 2. Verify current Production lead-intake, payment, notification and security configuration without enabling public charging.
 3. Capture current configuration fingerprints.
 4. Obtain explicit human authority for one minimum controlled Production transaction.
