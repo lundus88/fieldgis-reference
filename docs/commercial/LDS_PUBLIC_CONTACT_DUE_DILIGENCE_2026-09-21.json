@@ -49,14 +49,16 @@
   "address": {
     "decision": "USE_EXISTING_SSM_REGISTERED_BUSINESS_ADDRESS",
     "authoritative_source": "SSM registered business certificate/business information",
-    "address_value_persisted_in_public_repository": false,
+    "address_value_persisted_in_public_repository": true,
     "separate_address_required": false,
     "external_address_provider_due_diligence_required": false,
     "ssm_change_required": false,
     "reason": "User confirmed the actual LD business address is the address stated in the business registration/certificate. No address change is being made.",
     "public_disclosure": {
-      "status": "HOLD_EXPLICIT_PUBLICATION_APPROVAL",
-      "note": "The registered address is authoritative as the business address. Because it overlaps residential information, public display remains a separate human approval decision."
+      "status": "PASS_EXPLICITLY_APPROVED",
+      "approved_on": "2026-09-21",
+      "approved_scope": "Publish the SSM-registered business address as the official LD business address on public commercial surfaces.",
+      "value": "NO F165 SECTION HOUSING, KG DURIAN TUNJONG, 87007 LABUAN, W.P. LABUAN"
     },
     "legal_context": {
       "ssm_change_rule": "SSM change notification applies only if the registered business address actually changes.",
@@ -65,13 +67,13 @@
     "sources": [
       "https://www.ssm.com.my/Pages/Register_Business_Company_LLP/Business/Making_Changes.aspx",
       "https://repositori.kpdn.gov.my/bitstream/123456789/5299/1/PERATURAN%20URUSNIAGA%20PERDAGANGAN%20DALAM%20ELEKTRONIK%202024.pdf"
-    ]
+    ],
+    "authoritative_value": "NO F165 SECTION HOUSING, KG DURIAN TUNJONG, 87007 LABUAN, W.P. LABUAN"
   },
   "legal_trust": {
     "status": "HOLD",
     "remaining_blockers": [
-      "LD_DEDICATED_BUSINESS_PHONE_VERIFIED",
-      "LD_REGISTERED_BUSINESS_ADDRESS_PUBLICATION_APPROVED"
+      "LD_DEDICATED_BUSINESS_PHONE_VERIFIED"
     ]
   },
   "authority": {
