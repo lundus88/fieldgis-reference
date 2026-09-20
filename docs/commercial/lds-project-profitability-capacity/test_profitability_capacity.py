@@ -27,4 +27,27 @@ class ProfitabilityCapacityTests(unittest.TestCase):
         c=Capacity(3,1,20,0,100,20,30)
         self.assertTrue(capacity_decision(c)["schedulable"])
 
+    def test_daily_paid_order_cap_is_three(self):
+        r=daily_order_intake(2)
+        self.assertTrue(r["accept_new_paid_order"])
+        self.assertEqual(r["remaining_slots"],1)
+
+    def test_fourth_order_waitlists_not_rejects(self):
+        r=daily_order_intake(3)
+        self.assertEqual(r["status"],"WAITLIST")
+        self.assertFalse(r["automatic_reject"])
+        self.assertEqual(r["customer_action"],"NEXT_AVAILABLE_SLOT")
+
+    def test_capacity_pressure_can_hold_before_daily_cap(self):
+        r=daily_order_intake(1,qa_queue=4,overdue_jobs=2)
+        self.assertEqual(r["status"],"REVIEW")
+        self.assertFalse(r["accept_new_paid_order"])
+
+    def test_cap_never_auto_increases(self):
+        r=cap_change_authority(30,"STAGE_1")
+        self.assertTrue(r["evidence_sufficient"])
+        self.assertEqual(r["suggested_next_cap"],5)
+        self.assertFalse(r["automatic_change"])
+        self.assertEqual(r["authority"],"HUMAN_ONLY")
+
 if __name__=="__main__": unittest.main()
