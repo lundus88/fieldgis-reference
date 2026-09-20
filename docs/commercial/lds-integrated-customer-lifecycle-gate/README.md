@@ -4,6 +4,26 @@ Status: DEVELOPMENT / NON-PRODUCTION
 
 Purpose: connect the existing LD commercial and delivery modules into one evidence-bound customer lifecycle without creating another source of truth.
 
+## LD Global Transaction Principle alignment
+
+**Any qualified customer. Any supported market. One digital workflow.**
+
+North Star:
+
+**From any legitimate lead in the world to a completed paid digital service with minimal human friction.**
+
+Commercial KPI chain:
+
+Visitor
+→ Qualified Lead
+→ Quotation
+→ Payment
+→ Delivery
+→ Acceptance
+→ Repeat / Referral
+
+The KPI chain is a measurement model, not a bypass around the canonical evidence-bound lifecycle below.
+
 ## Canonical flow
 
 Assessment
@@ -17,7 +37,19 @@ Assessment
 → UAT / Customer Acceptance
 → Delivery
 → Support
-→ Renewal or Exit
+→ Renewal / Repeat / Referral / Exit
+
+## Funnel-to-lifecycle mapping
+
+- VISITOR: acquisition signal only; no project authority
+- QUALIFIED_LEAD: Assessment / Blueprint
+- QUOTATION: Pricing Review + Human-approved Quotation
+- PAYMENT: authoritative Payment Reconciliation
+- DELIVERY: Kickoff → Build → QA → UAT → Delivery
+- ACCEPTANCE: customer acceptance evidence
+- REPEAT_OR_REFERRAL: Support / Renewal / Referral / Exit
+
+A funnel stage may be counted only when the corresponding evidence exists. KPI progression must never authorize a hard lifecycle transition.
 
 ## Hard gates
 
@@ -37,6 +69,7 @@ Only when relevant:
 - Support Plan when recurring support is selected
 - Handover/Exit when the project closes or customer exits
 - Renewal Review when plan expiry/expansion evidence exists
+- Referral/Testimonial only after delivery and customer acceptance
 
 ## Advisory inputs
 
