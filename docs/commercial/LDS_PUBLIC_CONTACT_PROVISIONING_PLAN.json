@@ -30,7 +30,12 @@
       }
     ],
     "selection_rule": "Choose the lowest-friction business-registered line with acceptable Labuan coverage, no unnecessary device contract, and clear business-account evidence. Coverage/availability must be confirmed at registration time.",
-    "status": "HOLD_EXTERNAL_SIGNUP_AND_VERIFICATION"
+    "status": "HOLD_EXTERNAL_SIGNUP_AND_VERIFICATION",
+    "preferred_verification_order": [
+      "Maxis Business Postpaid 80",
+      "CelcomDigi Business entry/SIM-only"
+    ],
+    "next_action": "VERIFY_MAXIS_BUSINESS_ACCOUNT_ELIGIBILITY_AND_LABUAN_COVERAGE"
   },
   "address": {
     "goal": "Obtain a separate lawful public business/correspondence address without exposing the owner's residential-overlapping SSM address.",
@@ -68,7 +73,12 @@
       "What is the monthly fee, deposit, setup fee, minimum term and cancellation rule?"
     ],
     "rule": "Do not treat a virtual-office marketing claim as sufficient legal evidence. Validate permitted use before relying on the address.",
-    "status": "HOLD_PROVIDER_VALIDATION_AND_SELECTION"
+    "status": "HOLD_PROVIDER_VALIDATION_AND_SELECTION",
+    "preferred_verification_order": [
+      "Regus - Labuan, Financial Park",
+      "Universal Serviced Offices & Management Limited"
+    ],
+    "next_action": "REQUEST_WRITTEN_PERMITTED_USE_CONFIRMATION_FROM_BOTH_PROVIDERS"
   },
   "legal_trust": {
     "status": "HOLD",
@@ -82,5 +92,6 @@
     "production_activation_authorized": false,
     "live_payment_authorized": false,
     "public_launch_authorized": false
-  }
+  },
+  "due_diligence_evidence": "docs/commercial/LDS_PUBLIC_CONTACT_DUE_DILIGENCE_2026-09-21.json"
 }
