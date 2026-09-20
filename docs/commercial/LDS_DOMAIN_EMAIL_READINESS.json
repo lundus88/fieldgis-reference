@@ -1,6 +1,6 @@
 {
   "schema": "lds.domain-email-readiness/1",
-  "as_of": "2026-09-19",
+  "as_of": "2026-09-20",
   "domain": {
     "name": "lundusdigital.com",
     "brand": "LUNDUS DIGITAL",
@@ -22,6 +22,7 @@
     "nameserver_change_authorized": false,
     "records_applied": false,
     "production_binding_authorized": false,
+    "exact_zoho_records_captured": false,
     "root_domain": {
       "host": "@",
       "target": null,
@@ -33,67 +34,87 @@
       "status": "HOLD_NOT_APPLIED"
     },
     "verification_records": [],
-    "rule": "Do not invent or publish A/CNAME/TXT values before the selected service supplies exact verified values."
+    "rule": "Do not invent or publish A/CNAME/TXT/MX values. Exact Zoho records must be copied from the LD Zoho Admin Console for lundusdigital.com and independently reviewed before DNS mutation."
   },
   "email": {
     "provider": "Zoho Mail",
     "provider_selection_status": "PASS",
-    "mailboxes_planned": [
-      "hello@lundusdigital.com",
-      "support@lundusdigital.com",
-      "billing@lundusdigital.com"
-    ],
-    "official_commercial_email": null,
-    "mx": {
-      "records": [],
-      "status": "HOLD_NOT_APPLIED"
-    },
-    "spf": {
-      "record": null,
-      "status": "HOLD_NOT_APPLIED"
-    },
-    "dkim": {
-      "records": [],
-      "status": "HOLD_NOT_APPLIED"
-    },
-    "dmarc": {
-      "record": null,
-      "initial_policy_after_authentication": "p=none",
-      "status": "HOLD_NOT_APPLIED",
-      "promotion_rule": "Move toward quarantine/reject only after legitimate senders, SPF alignment, DKIM alignment and report monitoring are verified."
-    },
     "plan": "Mail Lite 10 GB",
-    "selection_evidence": {
-      "decided_at": "2026-09-19",
-      "decision_basis": "human approval after official-provider comparison",
-      "observed_pricing": {
-        "amount_usd_per_user_month": 1,
-        "billing": "annual",
-        "observed_at": "2026-09-19",
-        "note": "Pricing is informational and must be rechecked at checkout; tax/local currency may differ."
+    "subscription_purchase_authorized": true,
+    "subscription_purchased": true,
+    "official_channel_selection": {
+      "primary_commercial_email": {
+        "value": "hello@lundusdigital.com",
+        "status": "SELECTED_NOT_VERIFIED"
       },
-      "capabilities_verified": [
-        "custom-domain email",
-        "user email aliases",
-        "send and receive from aliases",
-        "SPF/DKIM/DMARC administration",
-        "MX-based inbound delivery"
-      ]
+      "support_complaint_email": {
+        "value": "support@lundusdigital.com",
+        "status": "SELECTED_NOT_VERIFIED"
+      },
+      "billing_email": {
+        "value": "billing@lundusdigital.com",
+        "status": "SELECTED_NOT_VERIFIED"
+      }
     },
+    "official_commercial_email": "hello@lundusdigital.com",
+    "official_commercial_email_status": "SELECTED_NOT_VERIFIED",
+    "support_complaint_channel": "support@lundusdigital.com",
+    "support_complaint_channel_status": "SELECTED_NOT_VERIFIED",
     "mailbox_architecture": {
       "licensed_users_planned": 1,
+      "licensed_users_purchased": 1,
       "primary_mailbox": "hello@lundusdigital.com",
+      "primary_mailbox_status": "SELECTED_NOT_VERIFIED",
       "aliases": [
         "support@lundusdigital.com",
         "billing@lundusdigital.com"
       ],
-      "rationale": "Initial single-operator setup minimizes cost while preserving distinct customer-facing addresses.",
-      "licensed_users_purchased": 1,
-      "primary_mailbox_status": "PLANNED_NOT_YET_VERIFIED",
-      "alias_status": "PLANNED_NOT_YET_VERIFIED"
+      "alias_status": "SELECTED_NOT_VERIFIED",
+      "rationale": "Initial single-operator setup minimizes cost while preserving distinct customer-facing commercial, support and billing addresses."
     },
-    "subscription_purchase_authorized": true,
-    "subscription_purchased": true,
+    "exact_provider_records": {
+      "domain_verification": {
+        "type": null,
+        "host": null,
+        "value": null,
+        "status": "EVIDENCE_REQUIRED"
+      },
+      "mx": [],
+      "spf": {
+        "host": null,
+        "value": null,
+        "status": "EVIDENCE_REQUIRED"
+      },
+      "dkim": {
+        "selector": null,
+        "host": null,
+        "value": null,
+        "status": "EVIDENCE_REQUIRED"
+      },
+      "dmarc": {
+        "host": "_dmarc",
+        "value": null,
+        "status": "DEFER_UNTIL_SPF_DKIM_VERIFIED"
+      }
+    },
+    "mx": {
+      "records": [],
+      "status": "HOLD_EVIDENCE_REQUIRED"
+    },
+    "spf": {
+      "record": null,
+      "status": "HOLD_EVIDENCE_REQUIRED"
+    },
+    "dkim": {
+      "records": [],
+      "status": "HOLD_EVIDENCE_REQUIRED"
+    },
+    "dmarc": {
+      "record": null,
+      "initial_policy_after_authentication": "p=none",
+      "status": "HOLD_UNTIL_SPF_DKIM_VERIFIED",
+      "promotion_rule": "Move toward quarantine/reject only after legitimate senders, SPF alignment, DKIM alignment and report monitoring are verified."
+    },
     "transactional_email_provider": "Resend",
     "transactional_email_rule": "Zoho Mail is for human business correspondence. Transactional/system email remains on Resend and must not be routed through Zoho Mail.",
     "subscription_evidence": {
@@ -103,9 +124,6 @@
       "term": "1 year",
       "next_renewal_date": "2027-09-19",
       "renewal_mode": "automatic using provided payment method",
-      "credit_earned_myr": 7.2,
-      "checkout_total_observed_myr": 60,
-      "charged_amount_myr": null,
       "charged_amount_evidence_status": "PENDING_RECEIPT_OR_INVOICE",
       "evidence_level": "user_supplied_checkout_summary_and_subscription_confirmation_screenshots"
     }
@@ -125,33 +143,38 @@
   "gate_status": {
     "FINAL_COMMERCIAL_DOMAIN": "PASS",
     "DOMAIN_OWNERSHIP_VERIFIED": "PASS",
-    "DNS_PRODUCTION_BINDING": "HOLD",
     "EMAIL_PROVIDER_SELECTED": "PASS",
+    "EMAIL_SUBSCRIPTION_ACTIVE": "PASS",
+    "OFFICIAL_CHANNELS_SELECTED": "PASS",
+    "ZOHO_EXACT_DNS_RECORDS_CAPTURED": "HOLD",
+    "DNS_PRODUCTION_BINDING": "HOLD",
     "EMAIL_DNS_AUTHENTICATION": "HOLD",
     "OFFICIAL_COMMERCIAL_EMAIL": "HOLD",
+    "SUPPORT_COMPLAINT_CHANNEL": "HOLD",
     "LEGAL_TRUST_READY": "HOLD",
-    "PUBLIC_LAUNCH": "HOLD",
-    "EMAIL_SUBSCRIPTION_ACTIVE": "PASS"
+    "PUBLIC_LAUNCH": "HOLD"
   },
   "safe_sequence": [
-    "capture Zoho receipt or invoice if available and reconcile exact charged amount",
-    "continue Zoho organization setup for lundusdigital.com without changing nameservers",
-    "obtain exact Zoho domain-verification and MX/SPF/DKIM values",
-    "add lundusdigital.com to Zoho without changing nameservers",
-    "obtain exact Zoho domain-verification and MX/SPF/DKIM values",
-    "obtain exact provider MX/SPF/DKIM verification records",
-    "prepare DNS change set without applying it",
-    "human review exact DNS change set",
-    "apply only approved email verification records",
-    "verify inbound and outbound mail",
+    "sign in to Zoho Mail Admin Console as an authorized administrator",
+    "select Domains and lundusdigital.com",
+    "capture exact domain-verification record shown for this Zoho organization",
+    "capture exact MX values and priorities shown for this domain/data center",
+    "capture exact SPF value shown by Zoho and reconcile with any existing SPF sender sources",
+    "create/select DKIM selector in Zoho and capture the exact TXT host and public-key value",
+    "prepare a DNS change set only; do not apply",
+    "human-review host, type, value, priority, TTL, existing-record conflicts and rollback",
+    "apply only the explicitly approved DNS records",
+    "verify domain ownership and MX in Zoho",
+    "verify inbound and outbound mail for hello@lundusdigital.com",
+    "verify support@ and billing@ aliases can receive and send as intended",
     "verify SPF and DKIM alignment",
-    "publish DMARC p=none and monitor reports",
-    "verify official support/commercial mailbox ownership",
-    "separately prepare Vercel Production domain binding",
-    "bind website domain only after explicit Production authorization"
+    "only then prepare DMARC p=none and monitor reports before stronger policy",
+    "separately verify official commercial/support channel ownership",
+    "website Production binding remains a separate gate"
   ],
   "authority": {
     "dns_mutation_authorized": false,
+    "nameserver_change_authorized": false,
     "email_activation_authorized": false,
     "vercel_production_binding_authorized": false,
     "payment_activation_authorized": false,

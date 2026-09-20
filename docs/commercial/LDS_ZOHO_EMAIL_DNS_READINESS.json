@@ -1,0 +1,70 @@
+{
+  "schema": "lds.zoho-email-dns-readiness/1",
+  "as_of": "2026-09-20",
+  "status": "HOLD_EXACT_PROVIDER_EVIDENCE_REQUIRED",
+  "domain": "lundusdigital.com",
+  "provider": "Zoho Mail",
+  "plan": "Mail Lite 10 GB",
+  "selected_channels": {
+    "commercial": "hello@lundusdigital.com",
+    "support_complaint": "support@lundusdigital.com",
+    "billing": "billing@lundusdigital.com"
+  },
+  "exact_record_capture": {
+    "domain_verification": {
+      "record_type": null,
+      "host": null,
+      "value": null,
+      "evidence_id": null,
+      "status": "REQUIRED"
+    },
+    "mx": {
+      "records": [],
+      "evidence_id": null,
+      "status": "REQUIRED"
+    },
+    "spf": {
+      "host": null,
+      "value": null,
+      "evidence_id": null,
+      "status": "REQUIRED"
+    },
+    "dkim": {
+      "selector": null,
+      "host": null,
+      "value": null,
+      "evidence_id": null,
+      "status": "REQUIRED"
+    }
+  },
+  "provider_rules": [
+    "Use only the MX records provided for lundusdigital.com in the LD Zoho Admin Console",
+    "Do not copy generic Zoho MX examples if the Admin Console shows a different data-center value",
+    "Maintain only one SPF TXT policy for the domain and merge authorized senders into that policy rather than publishing multiple SPF records",
+    "DKIM selector and public-key TXT value must come from the LD Zoho Admin Console",
+    "DMARC remains deferred until SPF and DKIM alignment are verified"
+  ],
+  "pre_apply_checks": [
+    "current authoritative nameservers identified",
+    "existing DNS records exported or captured for rollback",
+    "exact host/type/value/priority copied from Zoho Admin Console",
+    "SPF conflict check complete",
+    "no website A/CNAME record is modified as part of email-only change",
+    "change set independently reviewed",
+    "human DNS mutation approval captured"
+  ],
+  "post_apply_checks": [
+    "Zoho domain verification PASS",
+    "Zoho MX verification PASS",
+    "inbound message received at hello@lundusdigital.com",
+    "outbound message from hello@lundusdigital.com received externally",
+    "support@ alias receive PASS",
+    "billing@ alias receive PASS",
+    "SPF alignment PASS",
+    "DKIM alignment PASS"
+  ],
+  "pass_condition": "All exact provider records are evidence-backed, approved, applied, propagated and verified; mailbox/alias send-receive tests pass.",
+  "dns_mutation_authorized": false,
+  "production_website_binding_authorized": false,
+  "public_launch_authorized": false
+}
