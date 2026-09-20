@@ -76,10 +76,12 @@ if authorized is False:
 
     if domain_email.get("dns_production_binding") != "HOLD":
         errors.append("DNS Production binding must remain HOLD")
-    if domain_email.get("email_dns_authentication") != "HOLD":
-        errors.append("email DNS authentication must remain HOLD")
-    if domain_email.get("official_commercial_email") != "HOLD":
-        errors.append("official commercial email must remain HOLD")
+    if domain_email.get("email_dns_authentication") != "PASS":
+        errors.append("email DNS authentication must remain PASS after verified UAT")
+    if domain_email.get("official_commercial_email") != "PASS":
+        errors.append("official commercial email must remain PASS after verified UAT")
+    if domain_email.get("support_complaint_channel") != "PASS_INBOUND":
+        errors.append("support complaint channel must remain PASS_INBOUND")
     if domain_email.get("production_config_fingerprint") is not None:
         errors.append("domain/email Production fingerprint must remain null")
     if data.get("lead_intake", {}).get("production_activation_authorized") is not False:
