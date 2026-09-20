@@ -28,7 +28,13 @@ def evaluate_cohort(c:Cohort)->Dict:
         "acceptance_to_referral":_rate(c.referrals,c.accepted_deliveries),
         "acceptance_to_repeat":_rate(c.repeat_or_expansion,c.accepted_deliveries),
     }
-    eligible={k:v for k,v in rates.items() if v is not None}
+    material_keys=(
+        "visitor_to_qualified",
+        "qualified_to_quotation",
+        "quotation_to_paid",
+        "paid_to_acceptance",
+    )
+    eligible={k:rates[k] for k in material_keys if rates[k] is not None}
     largest_leak=min(eligible,key=eligible.get) if eligible else None
     cpql=round(c.spend/c.qualified_leads,2) if c.spend>0 and c.qualified_leads>0 else None
     return {
