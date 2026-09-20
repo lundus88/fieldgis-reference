@@ -26,28 +26,28 @@
   },
   "remaining_blockers": [
     "OFFICIAL_COMMERCIAL_PHONE_VERIFIED",
-    "TRADE_ADDRESS_PUBLICATION_APPROVED",
-    "PRIVACY_EFFECTIVE_VERSION_APPROVED",
-    "TERMS_EFFECTIVE_VERSION_APPROVED",
-    "REFUND_EFFECTIVE_VERSION_APPROVED"
+    "TRADE_ADDRESS_PUBLICATION_APPROVED"
   ],
-  "legal_review_posture": "Compliance preparation only; not a legal opinion. Policy candidates are ready for human review but remain non-effective. Human approval remains required for policy effective versions, official phone verification, and trade-address publication.",
+  "legal_review_posture": "Compliance preparation only; not a legal opinion. Privacy, Terms and Refund/Cancellation version 1.0 are human-approved effective 2026-09-20. Legal & Trust remains HOLD for official phone verification and trade-address publication approval.",
   "production_activation_authorized": false,
   "live_payment_authorized": false,
   "public_launch_authorized": false,
   "final_approval_manifest": "docs/commercial/LDS_LEGAL_TRUST_FINAL_APPROVAL.json",
   "policy_candidates": {
     "privacy": {
-      "version": "1.0-RC2",
-      "status": "READY_FOR_HUMAN_REVIEW"
+      "version": "1.0",
+      "status": "APPROVED_EFFECTIVE",
+      "effective_date": "2026-09-20"
     },
     "terms": {
-      "version": "1.0-RC2",
-      "status": "READY_FOR_HUMAN_REVIEW"
+      "version": "1.0",
+      "status": "APPROVED_EFFECTIVE",
+      "effective_date": "2026-09-20"
     },
     "refund_cancellation": {
-      "version": "1.0-RC2",
-      "status": "READY_FOR_HUMAN_REVIEW"
+      "version": "1.0",
+      "status": "APPROVED_EFFECTIVE",
+      "effective_date": "2026-09-20"
     }
   }
 }
