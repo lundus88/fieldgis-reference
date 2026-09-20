@@ -150,3 +150,98 @@ Use for software/SaaS launch discovery; not as the default services acquisition 
 - Global paid order: HOLD
 - Public global checkout: HOLD
 - Production activation: NOT_AUTHORIZED
+
+## LD Global Growth Flywheel
+
+The acquisition funnel is strengthened by five compounding loops:
+
+### 1. Demand Loop
+Content → Search → Social → Brand Memory
+
+Purpose: create future demand and make LD mentally available before a buyer is ready to purchase.
+
+### 2. Capture Loop
+High-intent Search / Clutch / Upwork / LinkedIn / SEO
+→ Landing Page
+→ Lead Capture
+→ Qualification
+
+Purpose: convert active demand into qualified opportunities.
+
+### 3. Proof Loop
+Project
+→ Measurable Result
+→ Case Study
+→ Review / Testimonial
+→ Trust
+→ More Qualified Leads
+
+No result may be published as a case study without evidence and customer-permission handling where required.
+
+### 4. Referral Loop
+Accepted Delivery
+→ Satisfied Customer
+→ Referral
+→ New Qualified Lead
+→ Verified Sale
+→ Approved Reward / Service Credit
+
+Referral rewards must be evidence-based, fraud-checked and must not be triggered merely by a lead submission.
+
+### 5. Expansion Loop
+Initial Service
+→ Delivered Outcome
+→ Identified Adjacent Need
+→ New Scope / Quotation
+→ Additional Service
+→ Support / Renewal
+
+Expansion never bypasses quotation, scope, payment or lifecycle controls.
+
+## Marketing hook
+
+Primary customer-facing proposition:
+
+**Tell us the business problem. We build the digital system.**
+
+Supporting categories:
+
+Website · AI · Automation · Business Systems
+
+This marketing hook does not promise that every problem, jurisdiction or service request can be accepted.
+
+## LD Digital Business Check
+
+A free diagnostic lead magnet may be used to identify operational friction before commercial handoff.
+
+Proposed flow:
+
+Visitor
+→ Digital Business Check
+→ Digital Efficiency Score
+→ Priority Opportunity Areas
+→ Recommended Next Actions
+→ Get My LD System Plan
+→ Qualification
+
+The diagnostic:
+- is advisory only
+- does not diagnose legal, tax, accounting or regulated matters
+- does not grant country-support authority
+- does not create a quotation or payment obligation
+- must identify the evidence used for its recommendations
+- must not fabricate ROI or guaranteed savings
+
+## Growth measurement
+
+Track at minimum:
+- qualified-lead rate by channel
+- quotation rate from qualified leads
+- paid conversion rate after downstream approval
+- delivery acceptance rate
+- referral rate from accepted deliveries
+- repeat / expansion rate
+- cost per qualified lead where spend exists
+- evidence-backed case-study count
+
+Optimize for qualified revenue and customer outcomes, not raw traffic or vanity metrics.
