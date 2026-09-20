@@ -1,0 +1,18 @@
+name: LUNDUS DIGITAL SYSTEMS Smart Client Discovery
+
+on:
+  pull_request:
+    paths:
+      - 'docs/commercial/lds-smart-client-discovery/**'
+      - '.github/workflows/lds-smart-client-discovery.yml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Contract validation
+        run: python docs/commercial/lds-smart-client-discovery/check_engine.py
+      - name: Unit tests
+        working-directory: docs/commercial/lds-smart-client-discovery
+        run: python -m unittest discover -p 'test_*.py'

@@ -1,0 +1,28 @@
+{
+  "schema": "lds.enterprise-procurement-readiness/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "inputs": [
+    "question_id",
+    "evidence_id",
+    "evidence_current",
+    "claim_type",
+    "customer_specific_commitment",
+    "policy_version"
+  ],
+  "outputs": [
+    "answer_status",
+    "claim_status",
+    "risk_flags",
+    "human_review_required"
+  ],
+  "invariants": [
+    "Procurement responses must be grounded in current verifiable evidence",
+    "Unknown or unsupported answers must remain UNKNOWN or NEED_EVIDENCE rather than being guessed",
+    "Certification insurance regulatory approval or compliance claims must not be asserted without direct evidence",
+    "Customer-specific contractual commitments require separate human legal or commercial approval",
+    "Security questionnaire completion does not itself create a contractual warranty or certification",
+    "Procurement readiness does not authorize Production activation or customer charging"
+  ],
+  "production_activation_authorized": false,
+  "automatic_contractual_commitment_authorized": false
+}

@@ -1,0 +1,33 @@
+{
+  "schema": "lds.business-continuity-dr/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "inputs": [
+    "service_id",
+    "incident_severity",
+    "rpo_minutes",
+    "rto_minutes",
+    "backup_age_minutes",
+    "restore_test_age_days",
+    "primary_provider_status",
+    "fallback_available",
+    "data_integrity_uncertain"
+  ],
+  "outputs": [
+    "continuity_status",
+    "risk_flags",
+    "restore_readiness",
+    "fallback_recommendation",
+    "human_approval_required"
+  ],
+  "invariants": [
+    "Backup freshness must be evaluated against an approved RPO policy",
+    "Recovery readiness requires evidence from a tested restore path rather than backup existence alone",
+    "Data integrity uncertainty blocks automatic restore or failover",
+    "Destructive restore, Production failover, secret rotation and vendor configuration changes require explicit human authority",
+    "Fallback mode must preserve customer data integrity and must not silently weaken security controls",
+    "Business continuity evidence does not itself authorize Production changes"
+  ],
+  "production_activation_authorized": false,
+  "automatic_restore_authorized": false,
+  "automatic_production_failover_authorized": false
+}

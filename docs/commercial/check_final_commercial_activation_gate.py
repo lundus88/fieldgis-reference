@@ -14,7 +14,8 @@ errors = []
 required = [
     "Overall status: HOLD",
     "OFFER_LOCKED: PASS",
-    "LICENCE_READY: HOLD",
+    "BUSINESS_REGISTRATION_READY: PASS",
+    "LICENCE_READY: PASS",
     "LEGAL_TRUST_READY: HOLD",
     "GOLDEN_TRANSACTION_DRY_RUN: PASS",
     "GOLDEN_TRANSACTION_PASS: HOLD",
@@ -72,30 +73,32 @@ else:
     if evidence.get("schema") != "lds.business-licence-evidence/1":
         errors.append("unexpected licence evidence schema")
     identity = evidence.get("business_identity", {})
-    trade = identity.get("trade_name", {})
-    if trade.get("value") != "LUNDUS DIGITAL SYSTEMS":
+    if identity.get("trade_name", {}).get("value") != "LUNDUS DIGITAL SYSTEMS":
         errors.append("approved trade name drift")
-    domain = identity.get("final_commercial_domain", {})
-    if domain.get("value") != "lundusdigital.com":
-        errors.append("verified final commercial domain drift")
-    if domain.get("status") != "verified_from_registrar_portal_evidence":
-        errors.append("final commercial domain evidence classification drift")
+    if identity.get("registration_number", {}).get("value") != "202603248473 (003891235-V)":
+        errors.append("registration number drift")
+    if identity.get("registration_status", {}).get("value") != "ACTIVE":
+        errors.append("registration status must be ACTIVE")
+    if identity.get("business_activity_scope", {}).get("current_primary_offer_covered") is not True:
+        errors.append("registered activity scope must cover current primary offer")
     licence = evidence.get("licence_gate", {})
-    if licence.get("status") != "processing":
-        errors.append("licence status must remain processing until official evidence is captured")
-    if licence.get("evidence_level") != "user_attested":
-        errors.append("licence evidence must remain user_attested until official evidence is captured")
-    if licence.get("pass_allowed") is not False:
-        errors.append("licence PASS must be blocked while evidence is user-attested only")
+    if licence.get("status") != "registered_active":
+        errors.append("business/licence status must be registered_active")
+    if licence.get("evidence_level") != "official_ssm_registration_documents":
+        errors.append("business/licence evidence must be official SSM registration documents")
+    if licence.get("pass_allowed") is not True:
+        errors.append("business/licence PASS should be allowed from official current evidence")
     gates = evidence.get("gate_status", {})
-    if gates.get("FINAL_COMMERCIAL_DOMAIN") != "PASS":
-        errors.append("FINAL_COMMERCIAL_DOMAIN must be PASS")
-    if gates.get("DOMAIN_OWNERSHIP_VERIFIED") != "PASS":
-        errors.append("DOMAIN_OWNERSHIP_VERIFIED must be PASS")
-    if gates.get("LICENCE_READY") != "HOLD":
-        errors.append("LICENCE_READY must remain HOLD")
+    if gates.get("BUSINESS_REGISTRATION_READY") != "PASS":
+        errors.append("BUSINESS_REGISTRATION_READY must be PASS")
+    if gates.get("LICENCE_READY") != "PASS":
+        errors.append("LICENCE_READY must be PASS")
     if gates.get("LEGAL_TRUST_READY") != "HOLD":
         errors.append("LEGAL_TRUST_READY must remain HOLD")
+    privacy = evidence.get("privacy", {})
+    for key in ["owner_personal_identifiers_persisted","personal_contact_details_persisted","exact_trade_address_persisted"]:
+        if privacy.get(key) is not False:
+            errors.append(f"privacy guardrail must remain false: {key}")
 
 if not domain_path.exists():
     errors.append("domain/email readiness manifest missing")
@@ -120,22 +123,12 @@ else:
         errors.append("current activation snapshot must remain HOLD_NOT_FORMED")
     if snapshot.get("decision", {}).get("launch_authorized") is not False:
         errors.append("current activation snapshot must not authorize launch")
-    release = snapshot.get("release", {})
-    if release.get("preview_deployment_id") != "dpl_F4rugJSSdfWMmUzb6T2ShGSRnZCJ":
-        errors.append("V4 Preview deployment evidence drift")
-    domain_email = snapshot.get("domain_email", {})
-    if domain_email.get("final_commercial_domain") != "lundusdigital.com":
-        errors.append("snapshot final commercial domain drift")
-    if domain_email.get("status") != "HOLD":
+    if snapshot.get("business_licence", {}).get("status") != "PASS":
+        errors.append("business/licence snapshot section must be PASS")
+    if "LICENCE_READY" in snapshot.get("blockers", []):
+        errors.append("LICENCE_READY must not remain a blocker after official SSM evidence")
+    if snapshot.get("domain_email", {}).get("status") != "HOLD":
         errors.append("domain/email activation state must remain HOLD")
-    if domain_email.get("email_provider") != "Zoho Mail":
-        errors.append("selected email provider drift")
-    if domain_email.get("email_plan") != "Mail Lite 10 GB":
-        errors.append("selected email plan drift")
-    if domain_email.get("email_provider_selected") != "PASS":
-        errors.append("EMAIL_PROVIDER_SELECTED must be PASS")
-    if domain_email.get("email_subscription_purchased") is not True:
-        errors.append("email subscription evidence must remain purchased")
 
 if errors:
     print("Final commercial activation gate: FAIL")
@@ -144,10 +137,7 @@ if errors:
     sys.exit(1)
 
 print("Final commercial activation gate: PASS")
-print("protected_main_sequence=merged through #287")
-print("domain=lundusdigital.com; ownership=PASS; dns_email=HOLD")
-print("lunduslead_151=merged_code; live_activation=HOLD")
-print("preview_v4=READY; visual_qa=PASS; workflow_qa=PASS")
-print("licence_evidence=user_attested processing; pass_allowed=false")
+print("business_registration=PASS; licence_compatibility_gate=PASS")
+print("legal_trust=HOLD; domain_email=HOLD")
 print("activation_snapshot=HOLD_NOT_FORMED")
 print("production_activation=HOLD")
