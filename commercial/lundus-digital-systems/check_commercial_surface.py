@@ -94,7 +94,7 @@ if legal_path.exists():
         if not verified.get(key):
             errors.append(f"legal trust: verified value missing {key}")
     pending=set(legal.get("pending_verified_values",[]))
-    expected_pending={"official_phone_public_use_approval","official_trade_address_publication_approval"}
+    expected_pending={"ld_dedicated_business_phone","ld_public_business_address"}
     if pending != expected_pending:
         errors.append(f"legal trust: pending verified values drift: {sorted(pending)}")
     if verified.get("official_email") != "hello@lundusdigital.com" or verified.get("official_email_status") != "PASS":
