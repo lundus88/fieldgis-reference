@@ -36,7 +36,12 @@ if (root/"contract.json").exists():
         errors.append("growth flywheel incomplete")
     if c.get("digital_business_check",{}).get("commercial_authority") is not False:
         errors.append("digital business check must remain advisory")
-    v=c.get("controlled_validation",{})\n    if v.get("scale_authority") is not False:\n        errors.append("controlled validation must not grant scale authority")\n    if v.get("production_authority")!="HUMAN_ONLY":\n        errors.append("controlled validation production authority drift")\n    p0=c.get("p0_conversion_system",{})
+    v=c.get("controlled_validation",{})
+    if v.get("scale_authority") is not False:
+        errors.append("controlled validation must not grant scale authority")
+    if v.get("production_authority")!="HUMAN_ONLY":
+        errors.append("controlled validation production authority drift")
+    p0=c.get("p0_conversion_system",{})
     if set(p0.keys())!={"trust_and_proof_engine","buyer_confidence_center","productized_offers"}:
         errors.append("P0 conversion system incomplete")
     if p0.get("productized_offers",{}).get("payment_authority") is not False:
