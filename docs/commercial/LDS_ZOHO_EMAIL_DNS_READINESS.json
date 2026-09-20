@@ -228,6 +228,15 @@
     "evidence_level": "user_supplied_zoho_admin_users_screenshot",
     "additional_address_indicator_count": 1,
     "additional_address_identity_verified": false,
-    "note": "Do not assume the +1 address is support@ or billing@ until inspected."
+    "note": "Do not assume the +1 address is support@ or billing@ until inspected.",
+    "aliases": {
+      "support@lundusdigital.com": "CREATED_PENDING_SEND_RECEIVE_VERIFICATION",
+      "billing@lundusdigital.com": "CREATED_PENDING_SEND_RECEIVE_VERIFICATION",
+      "dmarc@lundusdigital.com": "CREATED_PENDING_RECEIVE_VERIFICATION"
+    },
+    "alias_evidence": {
+      "observed_at": "2026-09-20",
+      "evidence_level": "user_supplied_zoho_admin_email_alias_screenshot"
+    }
   }
 }
