@@ -143,5 +143,10 @@
       "close_authorized": false,
       "merge_authorized": false
     }
+  },
+  "audit_binding": {
+    "audited_main_sha": "f9ff738c29e37c453d8402000a0ddb0f62d804f2",
+    "audited_on": "2026-09-21",
+    "note": "Any material main-branch drift before merge requires revalidation of this evidence snapshot."
   }
 }
