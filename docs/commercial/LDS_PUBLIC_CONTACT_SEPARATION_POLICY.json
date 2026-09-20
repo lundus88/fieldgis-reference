@@ -11,10 +11,12 @@
     },
     "ssm_trade_address": {
       "use_as_authoritative_ld_business_address": true,
-      "publish_as_public_ld_address": false,
-      "publication_status": "HOLD_EXPLICIT_PUBLICATION_APPROVAL",
-      "reason": "User confirmed this is the actual LD business address stated in the business certificate. No replacement address is required; public display remains separately human-gated because the address overlaps residential information.",
-      "value_persisted_in_public_repository": false
+      "publish_as_public_ld_address": true,
+      "publication_status": "PASS_EXPLICITLY_APPROVED",
+      "publication_approved_on": "2026-09-21",
+      "value": "NO F165 SECTION HOUSING, KG DURIAN TUNJONG, 87007 LABUAN, W.P. LABUAN",
+      "reason": "User explicitly approved publication of the SSM-registered business address as the official LD business address.",
+      "value_persisted_in_public_repository": true
     },
     "new_ld_business_phone": {
       "required": true,
@@ -29,17 +31,16 @@
   },
   "legal_trust_ready": false,
   "remaining_blockers": [
-    "LD_DEDICATED_BUSINESS_PHONE_VERIFIED",
-    "LD_REGISTERED_BUSINESS_ADDRESS_PUBLICATION_APPROVED"
+    "LD_DEDICATED_BUSINESS_PHONE_VERIFIED"
   ],
   "production_activation_authorized": false,
   "live_payment_authorized": false,
   "public_launch_authorized": false,
-  "rule": "Use a dedicated LD public business phone. Keep the existing SSM-registered address as LD's authoritative business address; do not procure a replacement address. Public display of the registered address remains separately human-gated.",
+  "rule": "Use a dedicated LD public business phone. The existing SSM-registered address is LD's authoritative business address and is approved for public commercial disclosure.",
   "provisioning_plan": "docs/commercial/LDS_PUBLIC_CONTACT_PROVISIONING_PLAN.json",
   "next_actions": [
     "Select and provision a dedicated LD business mobile line.",
-    "Decide explicitly whether the existing SSM-registered business address may be displayed on public LD commercial surfaces.",
-    "After both items are verified/approved, reassess LEGAL_TRUST_READY."
+    "Verify ownership/control evidence for the dedicated line.",
+    "After phone verification, reassess LEGAL_TRUST_READY."
   ]
 }
