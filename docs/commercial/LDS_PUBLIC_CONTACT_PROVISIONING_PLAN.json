@@ -1,0 +1,86 @@
+{
+  "schema": "lds.public-contact-provisioning-plan/1",
+  "as_of": "2026-09-21",
+  "status": "READY_FOR_EXTERNAL_PROVISIONING",
+  "phone": {
+    "goal": "Provision one dedicated customer-facing mobile number for LUNDUS DIGITAL SYSTEMS under a business-appropriate account.",
+    "must_have": [
+      "registered to or contractually controlled for LUNDUS DIGITAL SYSTEMS",
+      "separate from owner's personal/public identity",
+      "supports voice and SMS",
+      "suitable for WhatsApp Business or equivalent business messaging",
+      "no requirement to expose owner's existing SSM-recorded telephone",
+      "ownership/control evidence can be retained"
+    ],
+    "current_shortlist": [
+      {
+        "provider": "Maxis Business",
+        "candidate": "Business Postpaid 80",
+        "official_price_observed": "RM80/month",
+        "business_account": true,
+        "esim_supported": true,
+        "notes": "Official Maxis business terms recognise sole proprietorships as Business Customers. eSIM is available to active Maxis Business Postpaid customers."
+      },
+      {
+        "provider": "CelcomDigi Business",
+        "candidate": "Business Postpaid 5G entry tier / SIM-only",
+        "official_price_observed": "from RM58/month on current official business page",
+        "business_account": true,
+        "notes": "Current official CelcomDigi Business page states plans are open to new/existing business customers and shows business tiers from RM58."
+      }
+    ],
+    "selection_rule": "Choose the lowest-friction business-registered line with acceptable Labuan coverage, no unnecessary device contract, and clear business-account evidence. Coverage/availability must be confirmed at registration time.",
+    "status": "HOLD_EXTERNAL_SIGNUP_AND_VERIFICATION"
+  },
+  "address": {
+    "goal": "Obtain a separate lawful public business/correspondence address without exposing the owner's residential-overlapping SSM address.",
+    "must_have": [
+      "provider confirms in writing the exact permitted use of the address",
+      "physical location exists and mail can be received",
+      "not represented as a private office unless the service legitimately provides one",
+      "acceptable for LD's intended public disclosure purpose",
+      "if used as a changed principal place of business, SSM change process is completed within the applicable 30-day period"
+    ],
+    "current_labuan_candidates": [
+      {
+        "provider": "Universal Serviced Offices",
+        "location": "Financial Park Complex Labuan",
+        "status": "DUE_DILIGENCE_REQUIRED"
+      },
+      {
+        "provider": "Regus Labuan Financial Park",
+        "location": "Financial Park, Labuan",
+        "status": "DUE_DILIGENCE_REQUIRED"
+      },
+      {
+        "provider": "SOCOWO Labuan",
+        "location": "Financial Park Labuan Complex",
+        "status": "DUE_DILIGENCE_REQUIRED"
+      }
+    ],
+    "mandatory_questions_before_purchase": [
+      "Can this exact address lawfully be used by a Malaysian sole proprietorship as its public trade/business correspondence address?",
+      "Can it be used as the SSM principal place of business if LD decides to change that registered address?",
+      "Will the provider issue a service agreement or letter confirming LD's right to use the address?",
+      "Is mail/registered mail accepted and how is receipt evidenced?",
+      "Are there restrictions on displaying the address on website, invoices, quotations, receipts and marketplace profiles?",
+      "Is the facility a real physical business centre and what office/coworking access is included?",
+      "What is the monthly fee, deposit, setup fee, minimum term and cancellation rule?"
+    ],
+    "rule": "Do not treat a virtual-office marketing claim as sufficient legal evidence. Validate permitted use before relying on the address.",
+    "status": "HOLD_PROVIDER_VALIDATION_AND_SELECTION"
+  },
+  "legal_trust": {
+    "status": "HOLD",
+    "remaining_blockers": [
+      "LD_DEDICATED_BUSINESS_PHONE_VERIFIED",
+      "LD_PUBLIC_BUSINESS_ADDRESS_VALIDATED"
+    ]
+  },
+  "authority": {
+    "purchase_authorized": false,
+    "production_activation_authorized": false,
+    "live_payment_authorized": false,
+    "public_launch_authorized": false
+  }
+}
