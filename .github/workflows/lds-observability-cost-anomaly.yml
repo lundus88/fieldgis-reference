@@ -1,0 +1,18 @@
+name: LUNDUS DIGITAL SYSTEMS Observability Cost Anomaly
+on:
+  pull_request:
+    paths:
+      - 'docs/commercial/lds-observability-cost-anomaly/**'
+      - '.github/workflows/lds-observability-cost-anomaly.yml'
+permissions:
+  contents: read
+jobs:
+  observability:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with: {python-version: '3.12'}
+      - run: python3 docs/commercial/lds-observability-cost-anomaly/check.py
+      - working-directory: docs/commercial/lds-observability-cost-anomaly
+        run: python3 -m unittest -v test_engine.py

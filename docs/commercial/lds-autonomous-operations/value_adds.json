@@ -1,0 +1,82 @@
+{
+  "schema": "lds.autonomous-operations.value-adds/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "value_adds": {
+    "intent_to_execution_compiler": {
+      "priority": "P0",
+      "purpose": "Compile confirmed customer intent into bounded executable work packages and acceptance tests.",
+      "source_dependencies": [
+        "smart_client_discovery",
+        "approved_scope",
+        "capability_service_registry"
+      ],
+      "authority": "NON_PRODUCTION_WORK_PACKAGE_ONLY"
+    },
+    "exception_autopilot": {
+      "priority": "P0",
+      "purpose": "Classify eligible failures, select bounded recovery playbooks, retest, and escalate only when limits are exceeded.",
+      "authority": "BOUNDED_NON_PRODUCTION_RECOVERY"
+    },
+    "evidence_driven_completion_gate": {
+      "priority": "P0",
+      "purpose": "Prevent BUILD_COMPLETE, QA_PASS or DELIVERED claims without required evidence.",
+      "authority": "EVIDENCE_GATE_ONLY"
+    },
+    "customer_dependency_automation": {
+      "priority": "P1",
+      "purpose": "Detect missing customer inputs, produce clear requests/reminders, and maintain CLIENT_ACTION_REQUIRED state without consuming hidden delivery time.",
+      "composes": [
+        "customer_onboarding_kickoff",
+        "customer_disappointment_prevention"
+      ]
+    },
+    "sla_deadline_guardian": {
+      "priority": "P1",
+      "purpose": "Detect schedule risk early and route reprioritisation or human rebaseline before a commitment is missed.",
+      "composes": [
+        "sla_reliability",
+        "capacity_queue_manager"
+      ]
+    },
+    "autonomous_tool_model_router": {
+      "priority": "P1",
+      "purpose": "Select an eligible execution path using support, quality, reliability, latency and cost evidence.",
+      "authority": "NON_PRODUCTION_ROUTING_ONLY"
+    },
+    "learning_optimization_loop": {
+      "priority": "P1",
+      "purpose": "Convert verified project outcomes into candidate improvements for discovery, pricing, capability and capacity policies.",
+      "authority": "CANDIDATE_UPDATE_ONLY"
+    },
+    "commercial_recovery_engine": {
+      "priority": "P1",
+      "purpose": "Handle failed payment, expiring quotation and customer inactivity with policy-bounded follow-up actions.",
+      "authority": "NO_CHARGE_NO_CONTRACT_MUTATION"
+    },
+    "autonomous_change_impact_analyzer": {
+      "priority": "P1",
+      "purpose": "Prepare scope, cost, time, dependency, risk and regression impact evidence before the existing Change Request workflow.",
+      "composes": [
+        "change_request_scope_ledger",
+        "pricing_estimation_intelligence"
+      ]
+    },
+    "global_kill_switch_circuit_breaker": {
+      "priority": "P0",
+      "purpose": "Stop affected autonomous action classes on security, cost, loop, systemic-failure or stale-evidence signals.",
+      "authority": "FAIL_CLOSED_STOP_AUTHORITY"
+    }
+  },
+  "invariants": [
+    "No inferred customer requirement becomes confirmed without customer confirmation or approved scope evidence",
+    "No autonomous recovery may cross a Production or irreversible customer-impact boundary",
+    "Completion status requires evidence and must not rely on agent self-assertion",
+    "Customer dependency follow-up must respect communication consent and approved channels",
+    "Deadline automation may reprioritise within policy but may not invent or extend contractual commitments",
+    "Tool and model routing may only choose supported eligible execution paths",
+    "Learning output is advisory candidate evidence and cannot silently rewrite commercial or safety policy",
+    "Commercial recovery may not charge, renew, extend a contract, or issue compensation automatically",
+    "Change impact analysis never substitutes for customer and human commercial approval where required",
+    "Circuit breakers fail closed and require explicit governed recovery before affected action classes resume"
+  ]
+}

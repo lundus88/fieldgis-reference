@@ -1,0 +1,166 @@
+{
+  "schema": "lds.autonomous-operations/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "operating_principle": "Client triggers the business. LD runs the workflow. Human governs exceptions and authority gates.",
+  "outcome_principle": "Reliable customer outcome first. Automation is the scaling mechanism.",
+  "action_modes": [
+    "AUTO",
+    "AUTO_NOTIFY",
+    "HUMAN_GATE"
+  ],
+  "components": {
+    "capability_service_registry": {
+      "mode": "AUTHORITATIVE_POLICY_INPUT"
+    },
+    "capacity_queue_manager": {
+      "mode": "ADMISSION_CONTROL"
+    },
+    "outcome_acceptance_engine": {
+      "mode": "EVIDENCE_GATE"
+    },
+    "operations_control_tower": {
+      "mode": "READ_ONLY_COMPOSITION"
+    },
+    "autonomous_recovery_rollback": {
+      "mode": "BOUNDED_NON_PRODUCTION_REPAIR"
+    },
+    "unit_economics_profit_guard": {
+      "mode": "COMPOSES_PRICING_ESTIMATION_INTELLIGENCE"
+    },
+    "intent_to_execution_compiler": {
+      "mode": "BOUNDED_WORK_PACKAGE_COMPILATION"
+    },
+    "exception_autopilot": {
+      "mode": "PLAYBOOK_DRIVEN_BOUNDED_RECOVERY"
+    },
+    "evidence_driven_completion_gate": {
+      "mode": "EVIDENCE_REQUIRED"
+    },
+    "customer_dependency_automation": {
+      "mode": "COMPOSES_ONBOARDING_AND_CUSTOMER_RISK"
+    },
+    "sla_deadline_guardian": {
+      "mode": "COMPOSES_SLA_AND_CAPACITY"
+    },
+    "autonomous_tool_model_router": {
+      "mode": "ELIGIBLE_NON_PRODUCTION_ROUTE_SELECTION"
+    },
+    "learning_optimization_loop": {
+      "mode": "CANDIDATE_UPDATE_ONLY"
+    },
+    "commercial_recovery_engine": {
+      "mode": "POLICY_BOUNDED_FOLLOWUP"
+    },
+    "autonomous_change_impact_analyzer": {
+      "mode": "PREPARES_EXISTING_CHANGE_REQUEST_FLOW"
+    },
+    "global_kill_switch_circuit_breaker": {
+      "mode": "FAIL_CLOSED"
+    },
+    "policy_as_code_governance_engine": {
+      "mode": "VERSIONED_FAIL_CLOSED_POLICY"
+    },
+    "identity_credential_permission_broker": {
+      "mode": "JIT_LEAST_PRIVILEGE_TASK_SCOPED"
+    },
+    "software_supply_chain_provenance_guard": {
+      "mode": "PROVENANCE_EVIDENCE_GATE"
+    },
+    "continuous_resilience_chaos_verification": {
+      "mode": "NON_PRODUCTION_SIMULATION_ONLY"
+    },
+    "customer_portability_exit_guarantee": {
+      "mode": "COMPOSES_HANDOVER_EXIT_PACKAGE"
+    },
+    "autonomous_business_health_governor": {
+      "mode": "ADMISSION_AND_PRIORITY_ADVISORY"
+    },
+    "anti_bottleneck_guard": {
+      "mode": "BOUNDED_WAIT_QUEUE_PROGRESS_AND_ESCALATION_CONTROL"
+    }
+  },
+  "no_idle_policy": {
+    "enabled": true,
+    "documented_blocker_required": true,
+    "allowed_block_reasons": [
+      "WAITING_CUSTOMER",
+      "WAITING_PAYMENT",
+      "WAITING_DEPENDENCY",
+      "QUEUED_CAPACITY",
+      "HUMAN_APPROVAL_REQUIRED",
+      "QA_BLOCKED",
+      "RECOVERY_IN_PROGRESS",
+      "EXTERNAL_PROVIDER_OUTAGE",
+      "COMPLIANCE_REVIEW",
+      "COMMERCIAL_REVIEW"
+    ],
+    "owner_required": true,
+    "release_condition_required": true,
+    "next_check_required": true,
+    "bounded_timeout_required": true
+  },
+  "auto_kickoff_requires": [
+    "authoritative_payment_reconciliation",
+    "confirmed_requirement_scope",
+    "supported_capability",
+    "capacity_available",
+    "unit_economics_pass",
+    "no_unresolved_material_risk",
+    "no_unverified_material_integration"
+  ],
+  "closed_loop": [
+    "DISCOVER",
+    "UNDERSTAND",
+    "SIMULATE",
+    "AUTHORIZE",
+    "PLAN",
+    "EXECUTE",
+    "VERIFY",
+    "RECOVER",
+    "DELIVER",
+    "SUPPORT",
+    "LEARN",
+    "OPTIMIZE"
+  ],
+  "human_only": [
+    "production_deployment_or_promotion",
+    "destructive_production_data_action",
+    "privilege_elevation",
+    "material_contract_or_scope_exception",
+    "refund_or_dispute_outside_policy",
+    "unsupported_or_high_risk_compliance_decision",
+    "unapproved_secret_or_credential_handling",
+    "irreversible_customer_impact_without_rollback_evidence"
+  ],
+  "authority": {
+    "autonomous_project_creation": true,
+    "autonomous_work_package_generation": true,
+    "autonomous_standard_build": true,
+    "autonomous_nonproduction_qa": true,
+    "bounded_nonproduction_self_repair": true,
+    "autonomous_customer_dependency_followup": true,
+    "autonomous_deadline_risk_reprioritisation_within_policy": true,
+    "autonomous_nonproduction_tool_model_routing": true,
+    "learning_policy_mutation": false,
+    "automatic_customer_charge": false,
+    "automatic_contract_mutation": false,
+    "automatic_compensation": false,
+    "production_deployment": false,
+    "live_charging": false,
+    "contract_exception_approval": false,
+    "destructive_production_action": false,
+    "autonomous_policy_evaluation": true,
+    "jit_nonproduction_access_lease": true,
+    "autonomous_provenance_verification": true,
+    "nonproduction_resilience_simulation": true,
+    "autonomous_portability_readiness_check": true,
+    "business_health_admission_constraint": true,
+    "privilege_widening": false,
+    "production_admin_lease": false,
+    "customer_commitment_mutation": false,
+    "queue_priority_aging": true,
+    "certified_nonproduction_provider_fallback": true,
+    "automatic_human_gate_approval": false,
+    "safety_gate_bypass": false
+  }
+}

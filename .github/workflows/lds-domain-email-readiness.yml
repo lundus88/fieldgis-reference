@@ -1,0 +1,36 @@
+name: LDS Domain Email Readiness
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'docs/commercial/LDS_DOMAIN_EMAIL_READINESS.json'
+      - 'docs/commercial/check_domain_email_readiness.py'
+      - 'docs/commercial/LDS_BUSINESS_LICENCE_EVIDENCE.json'
+      - 'docs/commercial/LDS_ACTIVATION_SNAPSHOT.json'
+      - 'docs/commercial/check_activation_snapshot.py'
+      - 'docs/commercial/LDS_FINAL_COMMERCIAL_ACTIVATION_GATE.md'
+      - 'docs/commercial/check_final_commercial_activation_gate.py'
+      - '.github/workflows/lds-domain-email-readiness.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  domain-email-readiness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Validate domain and email readiness
+        run: python3 docs/commercial/check_domain_email_readiness.py
+      - name: Validate activation snapshot
+        run: python3 docs/commercial/check_activation_snapshot.py
+      - name: Validate final commercial activation gate
+        run: python3 docs/commercial/check_final_commercial_activation_gate.py

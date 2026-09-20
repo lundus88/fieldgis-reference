@@ -1,0 +1,28 @@
+name: VL GIS Preview Public Readiness
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/visual-preview/verify-factory-preview.mjs'
+      - 'vl/tests/check_gis_preview_public_readiness.py'
+      - '.github/workflows/vl-visual-preview-browser-evidence.yml'
+      - '.github/workflows/vl-gis-preview-public-readiness.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  gis-preview-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Verify GIS preview fail-closed invariants
+        run: python3 vl/tests/check_gis_preview_public_readiness.py

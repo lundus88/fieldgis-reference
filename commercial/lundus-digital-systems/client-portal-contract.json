@@ -1,0 +1,44 @@
+{
+  "schema": "lds.client-portal/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "mode": "READ_ONLY_COMPOSITION",
+  "sources": [
+    "customer_account_identity",
+    "human_approved_commercial_offer",
+    "authoritative_payment_order",
+    "commercial_order_documents",
+    "evidence_backed_project_state",
+    "vl_read_only_build_status",
+    "uat_acceptance_evidence",
+    "support_status"
+  ],
+  "customer_view": [
+    "project_summary",
+    "next_action",
+    "quotation",
+    "invoice",
+    "payment",
+    "receipt",
+    "scope",
+    "milestone_funding",
+    "build",
+    "qa",
+    "uat",
+    "delivery",
+    "latest_verified_update",
+    "support"
+  ],
+  "invariants": [
+    "Portal cannot create or mutate authoritative payment state",
+    "Portal cannot mark PAID without verified provider/backend evidence",
+    "Portal cannot mark BUILD complete from UI-only state",
+    "Portal cannot mark QA passed without QA evidence",
+    "Portal cannot mark UAT accepted without customer acceptance evidence",
+    "Portal cannot mark DELIVERY complete without delivery evidence",
+    "Portal cannot infer Production deployment from factory success",
+    "Unknown, stale or contradictory source state must render HOLD or REVIEW",
+    "Customer may only see records bound to their authorized customer account/project",
+    "Portal actions that mutate commercial or project state require separately approved gated workflows"
+  ],
+  "production_activation_authorized": false
+}

@@ -1,0 +1,204 @@
+{
+  "schema": "lds.unified-commercial-control-plane.state-graph/1",
+  "states": [
+    "VISITOR",
+    "ASSESSMENT",
+    "QUALIFIED",
+    "BLUEPRINT_APPROVED",
+    "QUOTATION_APPROVED",
+    "CONTRACT_ACCEPTED",
+    "PAYMENT_RECONCILED",
+    "KICKOFF_APPROVED",
+    "BUILDING",
+    "QA_PASSED",
+    "CUSTOMER_ACCEPTED",
+    "DELIVERED",
+    "SUPPORT_ACTIVE",
+    "RENEWAL_REVIEW",
+    "CLOSED"
+  ],
+  "transitions": [
+    {
+      "from": "VISITOR",
+      "to": "ASSESSMENT",
+      "evidence": [
+        "legitimate_lead_evidence"
+      ],
+      "dependencies": [],
+      "human_authority": false
+    },
+    {
+      "from": "ASSESSMENT",
+      "to": "QUALIFIED",
+      "evidence": [
+        "assessment_complete",
+        "market_supported"
+      ],
+      "dependencies": [
+        "workflow_assessment",
+        "global_commerce_readiness"
+      ],
+      "human_authority": false
+    },
+    {
+      "from": "QUALIFIED",
+      "to": "BLUEPRINT_APPROVED",
+      "evidence": [
+        "approved_scope"
+      ],
+      "dependencies": [
+        "system_blueprint"
+      ],
+      "human_authority": true
+    },
+    {
+      "from": "BLUEPRINT_APPROVED",
+      "to": "QUOTATION_APPROVED",
+      "evidence": [
+        "pricing_reviewed",
+        "human_approved_quotation"
+      ],
+      "dependencies": [
+        "pricing_estimation_intelligence",
+        "commercial_document_system"
+      ],
+      "human_authority": true
+    },
+    {
+      "from": "QUOTATION_APPROVED",
+      "to": "CONTRACT_ACCEPTED",
+      "evidence": [
+        "digital_acceptance_evidence"
+      ],
+      "dependencies": [
+        "contract_digital_acceptance"
+      ],
+      "human_authority": false
+    },
+    {
+      "from": "CONTRACT_ACCEPTED",
+      "to": "PAYMENT_RECONCILED",
+      "evidence": [
+        "authoritative_payment_reconciliation"
+      ],
+      "dependencies": [
+        "customer_fraud_payment_abuse",
+        "commercial_document_lifecycle"
+      ],
+      "human_authority": false
+    },
+    {
+      "from": "PAYMENT_RECONCILED",
+      "to": "KICKOFF_APPROVED",
+      "evidence": [
+        "kickoff_ready"
+      ],
+      "any_evidence": [
+        "autonomous_kickoff_eligibility",
+        "human_kickoff_approval"
+      ],
+      "dependencies": [
+        "customer_onboarding",
+        "autonomous_operations"
+      ],
+      "human_authority": false
+    },
+    {
+      "from": "KICKOFF_APPROVED",
+      "to": "BUILDING",
+      "evidence": [
+        "scope_snapshot_current"
+      ],
+      "dependencies": [],
+      "human_authority": false
+    },
+    {
+      "from": "BUILDING",
+      "to": "QA_PASSED",
+      "evidence": [
+        "build_complete",
+        "qa_evidence"
+      ],
+      "dependencies": [],
+      "human_authority": false
+    },
+    {
+      "from": "QA_PASSED",
+      "to": "CUSTOMER_ACCEPTED",
+      "evidence": [
+        "customer_acceptance_evidence"
+      ],
+      "dependencies": [],
+      "human_authority": false
+    },
+    {
+      "from": "CUSTOMER_ACCEPTED",
+      "to": "DELIVERED",
+      "evidence": [
+        "delivery_evidence"
+      ],
+      "dependencies": [],
+      "human_authority": false
+    },
+    {
+      "from": "DELIVERED",
+      "to": "SUPPORT_ACTIVE",
+      "evidence": [
+        "support_plan_evidence"
+      ],
+      "dependencies": [
+        "subscription_entitlement",
+        "sla_reliability"
+      ],
+      "human_authority": true
+    },
+    {
+      "from": "DELIVERED",
+      "to": "CLOSED",
+      "evidence": [
+        "handover_or_exit_evidence"
+      ],
+      "dependencies": [],
+      "human_authority": true
+    },
+    {
+      "from": "SUPPORT_ACTIVE",
+      "to": "RENEWAL_REVIEW",
+      "evidence": [
+        "renewal_signal"
+      ],
+      "dependencies": [
+        "subscription_entitlement"
+      ],
+      "human_authority": false
+    },
+    {
+      "from": "RENEWAL_REVIEW",
+      "to": "SUPPORT_ACTIVE",
+      "evidence": [
+        "renewal_approved"
+      ],
+      "dependencies": [
+        "subscription_entitlement"
+      ],
+      "human_authority": true
+    },
+    {
+      "from": "RENEWAL_REVIEW",
+      "to": "CLOSED",
+      "evidence": [
+        "exit_evidence"
+      ],
+      "dependencies": [],
+      "human_authority": true
+    }
+  ],
+  "conditional_rules": [
+    "material_scope_change_requires_approved_change_request",
+    "cross_organization_authority_denied",
+    "stale_or_contradictory_hard_gate_evidence_holds",
+    "standard_order_auto_kickoff_requires_autonomous_kickoff_eligibility",
+    "exception_kickoff_requires_explicit_human_approval",
+    "production_authority_is_outside_control_plane"
+  ]
+}

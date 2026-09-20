@@ -1,0 +1,23 @@
+{
+  "schema": "lds.autonomous-operations.anti-bottleneck/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "principle": "Every non-terminal project must have a live next path, bounded wait, accountable owner and governed escalation.",
+  "controls": {
+    "wait_state_timeout_guard": "SOFT_REMINDER_THEN_HARD_ESCALATION",
+    "approval_sla_guard": "REMIND_REASSIGN_OR_ESCALATE_NEVER_AUTO_APPROVE",
+    "queue_starvation_guard": "PRIORITY_AGING_WITH_RISK_BONUS",
+    "provider_fallback_guard": "CERTIFIED_REVERSIBLE_NON_PRODUCTION_FALLBACK_ONLY",
+    "progress_heartbeat": "DETECT_NO_PROGRESS_AND_STATE_LOOPS",
+    "no_idle_policy": "OWNER_RELEASE_CONDITION_NEXT_CHECK_REQUIRED"
+  },
+  "invariants": [
+    "A human authority gate may be escalated or reassigned within policy but never automatically approved",
+    "Every waiting state requires an accountable owner and explicit release condition",
+    "Every waiting state has a next-check time and bounded escalation window",
+    "Queue aging prevents indefinite starvation of lower-priority work",
+    "Provider fallback may only use certified eligible paths and may not create Production authority",
+    "Repeated same-state re-entry is treated as a loop rather than progress",
+    "No-progress heartbeat triggers recheck or escalation before a project becomes silently stuck",
+    "Anti-bottleneck controls must not weaken fraud, compliance, security, commercial or Production gates"
+  ]
+}

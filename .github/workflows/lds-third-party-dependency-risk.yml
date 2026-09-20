@@ -1,0 +1,18 @@
+name: LUNDUS DIGITAL SYSTEMS Third Party Dependency Risk
+on:
+  pull_request:
+    paths:
+      - 'docs/commercial/lds-third-party-dependency-risk/**'
+      - '.github/workflows/lds-third-party-dependency-risk.yml'
+permissions:
+  contents: read
+jobs:
+  dependency-risk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with: {python-version: '3.12'}
+      - run: python3 docs/commercial/lds-third-party-dependency-risk/check_dependency_risk.py
+      - working-directory: docs/commercial/lds-third-party-dependency-risk
+        run: python3 -m unittest -v test_dependency_risk.py
