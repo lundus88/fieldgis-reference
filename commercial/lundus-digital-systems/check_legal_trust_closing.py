@@ -134,6 +134,21 @@ for key in ["privacy", "terms", "refund_cancellation"]:
     if candidate.get("effective_date") != "2026-09-20":
         errors.append(f"closing pack policy effective-date drift: {key}")
 
+provisioning = load_json(docs / "LDS_PUBLIC_CONTACT_PROVISIONING_PLAN.json")
+if provisioning.get("schema") != "lds.public-contact-provisioning-plan/1":
+    errors.append("public contact provisioning plan schema drift")
+if provisioning.get("status") != "READY_FOR_EXTERNAL_PROVISIONING":
+    errors.append("public contact provisioning plan must be READY_FOR_EXTERNAL_PROVISIONING")
+if provisioning.get("phone", {}).get("status") != "HOLD_EXTERNAL_SIGNUP_AND_VERIFICATION":
+    errors.append("dedicated LD phone must remain external-signup HOLD")
+if provisioning.get("address", {}).get("status") != "HOLD_PROVIDER_VALIDATION_AND_SELECTION":
+    errors.append("public business address must remain provider-validation HOLD")
+if set(provisioning.get("legal_trust", {}).get("remaining_blockers", [])) != expected_blockers:
+    errors.append("provisioning plan blocker set drift")
+for key in ["purchase_authorized","production_activation_authorized","live_payment_authorized","public_launch_authorized"]:
+    if provisioning.get("authority", {}).get(key) is not False:
+        errors.append(f"provisioning plan authority must remain false: {key}")
+
 contact_policy = load_json(docs / "LDS_PUBLIC_CONTACT_SEPARATION_POLICY.json")
 if contact_policy.get("schema") != "lds.public-contact-separation-policy/1":
     errors.append("public contact separation policy schema drift")
