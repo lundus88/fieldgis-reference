@@ -13,7 +13,11 @@
     "registration_status": "ACTIVE",
     "registration_valid_through": "2027-09-18",
     "final_commercial_domain": "lundusdigital.com",
-    "registered_activity_scope_covers_current_offer": true
+    "registered_activity_scope_covers_current_offer": true,
+    "official_email": "hello@lundusdigital.com",
+    "official_email_status": "PASS",
+    "support_complaint_channel": "support@lundusdigital.com",
+    "support_complaint_channel_status": "PASS_INBOUND"
   },
   "required_disclosures_bm": [
     "supplier_or_company_name",
@@ -29,10 +33,8 @@
     "safety_health_certificate_if_applicable"
   ],
   "pending_verified_values": [
-    "official_email",
     "official_phone",
     "official_trade_address_publication_approval",
-    "support_complaint_channel",
     "policy_effective_dates"
   ],
   "language_readiness": {
