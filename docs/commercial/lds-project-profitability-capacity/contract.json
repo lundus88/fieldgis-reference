@@ -20,7 +20,11 @@
     "critical_incidents",
     "available_delivery_capacity",
     "reserved_capacity",
-    "resource_pressure"
+    "resource_pressure",
+    "paid_orders_accepted_today",
+    "qa_queue",
+    "overdue_jobs",
+    "project_complexity_or_requested_units"
   ],
   "outputs": [
     "HEALTHY",
@@ -37,7 +41,31 @@
     "Capacity HOLD must prevent new scheduling promises but must not cancel existing customer commitments automatically",
     "P0 incidents and critical support load reserve capacity before new discretionary work",
     "Estimated contribution margin is an internal planning metric and not a customer invoice amount",
-    "Human commercial approval is required for repricing, rescoping or declining work"
+    "Human commercial approval is required for repricing, rescoping or declining work",
+    "The initial paid-order intake cap is 3 new paid orders per calendar day",
+    "Orders above the daily cap must route to waitlist or next-available-slot rather than automatic rejection",
+    "Daily order count must not override active-project complexity QA backlog overdue work support incidents or reserved capacity",
+    "Paid-order intake cap increases require human approval and evidence from completed accepted deliveries"
   ],
-  "production_activation_authorized": false
+  "production_activation_authorized": false,
+  "controlled_paid_order_intake": {
+    "current_stage": "STAGE_1",
+    "daily_paid_order_cap": 3,
+    "overflow_action": "WAITLIST_OR_NEXT_AVAILABLE_SLOT",
+    "automatic_customer_reject": false,
+    "automatic_cap_increase": false,
+    "scale_stages": {
+      "STAGE_1": {
+        "daily_cap": 3
+      },
+      "STAGE_2": {
+        "daily_cap": 5,
+        "evidence_requirement": "Approximately 20-30 completed and accepted projects with stable QA UAT delivery and support"
+      },
+      "STAGE_3": {
+        "daily_cap": 10,
+        "evidence_requirement": "Stable downstream controls at Stage 2 volume"
+      }
+    }
+  }
 }
