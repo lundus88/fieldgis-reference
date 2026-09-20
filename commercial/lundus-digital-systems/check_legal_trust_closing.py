@@ -50,7 +50,7 @@ if verified.get("trade_address_evidence_status") != "VERIFIED_PRESENT_VALUE_REDA
 
 expected_pending = {
     "ld_dedicated_business_phone",
-    "ld_public_business_address",
+    "registered_business_address_publication_approval",
 }
 pending = set(contract.get("pending_verified_values", []))
 if pending != expected_pending:
@@ -99,7 +99,7 @@ if gates.get("LEGAL_TRUST_READY") != "HOLD":
 
 expected_blockers = {
     "LD_DEDICATED_BUSINESS_PHONE_VERIFIED",
-    "LD_PUBLIC_BUSINESS_ADDRESS_VALIDATED",
+    "LD_REGISTERED_BUSINESS_ADDRESS_PUBLICATION_APPROVED",
 }
 
 pack = load_json(docs / "LDS_LEGAL_TRUST_CLOSING_PACK.json")
@@ -141,8 +141,14 @@ if due_diligence.get("status") != "EVIDENCE_REVIEW_COMPLETE_NO_PURCHASE":
     errors.append("public contact due diligence must remain evidence-only")
 if due_diligence.get("phone", {}).get("decision") != "VERIFY_MAXIS_FIRST":
     errors.append("phone verification order drift")
-if due_diligence.get("address", {}).get("decision") != "CONTACT_REGUS_AND_UNIVERSAL_BEFORE_SELECTION":
-    errors.append("address due diligence decision drift")
+if due_diligence.get("address", {}).get("decision") != "USE_EXISTING_SSM_REGISTERED_BUSINESS_ADDRESS":
+    errors.append("registered business address decision drift")
+if due_diligence.get("address", {}).get("separate_address_required") is not False:
+    errors.append("replacement address must not be required")
+if due_diligence.get("address", {}).get("ssm_change_required") is not False:
+    errors.append("SSM change must not be required while address is unchanged")
+if due_diligence.get("address", {}).get("public_disclosure", {}).get("status") != "HOLD_EXPLICIT_PUBLICATION_APPROVAL":
+    errors.append("registered address publication must remain human-gated")
 if set(due_diligence.get("legal_trust", {}).get("remaining_blockers", [])) != expected_blockers:
     errors.append("due diligence blocker set drift")
 for key in ["external_signup_authorized","address_contract_authorized","production_activation_authorized","live_payment_authorized","public_launch_authorized"]:
@@ -152,18 +158,22 @@ for key in ["external_signup_authorized","address_contract_authorized","producti
 provisioning = load_json(docs / "LDS_PUBLIC_CONTACT_PROVISIONING_PLAN.json")
 if provisioning.get("schema") != "lds.public-contact-provisioning-plan/1":
     errors.append("public contact provisioning plan schema drift")
-if provisioning.get("status") != "READY_FOR_EXTERNAL_PROVISIONING":
-    errors.append("public contact provisioning plan must be READY_FOR_EXTERNAL_PROVISIONING")
+if provisioning.get("status") != "READY_FOR_PHONE_PROVISIONING_ADDRESS_PUBLICATION_DECISION":
+    errors.append("public contact provisioning plan status drift")
 if provisioning.get("phone", {}).get("status") != "HOLD_EXTERNAL_SIGNUP_AND_VERIFICATION":
     errors.append("dedicated LD phone must remain external-signup HOLD")
-if provisioning.get("address", {}).get("status") != "HOLD_PROVIDER_VALIDATION_AND_SELECTION":
-    errors.append("public business address must remain provider-validation HOLD")
+if provisioning.get("address", {}).get("authoritative_source") != "SSM registered business certificate/business information":
+    errors.append("registered business address source drift")
+if provisioning.get("address", {}).get("separate_address_required") is not False:
+    errors.append("replacement address must not be required in provisioning plan")
+if provisioning.get("address", {}).get("public_display_status") != "HOLD_EXPLICIT_PUBLICATION_APPROVAL":
+    errors.append("registered business address publication must remain HOLD")
 if provisioning.get("due_diligence_evidence") != "docs/commercial/LDS_PUBLIC_CONTACT_DUE_DILIGENCE_2026-09-21.json":
     errors.append("provisioning due diligence evidence link drift")
 if provisioning.get("phone", {}).get("next_action") != "VERIFY_MAXIS_BUSINESS_ACCOUNT_ELIGIBILITY_AND_LABUAN_COVERAGE":
     errors.append("phone next action drift")
-if provisioning.get("address", {}).get("next_action") != "REQUEST_WRITTEN_PERMITTED_USE_CONFIRMATION_FROM_BOTH_PROVIDERS":
-    errors.append("address next action drift")
+if provisioning.get("address", {}).get("next_action") != "OBTAIN_EXPLICIT_PUBLICATION_APPROVAL_FOR_REGISTERED_BUSINESS_ADDRESS":
+    errors.append("registered address next action drift")
 if set(provisioning.get("legal_trust", {}).get("remaining_blockers", [])) != expected_blockers:
     errors.append("provisioning plan blocker set drift")
 for key in ["purchase_authorized","production_activation_authorized","live_payment_authorized","public_launch_authorized"]:
@@ -175,13 +185,15 @@ if contact_policy.get("schema") != "lds.public-contact-separation-policy/1":
     errors.append("public contact separation policy schema drift")
 if contact_policy.get("decision_status") != "APPROVED":
     errors.append("public contact separation policy must be APPROVED")
-if contact_policy.get("public_identity_strategy") != "SEPARATE_BUSINESS_CONTACTS":
+if contact_policy.get("public_identity_strategy") != "SEPARATE_BUSINESS_PHONE_REGISTERED_BUSINESS_ADDRESS":
     errors.append("public identity strategy drift")
 decisions = contact_policy.get("decisions", {})
 if decisions.get("ssm_registered_phone", {}).get("use_as_public_ld_phone") is not False:
     errors.append("SSM phone must not be public LD phone")
+if decisions.get("ssm_trade_address", {}).get("use_as_authoritative_ld_business_address") is not True:
+    errors.append("SSM registered address must remain authoritative LD business address")
 if decisions.get("ssm_trade_address", {}).get("publish_as_public_ld_address") is not False:
-    errors.append("SSM trade address must not be public LD address")
+    errors.append("registered business address publication must remain unapproved")
 if contact_policy.get("legal_trust_ready") is not False:
     errors.append("contact policy must keep legal_trust_ready=false")
 for key in ["production_activation_authorized","live_payment_authorized","public_launch_authorized"]:
@@ -191,8 +203,8 @@ for key in ["production_activation_authorized","live_payment_authorized","public
 approval = load_json(docs / "LDS_LEGAL_TRUST_FINAL_APPROVAL.json")
 if approval.get("schema") != "lds.legal-trust-final-approval/1":
     errors.append("final approval schema drift")
-if approval.get("status") != "HOLD_SEPARATE_PUBLIC_CONTACTS_REQUIRED":
-    errors.append("final approval manifest must remain HOLD_SEPARATE_PUBLIC_CONTACTS_REQUIRED")
+if approval.get("status") != "HOLD_PHONE_AND_ADDRESS_PUBLICATION_REQUIRED":
+    errors.append("final approval manifest status drift")
 if approval.get("legal_trust_ready") is not False:
     errors.append("final approval manifest must keep legal_trust_ready=false")
 for key in ["production_activation_authorized", "live_payment_authorized", "public_launch_authorized"]:
@@ -225,17 +237,19 @@ if phone.get("status") != "HOLD_PROVISION_AND_VERIFY":
 
 address = particulars.get("trade_address", {})
 if address.get("value") is not None:
-    errors.append("public LD business address must remain unset until a separate address is validated")
-if address.get("source_strategy") != "SEPARATE_PUBLIC_BUSINESS_ADDRESS":
+    errors.append("registered business address value must remain redacted until publication approval")
+if address.get("source_strategy") != "SSM_REGISTERED_BUSINESS_ADDRESS":
     errors.append("trade address source strategy drift")
-if address.get("ssm_value_public_display_approved") is not False:
-    errors.append("SSM trade address must remain not approved for public display")
-if address.get("ssm_value_rejected_for_public_identity") is not True:
-    errors.append("SSM trade address must remain rejected for public LD identity")
+if address.get("authoritative_business_address") is not True:
+    errors.append("registered address must remain authoritative")
+if address.get("separate_address_required") is not False:
+    errors.append("replacement address must not be required")
+if address.get("public_display_approved") is not False:
+    errors.append("registered business address public display must remain unapproved")
 if address.get("overlaps_owner_residential_information") is not True:
     errors.append("trade address residential-overlap privacy signal missing")
-if address.get("status") != "HOLD_IDENTIFY_VALIDATE_AND_APPROVE":
-    errors.append("separate public business address must remain HOLD_IDENTIFY_VALIDATE_AND_APPROVE")
+if address.get("status") != "HOLD_EXPLICIT_PUBLICATION_APPROVAL":
+    errors.append("registered business address publication must remain HOLD")
 
 approval_candidates = approval.get("policy_candidates", {})
 for key in ["privacy", "terms", "refund_cancellation"]:
@@ -268,7 +282,7 @@ for token in [
     "hello@lundusdigital.com",
     "support@lundusdigital.com",
     "Nombor telefon awam LD: <strong>BELUM DISEDIAKAN / DISAHKAN</strong>",
-    "BELUM DIKENAL PASTI / DISAHKAN",
+    "MENUNGGU KELULUSAN PENERBITAN",
 ]:
     if token not in bm:
         errors.append(f"BM disclosure missing guard/evidence: {token}")
@@ -341,5 +355,5 @@ print("official_email=PASS")
 print("support_channel=PASS_INBOUND")
 print("policy_versions=1.0_APPROVED_EFFECTIVE_2026-09-20")
 print("dedicated_ld_phone=HOLD_PROVISION_AND_VERIFY")
-print("separate_public_business_address=HOLD_IDENTIFY_VALIDATE_AND_APPROVE")
+print("registered_business_address=PASS_VERIFIED; publication=HOLD_EXPLICIT_APPROVAL")
 print("policy_effective_versions=PASS")
