@@ -100,11 +100,11 @@ Approved effective policy versions:
 - Terms of Service v1.0 — effective 20 September 2026
 - Refund & Cancellation Policy v1.0 — effective 20 September 2026
 
-Still evidence-gated for public commercial use:
-- official commercial telephone
-- official trade/business address publication approval
+Verified from official SSM evidence but still approval-gated for public commercial use:
+- a telephone value is present in SSM Form A; exact value remains redacted in this public repository and is not yet approved as the LD public commercial phone
+- the principal business address is verified from SSM evidence; exact value remains redacted and public display is not yet approved
 
-The official SSM documents contain an official business address, but the exact address is intentionally not persisted or published by this repository until explicit public-display approval. Personal owner identifiers and personal contact details from registration documents must not be copied into public commercial surfaces.
+The trade address overlaps owner residential information in the official evidence. Exact address and telephone values are intentionally not persisted in this public repository until explicit public-use/publication approval. Evidence existence is not publication authority.
 
 ## 6. Business registration / licence evidence gate
 
@@ -219,7 +219,7 @@ Rule:
 ## 10. Controlled activation sequence from current state
 
 1. **COMPLETE:** capture and verify official business-registration/licence evidence.
-2. Verify the remaining legal/trust particulars: official commercial phone and approval to publish the trade address. Policy versions 1.0 are already approved effective 20 September 2026.
+2. Obtain explicit human approval to use the verified SSM telephone as the LD public commercial phone and to publish the verified trade address. Policy versions 1.0 are already approved effective 20 September 2026.
 3. Verify Production lead-intake, WAF, Turnstile, payment and notification configuration; capture configuration fingerprints without enabling public charging.
 4. Obtain separate explicit human authority for the minimum controlled Production configuration needed to perform one Golden Transaction; this authority is not public-launch authority.
 5. Perform one controlled paid Commercial Golden Transaction only after LEGAL_TRUST_READY is PASS and all Production transaction prerequisites are current.
