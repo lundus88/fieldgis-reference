@@ -1,0 +1,32 @@
+{
+  "schema": "lds.customer-org-iam/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "roles": [
+    "OWNER",
+    "FINANCE",
+    "PROJECT_MANAGER",
+    "TECHNICAL",
+    "VIEWER"
+  ],
+  "inputs": [
+    "actor_user_id",
+    "actor_org_id",
+    "resource_org_id",
+    "role",
+    "action",
+    "resource_type"
+  ],
+  "outputs": [
+    "decision",
+    "reason",
+    "audit_required"
+  ],
+  "invariants": [
+    "Cross-organization access is denied by default",
+    "Authorization must be evaluated server-side against organization and role boundaries",
+    "Finance access does not imply technical administration authority",
+    "Viewer access is read-only",
+    "Privilege elevation and organization ownership transfer require explicit auditable approval"
+  ],
+  "production_activation_authorized": false
+}
