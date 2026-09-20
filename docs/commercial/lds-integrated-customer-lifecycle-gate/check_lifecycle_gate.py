@@ -6,18 +6,18 @@ errors=[]
 for f in ["README.md","contract.json","lifecycle_gate.py","test_lifecycle_gate.py"]:
     if not (root/f).is_file(): errors.append(f"missing {f}")
 if (root/"contract.json").exists():
-    d=json.loads((root/"contract.json").read_text())
-    if d.get("schema")!="lds.integrated-customer-lifecycle-gate/1": errors.append("schema drift")
-    if d.get("production_activation_authorized") is not False: errors.append("production must remain false")
-    inv=" ".join(d.get("invariants",[]))
-    for t in [
-      "must not create a second source of truth",
-      "Payment evidence alone",
-      "Material scope change requires approved Change Request",
-      "QA PASS requires QA evidence",
-      "Production deployment authority remains separate"
-    ]:
-      if t not in inv: errors.append(f"missing invariant {t}")
+    c=json.loads((root/"contract.json").read_text())
+    if c.get("schema")!="lds.integrated-customer-lifecycle-gate/1": errors.append("contract schema drift")
+    if c.get("global_transaction_principle")!="Any qualified customer. Any supported market. One digital workflow.":
+        errors.append("global transaction principle drift")
+    if c.get("north_star")!="From any legitimate lead in the world to a completed paid digital service with minimal human friction.":
+        errors.append("north star drift")
+    expected=["VISITOR","QUALIFIED_LEAD","QUOTATION","PAYMENT","DELIVERY","ACCEPTANCE","REPEAT_OR_REFERRAL"]
+    if c.get("commercial_kpi_chain")!=expected: errors.append("commercial KPI chain drift")
+    inv=" ".join(c.get("invariants",[]))
+    for token in ["must never authorize a hard lifecycle transition","Visitor state carries no project or payment authority","must not bypass market support","Repeat or referral status requires completed delivery"]:
+        if token not in inv: errors.append(f"missing invariant {token}")
+    if c.get("production_activation_authorized") is not False: errors.append("production activation must remain false")
 if errors:
     print("LDS Integrated Customer Lifecycle Gate: FAIL")
     for e in errors: print("-",e)
