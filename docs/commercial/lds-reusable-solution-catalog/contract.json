@@ -1,0 +1,36 @@
+{
+  "schema": "lds.reusable-solution-catalog/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "component_states": [
+    "EXPERIMENTAL",
+    "VALIDATED",
+    "PRODUCTION_PROVEN",
+    "DEPRECATED"
+  ],
+  "required_fields": [
+    "component_key",
+    "version",
+    "capability",
+    "compatible_builders",
+    "security_status",
+    "test_evidence",
+    "production_history",
+    "known_limitations",
+    "license_or_ownership",
+    "average_integration_effort",
+    "last_verified_at",
+    "state"
+  ],
+  "invariants": [
+    "A component must not become PRODUCTION_PROVEN from a single successful run without repeatable evidence",
+    "Deprecated components must not be selected for new composition",
+    "Builder compatibility must be explicit and evidence-backed",
+    "Security and regression evidence must be current before reuse in a customer project",
+    "Known limitations and licensing or ownership constraints must travel with the component",
+    "Reusable components do not bypass customer-specific acceptance criteria or QA",
+    "Reuse recommendation is advisory and does not authorize BUILDING or Production deployment",
+    "Unknown provenance, stale evidence or contradictory certification returns REVIEW or HOLD",
+    "Customer-specific secrets, credentials or private data must never be embedded in reusable component templates"
+  ],
+  "production_activation_authorized": false
+}
