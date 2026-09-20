@@ -26,6 +26,36 @@
     },
     "unit_economics_profit_guard": {
       "mode": "COMPOSES_PRICING_ESTIMATION_INTELLIGENCE"
+    },
+    "intent_to_execution_compiler": {
+      "mode": "BOUNDED_WORK_PACKAGE_COMPILATION"
+    },
+    "exception_autopilot": {
+      "mode": "PLAYBOOK_DRIVEN_BOUNDED_RECOVERY"
+    },
+    "evidence_driven_completion_gate": {
+      "mode": "EVIDENCE_REQUIRED"
+    },
+    "customer_dependency_automation": {
+      "mode": "COMPOSES_ONBOARDING_AND_CUSTOMER_RISK"
+    },
+    "sla_deadline_guardian": {
+      "mode": "COMPOSES_SLA_AND_CAPACITY"
+    },
+    "autonomous_tool_model_router": {
+      "mode": "ELIGIBLE_NON_PRODUCTION_ROUTE_SELECTION"
+    },
+    "learning_optimization_loop": {
+      "mode": "CANDIDATE_UPDATE_ONLY"
+    },
+    "commercial_recovery_engine": {
+      "mode": "POLICY_BOUNDED_FOLLOWUP"
+    },
+    "autonomous_change_impact_analyzer": {
+      "mode": "PREPARES_EXISTING_CHANGE_REQUEST_FLOW"
+    },
+    "global_kill_switch_circuit_breaker": {
+      "mode": "FAIL_CLOSED"
     }
   },
   "no_idle_policy": {
@@ -53,6 +83,15 @@
     "no_unresolved_material_risk",
     "no_unverified_material_integration"
   ],
+  "closed_loop": [
+    "UNDERSTAND",
+    "PLAN",
+    "EXECUTE",
+    "VERIFY",
+    "RECOVER",
+    "DELIVER",
+    "LEARN"
+  ],
   "human_only": [
     "production_deployment_or_promotion",
     "destructive_production_data_action",
@@ -69,6 +108,13 @@
     "autonomous_standard_build": true,
     "autonomous_nonproduction_qa": true,
     "bounded_nonproduction_self_repair": true,
+    "autonomous_customer_dependency_followup": true,
+    "autonomous_deadline_risk_reprioritisation_within_policy": true,
+    "autonomous_nonproduction_tool_model_routing": true,
+    "learning_policy_mutation": false,
+    "automatic_customer_charge": false,
+    "automatic_contract_mutation": false,
+    "automatic_compensation": false,
     "production_deployment": false,
     "live_charging": false,
     "contract_exception_approval": false,
