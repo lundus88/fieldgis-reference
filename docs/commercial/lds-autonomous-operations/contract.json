@@ -74,6 +74,9 @@
     },
     "autonomous_business_health_governor": {
       "mode": "ADMISSION_AND_PRIORITY_ADVISORY"
+    },
+    "anti_bottleneck_guard": {
+      "mode": "BOUNDED_WAIT_QUEUE_PROGRESS_AND_ESCALATION_CONTROL"
     }
   },
   "no_idle_policy": {
@@ -90,7 +93,11 @@
       "EXTERNAL_PROVIDER_OUTAGE",
       "COMPLIANCE_REVIEW",
       "COMMERCIAL_REVIEW"
-    ]
+    ],
+    "owner_required": true,
+    "release_condition_required": true,
+    "next_check_required": true,
+    "bounded_timeout_required": true
   },
   "auto_kickoff_requires": [
     "authoritative_payment_reconciliation",
@@ -150,6 +157,10 @@
     "business_health_admission_constraint": true,
     "privilege_widening": false,
     "production_admin_lease": false,
-    "customer_commitment_mutation": false
+    "customer_commitment_mutation": false,
+    "queue_priority_aging": true,
+    "certified_nonproduction_provider_fallback": true,
+    "automatic_human_gate_approval": false,
+    "safety_gate_bypass": false
   }
 }
