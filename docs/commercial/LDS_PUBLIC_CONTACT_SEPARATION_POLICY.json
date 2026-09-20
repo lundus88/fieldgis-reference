@@ -1,8 +1,8 @@
 {
   "schema": "lds.public-contact-separation-policy/1",
-  "as_of": "2026-09-20",
+  "as_of": "2026-09-21",
   "decision_status": "APPROVED",
-  "public_identity_strategy": "SEPARATE_BUSINESS_CONTACTS",
+  "public_identity_strategy": "SEPARATE_BUSINESS_PHONE_REGISTERED_BUSINESS_ADDRESS",
   "decisions": {
     "ssm_registered_phone": {
       "use_as_public_ld_phone": false,
@@ -10,8 +10,10 @@
       "value_persisted_in_public_repository": false
     },
     "ssm_trade_address": {
+      "use_as_authoritative_ld_business_address": true,
       "publish_as_public_ld_address": false,
-      "reason": "The registered business address overlaps owner residential information; do not publish it as the public LD address.",
+      "publication_status": "HOLD_EXPLICIT_PUBLICATION_APPROVAL",
+      "reason": "User confirmed this is the actual LD business address stated in the business certificate. No replacement address is required; public display remains separately human-gated because the address overlaps residential information.",
       "value_persisted_in_public_repository": false
     },
     "new_ld_business_phone": {
@@ -23,31 +25,21 @@
         "supports operational handoff or business messaging where appropriate",
         "ownership/control evidence verified before publication"
       ]
-    },
-    "separate_business_address": {
-      "required": true,
-      "status": "HOLD_IDENTIFY_VALIDATE_AND_APPROVE",
-      "requirements": [
-        "lawful for the intended business/disclosure purpose",
-        "not represented as an office unless it is legitimately usable as such",
-        "publication explicitly approved",
-        "registration/correspondence records updated where required before reliance"
-      ]
     }
   },
   "legal_trust_ready": false,
   "remaining_blockers": [
     "LD_DEDICATED_BUSINESS_PHONE_VERIFIED",
-    "LD_PUBLIC_BUSINESS_ADDRESS_VALIDATED"
+    "LD_REGISTERED_BUSINESS_ADDRESS_PUBLICATION_APPROVED"
   ],
   "production_activation_authorized": false,
   "live_payment_authorized": false,
   "public_launch_authorized": false,
-  "rule": "SSM evidence remains authoritative registration evidence, but sensitive phone/address values are not public LD identity. Legal & Trust stays HOLD until separate customer-facing business contact particulars are verified.",
+  "rule": "Use a dedicated LD public business phone. Keep the existing SSM-registered address as LD's authoritative business address; do not procure a replacement address. Public display of the registered address remains separately human-gated.",
   "provisioning_plan": "docs/commercial/LDS_PUBLIC_CONTACT_PROVISIONING_PLAN.json",
   "next_actions": [
     "Select and provision a dedicated LD business mobile line.",
-    "Obtain written provider confirmation for a separate public business/correspondence address before purchase or reliance.",
-    "Verify both artifacts, then reassess LEGAL_TRUST_READY."
+    "Decide explicitly whether the existing SSM-registered business address may be displayed on public LD commercial surfaces.",
+    "After both items are verified/approved, reassess LEGAL_TRUST_READY."
   ]
 }
