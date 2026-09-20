@@ -27,10 +27,10 @@
     "trade_address_evidence": "SSM_BUSINESS_INFO_VERIFIED_PRESENT_VALUE_REDACTED"
   },
   "remaining_blockers": [
-    "OFFICIAL_COMMERCIAL_PHONE_PUBLIC_USE_APPROVED",
-    "TRADE_ADDRESS_PUBLICATION_APPROVED"
+    "LD_DEDICATED_BUSINESS_PHONE_VERIFIED",
+    "LD_PUBLIC_BUSINESS_ADDRESS_VALIDATED"
   ],
-  "legal_review_posture": "Compliance preparation only; not a legal opinion. Phone and trade-address evidence are now verified from official SSM documents, but public use/publication remains explicitly human-gated because the values are sensitive and the trade address overlaps owner residential information.",
+  "legal_review_posture": "Compliance preparation only; not a legal opinion. LD has approved separation of public business contacts from sensitive SSM phone/address evidence. Legal & Trust remains HOLD until a dedicated LD business phone and a separate lawful public business/correspondence address are verified.",
   "production_activation_authorized": false,
   "live_payment_authorized": false,
   "public_launch_authorized": false,
@@ -51,5 +51,6 @@
       "status": "APPROVED_EFFECTIVE",
       "effective_date": "2026-09-20"
     }
-  }
+  },
+  "public_contact_policy": "docs/commercial/LDS_PUBLIC_CONTACT_SEPARATION_POLICY.json"
 }
