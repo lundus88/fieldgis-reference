@@ -42,7 +42,10 @@
       "source_strategy": "SEPARATE_LD_BUSINESS_PHONE",
       "ssm_value_public_use_approved": false,
       "ssm_value_rejected_for_public_identity": true,
-      "status": "HOLD_PROVISION_AND_VERIFY"
+      "status": "HOLD_PROVISION_AND_VERIFY",
+      "planned_provider": "Maxis Business",
+      "planned_plan": "Business Postpaid 80",
+      "selection_status": "APPROVED_PATH_AWAITING_EXTERNAL_SIGNUP_AND_VERIFICATION"
     },
     "trade_address": {
       "value": "NO F165 SECTION HOUSING, KG DURIAN TUNJONG, 87007 LABUAN, W.P. LABUAN",
