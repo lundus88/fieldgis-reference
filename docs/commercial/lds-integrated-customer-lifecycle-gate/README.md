@@ -1,10 +1,10 @@
-# LD Integrated Customer Lifecycle Gate v1
+# LD Unified Commercial Control Plane v1
 
 Status: DEVELOPMENT / NON-PRODUCTION
 
-Purpose: connect the existing LD commercial and delivery modules into one evidence-bound customer lifecycle without creating another source of truth.
+This evolves the existing Integrated Customer Lifecycle Gate into the canonical orchestration layer for LD commercial state transitions. It composes evidence from existing modules; it does not replace their source records.
 
-## LD Global Transaction Principle alignment
+## Principle
 
 **Any qualified customer. Any supported market. One digital workflow.**
 
@@ -12,71 +12,79 @@ North Star:
 
 **From any legitimate lead in the world to a completed paid digital service with minimal human friction.**
 
-Commercial KPI chain:
+## Canonical state graph
 
-Visitor
-→ Qualified Lead
-→ Quotation
-→ Payment
-→ Delivery
-→ Acceptance
-→ Repeat / Referral
+VISITOR
+→ ASSESSMENT
+→ QUALIFIED
+→ BLUEPRINT_APPROVED
+→ QUOTATION_APPROVED
+→ CONTRACT_ACCEPTED
+→ PAYMENT_RECONCILED
+→ KICKOFF_APPROVED
+→ BUILDING
+→ QA_PASSED
+→ CUSTOMER_ACCEPTED
+→ DELIVERED
+→ SUPPORT_ACTIVE / RENEWAL_REVIEW / CLOSED
 
-The KPI chain is a measurement model, not a bypass around the canonical evidence-bound lifecycle below.
+The detailed allowed transitions and dependency/evidence requirements are versioned in `state_graph.json`.
 
-## Canonical flow
+## Control-plane responsibilities
 
-Assessment
-→ Blueprint
-→ Pricing Review
-→ Human-approved Quotation
-→ Payment Reconciliation
-→ Kickoff
-→ Build
-→ QA
-→ UAT / Customer Acceptance
-→ Delivery
-→ Support
-→ Renewal / Repeat / Referral / Exit
+For each requested transition the control plane must verify:
 
-## Funnel-to-lifecycle mapping
+1. the transition is legal from the current state;
+2. required dependency modules are ready;
+3. required evidence references are present and current;
+4. required human authority is represented by an explicit approval receipt;
+5. the idempotency key has not already been consumed;
+6. no stale/contradictory evidence flag is present.
 
-- VISITOR: acquisition signal only; no project authority
-- QUALIFIED_LEAD: Assessment / Blueprint
-- QUOTATION: Pricing Review + Human-approved Quotation
-- PAYMENT: authoritative Payment Reconciliation
-- DELIVERY: Kickoff → Build → QA → UAT → Delivery
-- ACCEPTANCE: customer acceptance evidence
-- REPEAT_OR_REFERRAL: Support / Renewal / Referral / Exit
+A PASS authorizes only the logical lifecycle transition for the calling system. It does not mutate an external source of truth by itself.
 
-A funnel stage may be counted only when the corresponding evidence exists. KPI progression must never authorize a hard lifecycle transition.
+## Transition receipt
 
-## Hard gates
+Every consequential PASS produces a deterministic transition receipt containing:
 
-Mandatory consequential gates:
-- approved scope
-- human-approved quotation
-- authoritative payment reconciliation
-- kickoff readiness + human kickoff approval
-- QA evidence
-- customer acceptance evidence
-- delivery evidence
+- customer / organization identifier;
+- from-state and to-state;
+- actor identifier;
+- approval timestamp;
+- evidence references;
+- dependency snapshot;
+- idempotency key;
+- receipt digest.
 
-## Conditional gates
+The receipt is evidence of the decision. It is not payment evidence, a digital signature, or Production deployment authority.
 
-Only when relevant:
-- Change Request when scope changes materially
-- Support Plan when recurring support is selected
-- Handover/Exit when the project closes or customer exits
-- Renewal Review when plan expiry/expansion evidence exists
-- Referral/Testimonial only after delivery and customer acceptance
+## Dependency posture
 
-## Advisory inputs
+The control plane can reference current and planned LD capabilities, including:
 
-Pricing Intelligence, Reusable Solution Catalog, Delivery Benchmark, Profitability/Capacity and Vendor Risk may inform decisions. They never authorize a hard lifecycle transition.
+- Workflow Assessment
+- Global Commerce Readiness
+- Global Transaction Compliance
+- Pricing / Estimation Intelligence
+- Commercial Document System
+- Contract & Digital Acceptance
+- Fraud / Payment Abuse Protection
+- Payment Reconciliation
+- Customer Organization / IAM
+- Subscription & Entitlement
+- SLA / Reliability
+- Data Governance & Retention
+- Usage / Cost Metering
+- Observability / Cost Anomaly
 
-## Key rule
+A module's readiness never substitutes for transition evidence or human authority.
 
-A smaller project may have fewer optional artifacts, but it cannot skip payment reconciliation, kickoff, QA, customer acceptance or delivery evidence.
+## Hard safety rules
 
-Production release remains a separate HUMAN_ONLY authority.
+- advisory modules cannot advance hard state;
+- payment redirect is never reconciliation evidence;
+- material scope change requires an approved Change Request before changed-scope build continues;
+- duplicate/replayed transition requests are idempotent and must not create a second transition;
+- cross-organization authority is invalid;
+- missing, stale or contradictory hard-gate evidence returns HOLD;
+- Production deployment, live charging, destructive data action and privilege elevation remain separate HUMAN_ONLY authorities.
