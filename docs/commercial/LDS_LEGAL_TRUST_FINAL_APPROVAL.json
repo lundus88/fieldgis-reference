@@ -1,28 +1,31 @@
 {
   "schema": "lds.legal-trust-final-approval/1",
   "as_of": "2026-09-20",
-  "status": "HOLD_HUMAN_APPROVAL_REQUIRED",
+  "status": "HOLD_PARTICULARS_REQUIRED",
   "policy_candidates": {
     "privacy": {
-      "version": "1.0-RC2",
+      "version": "1.0",
       "english_path": "commercial/lundus-digital-systems/privacy.html",
       "bm_path": "commercial/lundus-digital-systems/privacy-bm.html",
-      "effective_date": null,
-      "human_approved": false
+      "effective_date": "2026-09-20",
+      "human_approved": true,
+      "approved_from": "1.0-RC2"
     },
     "terms": {
-      "version": "1.0-RC2",
+      "version": "1.0",
       "english_path": "commercial/lundus-digital-systems/terms.html",
       "bm_path": "commercial/lundus-digital-systems/terms-bm.html",
-      "effective_date": null,
-      "human_approved": false
+      "effective_date": "2026-09-20",
+      "human_approved": true,
+      "approved_from": "1.0-RC2"
     },
     "refund_cancellation": {
-      "version": "1.0-RC2",
+      "version": "1.0",
       "english_path": "commercial/lundus-digital-systems/refund.html",
       "bm_path": "commercial/lundus-digital-systems/refund-bm.html",
-      "effective_date": null,
-      "human_approved": false
+      "effective_date": "2026-09-20",
+      "human_approved": true,
+      "approved_from": "1.0-RC2"
     }
   },
   "commercial_particulars": {
@@ -47,10 +50,7 @@
   },
   "remaining_human_decisions": [
     "OFFICIAL_COMMERCIAL_PHONE_VERIFIED",
-    "TRADE_ADDRESS_PUBLICATION_APPROVED",
-    "PRIVACY_EFFECTIVE_VERSION_APPROVED",
-    "TERMS_EFFECTIVE_VERSION_APPROVED",
-    "REFUND_EFFECTIVE_VERSION_APPROVED"
+    "TRADE_ADDRESS_PUBLICATION_APPROVED"
   ],
   "legal_trust_ready": false,
   "production_activation_authorized": false,
@@ -61,5 +61,11 @@
     "No trade address may be published until explicit human approval is recorded.",
     "No policy candidate becomes effective without explicit human approval and an effective date.",
     "Policy approval does not authorize Production deployment, live charging, or public launch."
-  ]
+  ],
+  "policy_approval": {
+    "approved": true,
+    "approved_at_date": "2026-09-20",
+    "approval_scope": "Privacy Notice, Terms of Service, and Refund & Cancellation Policy promoted from 1.0-RC2 to effective version 1.0.",
+    "production_authority_granted": false
+  }
 }
