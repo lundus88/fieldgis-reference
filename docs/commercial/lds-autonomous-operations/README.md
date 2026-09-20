@@ -145,3 +145,42 @@ This layer composes rather than replaces:
 - payment/fraud/reconciliation controls.
 
 Existing authoritative ledgers remain sources of truth.
+
+
+## Closed-loop autonomy extensions
+
+The next layer completes the operating loop:
+
+**UNDERSTAND → PLAN → EXECUTE → VERIFY → RECOVER → DELIVER → LEARN**
+
+### P0 — Intent-to-Execution Compiler
+Confirmed requirements and approved scope are compiled into bounded work packages, acceptance tests, dependencies, exclusions and immutable work-package evidence. Open discovery questions or missing acceptance criteria prevent compilation.
+
+### P0 — Exception Autopilot
+Approved non-Production failures may use bounded recovery playbooks. Retry budgets, cost budgets, loop detection, security signals, rollback evidence and consequential-impact boundaries decide whether the system continues or enters HUMAN_GATE.
+
+### P0 — Evidence-Driven Completion Gate
+BUILD_COMPLETE, QA_PASSED and DELIVERED are evidence states, not agent opinions. Required criteria, regression evidence, artifact digest and applicable customer acceptance must exist before completion can pass.
+
+### P1 — Customer Dependency Automation
+Uses Customer Onboarding/Kickoff and Customer Disappointment Prevention. Missing logo/content/access/approval produces CLIENT_ACTION_REQUIRED, clear itemised follow-up, and policy-based delivery-clock handling. Contact must use an approved channel and lawful basis.
+
+### P1 — SLA & Deadline Guardian
+Combines capacity and SLA evidence to detect trajectory risk early. It may reprioritise work only within approved policy. Contractual ETA changes remain governed review decisions.
+
+### P1 — Autonomous Tool / Model Router
+Selects only supported and certified execution paths that meet minimum quality/reliability gates, then optimises among eligible candidates using cost/latency evidence. It grants no Production authority.
+
+### P1 — Learning & Optimization Loop
+Verified delivery cost, rework, support burden and customer-acceptance evidence produce candidate improvements for Discovery, Pricing, Capability Registry and Capacity Policy. Learning never silently mutates policy.
+
+### P1 — Commercial Recovery Engine
+Supports bounded follow-up for PAYMENT_FAILED, QUOTATION_EXPIRING and CUSTOMER_INACTIVE states. It cannot charge, renew, mutate a contract or issue compensation automatically.
+
+### P1 — Autonomous Change Impact Analyzer
+Prepares scope, cost, time, dependency, risk and regression impact evidence, then hands off to the existing Change Request & Scope Ledger. It never approves the change itself.
+
+### P0 — Global Kill Switch / Circuit Breaker
+Security signals, cost spikes, repeated agent loops, systemic failures or stale hard-gate evidence open the circuit and stop affected autonomous actions. Recovery requires governed review.
+
+These extensions compose existing LD modules rather than replacing their authoritative ledgers.
