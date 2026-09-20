@@ -1,34 +1,76 @@
 {
   "schema": "lds.business-licence-evidence/1",
-  "as_of": "2026-09-19",
+  "as_of": "2026-09-20",
+  "evidence_classification": "OFFICIAL_SSM_BUSINESS_REGISTRATION",
   "business_identity": {
     "trade_name": {
       "value": "LUNDUS DIGITAL SYSTEMS",
-      "status": "verified_from_user_decision"
+      "status": "verified_from_ssm_registration"
     },
     "registered_legal_entity_name": {
-      "value": null,
-      "status": "missing"
+      "value": "LUNDUS DIGITAL SYSTEMS",
+      "status": "verified_from_ssm_registration",
+      "legal_form": "SOLE_PROPRIETORSHIP"
     },
     "registration_number": {
-      "value": null,
-      "status": "missing"
+      "value": "202603248473 (003891235-V)",
+      "status": "verified_from_ssm_registration"
     },
-    "licence_or_approval_number": {
-      "value": null,
-      "status": "missing"
+    "registration_authority": {
+      "value": "Suruhanjaya Syarikat Malaysia (SSM)",
+      "status": "verified"
+    },
+    "governing_registration": {
+      "value": "Akta Pendaftaran Perniagaan 1956",
+      "status": "verified_from_certificate"
+    },
+    "date_of_commencement": {
+      "value": "2026-09-18",
+      "status": "verified_from_ssm_business_info"
+    },
+    "registration_date": {
+      "value": "2026-09-19",
+      "status": "verified_from_ssm_certificate"
+    },
+    "registration_expiry": {
+      "value": "2027-09-18",
+      "status": "verified_from_ssm_certificate"
+    },
+    "registration_status": {
+      "value": "ACTIVE",
+      "status": "verified_from_ssm_business_info"
+    },
+    "business_activity_scope": {
+      "status": "verified_from_ssm_business_info",
+      "current_primary_offer_covered": true,
+      "registered_codes": [
+        {
+          "code": "62010",
+          "description": "Computer programming activities"
+        },
+        {
+          "code": "62099",
+          "description": "Other information technology service activities n.e.c."
+        },
+        {
+          "code": "62021",
+          "description": "Computer consultancy"
+        }
+      ],
+      "registered_description_summary": "Software, systems and internet-based application development; SaaS; AI solutions; process automation; IT consultancy; website development; data-system management and related IT services."
     },
     "official_trade_address": {
       "value": null,
-      "status": "missing"
+      "status": "verified_from_ssm_evidence_not_approved_for_publication",
+      "note": "Official SSM evidence contains the principal business address. Exact address is intentionally not persisted in this repository until explicit public-display approval."
     },
     "official_email": {
       "value": null,
-      "status": "missing"
+      "status": "not_verified_for_commercial_publication"
     },
     "official_phone": {
       "value": null,
-      "status": "missing"
+      "status": "not_verified_for_commercial_publication"
     },
     "final_commercial_domain": {
       "value": "lundusdigital.com",
@@ -50,27 +92,57 @@
       "status": "missing"
     }
   },
+  "official_evidence": {
+    "certificate": {
+      "evidence_id": "SSM_CERT_003891235-V_2026-09-19",
+      "source_type": "user_uploaded_official_ssm_document",
+      "source_filename": "003891235-V_CERT.pdf",
+      "document_type": "Borang D - Perakuan Pendaftaran",
+      "issued_or_dated": "2026-09-19"
+    },
+    "business_information": {
+      "evidence_id": "SSM_BIS_INFO_003891235-V_2026-09-20",
+      "source_type": "user_uploaded_official_ssm_document",
+      "source_filename": "003891235-V_BIS_INFO.pdf",
+      "document_type": "Maklumat Perniagaan",
+      "extracted_on": "2026-09-20"
+    },
+    "form_a": {
+      "evidence_id": "SSM_FORM_A_003891235-V_2026-09-18",
+      "source_type": "user_uploaded_official_ssm_document",
+      "source_filename": "003891235-V_BORANG_A.pdf",
+      "document_type": "Borang A - Registration of Business",
+      "submission_date": "2026-09-18",
+      "privacy_note": "Owner identity number, personal email, personal telephone and residential details are not persisted in this repository."
+    }
+  },
   "licence_gate": {
-    "status": "processing",
-    "evidence_level": "user_attested",
-    "user_statement_date": "2026-09-18",
-    "user_statement": "Licence is being processed; expected to be able to accept payment the following week.",
-    "pass_allowed": false,
+    "status": "registered_active",
+    "evidence_level": "official_ssm_registration_documents",
+    "pass_allowed": true,
+    "gate_interpretation": "LICENCE_READY in the LD launch model is satisfied by current official business-registration evidence applicable to the commercial offer. This is not a claim of a separate sector-specific licence.",
     "required_for_pass": [
       "official approval/certificate/portal evidence",
       "approved business/legal identity",
-      "approval or licence reference if applicable",
-      "effective or approval date if present",
-      "confirmation that the approved activity covers the commercial offer"
-    ]
+      "registration or approval reference",
+      "effective/registration date and validity",
+      "confirmation that registered business activities cover the current commercial offer"
+    ],
+    "evidence_current_through": "2027-09-18"
   },
   "gate_status": {
-    "LICENCE_READY": "HOLD",
+    "BUSINESS_REGISTRATION_READY": "PASS",
+    "LICENCE_READY": "PASS",
     "LEGAL_TRUST_READY": "HOLD",
     "FINAL_COMMERCIAL_DOMAIN": "PASS",
     "DOMAIN_OWNERSHIP_VERIFIED": "PASS"
   },
-  "rule": "User attestation may document progress but cannot by itself set LICENCE_READY or LEGAL_TRUST_READY to PASS.",
+  "privacy": {
+    "owner_personal_identifiers_persisted": false,
+    "personal_contact_details_persisted": false,
+    "exact_trade_address_persisted": false
+  },
+  "rule": "Official SSM business-registration evidence is sufficient to set the LD business/licence readiness gate to PASS for the registered commercial scope. This does not itself authorize public launch, live charging, Production activation, or imply a separate sector-specific licence.",
   "domain_gate": {
     "ownership_verified": true,
     "final_commercial_domain": "lundusdigital.com",

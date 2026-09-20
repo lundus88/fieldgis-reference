@@ -1,0 +1,42 @@
+{
+  "schema": "lds.unified-commercial-control-plane/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "evolves_from": "lds.integrated-customer-lifecycle-gate/1",
+  "global_transaction_principle": "Any qualified customer. Any supported market. One digital workflow.",
+  "north_star": "From any legitimate lead in the world to a completed paid digital service with minimal human friction.",
+  "canonical_state_graph": "state_graph.json",
+  "decision_outputs": [
+    "PASS",
+    "HOLD",
+    "IDEMPOTENT_REPLAY"
+  ],
+  "receipt_fields": [
+    "org_id",
+    "from_state",
+    "to_state",
+    "actor_id",
+    "approved_at",
+    "evidence_refs",
+    "dependency_snapshot",
+    "idempotency_key",
+    "receipt_digest"
+  ],
+  "invariants": [
+    "The control plane composes source evidence and must not create a second source of truth",
+    "Only an allowed state-graph edge may be considered for transition",
+    "Required dependency readiness never substitutes for required transition evidence",
+    "Advisory modules must never become implicit authority to advance a hard lifecycle state",
+    "Required human authority must be explicit and auditable",
+    "Cross-organization authority is denied",
+    "Duplicate or replayed idempotency keys must not create a second transition",
+    "Unknown stale missing or contradictory hard-gate evidence returns HOLD",
+    "Material scope change requires approved Change Request before changed-scope build continues",
+    "A payment redirect is not authoritative payment reconciliation",
+    "Transition receipts are decision evidence and are not digital signatures payment evidence or Production authority",
+    "Production deployment live charging destructive data actions and privilege elevation remain separate HUMAN_ONLY authorities"
+  ],
+  "production_activation_authorized": false,
+  "live_charging_authorized": false,
+  "destructive_data_action_authorized": false,
+  "privilege_elevation_authorized": false
+}

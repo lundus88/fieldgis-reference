@@ -1,10 +1,19 @@
 {
   "schema": "lds.legal-trust-readiness/1",
-  "as_of": "2026-09-18",
+  "as_of": "2026-09-20",
   "production_ready": false,
   "applicable_basis": {
     "pdpa": "Personal Data Protection Act 2010 [Act 709] as amended",
     "electronic_trade": "Consumer Protection (Electronic Trade Transaction) Regulations 2024 [P.U. (A) 449/2024]"
+  },
+  "verified_values": {
+    "registered_entity_name": "LUNDUS DIGITAL SYSTEMS",
+    "registration_number": "202603248473 (003891235-V)",
+    "legal_form": "SOLE_PROPRIETORSHIP",
+    "registration_status": "ACTIVE",
+    "registration_valid_through": "2027-09-18",
+    "final_commercial_domain": "lundusdigital.com",
+    "registered_activity_scope_covers_current_offer": true
   },
   "required_disclosures_bm": [
     "supplier_or_company_name",
@@ -20,15 +29,19 @@
     "safety_health_certificate_if_applicable"
   ],
   "pending_verified_values": [
-    "registered_entity_name",
-    "registration_or_licence_particulars",
-    "final_commercial_domain",
     "official_email",
     "official_phone",
-    "official_trade_address",
+    "official_trade_address_publication_approval",
     "support_complaint_channel",
     "policy_effective_dates"
   ],
+  "language_readiness": {
+    "supplier_disclosure_bm": "RC_PRESENT",
+    "privacy_notice_bm": "RC_PRESENT",
+    "terms_bm": "RC_PRESENT",
+    "refund_cancellation_bm": "RC_PRESENT",
+    "effective_versions_approved": false
+  },
   "order_controls": [
     "customer_can_correct_errors",
     "order_acknowledgement_without_undue_delay",
@@ -42,5 +55,10 @@
     "breach_response_runbook",
     "dpo_threshold_assessment_before_persistent_behaviour_monitoring"
   ],
-  "launch_rule": "LEGAL_TRUST_READY remains HOLD while pending_verified_values is non-empty."
+  "privacy_guardrails": {
+    "personal_owner_identity_must_not_be_published": true,
+    "personal_owner_email_or_phone_must_not_be_used_as_official_commercial_contact_without_explicit_approval": true,
+    "official_trade_address_requires_publication_approval": true
+  },
+  "launch_rule": "LEGAL_TRUST_READY remains HOLD while pending_verified_values is non-empty or policy effective versions are not explicitly approved."
 }
