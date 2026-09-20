@@ -5,6 +5,7 @@ on:
       - 'commercial/lundus-digital-systems/**'
       - 'docs/commercial/LDS_LEGAL_TRUST_CLOSING_PACK.json'
       - 'docs/commercial/LDS_LEGAL_TRUST_FINAL_APPROVAL.json'
+      - 'docs/commercial/LDS_PUBLIC_CONTACT_SEPARATION_POLICY.json'
       - '.github/workflows/lds-legal-trust-closing.yml'
 permissions:
   contents: read
