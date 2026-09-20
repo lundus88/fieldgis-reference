@@ -94,7 +94,7 @@ if legal_path.exists():
         if not verified.get(key):
             errors.append(f"legal trust: verified value missing {key}")
     pending=set(legal.get("pending_verified_values",[]))
-    expected_pending={"ld_dedicated_business_phone","ld_public_business_address"}
+    expected_pending={"ld_dedicated_business_phone","registered_business_address_publication_approval"}
     if pending != expected_pending:
         errors.append(f"legal trust: pending verified values drift: {sorted(pending)}")
     if verified.get("official_email") != "hello@lundusdigital.com" or verified.get("official_email_status") != "PASS":
@@ -111,7 +111,7 @@ if legal_path.exists():
             errors.append(f"legal trust: missing BM disclosure contract {key}")
 
 bm=(root/"maklumat-urusniaga.html").read_text() if (root/"maklumat-urusniaga.html").exists() else ""
-for token in ['lang="ms"',"Maklumat Pembekal & Urus Niaga","202603248473 (003891235-V)","lundusdigital.com","BELUM DISEDIAKAN / DISAHKAN","BELUM DIKENAL PASTI / DISAHKAN","Harga penuh","Kaedah pembayaran","Anggaran masa pembekalan perkhidmatan","Pembetulan kesilapan & pengakuterimaan pesanan"]:
+for token in ['lang="ms"',"Maklumat Pembekal & Urus Niaga","202603248473 (003891235-V)","lundusdigital.com","BELUM DISEDIAKAN / DISAHKAN","MENUNGGU KELULUSAN PENERBITAN","Harga penuh","Kaedah pembayaran","Anggaran masa pembekalan perkhidmatan","Pembetulan kesilapan & pengakuterimaan pesanan"]:
     if token not in bm:
         errors.append(f"BM disclosure: missing {token}")
 
