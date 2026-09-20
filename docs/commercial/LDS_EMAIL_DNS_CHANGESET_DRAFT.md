@@ -1,41 +1,53 @@
-# LD Email DNS Change Set — Draft
+# LD Email DNS Change Set — As-Built Verification
 
-Status: EXACT ZOHO MX CAPTURED — SPF / DKIM STILL PENDING  
+Status: **EMAIL DNS APPLIED AND VERIFIED**  
 Domain: `lundusdigital.com`  
-General DNS mutation authority: **NO**
+Provider: **Zoho Mail**  
+General DNS mutation authority: **NO FURTHER CHANGE AUTHORIZED**
 
-## Already applied and retained
+## Verified live email records
 
-- `@ TXT 14440 zoho-verification=zb36894990.zmverify.zoho.com` — Zoho ownership verification
-- `@ A 103.7.9.22` — KEEP
-- `@ NS ns184.mschosting.com` — KEEP
-- `@ NS ns185.mschosting.com` — KEEP
-- `@ NS ns186.mschosting.com` — KEEP
-- `www CNAME lundusdigital.com` — KEEP
-- `ftp CNAME lundusdigital.com` — KEEP
-- `mail CNAME lundusdigital.com` — REVIEW SEPARATELY / DO NOT DELETE YET
+- `@ TXT zoho-verification=zb36894990.zmverify.zoho.com` — Zoho domain ownership **PASS**
+- `@ MX 10 mx.zoho.com` — **PASS**
+- `@ MX 20 mx2.zoho.com` — **PASS**
+- `@ MX 50 mx3.zoho.com` — **PASS**
+- `@ TXT v=spf1 include:zohomail.com ~all` — SPF **PASS**
+- `ld2026._domainkey TXT <provider-issued public key>` — DKIM **PASS**
+  - The exact public-key value is intentionally not reconstructed from screenshot evidence in this repository.
+- `_dmarc TXT v=DMARC1; p=none; rua=mailto:dmarc@lundusdigital.com; ruf=mailto:dmarc@lundusdigital.com; sp=none; adkim=r; aspf=r; pct=100` — DMARC **PASS**
 
-## MX replacement — exact Zoho values captured
+## External UAT evidence
 
-### DELETE
-- `@ MX priority 0 lundusdigital.com`
+A message from `LUNDUS DIGITAL SYSTEMS <hello@lundusdigital.com>` was delivered to Gmail and Gmail's **Show original** reported:
 
-### ADD
-- `@ MX priority 10 mx.zoho.com`
-- `@ MX priority 20 mx2.zoho.com`
-- `@ MX priority 50 mx3.zoho.com`
+- SPF: **PASS**
+- DKIM: **PASS** for `lundusdigital.com`
+- DMARC: **PASS**
+- Delivery: **PASS**
+- Observed delivery latency: approximately 3 seconds
+- Sender display name: **LUNDUS DIGITAL SYSTEMS**
 
-Use the DNS provider's default TTL unless Zoho supplies an exact TTL.
+## Alias routing UAT
 
-## Still pending exact Zoho evidence
+- `support@lundusdigital.com` → primary inbox `hello@lundusdigital.com`: **PASS**
+- `billing@lundusdigital.com` → primary inbox `hello@lundusdigital.com`: **PASS**
+- `dmarc@lundusdigital.com` → primary inbox `hello@lundusdigital.com`: **PASS**
 
-- SPF TXT value
-- DKIM selector / TXT public-key value
+Outbound **Send As** for `support@` and `billing@` has not yet been tested and is not required to classify the basic email UAT as PASS.
 
-## Safe sequence
+## Preserved website/DNS scope
 
-1. Delete only the existing root MX `0 lundusdigital.com`.
-2. Add the three exact Zoho MX records above.
-3. Do not change A, NS, CNAME or verification TXT records.
-4. Return to Zoho and click `Verify` on the MX page.
-5. After MX PASS, capture exact SPF and DKIM values before adding them.
+Existing website-related A, NS and CNAME records remain outside this email UAT. No Production website binding or public-launch authority is granted by this document.
+
+## DMARC operating posture
+
+DMARC remains at `p=none` for monitoring. Do not strengthen to `quarantine` or `reject` until all legitimate senders, including Zoho and Resend, have been inventoried and SPF/DKIM alignment is verified for those senders.
+
+## Governance
+
+This file is an **as-built verification record**, not a standing authorization for future DNS changes.
+
+- Further DNS mutation: **HOLD / explicit human approval required**
+- Production website binding: **HOLD**
+- Payment activation: **HOLD**
+- Public launch: **HOLD**
