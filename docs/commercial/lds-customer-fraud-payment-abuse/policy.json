@@ -1,0 +1,168 @@
+{
+  "schema": "lds.customer-fraud-payment-abuse/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "objective": "Detect and contain potential customer/payment abuse while preserving fair treatment, legitimate disputes, and human-controlled consequential decisions.",
+  "classifications": [
+    "CLEAR",
+    "REVIEW",
+    "HIGH_RISK_REVIEW"
+  ],
+  "risks": [
+    {
+      "id": "CFP-001",
+      "name": "Friendly fraud or chargeback after delivery",
+      "severity": "P1",
+      "triggers": [
+        "chargeback_after_delivery",
+        "unauthorized_claim_after_verified_access",
+        "nonreceipt_claim_with_delivery_evidence"
+      ],
+      "controls": [
+        "dispute_evidence_pack",
+        "provider_reference",
+        "human_dispute_review"
+      ]
+    },
+    {
+      "id": "CFP-002",
+      "name": "Unverified or suspicious payment identity",
+      "severity": "P1",
+      "triggers": [
+        "payment_identity_mismatch",
+        "high_risk_provider_signal",
+        "billing_identity_inconsistency"
+      ],
+      "controls": [
+        "provider_verification",
+        "manual_review",
+        "no_fulfillment_until_reconciled"
+      ]
+    },
+    {
+      "id": "CFP-003",
+      "name": "Unfunded work request",
+      "severity": "P1",
+      "triggers": [
+        "build_requested_without_required_funding",
+        "milestone_not_funded"
+      ],
+      "controls": [
+        "funding_gate",
+        "quote_and_milestone_record",
+        "block_build_start"
+      ]
+    },
+    {
+      "id": "CFP-004",
+      "name": "Free-work or source extraction attempt",
+      "severity": "P1",
+      "triggers": [
+        "material_delivery_requested_before_payment",
+        "unrestricted_source_requested_before_agreed_payment",
+        "large_unpaid_sample_request"
+      ],
+      "controls": [
+        "preview_only_before_final_payment",
+        "handover_gate",
+        "scope_boundary"
+      ]
+    },
+    {
+      "id": "CFP-005",
+      "name": "Refund or dispute abuse pattern",
+      "severity": "P1",
+      "triggers": [
+        "repeated_refund_after_usage",
+        "contradictory_refund_claims",
+        "refund_then_continued_use"
+      ],
+      "controls": [
+        "usage_and_delivery_evidence",
+        "human_refund_review",
+        "no_auto_accusation"
+      ]
+    },
+    {
+      "id": "CFP-006",
+      "name": "Off-channel payment or evidence bypass",
+      "severity": "P1",
+      "triggers": [
+        "payment_requested_outside_approved_channel",
+        "customer_requests_unrecorded_side_deal",
+        "attempt_to_bypass_order_record"
+      ],
+      "controls": [
+        "approved_payment_channel_only",
+        "order_ledger",
+        "reject_unrecorded_financial_side_effect"
+      ]
+    },
+    {
+      "id": "CFP-007",
+      "name": "Credential or environment abuse request",
+      "severity": "P0",
+      "triggers": [
+        "asks_for_production_secret",
+        "asks_to_bypass_security_gate",
+        "asks_for_unlogged_admin_access"
+      ],
+      "controls": [
+        "deny_secret_exposure",
+        "human_security_escalation",
+        "audit_event"
+      ]
+    },
+    {
+      "id": "CFP-008",
+      "name": "Acceptance reversal after evidenced approval",
+      "severity": "P1",
+      "triggers": [
+        "accepted_milestone_later_denied_without_new_evidence",
+        "signed_acceptance_disputed"
+      ],
+      "controls": [
+        "immutable_acceptance_evidence",
+        "human_review",
+        "change_request_if_new_scope"
+      ]
+    },
+    {
+      "id": "CFP-009",
+      "name": "Delivery access then nonreceipt claim",
+      "severity": "P1",
+      "triggers": [
+        "artifact_access_logged_then_nonreceipt_claim",
+        "download_or_login_evidence_conflicts_with_claim"
+      ],
+      "controls": [
+        "access_evidence",
+        "delivery_timestamp",
+        "human_dispute_review"
+      ]
+    },
+    {
+      "id": "CFP-010",
+      "name": "Identity or authority impersonation",
+      "severity": "P0",
+      "triggers": [
+        "approver_identity_unverified",
+        "payment_authority_impersonation",
+        "account_takeover_suspected"
+      ],
+      "controls": [
+        "verified_approver",
+        "reverify_authority",
+        "freeze_consequential_actions"
+      ]
+    }
+  ],
+  "invariants": [
+    "No funded milestone -> no BUILDING when funding is contractually required",
+    "No final payment -> no unrestricted source/admin handover when the agreement requires final payment first",
+    "Potential abuse signals do not prove fraud",
+    "Refund denial, customer suspension, fraud allegation and legal escalation remain HUMAN_ONLY",
+    "Dispute evidence must be factual, timestamped and linked to authoritative transaction/project records",
+    "Off-channel payment must not bypass the authoritative order ledger",
+    "Security bypass or credential requests fail closed"
+  ]
+}
