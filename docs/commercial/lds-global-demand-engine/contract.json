@@ -203,5 +203,19 @@
       "automatic_quotation_authority": false,
       "payment_authority": false
     }
+  },
+  "controlled_validation": {
+    "status": "READY_FOR_EVIDENCE_COLLECTION_AFTER_DEPENDENCY_GATES",
+    "initial_learning_target": {
+      "relevant_visitors": 100,
+      "qualified_leads": 10,
+      "quotations_min": 3,
+      "quotations_max": 5,
+      "paid_customers_min": 1,
+      "evidence_backed_case_studies_min": 1
+    },
+    "scale_authority": false,
+    "production_authority": "HUMAN_ONLY",
+    "optimize_rule": "Fix the largest evidence-backed funnel leak before adding unrelated complexity"
   }
 }
