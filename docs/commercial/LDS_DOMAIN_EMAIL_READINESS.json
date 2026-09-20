@@ -62,7 +62,7 @@
       "status": "HOLD_NOT_APPLIED",
       "promotion_rule": "Move toward quarantine/reject only after legitimate senders, SPF alignment, DKIM alignment and report monitoring are verified."
     },
-    "plan": "Mail Lite 5 GB",
+    "plan": "Mail Lite 10 GB",
     "selection_evidence": {
       "decided_at": "2026-09-19",
       "decision_basis": "human approval after official-provider comparison",
@@ -87,12 +87,28 @@
         "support@lundusdigital.com",
         "billing@lundusdigital.com"
       ],
-      "rationale": "Initial single-operator setup minimizes cost while preserving distinct customer-facing addresses."
+      "rationale": "Initial single-operator setup minimizes cost while preserving distinct customer-facing addresses.",
+      "licensed_users_purchased": 1,
+      "primary_mailbox_status": "PLANNED_NOT_YET_VERIFIED",
+      "alias_status": "PLANNED_NOT_YET_VERIFIED"
     },
-    "subscription_purchase_authorized": false,
-    "subscription_purchased": false,
+    "subscription_purchase_authorized": true,
+    "subscription_purchased": true,
     "transactional_email_provider": "Resend",
-    "transactional_email_rule": "Zoho Mail is for human business correspondence. Transactional/system email remains on Resend and must not be routed through Zoho Mail."
+    "transactional_email_rule": "Zoho Mail is for human business correspondence. Transactional/system email remains on Resend and must not be routed through Zoho Mail.",
+    "subscription_evidence": {
+      "status": "PASS",
+      "provider_confirmation": "You've successfully subscribed to our Mail Lite 10GB plan.",
+      "confirmed_at": "2026-09-19",
+      "term": "1 year",
+      "next_renewal_date": "2027-09-19",
+      "renewal_mode": "automatic using provided payment method",
+      "credit_earned_myr": 7.2,
+      "checkout_total_observed_myr": 60,
+      "charged_amount_myr": null,
+      "charged_amount_evidence_status": "PENDING_RECEIPT_OR_INVOICE",
+      "evidence_level": "user_supplied_checkout_summary_and_subscription_confirmation_screenshots"
+    }
   },
   "security": {
     "registrar_2fa": "NOT_EVIDENCED",
@@ -114,10 +130,13 @@
     "EMAIL_DNS_AUTHENTICATION": "HOLD",
     "OFFICIAL_COMMERCIAL_EMAIL": "HOLD",
     "LEGAL_TRUST_READY": "HOLD",
-    "PUBLIC_LAUNCH": "HOLD"
+    "PUBLIC_LAUNCH": "HOLD",
+    "EMAIL_SUBSCRIPTION_ACTIVE": "PASS"
   },
   "safe_sequence": [
-    "purchase or start Zoho Mail Lite only after explicit human cost approval",
+    "capture Zoho receipt or invoice if available and reconcile exact charged amount",
+    "continue Zoho organization setup for lundusdigital.com without changing nameservers",
+    "obtain exact Zoho domain-verification and MX/SPF/DKIM values",
     "add lundusdigital.com to Zoho without changing nameservers",
     "obtain exact Zoho domain-verification and MX/SPF/DKIM values",
     "obtain exact provider MX/SPF/DKIM verification records",
