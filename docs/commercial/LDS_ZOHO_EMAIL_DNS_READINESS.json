@@ -47,7 +47,9 @@
       "host": "@",
       "value": "v=spf1 include:zohomail.com ~all",
       "evidence_id": "ZOHO_ADMIN_SPF_2026-09-20",
-      "status": "CAPTURED_NOT_APPLIED"
+      "status": "VERIFIED",
+      "verified_at": "2026-09-20",
+      "verification_evidence_id": "ZOHO_SPF_VERIFIED_2026-09-20"
     },
     "dkim": {
       "selector": null,
@@ -189,7 +191,7 @@
     ]
   },
   "change_set_draft": {
-    "status": "MX_VERIFIED_SPF_CAPTURED_DKIM_PENDING",
+    "status": "MX_SPF_VERIFIED_DKIM_PENDING",
     "keep": [
       "@ A 103.7.9.22",
       "@ NS ns184.mschosting.com",
