@@ -30,7 +30,7 @@
     "privacy_policy_version": null,
     "terms_policy_version": null,
     "refund_policy_version": null,
-    "support_channel_evidence_id": null
+    "support_channel_evidence_id": "PR337_EMAIL_UAT_SUPPORT_INBOUND"
   },
   "lead_intake": {
     "repository": "lundus88/lundus-lead",
@@ -86,15 +86,16 @@
     "domain_ownership": "PASS",
     "dns_production_binding": "HOLD",
     "email_provider_selected": "PASS",
-    "email_dns_authentication": "HOLD",
-    "official_commercial_email": "HOLD",
+    "email_dns_authentication": "PASS",
+    "official_commercial_email": "PASS",
     "production_config_fingerprint": null,
     "status": "HOLD",
     "email_provider": "Zoho Mail",
     "email_plan": "Mail Lite 10 GB",
     "email_subscription_purchased": true,
-    "mailbox_architecture": "1 licensed Mail Lite 10 GB user purchased; hello@ planned; support@/billing@ aliases planned",
+    "mailbox_architecture": "1 licensed Mail Lite 10 GB user active; hello@ verified; support@/billing@/dmarc@ inbound aliases verified",
     "email_subscription_status": "PASS",
-    "email_subscription_renewal_date": "2027-09-19"
+    "email_subscription_renewal_date": "2027-09-19",
+    "support_complaint_channel": "PASS_INBOUND"
   }
 }
