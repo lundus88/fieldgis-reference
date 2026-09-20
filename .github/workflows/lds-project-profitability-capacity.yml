@@ -1,0 +1,18 @@
+name: LUNDUS DIGITAL SYSTEMS Project Profitability Capacity
+on:
+  pull_request:
+    paths:
+      - 'docs/commercial/lds-project-profitability-capacity/**'
+      - '.github/workflows/lds-project-profitability-capacity.yml'
+permissions:
+  contents: read
+jobs:
+  profitability-capacity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with: {python-version: '3.12'}
+      - run: python3 docs/commercial/lds-project-profitability-capacity/check_profitability_capacity.py
+      - working-directory: docs/commercial/lds-project-profitability-capacity
+        run: python3 -m unittest -v test_profitability_capacity.py
