@@ -71,6 +71,53 @@ class ControlPlaneTests(unittest.TestCase):
         ))
         self.assertEqual(r["reason"],"APPROVED_CHANGE_REQUEST_REQUIRED")
 
+    def test_standard_paid_order_can_auto_kickoff(self):
+        r=evaluate_transition(req(
+          "PAYMENT_RECONCILED","KICKOFF_APPROVED",
+          ["kickoff_ready","autonomous_kickoff_eligibility"],
+          {"customer_onboarding":True,"autonomous_operations":True},
+          human=False
+        ))
+        self.assertEqual(r["status"],"PASS")
+        self.assertTrue(r["transition_authorized"])
+
+    def test_kickoff_without_auto_or_human_receipt_holds(self):
+        r=evaluate_transition(req(
+          "PAYMENT_RECONCILED","KICKOFF_APPROVED",
+          ["kickoff_ready"],
+          {"customer_onboarding":True,"autonomous_operations":True},
+          human=False
+        ))
+        self.assertEqual(r["reason"],"ANY_OF_REQUIRED_EVIDENCE_MISSING")
+
+    def test_exception_kickoff_accepts_real_human_approval(self):
+        r=evaluate_transition(req(
+          "PAYMENT_RECONCILED","KICKOFF_APPROVED",
+          ["kickoff_ready","human_kickoff_approval"],
+          {"customer_onboarding":True,"autonomous_operations":True},
+          human=True
+        ))
+        self.assertEqual(r["status"],"PASS")
+
+    def test_fake_human_kickoff_receipt_is_rejected(self):
+        r=evaluate_transition(req(
+          "PAYMENT_RECONCILED","KICKOFF_APPROVED",
+          ["kickoff_ready","human_kickoff_approval"],
+          {"customer_onboarding":True,"autonomous_operations":True},
+          human=False
+        ))
+        self.assertEqual(r["reason"],"EXPLICIT_HUMAN_AUTHORITY_REQUIRED")
+
+    def test_compatibility_gate_accepts_autonomous_kickoff(self):
+        e=LifecycleEvidence(
+          approved_scope=True,human_approved_quotation=True,payment_reconciled=True,
+          kickoff_ready=True,human_kickoff_approved=False,build_complete=False,
+          qa_evidence=False,customer_acceptance_evidence=False,delivery_evidence=False,
+          autonomous_kickoff_eligible=True
+        )
+        r=evaluate(e)
+        self.assertEqual(r["reason"],"BUILD_IN_PROGRESS")
+
     def test_advisory_never_advances_hard_gate(self):
         self.assertFalse(advisory_can_advance_hard_gate())
 

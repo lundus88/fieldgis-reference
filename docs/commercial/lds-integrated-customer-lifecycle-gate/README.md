@@ -21,7 +21,7 @@ VISITOR
 → QUOTATION_APPROVED
 → CONTRACT_ACCEPTED
 → PAYMENT_RECONCILED
-→ KICKOFF_APPROVED
+→ KICKOFF_APPROVED (AUTO for eligible standard orders; HUMAN fallback for exceptions)
 → BUILDING
 → QA_PASSED
 → CUSTOMER_ACCEPTED
@@ -78,6 +78,14 @@ The control plane can reference current and planned LD capabilities, including:
 - Observability / Cost Anomaly
 
 A module's readiness never substitutes for transition evidence or human authority.
+
+## Autonomous standard-order kickoff
+
+After authoritative payment reconciliation, a standard order may transition to KICKOFF_APPROVED without a manual start action only when the LD Autonomous Operations Layer supplies a valid `autonomous_kickoff_eligibility` receipt and customer onboarding is ready.
+
+Exception orders may still use explicit `human_kickoff_approval`. Missing eligibility/approval evidence fails closed to HOLD.
+
+This removes unnecessary manual workflow motion while preserving human authority for consequential exceptions.
 
 ## Hard safety rules
 

@@ -71,7 +71,14 @@ def evaluate_transition(r:TransitionRequest, consumed_keys:FrozenSet[str]=frozen
     if missing_evidence:
         return {"status":"HOLD","reason":"REQUIRED_EVIDENCE_MISSING","missing_evidence":sorted(missing_evidence),"transition_authorized":False}
 
+    any_evidence=edge.get("any_evidence",[])
+    if any_evidence and not any(e in r.evidence for e in any_evidence):
+        return {"status":"HOLD","reason":"ANY_OF_REQUIRED_EVIDENCE_MISSING","acceptable_evidence":sorted(any_evidence),"transition_authorized":False}
+
     if edge.get("human_authority") and not r.authority.human_approved:
+        return {"status":"HOLD","reason":"EXPLICIT_HUMAN_AUTHORITY_REQUIRED","transition_authorized":False}
+
+    if "human_kickoff_approval" in r.evidence and not r.authority.human_approved:
         return {"status":"HOLD","reason":"EXPLICIT_HUMAN_AUTHORITY_REQUIRED","transition_authorized":False}
 
     if r.to_state=="PAYMENT_RECONCILED" and "payment_redirect" in r.evidence and "authoritative_payment_reconciliation" not in r.evidence:
@@ -103,6 +110,7 @@ class LifecycleEvidence:
     material_scope_change: bool=False
     change_request_approved: bool=False
     stale_or_contradictory: bool=False
+    autonomous_kickoff_eligible: bool=False
 
 def evaluate(e:LifecycleEvidence)->Dict:
     if e.stale_or_contradictory:
@@ -113,7 +121,9 @@ def evaluate(e:LifecycleEvidence)->Dict:
         return {"status":"HOLD","reason":"HUMAN_APPROVED_QUOTATION_REQUIRED","next_stage":"QUOTATION_APPROVED"}
     if not e.payment_reconciled:
         return {"status":"HOLD","reason":"PAYMENT_RECONCILIATION_REQUIRED","next_stage":"PAYMENT_RECONCILED"}
-    if not e.kickoff_ready or not e.human_kickoff_approved:
+    if not e.kickoff_ready:
+        return {"status":"HOLD","reason":"KICKOFF_READY_REQUIRED","next_stage":"KICKOFF_APPROVED"}
+    if not (e.human_kickoff_approved or e.autonomous_kickoff_eligible):
         return {"status":"HOLD","reason":"KICKOFF_GATE_REQUIRED","next_stage":"KICKOFF_APPROVED"}
     if e.material_scope_change and not e.change_request_approved:
         return {"status":"HOLD","reason":"APPROVED_CHANGE_REQUEST_REQUIRED","next_stage":"BUILDING"}

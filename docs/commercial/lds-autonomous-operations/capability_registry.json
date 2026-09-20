@@ -1,0 +1,83 @@
+{
+  "schema": "lds.capability-service-registry/1",
+  "capabilities": [
+    {
+      "id": "LD_LAUNCH",
+      "status": "SUPPORTED",
+      "default_action_mode": "AUTO",
+      "risk_class": "STANDARD",
+      "requires": [
+        "confirmed_scope",
+        "content_or_content_plan",
+        "domain_or_domain_plan"
+      ],
+      "acceptance_evidence": [
+        "required_pages_present",
+        "responsive_smoke_pass",
+        "lead_or_contact_path_tested"
+      ]
+    },
+    {
+      "id": "LD_AUTOMATE",
+      "status": "SUPPORTED_WITH_GUARDRAILS",
+      "default_action_mode": "AUTO_NOTIFY",
+      "risk_class": "MEDIUM",
+      "requires": [
+        "confirmed_workflow",
+        "input_output_contract",
+        "human_exception_path"
+      ],
+      "acceptance_evidence": [
+        "happy_path_test",
+        "failure_path_test",
+        "idempotency_or_duplicate_control_where_relevant"
+      ]
+    },
+    {
+      "id": "LD_AI",
+      "status": "SUPPORTED_WITH_GUARDRAILS",
+      "default_action_mode": "AUTO_NOTIFY",
+      "risk_class": "MEDIUM",
+      "requires": [
+        "confirmed_use_case",
+        "model_output_boundary",
+        "human_exception_path",
+        "data_sensitivity_classification"
+      ],
+      "acceptance_evidence": [
+        "golden_case_tests",
+        "unsafe_or_unknown_case_hold_test",
+        "output_limitations_documented"
+      ]
+    },
+    {
+      "id": "LD_SYSTEM",
+      "status": "SUPPORTED_WITH_GUARDRAILS",
+      "default_action_mode": "AUTO_NOTIFY",
+      "risk_class": "MEDIUM",
+      "requires": [
+        "confirmed_roles",
+        "workflow_states",
+        "data_model_or_record_contract",
+        "integration_inventory"
+      ],
+      "acceptance_evidence": [
+        "role_permission_tests",
+        "workflow_transition_tests",
+        "core_record_integrity_tests"
+      ]
+    },
+    {
+      "id": "LD_DISCOVERY",
+      "status": "DISCOVERY_ONLY",
+      "default_action_mode": "HUMAN_GATE",
+      "risk_class": "UNKNOWN",
+      "requires": [
+        "discovery_brief"
+      ],
+      "acceptance_evidence": [
+        "discovery_output_confirmed"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "schema": "lds.autonomous-operations.sample-order/1",
+  "order_id": "SIM-LD-LAUNCH-001",
+  "scenario": "STANDARD_LD_LAUNCH",
+  "environment": "NON_PRODUCTION",
+  "customer_need": "Professional company website with lead capture form",
+  "capability_id": "LD_LAUNCH",
+  "objective": "Publish a responsive company website that captures qualified enquiries",
+  "must_have": [
+    "Home page",
+    "Services page",
+    "Contact page",
+    "Lead capture form"
+  ],
+  "acceptance_criteria": [
+    "Required pages are present",
+    "Responsive smoke test passes",
+    "Lead form submits successfully"
+  ],
+  "dependencies": [
+    "customer_logo",
+    "approved_copy",
+    "domain_plan"
+  ],
+  "exclusions": [
+    "ecommerce",
+    "custom_crm",
+    "production_dns_change"
+  ],
+  "commercial_evidence": {
+    "legitimate_lead_evidence": true,
+    "assessment_complete": true,
+    "market_supported": true,
+    "approved_scope": true,
+    "pricing_reviewed": true,
+    "human_approved_quotation": true,
+    "digital_acceptance_evidence": true,
+    "authoritative_payment_reconciliation": true,
+    "kickoff_ready": true,
+    "autonomous_kickoff_eligibility": true,
+    "scope_snapshot_current": true
+  }
+}

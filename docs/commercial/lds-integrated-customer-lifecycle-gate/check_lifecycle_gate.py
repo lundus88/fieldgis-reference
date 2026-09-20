@@ -35,6 +35,19 @@ if (root/"state_graph.json").exists():
             errors.append("transition references unknown state")
         if not isinstance(t.get("evidence"),list) or not isinstance(t.get("dependencies"),list):
             errors.append("transition contract shape invalid")
+        if "any_evidence" in t and not isinstance(t.get("any_evidence"),list):
+            errors.append("any_evidence contract shape invalid")
+    kickoff=[t for t in g.get("transitions",[]) if t.get("from")=="PAYMENT_RECONCILED" and t.get("to")=="KICKOFF_APPROVED"]
+    if len(kickoff)!=1:
+        errors.append("kickoff transition missing or duplicated")
+    else:
+        k=kickoff[0]
+        if set(k.get("any_evidence",[]))!={"autonomous_kickoff_eligibility","human_kickoff_approval"}:
+            errors.append("autonomous/human kickoff evidence policy drift")
+        if k.get("human_authority") is not False:
+            errors.append("standard kickoff edge must allow autonomous eligibility receipt")
+        if "autonomous_operations" not in k.get("dependencies",[]):
+            errors.append("autonomous operations dependency missing")
 
 if errors:
     print("LDS Unified Commercial Control Plane: FAIL")
