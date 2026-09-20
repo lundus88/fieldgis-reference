@@ -56,6 +56,7 @@
     "human DNS mutation approval captured"
   ],
   "post_apply_checks": [
+    "hello@ mailbox exists and user is active",
     "Zoho domain verification PASS",
     "Zoho MX verification PASS",
     "inbound message received at hello@lundusdigital.com",
@@ -181,5 +182,14 @@
     "applied_pending_provider_verification": [
       "TXT @ TTL 14440 = zoho-verification=zb36894990.zmverify.zoho.com"
     ]
+  },
+  "mailbox_state": {
+    "primary_mailbox": "hello@lundusdigital.com",
+    "primary_mailbox_status": "CREATED_ACTIVE_PENDING_MAIL_ROUTING_VERIFICATION",
+    "observed_at": "2026-09-20",
+    "evidence_level": "user_supplied_zoho_admin_users_screenshot",
+    "additional_address_indicator_count": 1,
+    "additional_address_identity_verified": false,
+    "note": "Do not assume the +1 address is support@ or billing@ until inspected."
   }
 }
