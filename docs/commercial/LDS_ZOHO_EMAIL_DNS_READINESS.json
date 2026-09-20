@@ -39,7 +39,9 @@
         }
       ],
       "evidence_id": "EXABYTES_ZOHO_MX_APPLIED_2026-09-20",
-      "status": "APPLIED_PENDING_ZOHO_VERIFICATION"
+      "status": "VERIFIED",
+      "verified_at": "2026-09-20",
+      "verification_evidence_id": "ZOHO_MX_VERIFIED_2026-09-20"
     },
     "spf": {
       "host": null,
@@ -187,7 +189,7 @@
     ]
   },
   "change_set_draft": {
-    "status": "MX_APPLIED_PENDING_ZOHO_VERIFICATION_SPF_DKIM_PENDING",
+    "status": "MX_VERIFIED_SPF_DKIM_PENDING",
     "keep": [
       "@ A 103.7.9.22",
       "@ NS ns184.mschosting.com",
