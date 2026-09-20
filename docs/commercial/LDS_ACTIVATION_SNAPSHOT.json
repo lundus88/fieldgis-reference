@@ -1,6 +1,6 @@
 {
   "schema": "lds.activation-snapshot/1",
-  "as_of": "2026-09-19",
+  "as_of": "2026-09-20",
   "snapshot_id": null,
   "snapshot_status": "HOLD_NOT_FORMED",
   "single_use": true,
@@ -17,13 +17,16 @@
   },
   "business_licence": {
     "manifest": "docs/commercial/LDS_BUSINESS_LICENCE_EVIDENCE.json",
-    "official_evidence_id": null,
-    "evidence_current_as_of": null,
-    "status": "HOLD"
+    "official_evidence_id": "SSM_CERT_003891235-V_2026-09-19",
+    "secondary_evidence_id": "SSM_BIS_INFO_003891235-V_2026-09-20",
+    "evidence_current_as_of": "2026-09-20",
+    "valid_through": "2027-09-18",
+    "status": "PASS",
+    "interpretation": "Official SSM business-registration evidence applicable to the current LD commercial scope; not a claim of a separate sector-specific licence."
   },
   "legal_trust": {
     "status": "HOLD",
-    "registered_particulars_evidence_id": null,
+    "registered_particulars_evidence_id": "SSM_BIS_INFO_003891235-V_2026-09-20",
     "privacy_policy_version": null,
     "terms_policy_version": null,
     "refund_policy_version": null,
@@ -57,8 +60,8 @@
     "launched_at": null
   },
   "blockers": [
-    "LICENCE_READY",
     "LEGAL_TRUST_READY",
+    "DOMAIN_EMAIL_READY",
     "LIVE_LEAD_INTAKE",
     "PAYMENT_PRODUCTION_READY",
     "GOLDEN_TRANSACTION_PASS",

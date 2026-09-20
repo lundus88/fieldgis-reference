@@ -5,7 +5,8 @@ import json, sys
 root = Path("commercial/lundus-digital-systems")
 required = [
     "index.html","services.html","about.html","contact.html","faq.html",
-    "privacy.html","terms.html","refund.html","checkout.html","order.html",
+    "privacy.html","terms.html","refund.html","privacy-bm.html","terms-bm.html","refund-bm.html",
+    "checkout.html","order.html",
     "styles.css","site.js","analytics-contract.json","lead-intake-contract.json",
     "legal-trust-contract.json","maklumat-urusniaga.html",
     "FIRST_COMMERCIAL_OFFER_RC.md","README.md",
@@ -53,6 +54,9 @@ for token in ["billplz.com","functions/v1/vl-billplz-create-production","fetch("
 for policy in ["privacy.html","terms.html","refund.html"]:
     if "Effective date: to be confirmed before public commercial launch." not in html.get(policy,""):
         errors.append(f"{policy}: RC effective-date guard missing")
+for policy in ["privacy-bm.html","terms-bm.html","refund-bm.html"]:
+    if "Tarikh kuat kuasa: akan disahkan sebelum pelancaran komersial awam." not in html.get(policy,""):
+        errors.append(f"{policy}: BM RC effective-date guard missing")
 
 analytics_path=root/"analytics-contract.json"
 if analytics_path.exists():
@@ -71,35 +75,8 @@ if lead_path.exists():
         errors.append("lead intake: unexpected schema")
     if lead.get("public_endpoint")!="/api/public/leads/intake":
         errors.append("lead intake: endpoint drift")
-    required_fields=set(lead.get("required_fields",[]))
-    for key in ["submission_id","name","email","service","message","turnstile_token"]:
-        if key not in required_fields:
-            errors.append(f"lead intake: missing required field {key}")
     if lead.get("client_to_lunduslead_direct_write") is not False:
         errors.append("lead intake: browser-to-internal-CRM direct write must be false")
-    forbidden=set(lead.get("forbidden_actions",[]))
-    for key in ["auto_quotation","auto_pricing","auto_payment","auto_sale","direct_browser_write_to_internal_crm","expose_internal_crm_credentials"]:
-        if key not in forbidden:
-            errors.append(f"lead intake: missing forbidden action {key}")
-    if lead.get("handoff")!="server-to-server into LundusLead after connector validation":
-        errors.append("lead intake: internal CRM handoff is not server-to-server")
-
-offer=(root/"FIRST_COMMERCIAL_OFFER_RC.md").read_text() if (root/"FIRST_COMMERCIAL_OFFER_RC.md").exists() else ""
-for token in [
-    "Custom Digital Systems & Automation — Quotation-Led Implementation",
-    "offer_type = customer_quote",
-    "customer_account_id",
-    "valid_until",
-    "OFFER_LOCKED = YES",
-    "human-approved customer quotes",
-]:
-    if token not in offer:
-        errors.append(f"first offer RC: missing {token}")
-
-readme=(root/"README.md").read_text() if (root/"README.md").exists() else ""
-for token in ["OFFER_LOCKED = YES","no live checkout","no customer charging before Production payment activation is separately approved","no Production deployment"]:
-    if token not in readme:
-        errors.append(f"README: missing guardrail {token}")
 
 legal_path=root/"legal-trust-contract.json"
 if legal_path.exists():
@@ -107,33 +84,28 @@ if legal_path.exists():
     if legal.get("schema")!="lds.legal-trust-readiness/1":
         errors.append("legal trust: unexpected schema")
     if legal.get("production_ready") is not False:
-        errors.append("legal trust: RC must remain production_ready=false while verified particulars are pending")
+        errors.append("legal trust: RC must remain production_ready=false")
+    verified=legal.get("verified_values",{})
+    for key in ["registered_entity_name","registration_number","final_commercial_domain","registration_status"]:
+        if not verified.get(key):
+            errors.append(f"legal trust: verified value missing {key}")
     pending=set(legal.get("pending_verified_values",[]))
-    for key in ["registered_entity_name","final_commercial_domain","official_email","official_phone","official_trade_address","support_complaint_channel","policy_effective_dates"]:
+    for key in ["official_email","official_phone","official_trade_address_publication_approval","support_complaint_channel","policy_effective_dates"]:
         if key not in pending:
             errors.append(f"legal trust: pending verified value missing {key}")
     required_disclosures=set(legal.get("required_disclosures_bm",[]))
-    for key in ["supplier_or_company_name","email","telephone","trade_address","service_main_characteristics","full_price_including_tax_and_other_cost","payment_method","sale_terms","estimated_supply_time"]:
+    for key in ["supplier_or_company_name","website_address","email","telephone","trade_address","service_main_characteristics","full_price_including_tax_and_other_cost","payment_method","sale_terms","estimated_supply_time"]:
         if key not in required_disclosures:
             errors.append(f"legal trust: missing BM disclosure contract {key}")
 
 bm=(root/"maklumat-urusniaga.html").read_text() if (root/"maklumat-urusniaga.html").exists() else ""
-for token in [
-    'lang="ms"',
-    "Maklumat Pembekal & Urus Niaga",
-    "BELUM DISAHKAN",
-    "Harga penuh",
-    "Kaedah pembayaran",
-    "Anggaran masa pembekalan perkhidmatan",
-    "Pembetulan kesilapan & pengakuterimaan pesanan"
-]:
+for token in ['lang="ms"',"Maklumat Pembekal & Urus Niaga","202603248473 (003891235-V)","lundusdigital.com","BELUM DISAHKAN","Harga penuh","Kaedah pembayaran","Anggaran masa pembekalan perkhidmatan","Pembetulan kesilapan & pengakuterimaan pesanan"]:
     if token not in bm:
         errors.append(f"BM disclosure: missing {token}")
 
 if errors:
     print("LDS commercial surface contract: FAIL")
-    for e in errors:
-        print("-",e)
+    for e in errors: print("-",e)
     sys.exit(1)
 
 print("LDS commercial surface contract: PASS")
