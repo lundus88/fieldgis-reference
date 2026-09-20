@@ -1,0 +1,147 @@
+{
+  "schema": "lds.prelaunch-parallel-hardening/1",
+  "as_of": "2026-09-21",
+  "mode": "NON_PRODUCTION_PRELAUNCH",
+  "overall_status": "IN_PROGRESS_SAFE_PARALLEL_WORK",
+  "authority": {
+    "production_activation_authorized": false,
+    "live_payment_authorized": false,
+    "dns_mutation_authorized": false,
+    "live_lead_intake_authorized": false,
+    "public_launch_authorized": false,
+    "external_secret_capture_in_repository": false
+  },
+  "legal_trust": {
+    "status": "HOLD",
+    "remaining_blockers": [
+      "LD_DEDICATED_BUSINESS_PHONE_VERIFIED"
+    ],
+    "address_gate": "PASS_VERIFIED_AND_PUBLICATION_APPROVED"
+  },
+  "tracks": {
+    "configuration_preflight": {
+      "status": "CONTRACT_AND_EVIDENCE_PREPARATION_ONLY",
+      "can_do_now": [
+        "verify required configuration names and contracts",
+        "prepare configuration fingerprint schema",
+        "validate fail-closed behavior when values are absent",
+        "record evidence requirements without secret values"
+      ],
+      "requires_later_production_evidence": [
+        "LUNDUS_COMMERCIAL_ORIGIN",
+        "Turnstile site key",
+        "Turnstile secret",
+        "Turnstile hostname/action",
+        "WAF or edge rate-limit rule",
+        "LundusLead owner UUID",
+        "LundusLead Production configuration fingerprint",
+        "Billplz Production API secret",
+        "Billplz Collection ID",
+        "Billplz X-signature secret",
+        "payment-provider Production configuration fingerprint",
+        "Resend Production API key",
+        "Resend Production sender",
+        "Resend Production webhook secret"
+      ]
+    },
+    "synthetic_e2e": {
+      "status": "CI_HARDENING_IN_THIS_PR",
+      "sequence": [
+        "lead intake validation",
+        "qualification",
+        "human-approved quotation",
+        "customer acceptance",
+        "server-authoritative order",
+        "signed payment callback contract",
+        "fulfilment",
+        "receipt",
+        "notification",
+        "order close"
+      ],
+      "live_customer_charge": false,
+      "external_api_call": false
+    },
+    "payment_hardening": {
+      "status": "RC_CONTRACT_PRESENT_LIVE_PROOF_PENDING",
+      "verified_repo_controls": [
+        "server-authoritative amount",
+        "signed Billplz callback",
+        "amount match",
+        "idempotent callback",
+        "terminal cancellation/refund semantics",
+        "payment and fulfilment separation"
+      ],
+      "live_production_transaction_performed": false
+    },
+    "lead_intake_hardening": {
+      "status": "CONTRACT_ONLY_LIVE_INTAKE_HOLD",
+      "required_controls": [
+        "explicit enable flag",
+        "exact origin allowlist",
+        "Turnstile verification",
+        "payload size limit",
+        "field validation",
+        "owner binding",
+        "service-role backend only",
+        "idempotency key",
+        "source attribution"
+      ],
+      "client_to_lunduslead_direct_write": false
+    },
+    "domain_security": {
+      "status": "EVIDENCE_GAPS_RECORDED_NO_MUTATION",
+      "registrar_2fa": "NOT_EVIDENCED",
+      "domain_transfer_lock": "NOT_EVIDENCED",
+      "dnssec": "NOT_EVALUATED",
+      "auto_renew": "VERIFIED_ENABLED"
+    },
+    "stale_evidence_cleanup": {
+      "status": "RECONCILED_IN_THIS_PR",
+      "item": "Final Activation Gate public-address wording aligned with approved SSM address publication."
+    },
+    "open_pr_hygiene": {
+      "status": "AUDITED_NO_AUTOMATIC_CLOSURE",
+      "superseded_candidates": [
+        {
+          "pr": 199,
+          "ahead_by": 0,
+          "classification": "FULLY_CONTAINED_IN_MAIN_HISTORY"
+        },
+        {
+          "pr": 200,
+          "ahead_by": 0,
+          "classification": "FULLY_CONTAINED_IN_MAIN_HISTORY"
+        },
+        {
+          "pr": 201,
+          "ahead_by": 0,
+          "classification": "FULLY_CONTAINED_IN_MAIN_HISTORY"
+        },
+        {
+          "pr": 202,
+          "ahead_by": 0,
+          "classification": "FULLY_CONTAINED_IN_MAIN_HISTORY"
+        },
+        {
+          "pr": 203,
+          "ahead_by": 0,
+          "classification": "FULLY_CONTAINED_IN_MAIN_HISTORY"
+        },
+        {
+          "pr": 204,
+          "ahead_by": 0,
+          "classification": "FULLY_CONTAINED_IN_MAIN_HISTORY"
+        }
+      ],
+      "review_required": [
+        {
+          "pr": 218,
+          "ahead_by": 2,
+          "classification": "DIVERGED_UNIQUE_COMMITS_REVIEW_REQUIRED"
+        }
+      ],
+      "close_authorized": false,
+      "merge_authorized": false
+    }
+  }
+}
