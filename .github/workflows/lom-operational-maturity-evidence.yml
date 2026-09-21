@@ -31,7 +31,7 @@ jobs:
           python-version: '3.12'
       - name: Operational maturity regression
         working-directory: vl/lom-5-operational-maturity
-        run: python -m unittest -v test_runtime.py test_multi_project_evidence.py test_evidence_capture.py test_golden_5_final_evidence.py test_golden_6_final_evidence.py
+        run: python -m unittest -v test_runtime.py test_multi_project_evidence.py test_evidence_capture.py test_golden_5_final_evidence.py test_golden_6_final_evidence.py test_golden_7_final_evidence.py
       - name: Build longitudinal evidence summary without asserting false completion
         working-directory: vl/lom-5-operational-maturity
         run: python build_longitudinal_summary.py --output /tmp/lom-operational-maturity-summary.json

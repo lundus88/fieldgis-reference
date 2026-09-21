@@ -1,0 +1,14 @@
+{
+  "schema": "lom.human-decision-receipt/1",
+  "golden_run_id": "golden-7-lunduslead-remediation",
+  "repository": "lundus88/lundus-lead",
+  "pull_request": 155,
+  "decision": "APPROVED_FOR_MERGE",
+  "reviewer": "rnairing123",
+  "review_id": "5263727131",
+  "reviewed_at": "2026-09-21T06:43:32Z",
+  "exact_head_sha": "358778846f14059470028db57389a674b59582d0",
+  "merge_commit_sha": "28f8a03b976ec6a41c27b4c8638b6151dbc7a4a0",
+  "production_approval": false,
+  "authority_widening": false
+}

@@ -47,8 +47,8 @@ class Golden6FinalEvidenceTests(unittest.TestCase):
         self.assertEqual(result["status"], "HOLD")
         self.assertEqual(result["reason"], "OPERATIONAL_MATURITY_EVIDENCE_INCOMPLETE")
         self.assertFalse(result["criteria"]["at_least_four_verified_runs"])
-        self.assertFalse(result["criteria"]["at_least_three_projects"])
-        self.assertFalse(result["criteria"]["remediation_case_present"])
+        self.assertTrue(result["criteria"]["at_least_three_projects"])
+        self.assertTrue(result["criteria"]["remediation_case_present"])
         self.assertFalse(result["criteria"]["bounded_multi_agent_delegation_present"])
 
     def test_safety_metrics_remain_clean(self):
