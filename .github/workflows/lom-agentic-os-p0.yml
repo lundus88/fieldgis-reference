@@ -1,0 +1,24 @@
+name: LOM Agentic OS P0
+on:
+  push:
+    branches: [lom/agentic-os-p0-intelligence-core]
+  pull_request:
+    branches: [main]
+jobs:
+  agentic-core:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Agentic intelligence core regressions
+        run: |
+          cd vl/lom-agentic-os-p0
+          python3 test_intelligence_core.py
+      - name: Contract remains non-production
+        run: |
+          python3 - <<'PY'
+          import json
+          p=json.load(open('vl/lom-agentic-os-p0/contract.json'))
+          assert p['status']=='DEVELOPMENT_NON_PRODUCTION'
+          assert not any(p['authority'].values())
+          print('PASS non-production authority contract')
+          PY
