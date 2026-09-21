@@ -16,8 +16,9 @@ Current known records:
 - Golden #4 — KontenStudio source recovery: deployment SHA lineage was recovered, but reproducible repository QA remains pending. The repository is visible, while `main` is not currently resolvable.
 - Golden #5 — LOM Capture v2 real workflow: VERIFIED after exact-head execution, independent validation, explicit human approval on PR #352, and merge commit binding. This is the first complete VERIFIED run under Capture v2.
 - Golden #6 — e-BKL fail-closed workflow: VERIFIED BLOCKED case after e-BKL rejected a prohibited official-submission claim, preserved Adjustment/Export/Submission/Production locks, passed independent validation, PR #70 approval, and merge binding.
+- Golden #7 — LundusLead remediation workflow: VERIFIED REMEDIATED case after PR #138 redirect remediation was re-verified on current main, PR #155 was human-approved, and the exact merge outcome was bound.
 
-Golden #5 and #6 now provide two VERIFIED runs across two projects. The fail-closed criterion is satisfied, but Issue #158 still requires at least four VERIFIED runs across at least three projects, including VERIFIED remediation and bounded multi-agent evidence.
+Golden #5, #6 and #7 now provide three VERIFIED runs across three projects. The fail-closed, three-project and remediation criteria are satisfied. Issue #158 still requires at least four VERIFIED runs and bounded multi-agent delegation evidence.
 
 Therefore the current maturity verdict is expected to remain:
 
