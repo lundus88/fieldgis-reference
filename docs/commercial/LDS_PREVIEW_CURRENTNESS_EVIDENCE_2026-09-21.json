@@ -3,7 +3,7 @@
   "as_of": "2026-09-21",
   "source": {
     "deployed_source_sha": "42b16dfb2a27e09b41cdf1ebbbd2c0dff02adb54",
-    "current_main_sha_at_verification": "ea7891993f447ce1fcda0e4452c650503452a3ed",
+    "current_main_sha_at_verification": "c784d6bdfa96ab31c5f8eb0e8f5a512fae0fb545",
     "main_commits_after_deployed_source": 7,
     "commercial_drift_since_deployed_source": false,
     "commercial_paths_changed": []
