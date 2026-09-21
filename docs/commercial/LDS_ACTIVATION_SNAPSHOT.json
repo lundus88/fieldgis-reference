@@ -14,7 +14,7 @@
     "preview_target": "preview",
     "preview_visual_qa": "HISTORICAL_PASS_CURRENT_RERUN_HOLD",
     "preview_workflow_qa": "STATIC_CURRENTNESS_PASS",
-    "current_main_sha_at_preview_verification": "ea7891993f447ce1fcda0e4452c650503452a3ed",
+    "current_main_sha_at_preview_verification": "c784d6bdfa96ab31c5f8eb0e8f5a512fae0fb545",
     "preview_currentness_evidence": "docs/commercial/LDS_PREVIEW_CURRENTNESS_EVIDENCE_2026-09-21.json",
     "preview_deployment_url": "lundus-digital-systems-preview-2sb5x2m50-lundus-projects.vercel.app",
     "preview_currentness": "PASS_DEPLOYMENT_STATIC_VISUAL_RERUN_HOLD",
