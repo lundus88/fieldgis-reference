@@ -130,18 +130,14 @@
       "id": "6.11",
       "owner": "live-operational-evidence-fabric",
       "artifact": "vl/lom-6-11-live-operational-evidence-fabric/evidence_fabric.py"
-    }
-  ],
-  "pending_external_stages": [
+    },
     {
       "id": "6.12",
       "owner": "cognitive-integration-layer",
-      "tracking_pr": "#348",
-      "tracking_issue": 347,
-      "merge_required_before_canonical": true,
       "artifact": "vl/lom-6-12-cognitive-integration/cognitive_integration.py"
     }
   ],
+  "pending_external_stages": [],
   "critical_invariants": [
     {
       "artifact": "vl/lom-self-improvement-runtime/README.md",
@@ -221,6 +217,15 @@
         "HUMAN_ONLY",
         "execution authority: `NONE`",
         "cross-repository write: `DISABLED`"
+      ]
+    },
+    {
+      "artifact": "vl/lom-6-12-cognitive-integration/cognitive_integration.py",
+      "tokens": [
+        "PREPARE_PR",
+        "HUMAN_ONLY",
+        "FORBIDDEN",
+        "execution_performed"
       ]
     }
   ]
