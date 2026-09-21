@@ -1,0 +1,33 @@
+{
+  "schema": "lom.agentic-os-p0/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "authority": {
+    "live_provider_invocation": false,
+    "production_deployment": false,
+    "production_mutation": false,
+    "protected_main_merge": false,
+    "financial_commitment": false,
+    "customer_commitment": false,
+    "legal_commitment": false,
+    "privilege_widening": false,
+    "policy_mutation": false
+  },
+  "decisions": [
+    "ALLOW",
+    "HOLD",
+    "HUMAN_GATE"
+  ],
+  "frontier_dispositions": [
+    "ADOPT",
+    "PILOT",
+    "WATCH",
+    "REJECT"
+  ],
+  "required_controls": [
+    "ACP_DEFAULT_DENY",
+    "INDEPENDENT_VERIFICATION",
+    "EVIDENCE_BOUND_CHECKPOINT",
+    "HUMAN_GATE_FOR_CONSEQUENTIAL_ACTION",
+    "CERTIFIED_ROUTE_ONLY"
+  ]
+}
