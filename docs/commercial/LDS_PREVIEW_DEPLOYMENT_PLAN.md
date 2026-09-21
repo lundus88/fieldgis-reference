@@ -70,7 +70,7 @@ Verified currentness evidence on 21 September 2026:
 - static/responsive surface QA: PASS;
 - noindex + robots guard: PASS;
 - direct Preview access remains behind Vercel SSO and emits `x-robots-tag: noindex`;
-- later protected-main SHA `c784d6bdfa96ab31c5f8eb0e8f5a512fae0fb545` contains no commercial-path drift after the deployed source SHA.
+- later protected-main SHA `dd3b1bd3c786cccd8c75792ea73819b26d0216e1` contains no commercial-path drift after the deployed source SHA.
 
 A fresh rendered browser visual rerun is still HOLD because the available runtime could not obtain a browser binary. Historical V4 visual QA remains valid only as historical evidence and must not be treated as current deployment visual evidence.
 
