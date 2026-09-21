@@ -1,0 +1,26 @@
+name: LOM 6.12 Cognitive Integration
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/lom-6-12-cognitive-integration/**'
+      - '.github/workflows/lom-cognitive-integration.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile
+        run: python -m py_compile vl/lom-6-12-cognitive-integration/cognitive_integration.py
+      - name: Unit tests
+        working-directory: vl/lom-6-12-cognitive-integration
+        run: python -m unittest -v test_cognitive_integration.py

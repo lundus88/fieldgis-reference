@@ -151,8 +151,8 @@
     }
   },
   "audit_binding": {
-    "audited_main_sha": "f9ff738c29e37c453d8402000a0ddb0f62d804f2",
+    "audited_main_sha": "2159e4988328e7f070b53b845e6704b49444414b",
     "audited_on": "2026-09-21",
-    "note": "Any material main-branch drift before merge requires revalidation of this evidence snapshot."
+    "note": "Evidence snapshot revalidated against the current main branch before merge; any further material main-branch drift requires revalidation."
   }
 }

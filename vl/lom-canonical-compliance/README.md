@@ -3,7 +3,7 @@
 Status: DEVELOPMENT / NON-PRODUCTION
 Tracking: Issue #248
 
-Purpose: reconcile the existing LOM 4.3 through 6.11 stack into one machine-testable canonical chain without reimplementing capabilities that already exist.
+Purpose: reconcile the existing LOM 4.3 through 6.12 stack into one machine-testable canonical chain without reimplementing capabilities that already exist.
 
 This package is a compliance/reconciliation layer, not a second self-improvement, sandbox, promotion, approval, evidence-ledger, project-state, telemetry, or operational-evidence runtime.
 
@@ -24,7 +24,9 @@ The validator requires unique stage IDs, unique canonical owners and unique cano
 
 A stage may move from `pending_external_stages` to `canonical_stages` only after its governed pull request has been human-approved, required CI has passed, and the stage has been merged into protected `main`.
 
-LOM 6.11 satisfies those prerequisites through human-approved merged PR #267. This reconciliation promotes the merged `vl/lom-6-11-live-operational-evidence-fabric/evidence_fabric.py` implementation into the canonical chain and clears its pending-stage declaration.
+LOM 6.11 satisfies those prerequisites through human-approved merged PR #267.
+
+LOM 6.12 Cognitive Integration satisfied the same promotion rule through human-approved merged PR #348, with exact-head CI success before merge. It is therefore promoted from `pending_external_stages` into the canonical chain.
 
 Future unmerged stages must remain pending and must not be recreated inside this package.
 
