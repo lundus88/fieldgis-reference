@@ -31,17 +31,13 @@ class Golden7FinalEvidenceTests(unittest.TestCase):
             self.record["human_decision_evidence"]["merge_commit_sha"],
         )
 
-    def test_registry_satisfies_third_project_and_remediation(self):
+    def test_registry_preserves_golden_7_project_and_remediation_milestones(self):
         result = evaluate_registry(self.registry)
         self.assertIn("golden-7-lunduslead-remediation", result["verified_run_ids"])
         self.assertEqual(sorted(result["projects"]), ["ebkl", "lom", "lunduslead"])
         self.assertTrue(result["criteria"]["at_least_three_projects"])
         self.assertTrue(result["criteria"]["remediation_case_present"])
         self.assertTrue(result["criteria"]["fail_closed_case_present"])
-        self.assertFalse(result["criteria"]["at_least_four_verified_runs"])
-        self.assertFalse(result["criteria"]["bounded_multi_agent_delegation_present"])
-        self.assertEqual(result["status"], "HOLD")
-        self.assertEqual(result["reason"], "OPERATIONAL_MATURITY_EVIDENCE_INCOMPLETE")
 
     def test_safety_metrics_remain_clean(self):
         result = evaluate_registry(self.registry)

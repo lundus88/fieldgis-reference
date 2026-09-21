@@ -1,0 +1,14 @@
+{
+  "schema": "lom.human-decision-receipt/1",
+  "golden_run_id": "golden-8-lom-bounded-multi-agent",
+  "repository": "lundus88/fieldgis-reference",
+  "pull_request": 358,
+  "decision": "APPROVED_FOR_MERGE",
+  "reviewer": "rnairing123",
+  "review_id": "5263887511",
+  "reviewed_at": "2026-09-21T07:07:45Z",
+  "exact_head_sha": "201894953bf9fe7863fcd66134b346baf8e2e27c",
+  "merge_commit_sha": "04fde6056956313302625d2e71cac297b6c0e045",
+  "production_approval": false,
+  "authority_widening": false
+}

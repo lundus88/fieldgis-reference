@@ -17,12 +17,15 @@ Current known records:
 - Golden #5 — LOM Capture v2 real workflow: VERIFIED after exact-head execution, independent validation, explicit human approval on PR #352, and merge commit binding. This is the first complete VERIFIED run under Capture v2.
 - Golden #6 — e-BKL fail-closed workflow: VERIFIED BLOCKED case after e-BKL rejected a prohibited official-submission claim, preserved Adjustment/Export/Submission/Production locks, passed independent validation, PR #70 approval, and merge binding.
 - Golden #7 — LundusLead remediation workflow: VERIFIED REMEDIATED case after PR #138 redirect remediation was re-verified on current main, PR #155 was human-approved, and the exact merge outcome was bound.
+- Golden #8 — LOM bounded multi-agent workflow: VERIFIED candidate after four-role delegation, independent certification, widening-denial tests, PR #358 human approval, and exact merge binding.
 
-Golden #5, #6 and #7 now provide three VERIFIED runs across three projects. The fail-closed, three-project and remediation criteria are satisfied. Issue #158 still requires at least four VERIFIED runs and bounded multi-agent delegation evidence.
+Golden #5 through #8 now provide four VERIFIED runs across three projects. Fail-closed, remediation, three-project and bounded multi-agent criteria are all satisfied in the final-binding branch, with zero recorded budget-overrun, authority-expansion or fabricated-PASS incidents.
 
-Therefore the current maturity verdict is expected to remain:
+Therefore the final-binding branch is expected to evaluate to:
 
-`HOLD / OPERATIONAL_MATURITY_EVIDENCE_INCOMPLETE`
+`PASS / OPERATIONAL_MATURITY_EVIDENCE_COMPLETE`
+
+This does not become the authoritative main-branch verdict until the final evidence-binding PR is human-approved and merged.
 
 A PASS must never be inferred from issue prose, a successful build alone, or an incomplete historical record.
 
