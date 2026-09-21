@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 MATURITY = HERE.parents[1]
+sys.path.insert(0, str(MATURITY))
 SPEC_DATA = json.loads((HERE / "spec.json").read_text(encoding="utf-8"))
 EXEC = json.loads((HERE / "execution-result.json").read_text(encoding="utf-8"))
 VALIDATION = json.loads((HERE / "independent-validation.json").read_text(encoding="utf-8"))
