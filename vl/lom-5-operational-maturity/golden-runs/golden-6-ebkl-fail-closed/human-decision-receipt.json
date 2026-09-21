@@ -1,0 +1,14 @@
+{
+  "schema": "lom.human-decision-receipt/1",
+  "golden_run_id": "golden-6-ebkl-fail-closed",
+  "repository": "lundus88/ebkl",
+  "pull_request": 70,
+  "decision": "APPROVED_FOR_MERGE",
+  "reviewer": "rnairing123",
+  "review_id": "5263640654",
+  "reviewed_at": "2026-09-21T06:29:12Z",
+  "exact_head_sha": "6972b3596bf3ea6ad538375a001a63e36ff71b6b",
+  "merge_commit_sha": "3edc2f9e7e5b2a5d188827e1e30d9837d44434d8",
+  "production_approval": false,
+  "authority_widening": false
+}
