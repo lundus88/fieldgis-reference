@@ -7,6 +7,7 @@ gate_path = Path("docs/commercial/LDS_FINAL_COMMERCIAL_ACTIVATION_GATE.md")
 evidence_path = Path("docs/commercial/LDS_BUSINESS_LICENCE_EVIDENCE.json")
 snapshot_path = Path("docs/commercial/LDS_ACTIVATION_SNAPSHOT.json")
 domain_path = Path("docs/commercial/LDS_DOMAIN_EMAIL_READINESS.json")
+preview_currentness_path = Path("docs/commercial/LDS_PREVIEW_CURRENTNESS_EVIDENCE_2026-09-21.json")
 
 text = gate_path.read_text()
 errors = []
@@ -19,9 +20,12 @@ required = [
     "LEGAL_TRUST_READY: HOLD",
     "GOLDEN_TRANSACTION_DRY_RUN: PASS",
     "GOLDEN_TRANSACTION_PASS: HOLD",
-    "PREVIEW_EXECUTION: PASS / V4 READY",
-    "PREVIEW_V4_VISUAL_QA: PASS",
-    "PREVIEW_V4_WORKFLOW_QA: PASS",
+    "PREVIEW_EXECUTION: PASS / CURRENT DEPLOYMENT READY",
+    "PREVIEW_CURRENTNESS_STATIC: PASS",
+    "PREVIEW_CURRENT_RESPONSIVE_STRUCTURE_QA: PASS",
+    "PREVIEW_CURRENT_VISUAL_QA: HOLD",
+    "PREVIEW_V4_VISUAL_QA: PASS / HISTORICAL EVIDENCE ONLY",
+    "PREVIEW_V4_WORKFLOW_QA: PASS / HISTORICAL EVIDENCE",
     "FINAL_COMMERCIAL_DOMAIN: PASS / `lundusdigital.com`",
     "DNS_PRODUCTION_BINDING: HOLD",
     "EMAIL_PROVIDER_SELECTED: PASS / Zoho Mail Lite 10 GB",
@@ -131,6 +135,30 @@ else:
     if domain_gates.get("DNS_PRODUCTION_BINDING") != "HOLD":
         errors.append("DNS_PRODUCTION_BINDING must remain HOLD")
 
+if not preview_currentness_path.exists():
+    errors.append("Preview currentness evidence manifest missing")
+else:
+    preview = json.loads(preview_currentness_path.read_text())
+    if preview.get("schema") != "lds.preview-currentness-evidence/1":
+        errors.append("unexpected Preview currentness evidence schema")
+    if preview.get("vercel",{}).get("canonical_deployment_id") != "dpl_EtpmqbwrL8G3rdRMgfxjTpBY9yhK":
+        errors.append("canonical refreshed Preview deployment drift")
+    if preview.get("vercel",{}).get("state") != "READY":
+        errors.append("refreshed Preview must remain READY")
+    if preview.get("vercel",{}).get("target") is not None:
+        errors.append("refreshed Preview target must remain non-Production/null")
+    if preview.get("vercel",{}).get("aliases") != []:
+        errors.append("refreshed Preview must not have Production/custom aliases")
+    if preview.get("qa",{}).get("static_surface_qa") != "PASS":
+        errors.append("refreshed Preview static QA must remain PASS")
+    if preview.get("qa",{}).get("responsive_structure") != "PASS":
+        errors.append("refreshed Preview responsive QA must remain PASS")
+    if preview.get("qa",{}).get("current_visual_browser_rerun") != "HOLD_BROWSER_RUNTIME_UNAVAILABLE":
+        errors.append("current Preview visual rerun HOLD classification drift")
+    for key,value in preview.get("authority",{}).items():
+        if value is not False:
+            errors.append(f"Preview evidence must not authorize {key}")
+
 if not snapshot_path.exists():
     errors.append("activation snapshot contract missing")
 else:
@@ -145,6 +173,13 @@ else:
         errors.append("business/licence snapshot section must be PASS")
     if "LICENCE_READY" in snapshot.get("blockers", []):
         errors.append("LICENCE_READY must not remain a blocker after official SSM evidence")
+    if "PREVIEW_CURRENT_VISUAL_QA" not in snapshot.get("blockers", []):
+        errors.append("current Preview visual QA must remain a blocker until rendered visual evidence exists")
+    release = snapshot.get("release", {})
+    if release.get("preview_deployment_id") != "dpl_EtpmqbwrL8G3rdRMgfxjTpBY9yhK":
+        errors.append("activation snapshot Preview deployment drift")
+    if release.get("preview_currentness") != "PASS_DEPLOYMENT_STATIC_VISUAL_RERUN_HOLD":
+        errors.append("activation snapshot Preview currentness classification drift")
     if snapshot.get("domain_email", {}).get("status") != "HOLD":
         errors.append("domain/email activation state must remain HOLD")
 
