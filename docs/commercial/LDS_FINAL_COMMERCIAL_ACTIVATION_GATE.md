@@ -147,7 +147,7 @@ Current state:
 - canonical refreshed Preview deployment id: `dpl_EtpmqbwrL8G3rdRMgfxjTpBY9yhK`
 - canonical refreshed Preview URL: `lundus-digital-systems-preview-2sb5x2m50-lundus-projects.vercel.app`
 - deployed commercial source SHA: `42b16dfb2a27e09b41cdf1ebbbd2c0dff02adb54`
-- later observed protected-main SHA: `ea7891993f447ce1fcda0e4452c650503452a3ed`
+- later observed protected-main SHA: `c784d6bdfa96ab31c5f8eb0e8f5a512fae0fb545`
 - commercial-path drift between those SHAs: none
 - Vercel API target: non-Production / `null`
 - Production aliases: none
