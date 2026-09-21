@@ -64,4 +64,6 @@ The evaluator also requires, across the longitudinal set:
 - authority widening: `HUMAN_ONLY`;
 - incomplete, contradictory or malformed evidence: `HOLD`.
 
+`evidence_capture.py` is now the standard capture path for future Golden Workflows. It binds deterministic digests, budgets, authority scope, measured outcome evidence and the human gate before any VERIFIED promotion. Historical records remain PARTIAL unless authoritative missing facts are recovered.
+
 `build_longitudinal_summary.py` reports the current state. Use `--require-pass` only when Issue #158 completion evidence is believed to be complete; the command must return non-zero while evidence remains incomplete.
