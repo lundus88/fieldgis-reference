@@ -39,7 +39,7 @@
   "current_preview": {
     "evidence_manifest": "docs/commercial/LDS_PREVIEW_CURRENTNESS_EVIDENCE_2026-09-21.json",
     "source_sha": "42b16dfb2a27e09b41cdf1ebbbd2c0dff02adb54",
-    "observed_current_main_sha": "c784d6bdfa96ab31c5f8eb0e8f5a512fae0fb545",
+    "observed_current_main_sha": "dd3b1bd3c786cccd8c75792ea73819b26d0216e1",
     "commercial_drift_since_source": false,
     "project_id": "prj_9areW7U50izhbz8yNrXK2r1YcJ1F",
     "deployment_id": "dpl_EtpmqbwrL8G3rdRMgfxjTpBY9yhK",
