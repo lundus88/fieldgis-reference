@@ -31,7 +31,7 @@ def run(cmd: list[str]) -> dict:
 
 def main() -> int:
     started = time.monotonic()
-    sha = os.environ.get("GITHUB_SHA", "").strip()
+    sha = os.environ.get("GOLDEN_SOURCE_SHA", os.environ.get("GITHUB_SHA", "")).strip()
     run_id = os.environ.get("GITHUB_RUN_ID", "").strip()
     if len(sha) not in {40, 64}:
         raise SystemExit("GITHUB_SHA_REQUIRED")
@@ -40,10 +40,7 @@ def main() -> int:
 
     checks = [
         run([sys.executable, "vl/lom-canonical-compliance/validate_canonical_chain.py"]),
-        run([
-            sys.executable, "-m", "unittest", "-v",
-            "vl/lom-5-operational-maturity/test_evidence_capture.py",
-        ]),
+        run([sys.executable, "vl/lom-5-operational-maturity/test_evidence_capture.py"]),
     ]
 
     result = {
