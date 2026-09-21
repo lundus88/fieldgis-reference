@@ -15,9 +15,13 @@ class CanonicalChainTests(unittest.TestCase):
     def test_current_manifest_passes(self):
         validator.validate(copy.deepcopy(BASE))
 
-    def test_terminal_stage_is_6_11(self):
+    def test_terminal_stage_is_6_11_with_6_12_pending(self):
         self.assertEqual(BASE['canonical_stages'][-1]['id'], '6.11')
-        self.assertEqual(BASE['pending_external_stages'], [])
+        pending = BASE['pending_external_stages']
+        self.assertEqual(len(pending), 1)
+        self.assertEqual(pending[0]['id'], '6.12')
+        self.assertEqual(pending[0]['tracking_pr'], '#348')
+        self.assertTrue(pending[0]['merge_required_before_canonical'])
 
     def test_missing_stage_fails(self):
         data = copy.deepcopy(BASE)

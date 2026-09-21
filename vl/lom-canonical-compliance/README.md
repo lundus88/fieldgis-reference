@@ -24,7 +24,9 @@ The validator requires unique stage IDs, unique canonical owners and unique cano
 
 A stage may move from `pending_external_stages` to `canonical_stages` only after its governed pull request has been human-approved, required CI has passed, and the stage has been merged into protected `main`.
 
-LOM 6.11 satisfies those prerequisites through human-approved merged PR #267. This reconciliation promotes the merged `vl/lom-6-11-live-operational-evidence-fabric/evidence_fabric.py` implementation into the canonical chain and clears its pending-stage declaration.
+LOM 6.11 satisfies those prerequisites through human-approved merged PR #267 and remains the terminal canonical stage.
+
+LOM 6.12 Cognitive Integration is intentionally registered as a pending external stage under PR #348. It must remain pending until its governed PR is human-approved, required CI passes, and it is merged into protected `main`.
 
 Future unmerged stages must remain pending and must not be recreated inside this package.
 
