@@ -1,0 +1,40 @@
+{
+  "schema": "lom.golden-workflow-run-spec/2",
+  "run_id": "golden-5-lom-capture-v2",
+  "project_id": "lom",
+  "request_id": "issue-158-golden-5",
+  "app_spec": {
+    "objective": "Verify LOM 6.12 canonical integrity and Golden Workflow Evidence Capture v2 in a real non-production repository workflow.",
+    "target_environment": "NON_PRODUCTION",
+    "expected_outcome": "RC_AWAITING_HUMAN_REVIEW"
+  },
+  "context_policy": {
+    "autonomous_ceiling": "PREPARE_PR",
+    "production_authority": "HUMAN_ONLY",
+    "protected_main_merge": "HUMAN_ONLY",
+    "self_certification": "FORBIDDEN",
+    "missing_evidence": "HOLD"
+  },
+  "model_routing_decision": {
+    "model_required": false,
+    "route": "LOCAL_DETERMINISTIC_VALIDATION",
+    "reason": "This controlled run requires repository-local deterministic validation only."
+  },
+  "capability_scope": [
+    "repo.read",
+    "local.python.execute",
+    "ci.inspect",
+    "artifact.upload"
+  ],
+  "resource_scope": [
+    "repo:lundus88/fieldgis-reference",
+    "path:vl/lom-5-operational-maturity",
+    "path:vl/lom-canonical-compliance"
+  ],
+  "budgets": {
+    "token_budget": 0,
+    "cost_budget": 0,
+    "time_budget_seconds": 300,
+    "retry_budget": 0
+  }
+}
