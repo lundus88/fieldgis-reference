@@ -1,0 +1,70 @@
+name: LDS Prelaunch Parallel Hardening
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'docs/commercial/LDS_PRELAUNCH_PARALLEL_HARDENING.json'
+      - 'docs/commercial/check_prelaunch_parallel_hardening.py'
+      - 'docs/commercial/LDS_FINAL_COMMERCIAL_ACTIVATION_GATE.md'
+      - 'commercial/tests/lds_prelaunch_synthetic_e2e.py'
+      - 'commercial/tests/commercial_golden_transaction_dry_run.py'
+      - 'commercial/lundus-digital-systems/lead-intake-contract.json'
+      - 'commercial/lundus-digital-systems/workflow-assessment-contract.json'
+      - 'commercial/lundus-digital-systems/check_commercial_surface.py'
+      - 'vl/tests/check_commercial_payment_production_readiness.py'
+      - 'vl/tests/check_commercial_customer_notification.py'
+      - '.github/workflows/lds-prelaunch-parallel-hardening.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'docs/commercial/LDS_PRELAUNCH_PARALLEL_HARDENING.json'
+      - 'docs/commercial/check_prelaunch_parallel_hardening.py'
+      - 'commercial/tests/lds_prelaunch_synthetic_e2e.py'
+      - '.github/workflows/lds-prelaunch-parallel-hardening.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  prelaunch-hardening:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Validate prelaunch hardening governance
+        run: python3 docs/commercial/check_prelaunch_parallel_hardening.py
+
+      - name: Run synthetic lead-to-order E2E
+        run: python3 commercial/tests/lds_prelaunch_synthetic_e2e.py
+
+      - name: Re-run Commercial Golden Transaction dry-run
+        run: python3 commercial/tests/commercial_golden_transaction_dry_run.py
+
+      - name: Re-run payment fail-closed contract
+        run: python3 vl/tests/check_commercial_payment_production_readiness.py
+
+      - name: Re-run customer notification fail-closed contract
+        run: python3 vl/tests/check_commercial_customer_notification.py
+
+      - name: Re-run commercial surface contract
+        run: python3 commercial/lundus-digital-systems/check_commercial_surface.py
+
+      - name: Re-run final commercial activation gate
+        run: python3 docs/commercial/check_final_commercial_activation_gate.py
+
+      - name: Record bounded scope
+        run: |
+          echo 'Non-Production prelaunch hardening only.'
+          echo 'No Production configuration changed.'
+          echo 'No DNS mutation performed.'
+          echo 'No live lead submitted.'
+          echo 'No Billplz API call made.'
+          echo 'No Resend API call made.'
+          echo 'No live customer charge performed.'
+          echo 'No public launch authority granted.'
