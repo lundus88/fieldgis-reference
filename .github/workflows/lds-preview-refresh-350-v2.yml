@@ -1,0 +1,211 @@
+name: LDS Preview Refresh 350 V2
+
+on:
+  push:
+    branches:
+      - ops/lds-preview-refresh-350
+    paths:
+      - '.github/workflows/lds-preview-refresh-350-v2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  refresh-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_TEAM_ID: team_tV4WIIVgvU5VybM7PIhiuVNO
+      VERCEL_PROJECT_ID: prj_9areW7U50izhbz8yNrXK2r1YcJ1F
+      VERCEL_PROJECT_NAME: lundus-digital-systems-preview
+      EXPECTED_MAIN_SHA: 42b16dfb2a27e09b41cdf1ebbbd2c0dff02adb54
+
+    steps:
+      - name: Verify deployment credential exists
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}" || { echo 'VERCEL_TOKEN_MISSING'; exit 1; }
+
+      - name: Verify exact Vercel Preview project
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsS \
+            -H "Authorization: Bearer ${VERCEL_TOKEN}" \
+            "https://api.vercel.com/v9/projects/${VERCEL_PROJECT_ID}?teamId=${VERCEL_TEAM_ID}" \
+            > /tmp/project.json
+          python3 - <<'PY'
+          import json, os
+          p=json.load(open('/tmp/project.json'))
+          assert p.get('id') == os.environ['VERCEL_PROJECT_ID'], p.get('id')
+          assert p.get('name') == os.environ['VERCEL_PROJECT_NAME'], p.get('name')
+          print('VERCEL_PROJECT_SCOPE_PASS', p['id'], p['name'])
+          PY
+
+      - name: Fail closed on Production environment configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsS \
+            -H "Authorization: Bearer ${VERCEL_TOKEN}" \
+            "https://api.vercel.com/v9/projects/${VERCEL_PROJECT_ID}/env?teamId=${VERCEL_TEAM_ID}" \
+            > /tmp/env.json
+          python3 - <<'PY'
+          import json
+          data=json.load(open('/tmp/env.json'))
+          envs=data.get('envs', data if isinstance(data,list) else [])
+          forbidden_fragments=('BILLPLZ','RESEND_PRODUCTION','SERVICE_ROLE','PRODUCTION_SECRET')
+          bad=[]
+          for e in envs:
+              key=str(e.get('key',''))
+              target=e.get('target',[])
+              if isinstance(target,str): target=[target]
+              if 'production' in target:
+                  bad.append((key,'production-target'))
+              if any(x in key.upper() for x in forbidden_fragments):
+                  bad.append((key,'forbidden-key-pattern'))
+          if bad:
+              raise SystemExit('FAIL_CLOSED_ENV: '+repr(bad))
+          print('PREVIEW_ENV_GUARD_PASS keys=', [e.get('key') for e in envs])
+          PY
+
+      - name: Checkout exact protected main snapshot
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.EXPECTED_MAIN_SHA }}
+          fetch-depth: 1
+
+      - name: Verify source and commercial surface contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${EXPECTED_MAIN_SHA}"
+          python3 commercial/lundus-digital-systems/check_commercial_surface.py
+          python3 commercial/lundus-digital-systems/check_surface_qa.py
+          grep -qi 'noindex' commercial/lundus-digital-systems/index.html
+          grep -q 'Disallow: /' commercial/lundus-digital-systems/robots.txt
+
+      - name: Build explicit static deployment payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64, json, os
+          root=Path('commercial/lundus-digital-systems')
+          public=sorted(list(root.glob('*.html')) + [root/'styles.css',root/'site.js',root/'robots.txt'])
+          files=[]
+          for p in public:
+              data=base64.b64encode(p.read_bytes()).decode()
+              files.append({'file':p.name,'data':data,'encoding':'base64'})
+          assert any(x['file']=='index.html' for x in files)
+          body={
+              'name': os.environ['VERCEL_PROJECT_NAME'],
+              'project': os.environ['VERCEL_PROJECT_ID'],
+              'files': files,
+              'gitMetadata': {
+                  'remoteUrl':'https://github.com/lundus88/fieldgis-reference',
+                  'commitRef':'main',
+                  'commitSha':os.environ['EXPECTED_MAIN_SHA'],
+                  'commitMessage':'LD Preview currentness refresh for Issue #350',
+                  'dirty':False,
+                  'ci':True,
+                  'ciType':'github-actions',
+                  'ciGitRepoVisibility':'public'
+              }
+          }
+          json.dump(body,open('/tmp/deploy.json','w'))
+          print('PUBLIC_FILES',len(files),[x['file'] for x in files])
+          PY
+
+      - name: Create Preview deployment on exact project
+        shell: bash
+        run: |
+          set -euo pipefail
+          STATUS=$(curl -sS -o /tmp/deployment-create.json -w '%{http_code}' \
+            -X POST \
+            -H "Authorization: Bearer ${VERCEL_TOKEN}" \
+            -H 'Content-Type: application/json' \
+            "https://api.vercel.com/v13/deployments?teamId=${VERCEL_TEAM_ID}" \
+            --data-binary @/tmp/deploy.json)
+          if [ "${STATUS}" -lt 200 ] || [ "${STATUS}" -ge 300 ]; then
+            echo "VERCEL_CREATE_HTTP_${STATUS}"
+            python3 - <<'PY'
+          import json
+          try:
+              d=json.load(open('/tmp/deployment-create.json'))
+              print({'error':d.get('error')})
+          except Exception:
+              print('unparseable Vercel response')
+          PY
+            exit 1
+          fi
+          python3 - <<'PY' >> "$GITHUB_ENV"
+          import json
+          d=json.load(open('/tmp/deployment-create.json'))
+          dep=d.get('id')
+          url=d.get('url')
+          target=d.get('target')
+          assert isinstance(dep,str) and dep.startswith('dpl_'), dep
+          assert isinstance(url,str) and url.endswith('.vercel.app'), url
+          assert target != 'production', target
+          print('DEPLOYMENT_ID='+dep)
+          print('DEPLOYMENT_URL='+url)
+          PY
+
+      - name: Wait for READY and enforce non-Production state
+        shell: bash
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 30); do
+            curl -fsS \
+              -H "Authorization: Bearer ${VERCEL_TOKEN}" \
+              "https://api.vercel.com/v13/deployments/${DEPLOYMENT_ID}?teamId=${VERCEL_TEAM_ID}" \
+              > /tmp/deployment.json
+            STATE=$(python3 - <<'PY'
+          import json
+          d=json.load(open('/tmp/deployment.json'))
+          print(d.get('readyState') or d.get('state') or '')
+          PY
+            )
+            if [ "${STATE}" = "READY" ]; then break; fi
+            if [ "${STATE}" = "ERROR" ] || [ "${STATE}" = "CANCELED" ]; then
+              echo "DEPLOYMENT_${STATE}"
+              exit 1
+            fi
+            sleep 5
+          done
+          python3 - <<'PY'
+          import json, os
+          d=json.load(open('/tmp/deployment.json'))
+          state=d.get('readyState') or d.get('state')
+          target=d.get('target')
+          aliases=d.get('alias') or d.get('aliases') or []
+          assert state == 'READY', state
+          assert target != 'production', target
+          assert not aliases, aliases
+          assert d.get('id') == os.environ['DEPLOYMENT_ID']
+          print('LDS_PREVIEW_REFRESH_PASS')
+          print('deployment_id=',d.get('id'))
+          print('url=',d.get('url'))
+          print('target=',target)
+          print('aliases=',aliases)
+          PY
+
+      - name: Record evidence summary
+        shell: bash
+        run: |
+          {
+            echo "## LDS Preview Refresh #350"
+            echo "- source_sha: ${EXPECTED_MAIN_SHA}"
+            echo "- project_id: ${VERCEL_PROJECT_ID}"
+            echo "- deployment_id: ${DEPLOYMENT_ID}"
+            echo "- deployment_url: https://${DEPLOYMENT_URL}"
+            echo "- target: preview/non-production"
+            echo "- Production promotion: NOT AUTHORIZED"
+            echo "- Production domain binding: NOT AUTHORIZED"
+            echo "- live lead/payment: NOT AUTHORIZED"
+          } >> "$GITHUB_STEP_SUMMARY"
