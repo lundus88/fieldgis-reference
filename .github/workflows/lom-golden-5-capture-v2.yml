@@ -23,6 +23,8 @@ jobs:
         with:
           python-version: '3.12'
       - name: Execute measured Golden 5 run
+        env:
+          GOLDEN_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: python vl/lom-5-operational-maturity/golden-runs/golden-5-lom-capture-v2/run.py
       - name: Independent validation
         run: python vl/lom-5-operational-maturity/golden-runs/golden-5-lom-capture-v2/validate.py
