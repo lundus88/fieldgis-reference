@@ -105,7 +105,6 @@ jobs:
           body={
               'name': os.environ['VERCEL_PROJECT_NAME'],
               'project': os.environ['VERCEL_PROJECT_ID'],
-              'target': 'preview',
               'files': files,
               'gitMetadata': {
                   'remoteUrl':'https://github.com/lundus88/fieldgis-reference',
