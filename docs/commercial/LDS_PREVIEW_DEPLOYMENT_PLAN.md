@@ -55,16 +55,27 @@ Forbidden:
 - search indexing
 
 ## Execution status
-AUTHORIZED_PENDING_SAFE_MUTATION_PATH.
+CURRENT_PREVIEW_REFRESHED_STATIC_QA_PASS_VISUAL_RERUN_HOLD.
 
-Current preflight evidence:
-- connected Vercel read access is available;
-- available connected mutation capability does not expose a project-creation/explicit-project-selection control;
-- local runtime does not have Vercel CLI installed;
-- ephemeral `npx vercel whoami` preflight did not complete before timeout, so CLI authentication was not verified;
-- existing `fieldgis-reference` deployments observed through Vercel are Production-targeted.
+Verified currentness evidence on 21 September 2026:
+- dedicated project binding: `prj_9areW7U50izhbz8yNrXK2r1YcJ1F` / `lundus-digital-systems-preview`;
+- explicit project-scoped Vercel REST deployment path: PASS;
+- deployed source SHA: `42b16dfb2a27e09b41cdf1ebbbd2c0dff02adb54`;
+- canonical refreshed deployment: `dpl_EtpmqbwrL8G3rdRMgfxjTpBY9yhK`;
+- deployment state: READY;
+- Vercel API target: `null` / non-Production Preview;
+- Production aliases: none;
+- Preview project environment variables: none;
+- commercial-surface contract: PASS;
+- static/responsive surface QA: PASS;
+- noindex + robots guard: PASS;
+- direct Preview access remains behind Vercel SSO and emits `x-robots-tag: noindex`;
+- later protected-main SHA `ea7891993f447ce1fcda0e4452c650503452a3ed` contains no commercial-path drift after the deployed source SHA.
 
-Because the stop condition requires abort when tool/project scope is ambiguous, no Vercel mutation has been executed.
+A fresh rendered browser visual rerun is still HOLD because the available runtime could not obtain a browser binary. Historical V4 visual QA remains valid only as historical evidence and must not be treated as current deployment visual evidence.
+
+Evidence manifest:
+`docs/commercial/LDS_PREVIEW_CURRENTNESS_EVIDENCE_2026-09-21.json`
 
 ## Deployment procedure once a safe project-scoped mutation path is available
 1. Create a dedicated Vercel project separate from fieldgis-reference Production.
