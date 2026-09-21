@@ -77,21 +77,54 @@ Tests cover catalog privileges, real anon/authenticated calls, missing identity,
 | Repository fixture before migration | 0 | 3 | Reproduced the relevant boundary failure |
 | Repository fixture after PR #216 | 0 | 0 | Three client-executable private DEFINER helpers |
 | Repository fixture after successor/replay | 0 | 0 | Zero client-executable private DEFINER helpers; public scanner predicates unchanged |
-| Complete Supabase DEV control plane | Not tested | Not tested | `BLOCKED_DEV_DATABASE_VALIDATION` |
+| Local Supabase control plane (Postgres + Auth/PostgREST) | 0 | 0 | PASS on synthetic affected-schema slice; private Data API denied with PGRST106, AAL1/AAL2 and audited owner flow verified |\n| Remote full-schema Supabase DEV control plane / Controlled Canary | Not tested | Not tested | `HOLD_REMOTE_FULL_SCHEMA_DEV_CANARY` |
 
 These are test results, not certification/release-gate records. No PASS was written to a release database. The repository lacks a complete replayable production schema baseline; the fixture supplies explicitly limited test scaffolding and does not claim full migration reproducibility. Full mobile/device/platform CI, live Assisted Build browser flows and the Controlled Canary were not run by this work. Applicable PR checks are reported by GitHub on the PR revision.
 
-## Development validation blocker and next operator action
+## Development validation status and remaining operator gate
 
-Supabase discovery returned only the default production branch for `vrs-core`. No safe VL DEV database was available. The inactive QuoteFlow staging project and other products' projects are not substitutes. No new paid branch was provisioned.
+Local Supabase control-plane validation is now **PASS** on an isolated synthetic affected-schema slice.
 
-**Next action:** provide a separate, authorised VL Supabase DEV branch/database with verified schema provenance. Keep this PR unmerged and production on HOLD while these checks remain outstanding:
+Evidence:
+- workflow: [VL Database Security Local Supabase run 35554358922](https://github.com/lundus88/fieldgis-reference/actions/runs/35554358922) — SUCCESS;
+- exact CLI: Supabase CLI 2.117.0;
+- no `supabase link`, remote project ref, Production credential or real customer data was used;
+- the real PR #216 migration and this successor migration applied successfully on the local Supabase stack;
+- Postgres privilege evidence PASS;
+- Data API `private` profile: DENIED with HTTP 406 / PGRST106;
+- anon RPC execution: DENIED;
+- authenticated AAL1 read-only quote: PASS;
+- authenticated AAL1 override: DENIED / AAL2 required;
+- authenticated AAL2 owner override: PASS with audit record;
+- final scanner counts: `public_tables_without_rls=0`, `public_security_definer_exposed_to_client_roles=0`;
+- client-executable private SECURITY DEFINER count: `0`;
+- Production approval/promotion bypass flags remain false.
 
-1. Verify the DEV project ref differs from `wczelfmnqpgzfdszxubl`, establish the canonical schema/dependencies, and confirm `private` is not exposed by the Data API.
-2. Apply the additive migration to DEV only, record its checksum and run `vl/tests/database-security/privilege-evidence.sql`. Require public RPC INVOKER flags, authenticated access, anon/PUBLIC denial, private privileged helper denial and scanner counts `0 / 0`.
-3. With dedicated DEV test identities, exercise PostgREST named RPC calls and the actual Assisted Build review/save flow; test AAL1/AAL2 and owner/admin/nonmember cases. Verify stored audit/expiry records and raw-table denial.
-4. Run the Controlled Canary on DEV and record real database_security evidence and unchanged human production-approval/promotion boundaries. Resolve the separate action-pinning findings through normal review.
-5. Review the exact PR HEAD and CI. Merge/deploy/promotion require a later explicit human instruction; this RC provides none of those approvals.
+Machine-readable evidence:
+`vl/tests/database-security/local-supabase-evidence.json`.
+
+A fresh **read-only** Production catalog revalidation on 21 September 2026 still reports:
+- `public_tables_without_rls=0`;
+- `public_security_definer_exposed_to_client_roles=0`;
+- affected private SECURITY DEFINER helpers executable by `authenticated` = `3`.
+
+Therefore #218 remains relevant: PR #216 closes the public exposure, while this PR's stricter private-helper denial is not live.
+
+The remaining blocker is narrower than before:
+
+**HOLD_REMOTE_FULL_SCHEMA_DEV_CANARY**
+
+Supabase discovery still exposes only the default Production branch for `vrs-core`; no separately authorised VL DEV branch/database with verified full-schema provenance exists. The local stack validates real Supabase role/Data API behaviour, but intentionally uses the affected schema slice and does not claim complete production-schema replay.
+
+Remaining remote DEV gate:
+1. Use a separately authorised non-Production VL Supabase DEV branch/database whose ref differs from `wczelfmnqpgzfdszxubl`.
+2. Establish verified full-schema provenance, then apply the additive migration there only.
+3. Run `vl/tests/database-security/privilege-evidence.sql` and require public scanner `0 / 0`, public INVOKER/authenticated access, anon/PUBLIC denial, and private privileged helper denial.
+4. Exercise the real DEV Assisted Build browser flow and AAL1/AAL2 owner/admin/nonmember cases.
+5. Run the DEV Controlled Canary and record release-validator database_security evidence without changing Production approval/promotion authority.
+6. Review the exact current PR HEAD and required CI before any merge decision.
+
+This PR must remain OPEN/DRAFT until that remote full-schema DEV gate is resolved or a later human decision explicitly changes the governance requirement. No Production migration/deployment/promotion is authorised by the local PASS.
 
 ## Rollback
 
