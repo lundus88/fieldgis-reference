@@ -1,0 +1,43 @@
+{
+  "schema": "lom.golden-workflow-run-spec/2",
+  "run_id": "golden-8-lom-bounded-multi-agent",
+  "project_id": "lom",
+  "request_id": "issue-158-golden-8",
+  "app_spec": {
+    "objective": "Prove bounded multi-agent delegation using existing LOM governance and operational-safety contracts without widening authority.",
+    "target_environment": "NON_PRODUCTION",
+    "expected_outcome": "PASS"
+  },
+  "context_policy": {
+    "autonomous_ceiling": "PREPARE_PR",
+    "production_authority": "HUMAN_ONLY",
+    "protected_main_merge": "HUMAN_ONLY",
+    "delegation": "MONOTONIC_RESTRICTIVE",
+    "self_certification": "FORBIDDEN",
+    "executor_validator_separation": "REQUIRED",
+    "swarm_mode": "FORBIDDEN_BY_DEFAULT"
+  },
+  "model_routing_decision": {
+    "model_required": false,
+    "route": "LOCAL_DETERMINISTIC_VALIDATION",
+    "reason": "Existing delegation and operational-safety modules can be exercised directly without model or external API calls."
+  },
+  "capability_scope": [
+    "repo.read",
+    "ci.inspect",
+    "test.execute",
+    "artifact.render"
+  ],
+  "resource_scope": [
+    "repo:lundus88/fieldgis-reference",
+    "path:vl/multi-agent-governance",
+    "path:vl/lom-operational-safety",
+    "path:vl/lom-5-operational-maturity"
+  ],
+  "budgets": {
+    "token_budget": 0,
+    "cost_budget": 0,
+    "time_budget_seconds": 300,
+    "retry_budget": 0
+  }
+}

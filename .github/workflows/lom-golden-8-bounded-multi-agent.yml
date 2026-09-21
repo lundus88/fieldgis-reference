@@ -1,0 +1,55 @@
+name: LOM Golden 8 Bounded Multi-Agent
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/lom-5-operational-maturity/golden-runs/golden-8-lom-bounded-multi-agent/**'
+      - '.github/workflows/lom-golden-8-bounded-multi-agent.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  golden-8:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Execute Golden 8 bounded multi-agent proof
+        env:
+          GOLDEN_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: python vl/lom-5-operational-maturity/golden-runs/golden-8-lom-bounded-multi-agent/run.py
+      - name: Independent validation
+        run: python vl/lom-5-operational-maturity/golden-runs/golden-8-lom-bounded-multi-agent/validate.py
+      - name: Existing multi-agent governance regression
+        working-directory: vl/multi-agent-governance
+        run: python -m unittest -v test_lom_delegation_policy.py
+      - name: Existing operational safety regression
+        working-directory: vl/lom-operational-safety
+        run: python -m unittest -v test_operational_safety.py
+      - name: Existing integrated Golden workflow
+        run: python vl/golden-workflow/run_golden_workflow.py
+      - name: Enforce pre-human evidence HOLD
+        run: python vl/lom-5-operational-maturity/golden-runs/golden-8-lom-bounded-multi-agent/finalize_pre_human.py
+      - name: Hash evidence package
+        run: |
+          cd vl/lom-5-operational-maturity/golden-runs/golden-8-lom-bounded-multi-agent
+          sha256sum execution-result.json independent-validation.json pre-human-evidence-record.json > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+      - name: Upload immutable evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: lom-golden-8-bounded-multi-agent-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            vl/lom-5-operational-maturity/golden-runs/golden-8-lom-bounded-multi-agent/execution-result.json
+            vl/lom-5-operational-maturity/golden-runs/golden-8-lom-bounded-multi-agent/independent-validation.json
+            vl/lom-5-operational-maturity/golden-runs/golden-8-lom-bounded-multi-agent/pre-human-evidence-record.json
+            vl/lom-5-operational-maturity/golden-runs/golden-8-lom-bounded-multi-agent/SHA256SUMS.txt
+          retention-days: 7
