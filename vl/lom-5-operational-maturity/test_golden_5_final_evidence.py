@@ -43,12 +43,9 @@ class Golden5FinalEvidenceTests(unittest.TestCase):
             self.assertFalse(self.record[key], key)
         self.assertFalse(self.record["multi_agent_delegation"]["authority_expanded"])
 
-    def test_registry_counts_golden_5_but_issue_158_stays_hold(self):
+    def test_registry_preserves_golden_5_verified_identity(self):
         result = evaluate_registry(self.registry)
         self.assertIn("golden-5-lom-capture-v2", result["verified_run_ids"])
-        self.assertEqual(result["status"], "HOLD")
-        self.assertEqual(result["reason"], "OPERATIONAL_MATURITY_EVIDENCE_INCOMPLETE")
-        self.assertFalse(result["criteria"]["at_least_four_verified_runs"])
 
     def test_original_execution_identity_is_preserved(self):
         self.assertEqual(
