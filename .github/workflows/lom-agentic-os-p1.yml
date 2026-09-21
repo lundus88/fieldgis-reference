@@ -1,0 +1,19 @@
+name: LOM Agentic OS P1
+on:
+  push:
+    branches: [lom/agentic-os-p1-multimodel-fabric]
+  pull_request:
+    branches: [lom/agentic-os-p0-intelligence-core, main]
+jobs:
+  multimodel-fabric:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: P1 governed multi-model regressions
+        run: |
+          cd vl/lom-agentic-os-p1
+          python3 test_multimodel_fabric.py
+      - name: Existing authoritative model-governance regressions
+        run: |
+          cd vl/model-governance
+          python3 -m unittest -v test_route_model.py
