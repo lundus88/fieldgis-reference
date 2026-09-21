@@ -1,0 +1,13 @@
+{
+  "schema": "lom.human-decision-receipt/1",
+  "golden_run_id": "golden-5-lom-capture-v2",
+  "pull_request": 352,
+  "decision": "APPROVED_FOR_MERGE",
+  "reviewer": "rnairing123",
+  "review_id": "5262621037",
+  "reviewed_at": "2026-09-21T02:21:32Z",
+  "exact_head_sha": "492690fc947659d30fc33139669f8a363cca3aaa",
+  "merge_commit_sha": "c784d6bdfa96ab31c5f8eb0e8f5a512fae0fb545",
+  "production_approval": false,
+  "authority_widening": false
+}
