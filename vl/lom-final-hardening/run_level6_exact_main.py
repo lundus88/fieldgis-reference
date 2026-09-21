@@ -57,6 +57,7 @@ def main() -> int:
         'lom-6-9-human-approval-decision-package',
         'lom-6-9-2-human-approval-receipt',
         'lom-6-9-3-approval-consumption-ledger',
+        'lom-6-12-cognitive-integration',
     }
     missing_required = sorted(required_functional - set(executed))
     if missing_required:
