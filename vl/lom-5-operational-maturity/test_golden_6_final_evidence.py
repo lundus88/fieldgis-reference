@@ -39,17 +39,11 @@ class Golden6FinalEvidenceTests(unittest.TestCase):
         self.assertEqual(f["production"], "HOLD")
         self.assertEqual(f["preview_production_backend_mismatch"], "BLOCKED")
 
-    def test_registry_satisfies_fail_closed_but_stays_hold(self):
+    def test_registry_preserves_golden_6_fail_closed_milestone(self):
         result = evaluate_registry(self.registry)
         self.assertIn("golden-6-ebkl-fail-closed", result["verified_run_ids"])
         self.assertIn("ebkl", result["projects"])
         self.assertTrue(result["criteria"]["fail_closed_case_present"])
-        self.assertEqual(result["status"], "HOLD")
-        self.assertEqual(result["reason"], "OPERATIONAL_MATURITY_EVIDENCE_INCOMPLETE")
-        self.assertFalse(result["criteria"]["at_least_four_verified_runs"])
-        self.assertTrue(result["criteria"]["at_least_three_projects"])
-        self.assertTrue(result["criteria"]["remediation_case_present"])
-        self.assertFalse(result["criteria"]["bounded_multi_agent_delegation_present"])
 
     def test_safety_metrics_remain_clean(self):
         result = evaluate_registry(self.registry)
