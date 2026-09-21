@@ -132,9 +132,9 @@ jobs:
       - name: LOM 5.0 Operational Maturity
         working-directory: vl/lom-5-operational-maturity
         run: |
-          python -m unittest -v test_runtime.py test_multi_project_evidence.py
+          python -m unittest -v test_runtime.py test_multi_project_evidence.py test_evidence_capture.py
           python build_longitudinal_summary.py --output /tmp/lom-operational-maturity-summary.json
-      - name: LOM Canonical 4.3 through 6.11 Reconciliation
+      - name: LOM Canonical 4.3 through 6.12 Reconciliation
         run: |
           python vl/lom-canonical-compliance/validate_canonical_chain.py
           python -m unittest -v vl/lom-canonical-compliance/test_canonical_chain.py
