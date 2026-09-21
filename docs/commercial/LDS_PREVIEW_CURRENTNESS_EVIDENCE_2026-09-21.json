@@ -1,0 +1,55 @@
+{
+  "schema": "lds.preview-currentness-evidence/1",
+  "as_of": "2026-09-21",
+  "source": {
+    "deployed_source_sha": "42b16dfb2a27e09b41cdf1ebbbd2c0dff02adb54",
+    "current_main_sha_at_verification": "ea7891993f447ce1fcda0e4452c650503452a3ed",
+    "main_commits_after_deployed_source": 7,
+    "commercial_drift_since_deployed_source": false,
+    "commercial_paths_changed": []
+  },
+  "vercel": {
+    "team_id": "team_tV4WIIVgvU5VybM7PIhiuVNO",
+    "project_id": "prj_9areW7U50izhbz8yNrXK2r1YcJ1F",
+    "project_name": "lundus-digital-systems-preview",
+    "canonical_deployment_id": "dpl_EtpmqbwrL8G3rdRMgfxjTpBY9yhK",
+    "canonical_deployment_url": "lundus-digital-systems-preview-2sb5x2m50-lundus-projects.vercel.app",
+    "state": "READY",
+    "target": null,
+    "aliases": [],
+    "environment_keys": [],
+    "deployment_protection": "VERCEL_SSO",
+    "direct_http_status": 302,
+    "direct_http_x_robots_tag": "noindex"
+  },
+  "execution": {
+    "canonical_workflow_run_id": 35553514945,
+    "canonical_workflow_run_url": "https://github.com/lundus88/fieldgis-reference/actions/runs/35553514945",
+    "earlier_same_source_success_run_id": 35553495430,
+    "project_scope_guard": "PASS",
+    "production_environment_guard": "PASS",
+    "public_files_only_deployment": "PASS",
+    "public_file_count": 20
+  },
+  "qa": {
+    "commercial_surface_contract": "PASS",
+    "static_surface_qa": "PASS",
+    "responsive_structure": "PASS",
+    "local_links": "PASS",
+    "live_network_paths_blocked": "PASS",
+    "noindex_and_robots": "PASS",
+    "historical_reviewed_visual_qa": "PASS",
+    "current_visual_browser_rerun": "HOLD_BROWSER_RUNTIME_UNAVAILABLE",
+    "note": "Current deployment content and responsive structure are verified from exact source and deployment metadata. A fresh rendered browser visual pass is not claimed."
+  },
+  "authority": {
+    "production_deployment_authorized": false,
+    "production_promotion_authorized": false,
+    "production_domain_binding_authorized": false,
+    "dns_mutation_authorized": false,
+    "live_lead_intake_authorized": false,
+    "live_payment_authorized": false,
+    "public_launch_authorized": false
+  },
+  "classification": "PREVIEW_CURRENTNESS_STATIC_PASS_VISUAL_RERUN_HOLD"
+}
