@@ -136,7 +136,7 @@
     {
       "id": "6.12",
       "owner": "cognitive-integration-layer",
-      "tracking_pr": "#TBD",
+      "tracking_pr": "#348",
       "tracking_issue": 347,
       "merge_required_before_canonical": true,
       "artifact": "vl/lom-6-12-cognitive-integration/cognitive_integration.py"
