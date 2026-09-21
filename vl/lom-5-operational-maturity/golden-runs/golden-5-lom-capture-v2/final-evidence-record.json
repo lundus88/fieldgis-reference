@@ -1,0 +1,80 @@
+{
+  "run_id": "golden-5-lom-capture-v2",
+  "project_id": "lom",
+  "evidence_state": "VERIFIED",
+  "classification": "REAL_WORLD_GOLDEN_WORKFLOW_CAPTURE_V2_VERIFIED",
+  "request_id": "issue-158-golden-5",
+  "app_spec_sha256": "33307c5fde98c541e1de27b01f3c1ca808e545912a961c3b852a8fec6ff53e78",
+  "context_policy_sha256": "eda89018d29c5c8ffa1e8e2844af3e903e370e162414ef78677d4f535e51650e",
+  "model_routing_decision_sha256": "5555e3a854913c8890f7c120389d8faea5e29540f3c0313340b025558a3d9412",
+  "capability_scope": [
+    "repo.read",
+    "local.python.execute",
+    "ci.inspect",
+    "artifact.upload"
+  ],
+  "resource_scope": [
+    "repo:lundus88/fieldgis-reference",
+    "path:vl/lom-5-operational-maturity",
+    "path:vl/lom-canonical-compliance"
+  ],
+  "token_budget": 0,
+  "cost_budget": 0,
+  "time_budget_seconds": 300,
+  "retry_budget": 0,
+  "source_commit_sha": "492690fc947659d30fc33139669f8a363cca3aaa",
+  "artifact_sha256": "8d0d4fa6f7537ad2c4e717325de7b3cee019499a5c07fedfecd2a3d59b0d0689",
+  "qa_security_evidence": [
+    {
+      "kind": "github-actions",
+      "run_id": "35553700124",
+      "status": "SUCCESS",
+      "source_sha": "492690fc947659d30fc33139669f8a363cca3aaa"
+    },
+    {
+      "kind": "canonical-compliance",
+      "status": "PASS",
+      "source_sha": "492690fc947659d30fc33139669f8a363cca3aaa"
+    },
+    {
+      "kind": "artifact",
+      "artifact_id": "10619293042",
+      "digest": "sha256:f6a8a17204db88647ffc450ffc05f8049226b1baa8639d7621c6e67cecb855ef"
+    }
+  ],
+  "independent_validation": {
+    "schema": "lom.independent-validation/2",
+    "validator_role": "INDEPENDENT_VALIDATOR",
+    "status": "PASS",
+    "errors": [],
+    "source_github_sha": "492690fc947659d30fc33139669f8a363cca3aaa",
+    "source_github_run_id": "35553700124",
+    "builder_self_certification": false,
+    "production_authority": "HUMAN_ONLY"
+  },
+  "remediation_history": [],
+  "release_candidate_state": "MERGED_AFTER_HUMAN_APPROVAL",
+  "human_decision": "APPROVED_FOR_MERGE",
+  "release_outcome": "MERGED_NON_PRODUCTION_CODE_ONLY",
+  "rollback_audit_linkage": "github-run:35553700124;pr:352;merge:c784d6bdfa96ab31c5f8eb0e8f5a512fae0fb545",
+  "final_outcome": "PASS",
+  "attempts": 1,
+  "elapsed_seconds": 0.173893,
+  "estimated_model_tool_cost": 0,
+  "budget_overrun": false,
+  "authority_expansion_incident": false,
+  "fabricated_pass_incident": false,
+  "production_approval": false,
+  "builder_self_certified": false,
+  "multi_agent_delegation": {
+    "demonstrated": false,
+    "authority_expanded": false
+  },
+  "human_decision_evidence": {
+    "reviewer": "rnairing123",
+    "review_id": "5262621037",
+    "reviewed_at": "2026-09-21T02:21:32Z",
+    "pr": 352,
+    "merge_commit_sha": "c784d6bdfa96ab31c5f8eb0e8f5a512fae0fb545"
+  }
+}
