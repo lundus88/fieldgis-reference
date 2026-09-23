@@ -67,7 +67,13 @@ class PolicyError(RuntimeError):
 
 
 def _canonical(value: object) -> str:
-    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+    return json.dumps(
+        value,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=True,
+        allow_nan=False,
+    )
 
 
 def _sha256(value: object) -> str:
@@ -221,10 +227,12 @@ class PersistentRunLedger:
 
     def find_external_event(self, external_event_id: str) -> Optional[LedgerRecord]:
         for record in self.records():
-            if record.event_type not in {"EVENT_ACCEPTED", "EVENT_REJECTED"}:
-                continue
-            if record.payload.get("external_event_id") == external_event_id:
-                return record
+            if record.event_type in {"EVENT_ACCEPTED", "EVENT_REJECTED"}:
+                if record.payload.get("external_event_id") == external_event_id:
+                    return record
+            elif record.event_type == "TASK_CREATED":
+                if record.payload.get("source_event_id") == external_event_id:
+                    return record
         return None
 
 
@@ -467,16 +475,9 @@ class EventRouter:
             )
             return EventDecision(disposition, str(reason), None)
 
-        self.board.ledger.append(
-            "EVENT_ACCEPTED",
-            task_id=task_id,
-            payload={
-                "external_event_id": event.event_id,
-                "disposition": "ACCEPT",
-                "reason": "BOUNDED_NON_PRODUCTION_EVENT",
-                "evidence_ref": event.evidence_ref,
-            },
-        )
+        # Create the durable task first. If the process stops before the
+        # acknowledgement record is appended, TASK_CREATED.source_event_id
+        # still makes replay idempotent on restart.
         self.board.create(
             task_id=task_id,
             objective=event.objective,
@@ -489,6 +490,16 @@ class EventRouter:
             certifier_id=certifier_id,
             max_remediation_attempts=max_remediation_attempts,
             source_event_id=event.event_id,
+        )
+        self.board.ledger.append(
+            "EVENT_ACCEPTED",
+            task_id=task_id,
+            payload={
+                "external_event_id": event.event_id,
+                "disposition": "ACCEPT",
+                "reason": "BOUNDED_NON_PRODUCTION_EVENT",
+                "evidence_ref": event.evidence_ref,
+            },
         )
         return EventDecision("ACCEPT", "TASK_QUEUED", task_id)
 
