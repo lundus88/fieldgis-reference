@@ -1,4 +1,4 @@
-name: LUNDUS DIGITAL SYSTEMS Accounting Adapter P0
+name: LUNDUS DIGITAL SYSTEMS FinanceBridge P0
 on:
   pull_request:
     paths:
@@ -16,6 +16,6 @@ jobs:
       - working-directory: docs/commercial/lds-accounting-adapter
         run: |
           python3 -m unittest -v test_accounting_adapter.py
-          python3 -m unittest -v test_bukku_binding.py
+          python3 -m unittest -v test_financebridge_binding.py
           python3 golden_transaction.py
-          python3 bukku_sandbox_gate.py
+          python3 provider_sandbox_gate.py
