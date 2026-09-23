@@ -1,21 +1,20 @@
 {
-  "schema": "lds.accounting-adapter/1",
+  "schema": "lds.financebridge/1",
+  "product_name": "LD FinanceBridge",
   "status": "DEVELOPMENT_NON_PRODUCTION",
   "provider_policy": {
-    "primary_candidate": "bukku",
-    "local_fallback": "sql_accounting",
-    "international_future": "xero",
-    "provider_neutral_core": true
+    "provider_selected_at_runtime": true,
+    "provider_neutral_core": true,
+    "public_branding_must_not_use_provider_name": true,
+    "provider_specific_configuration": "RUNTIME_OR_PRIVATE_EVIDENCE_ONLY"
   },
-  "bukku_sandbox_binding": {
+  "provider_sandbox_binding": {
     "status": "HOLD",
-    "reason": "BUKKU_ROUTE_CAPABILITY_VERIFICATION_REQUIRED",
-    "staging_base_url": "https://api.staging.bukku.dev",
-    "production_base_url": "https://api.bukku.my",
-    "documented_rate_limit_per_minute": 600,
+    "reason": "PROVIDER_ROUTE_CAPABILITY_VERIFICATION_REQUIRED",
     "production_environment_forbidden_in_p0": true,
     "credentials_source": "RUNTIME_ENVIRONMENT_ONLY",
-    "exact_routes_must_be_verified": true
+    "exact_routes_must_be_verified": true,
+    "provider_identity_source": "RUNTIME_CONFIGURATION"
   },
   "production_ready": false,
   "authority": {
@@ -45,8 +44,8 @@
     "Unverified provider capability fails closed",
     "Provider failure never silently advances LD commercial state",
     "Production credentials must never be committed to source control",
-    "Bukku P0 binding may target staging only",
-    "No Bukku route may be invoked until method path schema and semantics are verified"
+    "Provider identity must not become LD public product branding",
+    "No provider route may be invoked until method path schema and semantics are verified"
   ],
   "golden_transaction": [
     "approved_quotation",

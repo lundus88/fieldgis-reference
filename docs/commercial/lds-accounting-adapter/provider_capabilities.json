@@ -1,0 +1,24 @@
+{
+  "schema": "lds.financebridge-provider-capability-matrix/1",
+  "status": "PROVIDER_VERIFICATION_REQUIRED",
+  "public_branding": "LD FinanceBridge",
+  "provider_identity": "RUNTIME_CONFIGURATION_ONLY",
+  "verified_transport_contract": {
+    "https_required": true,
+    "bearer_token_supported": true,
+    "optional_tenant_header_supported": true,
+    "json_supported": true,
+    "rate_limit_must_be_declared": true
+  },
+  "route_verification": {
+    "contact_upsert": false,
+    "sales_invoice_create": false,
+    "payment_record": false,
+    "einvoice_submit": false,
+    "einvoice_status": false,
+    "receipt_reference": false,
+    "reconciliation": false
+  },
+  "rule": "A provider route remains false until its exact method, path, request schema, response schema and semantics are independently verified for the selected provider.",
+  "production_ready": false
+}
