@@ -223,6 +223,43 @@ class EventRouterTest(unittest.TestCase):
         self.assertEqual(second.disposition, "DUPLICATE")
         self.assertEqual(len(self.h.ledger.records()), count)
 
+    def test_restart_after_task_create_before_ack_is_idempotent(self):
+        event = self.h.event(event_id="crash-window")
+        task_id = "caie-" + __import__("hashlib").sha256(
+            event.event_id.encode("utf-8")
+        ).hexdigest()[:16]
+        self.h.board.create(
+            task_id=task_id,
+            objective=event.objective,
+            target=event.target,
+            risk=event.risk,
+            reversible=event.reversible,
+            production=event.production,
+            builder_id="builder-a",
+            validator_id="validator-b",
+            certifier_id="certifier-c",
+            max_remediation_attempts=2,
+            source_event_id=event.event_id,
+        )
+        count = len(self.h.ledger.records())
+
+        restarted_ledger = p1.PersistentRunLedger(
+            self.h.path,
+            integrity_key=KEY,
+            now_fn=lambda: NOW,
+        )
+        restarted_board = p1.TaskBoard(restarted_ledger)
+        restarted_router = p1.EventRouter(restarted_board)
+        decision = restarted_router.ingest(
+            event,
+            builder_id="builder-a",
+            validator_id="validator-b",
+            certifier_id="certifier-c",
+        )
+        self.assertEqual(decision.disposition, "DUPLICATE")
+        self.assertEqual(decision.task_id, task_id)
+        self.assertEqual(len(restarted_ledger.records()), count)
+
     def test_production_event_escalates(self):
         decision = self.h.router.ingest(
             self.h.event(production=True),
