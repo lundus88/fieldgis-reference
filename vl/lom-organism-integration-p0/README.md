@@ -58,3 +58,22 @@ PR #386 (Health/Drift/Fact Truth/Human Gate Intelligence) and PR #387 (VPS Execu
 - financial, legal and customer commitments: HUMAN_ONLY
 
 This integration package must never convert an observation into consequential authority.
+
+
+## Whole-body runtime coordinator
+
+`body_runtime.py` converts the organ map into a fail-closed runtime coordinator while preserving the existing canonical executors and authority systems.
+
+Runtime rules:
+
+- every one of the 12 organs is sampled through an explicit probe adapter;
+- missing, stale, failed, mismatched or unproven organ evidence blocks consequential progression;
+- DEGRADED state may still be observed, but bounded work requires a fully HEALTHY body;
+- signals are deduplicated and routed through the existing truth/policy/reflex path;
+- bounded work is delegated only to an injected non-Production executor; this integration layer never executes shell, connectors, Production deployment, database mutation or protected-main merge itself;
+- the executor must explicitly return `production_locked=true` plus execution evidence;
+- evidence recording is mandatory before bounded execution and again at cycle completion;
+- learning is proposal-only and cannot mutate authority;
+- Production, financial, legal and customer commitments remain HUMAN_ONLY and are converted into a human decision package rather than execution.
+
+This closes the current P0 integration gap between anatomy and runtime coordination without activating draft enhancement PR #386 or #387 as hidden dependencies.
