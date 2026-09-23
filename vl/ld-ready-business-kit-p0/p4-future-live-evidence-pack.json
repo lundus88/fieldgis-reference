@@ -1,0 +1,23 @@
+{
+  "schema":"ld.p4-future-live-evidence-pack/1",
+  "status":"EMPTY_TEMPLATE",
+  "evidence":{
+    "dedicated_business_phone_evidence_ref":null,
+    "company_account_evidence_ref":null,
+    "commercial_origin_fingerprint":null,
+    "lead_intake_security_fingerprint":null,
+    "payment_provider_fingerprint":null,
+    "signed_webhook_evidence_ref":null,
+    "candidate_deployment_ref":null,
+    "known_good_deployment_ref":null,
+    "lead_intake_disable_test_ref":null,
+    "checkout_disable_test_ref":null,
+    "billing_disable_test_ref":null,
+    "incident_path_ref":null,
+    "rollback_drill_ref":null,
+    "golden_transaction_evidence_ref":null,
+    "reconciliation_evidence_ref":null
+  },
+  "public_launch_authorized":false,
+  "production_authority":false
+}

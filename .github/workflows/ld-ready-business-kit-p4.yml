@@ -1,0 +1,53 @@
+name: LD Ready Business Kit P4
+on:
+  push:
+    branches: [ld/ready-business-kit-p4-operational-cutover]
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/ld-ready-business-kit-p0/**'
+      - 'docs/commercial/LDS_ACTIVATION_SNAPSHOT.json'
+      - 'docs/commercial/check_activation_snapshot.py'
+      - 'docs/commercial/LDS_MEASUREMENT_AND_SUPPORT_RUNBOOK.md'
+      - '.github/workflows/ld-ready-business-kit-p4.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  p4:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c
+        with:
+          python-version: '3.12'
+      - name: P0-P4 regressions
+        run: |
+          cd vl/ld-ready-business-kit-p0
+          python3 test_ready_business_kit.py
+          python3 test_ready_business_p1.py
+          python3 test_ready_business_p2.py
+          python3 test_ready_business_p3.py
+          python3 test_ready_business_p4.py
+      - name: Activation snapshot consistency
+        run: python3 docs/commercial/check_activation_snapshot.py
+      - name: Build P4 rehearsal evidence
+        run: |
+          cd vl/ld-ready-business-kit-p0
+          python3 build_p4_rehearsal_report.py
+      - name: Verify fail-closed current state
+        run: |
+          f=vl/ld-ready-business-kit-p0/generated-p4/p4-rehearsal-report.json
+          test -f "$f"
+          grep -q '"decision": "HOLD"' "$f"
+          grep -q 'DEDICATED_BUSINESS_PHONE' "$f"
+          grep -q 'COMPANY_ACCOUNT' "$f"
+          grep -q '"synthetic_only": true' "$f"
+          grep -q '"payment_transactions": 0' "$f"
+          grep -q '"production_mutations": 0' "$f"
+          grep -q '"real_customers": 0' "$f"
+          grep -q '"public_launch_authorized": false' "$f"
