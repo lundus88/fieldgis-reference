@@ -19,6 +19,7 @@ jobs:
         run: |
           cd vl/lom-system-health-p0
           python3 test_health_drift.py
+          python3 test_body_probe_adapter.py
       - name: Golden Journey + governed recovery bridge
         run: |
           cd vl/lom-system-health-p0
