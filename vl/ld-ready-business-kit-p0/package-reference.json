@@ -1,0 +1,19 @@
+{
+  "schema":"ld.ready-business-package-reference/1",
+  "status":"INDICATIVE_INTERNAL_ONLY",
+  "starter":{
+    "name":"LD Business Starter",
+    "indicative_setup_myr":199,
+    "final_customer_price":"HUMAN_ONLY"
+  },
+  "smart":{
+    "name":"LD Smart Business",
+    "indicative_monthly_myr":[29,49],
+    "final_customer_price":"HUMAN_ONLY"
+  },
+  "rules":{
+    "discount":"HUMAN_ONLY",
+    "quotation_release":"HUMAN_ONLY",
+    "customer_commitment":"HUMAN_ONLY"
+  }
+}
