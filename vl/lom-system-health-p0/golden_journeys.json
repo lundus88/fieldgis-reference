@@ -1,0 +1,60 @@
+{
+  "version": "1.0",
+  "authority": {
+    "autonomous_ceiling": "PREPARE_PR",
+    "production_authority": "HUMAN_ONLY",
+    "protected_main_merge": "HUMAN_ONLY",
+    "automatic_production_rollback": "DISABLED"
+  },
+  "journeys": [
+    {
+      "project_id": "vl",
+      "journey_id": "factory-governance-cycle",
+      "critical": true,
+      "stages": ["spec", "build", "validate", "evidence", "human-gate"],
+      "evidence_contract": ["exact_main_sha", "fresh_ci", "source_reference"]
+    },
+    {
+      "project_id": "ebkl",
+      "journey_id": "fieldbook-to-reviewed-working-output",
+      "critical": true,
+      "stages": ["intake", "compute", "qa", "review", "working-output"],
+      "evidence_contract": ["exact_main_sha", "fresh_ci", "source_reference", "human_authority_preserved"]
+    },
+    {
+      "project_id": "sabahlot",
+      "journey_id": "map-save-reopen-export",
+      "critical": true,
+      "stages": ["map", "capture", "save", "reopen", "export"],
+      "evidence_contract": ["exact_main_sha", "fresh_ci", "source_reference"]
+    },
+    {
+      "project_id": "slp",
+      "journey_id": "boundary-save-reopen-feasibility",
+      "critical": true,
+      "stages": ["draw-or-import", "edit", "save", "reopen", "feasibility"],
+      "evidence_contract": ["exact_main_sha", "fresh_ci", "source_reference"]
+    },
+    {
+      "project_id": "lunduslead",
+      "journey_id": "discover-review-lead",
+      "critical": true,
+      "stages": ["discover", "classify", "deduplicate", "review", "lead-candidate"],
+      "evidence_contract": ["exact_main_sha", "fresh_ci", "source_reference", "no_auto_commercial_commitment"]
+    },
+    {
+      "project_id": "urusmy",
+      "journey_id": "identify-checklist-track",
+      "critical": true,
+      "stages": ["ask", "identify", "check", "checklist", "track"],
+      "evidence_contract": ["exact_main_sha", "fresh_ci", "source_reference"]
+    },
+    {
+      "project_id": "kontenstudio",
+      "journey_id": "draft-review-release-candidate",
+      "critical": true,
+      "stages": ["input", "draft", "qa", "review", "release-candidate"],
+      "evidence_contract": ["exact_main_sha", "fresh_ci", "source_reference", "human_release_gate"]
+    }
+  ]
+}
