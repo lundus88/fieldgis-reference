@@ -1,0 +1,24 @@
+{
+  "schema": "lds.bukku-capability-matrix/1",
+  "status": "DOCUMENTATION_VERIFICATION_IN_PROGRESS",
+  "verified_documentation": {
+    "api_access_from_web_app": true,
+    "bearer_token_authentication": true,
+    "company_subdomain_header": true,
+    "staging_server": "https://api.staging.bukku.dev",
+    "production_server": "https://api.bukku.my",
+    "documented_rate_limit_per_minute": 600,
+    "staging_account_request_required": true
+  },
+  "route_verification": {
+    "contact_upsert": false,
+    "sales_invoice_create": false,
+    "payment_record": false,
+    "einvoice_submit": false,
+    "einvoice_status": false,
+    "receipt_reference": false,
+    "reconciliation": false
+  },
+  "rule": "A route remains false until its exact method, path, request schema, response schema and semantics are verified against authorised Bukku developer documentation or staging evidence.",
+  "production_ready": false
+}
