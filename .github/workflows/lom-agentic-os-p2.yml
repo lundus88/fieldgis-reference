@@ -1,0 +1,23 @@
+name: LOM Agentic OS P2
+on:
+  push:
+    branches: [lom/agentic-os-p2-eyes-hands-continuity]
+  pull_request:
+    branches: [main]
+jobs:
+  eyes-hands-continuity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: P2 runtime regressions
+        run: |
+          cd vl/lom-agentic-os-p2
+          python3 test_runtime.py
+      - name: P0 intelligence regressions
+        run: |
+          cd vl/lom-agentic-os-p0
+          python3 test_intelligence_core.py
+      - name: P1 multi-model regressions
+        run: |
+          cd vl/lom-agentic-os-p1
+          python3 test_multimodel_fabric.py
