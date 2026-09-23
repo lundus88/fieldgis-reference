@@ -380,33 +380,65 @@ def _sentinel_hold(project_id: str, reason: str) -> dict[str, Any]:
 def build_portfolio_snapshot(
     assessments: Iterable[dict[str, Any]],
     sentinels: Iterable[dict[str, Any]],
+    *,
+    expected_project_ids: Iterable[str] = (),
 ) -> dict[str, Any]:
-    health = {item.get("project_id"): item for item in assessments if item.get("project_id")}
-    regression = {item.get("project_id"): item for item in sentinels if item.get("project_id")}
-    project_ids = sorted(set(health) | set(regression))
+    health_items = [item for item in assessments if item.get("project_id")]
+    sentinel_items = [item for item in sentinels if item.get("project_id")]
+    health = {item["project_id"]: item for item in health_items}
+    regression = {item["project_id"]: item for item in sentinel_items}
+    duplicate_health = len(health) != len(health_items)
+    duplicate_regression = len(regression) != len(sentinel_items)
+
+    expected = {str(item).strip() for item in expected_project_ids if str(item).strip()}
+    project_ids = sorted(expected | set(health) | set(regression))
     projects: list[dict[str, Any]] = []
-    overall = "HEALTHY"
+    overall = "HEALTHY" if project_ids else "HOLD"
 
     for project_id in project_ids:
         h = health.get(project_id)
         s = regression.get(project_id)
-        h_status = h.get("status") if h else "HOLD"
-        s_status = s.get("status") if s else "HOLD"
+        raw_h_status = h.get("status") if h else "HOLD"
+        raw_s_status = s.get("status") if s else "HOLD"
+        h_status = raw_h_status if raw_h_status in STATUS_PRIORITY else "HOLD"
+        s_status = raw_s_status if raw_s_status in STATUS_PRIORITY else "HOLD"
         combined = _status_max(h_status, s_status)
         overall = _status_max(overall, combined)
+
+        reasons: list[str] = []
+        if h is None:
+            reasons.append("HEALTH_ASSESSMENT_MISSING")
+        elif raw_h_status not in STATUS_PRIORITY:
+            reasons.append("HEALTH_STATUS_UNKNOWN")
+        if s is None:
+            reasons.append("REGRESSION_SENTINEL_MISSING")
+        elif raw_s_status not in STATUS_PRIORITY:
+            reasons.append("REGRESSION_STATUS_UNKNOWN")
+
         projects.append({
             "project_id": project_id,
             "status": combined,
             "health_status": h_status,
             "regression_status": s_status,
+            "reasons": reasons or ["PROJECT_EVIDENCE_COMPLETE"],
             "health_digest": h.get("assessment_digest") if h else None,
             "sentinel_digest": s.get("sentinel_digest") if s else None,
         })
+
+    integrity_reasons: list[str] = []
+    if duplicate_health:
+        integrity_reasons.append("DUPLICATE_HEALTH_ASSESSMENT")
+    if duplicate_regression:
+        integrity_reasons.append("DUPLICATE_REGRESSION_SENTINEL")
+    if duplicate_health or duplicate_regression:
+        overall = _status_max(overall, "HOLD")
 
     body = {
         "schema": "lom.portfolio-health/1",
         "overall": overall,
         "projects": projects,
+        "expected_project_ids": sorted(expected),
+        "integrity_reasons": integrity_reasons,
         "autonomous_ceiling": "PREPARE_PR",
         "production_authority": "HUMAN_ONLY",
         "protected_main_merge": "HUMAN_ONLY",
