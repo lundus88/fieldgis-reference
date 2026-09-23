@@ -225,12 +225,20 @@ def execute_node_action(
         return _hold(action, decision.get("reason_code", "ACP_DENIED"), observed_at_epoch, decision=decision)
 
     if decision.get("replayed") is True:
+        replay_evidence = _digest({
+            "action_id": action.get("action_id"),
+            "input_digest": action.get("input_digest"),
+            "replay_record": (replay_record or {}).get(str(action.get("action_id") or "")),
+        })
         return {
             "schema": RESULT_SCHEMA,
             "action_id": action.get("action_id"),
             "status": "IDEMPOTENT_NOOP",
             "reason": "ACP_IDENTICAL_REPLAY",
             "execution_performed": False,
+            "evidence_id": replay_evidence,
+            "production": False,
+            "production_locked": True,
             "observed_at_epoch": observed_at_epoch,
             "autonomous_ceiling": "PREPARE_PR",
             "production_authority": "HUMAN_ONLY",
@@ -270,7 +278,10 @@ def execute_node_action(
         "result": result,
         "result_digest": result_digest,
         "journal_record_digest": journal_record["record_digest"],
+        "action_digest": journal_record["record_digest"],
         "execution_performed": True,
+        "production": False,
+        "production_locked": True,
         "observed_at_epoch": observed_at_epoch,
         "autonomous_ceiling": "PREPARE_PR",
         "production_authority": "HUMAN_ONLY",
@@ -294,6 +305,8 @@ def _hold(
         "reason": reason,
         "policy_decision": decision,
         "execution_performed": False,
+        "production": False,
+        "production_locked": True,
         "observed_at_epoch": observed_at_epoch,
         "autonomous_ceiling": "PREPARE_PR",
         "production_authority": "HUMAN_ONLY",
