@@ -1,0 +1,33 @@
+name: LOM System Health & Drift P0
+
+on:
+  push:
+    branches: [lom/system-health-drift-p0]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  system-health-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: P0 health, drift, ledger and regression sentinel
+        run: |
+          cd vl/lom-system-health-p0
+          python3 test_health_drift.py
+      - name: Existing Agentic OS P2 regression
+        run: |
+          cd vl/lom-agentic-os-p2
+          python3 test_runtime.py
+      - name: Existing Live Operational Evidence Fabric regression
+        run: |
+          cd vl/lom-6-11-live-operational-evidence-fabric
+          python3 test_evidence_fabric.py
+      - name: Existing CAIE P1 regression
+        run: |
+          cd vl/lom-continuous-improvement
+          python3 test_caie_p1.py
