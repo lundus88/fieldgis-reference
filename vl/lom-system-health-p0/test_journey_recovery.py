@@ -5,7 +5,7 @@ from journey_registry import load_json, validate_registry, journey_index
 from recovery_bridge import RecoveryCandidate, build_recovery_plan, plans_from_assessment
 
 HERE = Path(__file__).resolve().parent
-ROOT = HERE.parents[1]
+ROOT = HERE.parent
 SHA = "a" * 40
 
 
