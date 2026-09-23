@@ -21,6 +21,9 @@ This package does not create a new brain, new executor, new evidence store or ne
 - **Heart** — Director Loop, continuous-ops cadence, prioritization.
 - **Hands** — ACP non-production transition, governed remediation, factory runner.
 - **Voice** — Director Brief and human approval package/receipt.
+- **Locomotion / legs** — artifact movement, preview, governed promotion and delivery preparation.
+- **Skin / boundary** — connector governance, context minimization and external exposure control.
+- **Metabolism** — resource, cost, capacity and bottleneck intelligence.
 
 ## Homeostasis
 
