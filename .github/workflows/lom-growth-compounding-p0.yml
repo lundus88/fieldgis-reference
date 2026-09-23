@@ -1,0 +1,40 @@
+name: LOM Growth Compounding P0
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  growth-compounding-p0:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact tested commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Compile growth control layer
+        run: python -m py_compile vl/lom-growth-compounding/growth_compounding.py
+
+      - name: Run growth control regression suite
+        working-directory: vl/lom-growth-compounding
+        run: python test_growth_compounding.py
+
+      - name: Assert governance tokens
+        run: |
+          grep -q 'AUTONOMOUS_CEILING = "PREPARE_PR"' vl/lom-growth-compounding/growth_compounding.py
+          grep -q 'PRODUCTION_AUTHORITY = "HUMAN_ONLY"' vl/lom-growth-compounding/growth_compounding.py
+          grep -q 'EXECUTION_AUTHORITY = "NONE"' vl/lom-growth-compounding/growth_compounding.py
