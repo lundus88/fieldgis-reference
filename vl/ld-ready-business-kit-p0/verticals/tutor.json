@@ -1,0 +1,15 @@
+{
+  "business_name": "Cikgu Pintar",
+  "vertical": "tutor",
+  "whatsapp": "60123456789",
+  "headline": "Belajar dengan lebih tersusun dan mudah difahami.",
+  "cta_label": "Tanya kelas sekarang",
+  "address": "Online & Sabah",
+  "maps_url": "https://maps.google.com",
+  "social_url": "https://facebook.com",
+  "programs": [
+    {"name":"Matematik Tahun 6","price":"RM49/bulan","description":"Kelas mingguan + latihan."},
+    {"name":"Matematik Tingkatan 1","price":"RM59/bulan","description":"Asas algebra dan penyelesaian masalah."},
+    {"name":"Kelas Intensif","price":"RM99","description":"Program pendek berfokus peperiksaan."}
+  ]
+}

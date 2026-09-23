@@ -1,0 +1,25 @@
+{
+  "schema":"ld.clone-contract/1",
+  "principle":"BUILD_ONCE_CONFIGURE_MANY",
+  "client_owns":[
+    "domain",
+    "business_content",
+    "business_data"
+  ],
+  "ld_manages_when_contracted":[
+    "template",
+    "configuration",
+    "qa",
+    "hosting",
+    "updates",
+    "automation_modules"
+  ],
+  "must_not_clone":[
+    "customer_secrets",
+    "payment_credentials",
+    "private_customer_data_between_tenants",
+    "production_authority"
+  ],
+  "tenant_isolation_required":true,
+  "production_default":"LOCKED"
+}

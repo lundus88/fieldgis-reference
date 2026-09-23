@@ -1,0 +1,58 @@
+name: LD Ready Business Kit P3
+on:
+  push:
+    branches: [ld/ready-business-kit-p3-revenue-proof-readiness]
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/ld-ready-business-kit-p0/**'
+      - 'docs/commercial/LDS_ACTIVATION_SNAPSHOT.json'
+      - 'docs/commercial/check_activation_snapshot.py'
+      - 'docs/commercial/lds-accounting-adapter/**'
+      - '.github/workflows/ld-ready-business-kit-p3.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  p3:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c
+        with:
+          python-version: '3.12'
+      - name: P0-P3 regressions
+        run: |
+          cd vl/ld-ready-business-kit-p0
+          python3 test_ready_business_kit.py
+          python3 test_ready_business_p1.py
+          python3 test_ready_business_p2.py
+          python3 test_ready_business_p3.py
+      - name: Authoritative activation snapshot consistency
+        run: python3 docs/commercial/check_activation_snapshot.py
+      - name: FinanceBridge provider-neutral regressions
+        run: |
+          cd docs/commercial/lds-accounting-adapter
+          python3 -m unittest -v test_accounting_adapter.py
+          python3 -m unittest -v test_financebridge_binding.py
+          python3 golden_transaction.py
+      - name: Build P3 readiness evidence
+        run: |
+          cd vl/ld-ready-business-kit-p0
+          python3 build_p3_readiness_report.py
+      - name: Verify no false live/revenue authority
+        run: |
+          f=vl/ld-ready-business-kit-p0/generated-p3/p3-readiness-report.json
+          test -f "$f"
+          grep -q '"decision": "HOLD"' "$f"
+          grep -q 'LD_DEDICATED_BUSINESS_PHONE_VERIFIED' "$f"
+          grep -q '"live_transaction_performed": false' "$f"
+          grep -q '"payment_transactions": 0' "$f"
+          grep -q '"production_mutations": 0' "$f"
+          grep -q '"real_customers": 0' "$f"
+          grep -q '"real_revenue_proof": false' "$f"
+          grep -q '"activation_authorized": false' "$f"

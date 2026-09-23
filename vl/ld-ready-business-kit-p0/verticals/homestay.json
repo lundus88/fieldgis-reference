@@ -1,0 +1,15 @@
+{
+  "business_name": "Bayu Homestay",
+  "vertical": "homestay",
+  "whatsapp": "60123456789",
+  "headline": "Penginapan selesa, tempahan terus melalui WhatsApp.",
+  "cta_label": "Semak tarikh",
+  "address": "Kundasang, Sabah",
+  "maps_url": "https://maps.google.com",
+  "social_url": "https://facebook.com",
+  "rooms": [
+    {"name":"Family Room","price":"RM180/malam","description":"Sesuai untuk keluarga."},
+    {"name":"Couple Room","price":"RM120/malam","description":"Bilik ringkas untuk dua orang."},
+    {"name":"Whole House","price":"RM420/malam","description":"Rumah penuh untuk kumpulan."}
+  ]
+}

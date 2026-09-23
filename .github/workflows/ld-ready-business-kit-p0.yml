@@ -1,0 +1,53 @@
+name: LD Ready Business Kit P0-P1
+on:
+  push:
+    branches: [ld/ready-business-kit-p0]
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/ld-ready-business-kit-p0/**'
+      - '.github/workflows/ld-ready-business-kit-p0.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  p0:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c
+        with:
+          python-version: '3.12'
+      - name: Regression tests
+        run: |
+          cd vl/ld-ready-business-kit-p0
+          python3 test_ready_business_kit.py
+      - name: P1 delivery-factory regressions
+        run: |
+          cd vl/ld-ready-business-kit-p0
+          python3 test_ready_business_p1.py
+      - name: Generate three vertical previews
+        run: |
+          cd vl/ld-ready-business-kit-p0
+          python3 build_previews.py
+      - name: Generate P1 delivery artifacts
+        run: |
+          cd vl/ld-ready-business-kit-p0
+          python3 build_p1_artifacts.py
+      - name: Verify preview artifacts
+        run: |
+          test -f vl/ld-ready-business-kit-p0/generated/cafe.html
+          test -f vl/ld-ready-business-kit-p0/generated/homestay.html
+          test -f vl/ld-ready-business-kit-p0/generated/tutor.html
+          grep -q '"payment": "DISABLED"' vl/ld-ready-business-kit-p0/generated/cafe.manifest.json
+          grep -q '"production": "LOCKED"' vl/ld-ready-business-kit-p0/generated/cafe.manifest.json
+          test -f vl/ld-ready-business-kit-p0/generated-p1/cafe.proposal.json
+          test -f vl/ld-ready-business-kit-p0/generated-p1/cafe.quotation.json
+          test -f vl/ld-ready-business-kit-p0/generated-p1/cafe.workspace.json
+          grep -q '"amount": null' vl/ld-ready-business-kit-p0/generated-p1/cafe.quotation.json
+          grep -q '"payment": "DISABLED"' vl/ld-ready-business-kit-p0/generated-p1/cafe.workspace.json
+          grep -q '"production": "LOCKED"' vl/ld-ready-business-kit-p0/generated-p1/cafe.workspace.json

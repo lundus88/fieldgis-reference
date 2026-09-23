@@ -1,0 +1,21 @@
+{
+  "schema":"ld.first-five-prospect-experiment/1",
+  "status":"PREPARED_NOT_STARTED",
+  "purpose":"Measure real market response after commercial contact gates are ready; do not fabricate outcomes.",
+  "prospects":[
+    {"slot":1,"prospect_ref":null,"status":"NOT_ASSIGNED"},
+    {"slot":2,"prospect_ref":null,"status":"NOT_ASSIGNED"},
+    {"slot":3,"prospect_ref":null,"status":"NOT_ASSIGNED"},
+    {"slot":4,"prospect_ref":null,"status":"NOT_ASSIGNED"},
+    {"slot":5,"prospect_ref":null,"status":"NOT_ASSIGNED"}
+  ],
+  "measure":[
+    "qualified_response","human_approved_quotation","customer_acceptance",
+    "verified_payment_after_gate_opens","setup_minutes","support_minutes","delivery_cost",
+    "payment_fee","commercial_contribution","upgrade_interest","repeat_signal","referral_signal"
+  ],
+  "rules":{
+    "contact_consent_required":true,"no_spam":true,"no_fake_conversion":true,
+    "pricing":"HUMAN_ONLY","payment":"HOLD_UNTIL_SEPARATE_GATE","production":"LOCKED"
+  }
+}

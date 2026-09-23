@@ -1,0 +1,23 @@
+name: LUNDUS DIGITAL SYSTEMS FinanceBridge P1
+on:
+  pull_request:
+    paths:
+      - 'docs/commercial/lds-accounting-adapter/**'
+      - '.github/workflows/lds-accounting-adapter.yml'
+permissions:
+  contents: read
+jobs:
+  accounting-adapter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with: {python-version: '3.12'}
+      - working-directory: docs/commercial/lds-accounting-adapter
+        run: |
+          python3 -m unittest -v test_accounting_adapter.py
+          python3 -m unittest -v test_financebridge_binding.py
+          python3 -m unittest -v test_provider_onboarding.py
+          python3 golden_transaction.py
+          python3 provider_sandbox_gate.py
+          python3 provider_sandbox_golden.py
