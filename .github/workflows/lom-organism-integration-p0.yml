@@ -1,0 +1,39 @@
+name: LOM Organism Integration P0
+
+on:
+  push:
+    branches: [lom/organism-integration-p0]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  organism-p0:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Whole-body registry and nervous-system regression
+        run: |
+          cd vl/lom-organism-integration-p0
+          python3 test_organism.py
+          python3 test_body_runtime.py
+          python3 -m json.tool organ-registry.json >/dev/null
+      - name: Existing Gate E orchestrator regression
+        run: |
+          cd vl/lom-gate-e-orchestrator
+          python3 test_orchestrator.py
+      - name: Existing Project State Truth regression
+        run: |
+          cd vl/lom-6-10-project-state-truth-layer
+          python3 test_project_state_truth.py
+      - name: Existing operational dashboard regression
+        run: |
+          cd vl/lom-6-4-operational-intelligence-dashboard
+          python3 test_dashboard.py
+      - name: Existing remediation planner regression
+        run: |
+          cd vl/lom-6-6-governed-remediation-planner
+          python3 test_planner.py
