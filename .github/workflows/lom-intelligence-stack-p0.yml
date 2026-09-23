@@ -1,0 +1,45 @@
+name: LOM Intelligence Stack P0
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  intelligence-stack-p0:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact tested commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Compile intelligence stack
+        run: python -m py_compile vl/lom-intelligence-stack-p0/intelligence_stack.py
+
+      - name: Run intelligence stack regressions
+        working-directory: vl/lom-intelligence-stack-p0
+        run: python test_intelligence_stack.py
+
+      - name: Re-run canonical Agentic OS model-router regressions
+        working-directory: vl/lom-agentic-os-p0
+        run: python test_intelligence_core.py
+
+      - name: Assert authority boundary
+        run: |
+          grep -q 'AUTONOMOUS_CEILING = "PREPARE_PR"' vl/lom-intelligence-stack-p0/intelligence_stack.py
+          grep -q 'EXECUTION_AUTHORITY = "NONE"' vl/lom-intelligence-stack-p0/intelligence_stack.py
+          grep -q 'PRODUCTION_AUTHORITY = "HUMAN_ONLY"' vl/lom-intelligence-stack-p0/intelligence_stack.py
+          grep -q 'PROTECTED_MAIN_MERGE = "HUMAN_ONLY"' vl/lom-intelligence-stack-p0/intelligence_stack.py
