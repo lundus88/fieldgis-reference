@@ -70,3 +70,18 @@ Always HUMAN_ONLY:
 - pricing, bid, customer, legal and financial commitments
 
 No Production credentials are added. No database migration is included. No cross-repository write is performed by this P0 module.
+
+
+## 5. Golden Journey Registry
+
+`golden_journeys.json` binds at least one critical journey to every project in the canonical portfolio registry. Registry validation fails closed when a project is unbound, journey evidence is incomplete, or authority boundaries are weakened.
+
+The registry defines the journey contract and required evidence; it does not pretend that every journey is already passing in Production.
+
+## 6. Governed Recovery Bridge
+
+`recovery_bridge.py` translates health/drift and regression reasons into the existing governed remediation planner.
+
+Only registered, reversible, low-risk, non-Production recipes may reach `PREPARE_PR`. Production drift, runtime failure and critical Golden Journey failure require human review. Database drift, stale evidence and missing authority evidence remain HOLD. Unknown recovery reasons fail closed.
+
+This is preparation intelligence, not autonomous Production repair.
