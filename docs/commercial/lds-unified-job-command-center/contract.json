@@ -1,0 +1,66 @@
+{
+  "schema": "lds.unified-job-command-center/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "role": "COMPOSED_OPERATIONAL_VIEW_AND_ORCHESTRATION",
+  "source_of_truth_policy": "COMPOSE_ONLY_DO_NOT_DUPLICATE_AUTHORITATIVE_STATE",
+  "lifecycle": [
+    "LEAD",
+    "DISCOVERY",
+    "QUALIFICATION",
+    "QUOTATION",
+    "APPROVAL",
+    "PAYMENT",
+    "PRODUCTION",
+    "QA_UAT",
+    "DELIVERY",
+    "ACCEPTANCE",
+    "INVOICE_EINVOICE",
+    "ACCOUNTING",
+    "SUPPORT",
+    "REPEAT_REFERRAL"
+  ],
+  "required_job_view": [
+    "job_id",
+    "org_id",
+    "customer_ref",
+    "current_state",
+    "next_action",
+    "action_mode",
+    "blocker_reason",
+    "commercial_status",
+    "payment_status",
+    "production_status",
+    "qa_uat_status",
+    "delivery_status",
+    "invoice_status",
+    "accounting_status",
+    "support_status",
+    "evidence_freshness",
+    "unit_economics",
+    "retry_recovery"
+  ],
+  "event_rules": {
+    "signed_external_events_required": true,
+    "idempotency_required": true,
+    "browser_redirect_is_evidence": false,
+    "ui_state_is_authority": false,
+    "events_may_propose_transition_but_do_not_grant_authority": true
+  },
+  "agentic_rules": {
+    "lom_may_plan_route_execute_eligible_non_production_work": true,
+    "must_obey_policy_as_code": true,
+    "must_obey_authority_gates": true,
+    "must_obey_evidence_gates": true,
+    "must_obey_circuit_breakers": true
+  },
+  "human_only": [
+    "PRODUCTION_DEPLOYMENT",
+    "LIVE_CHARGING_ACTIVATION",
+    "DESTRUCTIVE_PRODUCTION_DATA_ACTION",
+    "PRIVILEGE_ELEVATION",
+    "MATERIAL_CONTRACT_OR_SCOPE_EXCEPTION",
+    "HIGH_RISK_COMPLIANCE_DECISION",
+    "IRREVERSIBLE_CUSTOMER_IMPACT_WITHOUT_ROLLBACK"
+  ],
+  "production_activation_authorized": false
+}
