@@ -124,10 +124,15 @@ class PersistentRunLedger:
             raise ValueError("LEDGER_KEY_TOO_SHORT")
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
+        self._head_path = Path(str(self.path) + ".head")
         self._key = bytes(integrity_key)
         self._now_fn = now_fn
-        if not self.path.exists():
+        new_ledger = not self.path.exists()
+        if new_ledger:
             self.path.touch()
+            self._write_head(0, "0" * HEX_LEN)
+        elif not self._head_path.exists():
+            raise LedgerIntegrityError("LEDGER_HEAD_SEAL_MISSING")
         self.verify()
 
     def _digest(self, body: Mapping[str, object]) -> str:
@@ -136,6 +141,47 @@ class PersistentRunLedger:
             _canonical(body).encode("utf-8"),
             hashlib.sha256,
         ).hexdigest()
+
+    def _head_signature(self, sequence: int, digest: str) -> str:
+        payload = {"sequence": sequence, "digest": digest}
+        return hmac.new(
+            self._key,
+            _canonical(payload).encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+
+    def _write_head(self, sequence: int, digest: str) -> None:
+        raw = {
+            "sequence": sequence,
+            "digest": digest,
+            "signature": self._head_signature(sequence, digest),
+        }
+        temp_path = Path(str(self._head_path) + ".tmp")
+        try:
+            with temp_path.open("w", encoding="utf-8") as handle:
+                handle.write(_canonical(raw) + "\n")
+                handle.flush()
+                os.fsync(handle.fileno())
+            os.replace(temp_path, self._head_path)
+        except OSError as exc:
+            raise LedgerIntegrityError("LEDGER_HEAD_SEAL_WRITE_FAILED") from exc
+
+    def _verify_head(self, sequence: int, digest: str) -> None:
+        try:
+            raw = json.loads(self._head_path.read_text(encoding="utf-8"))
+        except FileNotFoundError as exc:
+            raise LedgerIntegrityError("LEDGER_HEAD_SEAL_MISSING") from exc
+        except (OSError, json.JSONDecodeError) as exc:
+            raise LedgerIntegrityError("LEDGER_HEAD_SEAL_INVALID") from exc
+        if set(raw) != {"sequence", "digest", "signature"}:
+            raise LedgerIntegrityError("LEDGER_HEAD_SEAL_SCHEMA_MISMATCH")
+        if raw["sequence"] != sequence or raw["digest"] != digest:
+            raise LedgerIntegrityError("LEDGER_HEAD_SEAL_MISMATCH")
+        expected = self._head_signature(sequence, digest)
+        if not _valid_hex(str(raw["signature"])) or not hmac.compare_digest(
+            str(raw["signature"]), expected
+        ):
+            raise LedgerIntegrityError("LEDGER_HEAD_SEAL_SIGNATURE_INVALID")
 
     def records(self) -> Tuple[LedgerRecord, ...]:
         records: List[LedgerRecord] = []
@@ -187,6 +233,7 @@ class PersistentRunLedger:
             records.append(record)
             previous = record.digest
             expected_sequence += 1
+        self._verify_head(len(records), previous)
         return tuple(records)
 
     def verify(self) -> bool:
@@ -223,6 +270,7 @@ class PersistentRunLedger:
                 os.fsync(handle.fileno())
         except OSError as exc:
             raise LedgerIntegrityError("LEDGER_APPEND_FAILED") from exc
+        self._write_head(sequence, digest)
         return LedgerRecord(digest=digest, **body)
 
     def find_external_event(self, external_event_id: str) -> Optional[LedgerRecord]:
