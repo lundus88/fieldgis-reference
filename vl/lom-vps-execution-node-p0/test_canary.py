@@ -132,6 +132,14 @@ def test_weakened_connector_boundary_holds():
     assert result["reason"] == "CONNECTOR_CANARY_BOUNDARY_WEAKENED"
 
 
+def test_weakened_live_evidence_contract_holds():
+    contract = json.loads(json.dumps(CONTRACT))
+    contract["live_evidence_requirements"]["synthetic_sources_forbidden"] = False
+    result = validate_canary(contract, evidence())
+    assert result["status"] == "HOLD"
+    assert result["reason"] == "LIVE_EVIDENCE_CONTRACT_INVALID"
+
+
 if __name__ == "__main__":
     tests = [v for k, v in globals().items() if k.startswith("test_") and callable(v)]
     for test in tests:
