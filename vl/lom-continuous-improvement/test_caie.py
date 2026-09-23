@@ -121,6 +121,38 @@ class CAIETest(unittest.TestCase):
         self.assertEqual(engine.score(task, GOOD, BASELINE, usage), "REJECT")
         self.assertEqual(task.reason, "BUDGET_OVERRUN")
 
+    def test_negative_usage_is_malformed_and_holds(self):
+        engine = caie.CAIE()
+        task = good_task()
+        engine.qualify(task)
+        engine.plan(task)
+        engine.enter_sandbox(task, True)
+        engine.record_test(task, True)
+        usage = caie.Usage(cost_usd=-1.0, elapsed_seconds=120, retries=0, tool_calls=8)
+        self.assertEqual(engine.score(task, GOOD, BASELINE, usage), "HOLD")
+        self.assertEqual(task.reason, "USAGE_EVIDENCE_INVALID")
+
+    def test_missing_baseline_holds(self):
+        engine = caie.CAIE()
+        task = good_task()
+        engine.qualify(task)
+        engine.plan(task)
+        engine.enter_sandbox(task, True)
+        engine.record_test(task, True)
+        self.assertEqual(engine.score(task, GOOD, None, USAGE), "HOLD")
+        self.assertEqual(task.reason, "BASELINE_EVIDENCE_REQUIRED")
+
+    def test_internal_state_cannot_be_seeded_via_constructor(self):
+        with self.assertRaises(TypeError):
+            good_task(state="CERTIFIED")
+
+    def test_prepare_pr_requires_complete_certification_lineage(self):
+        engine = caie.CAIE()
+        task = good_task()
+        task.state = "CERTIFIED"
+        self.assertEqual(engine.prepare_pr(task), "HOLD")
+        self.assertEqual(task.reason, "CERTIFICATION_LINEAGE_INCOMPLETE")
+
     def test_quality_regression_rejects(self):
         engine = caie.CAIE()
         task = good_task()
