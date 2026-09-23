@@ -62,6 +62,19 @@ def validate_canary(contract: dict[str, Any], evidence: dict[str, Any]) -> dict[
         status = "HOLD"
         reason = "CANARY_NOT_PROVEN"
 
+    evidence_class = str(evidence.get("evidence_class") or "UNCLASSIFIED")
+    live_sources = bool(by_name) and all(
+        not str(row.get("source_reference") or "").startswith("synthetic:")
+        for row in by_name.values()
+    )
+    live_candidate = evidence_class == "LIVE_VPS_CANARY" and live_sources
+    live_vps_verified = status == "PASS" and live_candidate
+    observed_times = [
+        row.get("observed_at_epoch")
+        for row in by_name.values()
+        if isinstance(row.get("observed_at_epoch"), int) and row.get("observed_at_epoch") > 0
+    ]
+
     body = {
         "schema": "lom.vps-canary-resolution/1",
         "status": status,
@@ -71,7 +84,11 @@ def validate_canary(contract: dict[str, Any], evidence: dict[str, Any]) -> dict[
         "failed_checks": failed,
         "not_run_checks": not_run,
         "violations": sorted(violations),
-        "live_vps_verified": status == "PASS",
+        "evidence_class": evidence_class,
+        "observed_at_epoch": min(observed_times) if observed_times else None,
+        "live_sources": live_sources,
+        "live_vps_verified": live_vps_verified,
+        "activation_status": "READY" if live_vps_verified else "HOLD",
         "autonomous_ceiling": "PREPARE_PR",
         "production_authority": "HUMAN_ONLY",
         "connector_execution": "DISABLED",
