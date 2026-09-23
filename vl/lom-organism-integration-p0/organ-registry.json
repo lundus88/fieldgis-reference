@@ -42,7 +42,9 @@
       "canonical_components": [
         "vl/lom-6-11-live-operational-evidence-fabric/evidence_fabric.py",
         "vl/lom-6-2-real-measurement-instrumentation/telemetry.py",
-        "vl/lom-6-4-operational-intelligence-dashboard/dashboard.py"
+        "vl/lom-6-4-operational-intelligence-dashboard/dashboard.py",
+        "vl/lom-system-health-p0/health_drift.py",
+        "vl/lom-system-health-p0/body_probe_adapter.py"
       ]
     },
     {
@@ -51,7 +53,9 @@
       "canonical_components": [
         "vl/agent-control-plane/nonproduction_transition.py",
         "vl/lom-6-6-governed-remediation-planner/planner.py",
-        ".github/workflows/vl-factory-runner.yml"
+        ".github/workflows/vl-factory-runner.yml",
+        "vl/lom-vps-execution-node-p0/runner.py",
+        "vl/lom-vps-execution-node-p0/body_executor_adapter.py"
       ]
     },
     {
@@ -142,20 +146,6 @@
     "RECORD_EVIDENCE",
     "LEARN"
   ],
-  "candidate_enhancements": [
-    {
-      "name": "system_health_drift_p0",
-      "pull_request": 386,
-      "status": "DRAFT_HOLD_FOR_INTEGRATION",
-      "required_for_p0_body": false
-    },
-    {
-      "name": "vps_execution_node_p0",
-      "pull_request": 387,
-      "status": "DRAFT_LIVE_VPS_UNVERIFIED",
-      "required_for_p0_body": false
-    }
-  ],
   "authority": {
     "autonomous_ceiling": "PREPARE_PR",
     "protected_main_merge": "HUMAN_ONLY",
@@ -163,5 +153,24 @@
     "production_data_mutation": "HUMAN_ONLY",
     "production_authority_change": "HUMAN_ONLY",
     "financial_contractual_customer_commitment": "HUMAN_ONLY"
-  }
+  },
+  "integrated_enhancements": [
+    {
+      "name": "system_health_drift_p0",
+      "pull_request": 386,
+      "repository_status": "MERGED",
+      "integration_status": "BOUND_TO_EYES",
+      "required_for_p0_body": false,
+      "production_authority": "HUMAN_ONLY"
+    },
+    {
+      "name": "vps_execution_node_p0",
+      "pull_request": 387,
+      "repository_status": "MERGED",
+      "integration_status": "BOUND_TO_HANDS_DORMANT",
+      "activation_status": "HOLD_LIVE_VPS_UNVERIFIED",
+      "required_for_p0_body": false,
+      "production_authority": "HUMAN_ONLY"
+    }
+  ]
 }
