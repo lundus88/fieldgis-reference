@@ -45,9 +45,14 @@ Consequential signals always route to HUMAN_REVIEW.
 
 Security signals default to HOLD/containment review.
 
-## Candidate enhancements
+## Integrated enhancements
 
-PR #386 (Health/Drift/Fact Truth/Human Gate Intelligence) and PR #387 (VPS Execution Node) are tracked as enhancements, not dependencies of this P0 body. Their draft state cannot silently become active authority.
+PR #386 (Health/Drift/Fact Truth/Human Gate Intelligence) and PR #387 (VPS Execution Node) are now merged into `main`.
+
+- #386 is bound to the **eyes** organ through the fail-closed portfolio-health probe adapter.
+- #387 is bound to the **hands** organ through the canary-gated BodyRuntime executor adapter.
+- VPS repository code being merged does **not** activate the VPS node. Live execution remains `HOLD_LIVE_VPS_UNVERIFIED` until fresh, non-synthetic `LIVE_VPS_CANARY` evidence passes.
+- Neither enhancement changes the autonomous ceiling (`PREPARE_PR`) or any HUMAN_ONLY Production authority.
 
 ## Authority boundary
 
@@ -76,4 +81,4 @@ Runtime rules:
 - learning is proposal-only and cannot mutate authority;
 - Production, financial, legal and customer commitments remain HUMAN_ONLY and are converted into a human decision package rather than execution.
 
-This closes the current P0 integration gap between anatomy and runtime coordination without activating draft enhancement PR #386 or #387 as hidden dependencies.
+This closes the current P0 integration gap between anatomy and runtime coordination. Health/Drift is now a canonical eyes component; the VPS executor bridge is a canonical hands component but remains dormant until live canary evidence is proven.
