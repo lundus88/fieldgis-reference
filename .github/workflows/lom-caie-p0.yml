@@ -2,15 +2,9 @@ name: LOM CAIE P0.1
 
 on:
   pull_request:
-    paths:
-      - "vl/lom-continuous-improvement/**"
-      - ".github/workflows/lom-caie-p0.yml"
   push:
     branches:
       - main
-    paths:
-      - "vl/lom-continuous-improvement/**"
-      - ".github/workflows/lom-caie-p0.yml"
   workflow_dispatch:
 
 permissions:
