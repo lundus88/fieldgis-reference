@@ -19,6 +19,7 @@ jobs:
         run: |
           cd vl/lom-organism-integration-p0
           python3 test_organism.py
+          python3 test_body_runtime.py
           python3 -m json.tool organ-registry.json >/dev/null
       - name: Existing Gate E orchestrator regression
         run: |
