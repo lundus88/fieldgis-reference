@@ -1,0 +1,18 @@
+{
+  "schema":"ld.p3-revenue-proof-readiness/1",
+  "status":"PRE_ACTIVATION",
+  "issue":376,
+  "real_revenue_proof_status":"HOLD",
+  "synthetic_dry_run_allowed":true,
+  "synthetic_is_revenue_evidence":false,
+  "required_live_evidence":[
+    "qualified_lead_ref","approved_quotation_ref","customer_acceptance_ref",
+    "controlled_transaction_authority_ref","provider_payment_ref","signed_webhook_ref",
+    "paid_order_ref","delivery_ref","invoice_or_receipt_ref","reconciliation_ref",
+    "marketing_cost_ref","delivery_cost_ref","payment_fee_ref","setup_time_ref","support_time_ref"
+  ],
+  "current_known_blocker":"LD_DEDICATED_BUSINESS_PHONE_VERIFIED",
+  "live_payment_authorized":false,
+  "production_authorized":false,
+  "public_launch_authorized":false
+}
