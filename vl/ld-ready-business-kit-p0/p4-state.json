@@ -1,0 +1,26 @@
+{
+  "schema":"ld.p4-operational-cutover-state/1",
+  "issue":381,
+  "status":"PRE_ACTIVATION_REHEARSAL",
+  "external_gates":{
+    "dedicated_business_phone":"IN_PROGRESS",
+    "company_account":"IN_PROGRESS"
+  },
+  "authorities":{
+    "production_deploy":false,
+    "dns_mutation":false,
+    "live_payment":false,
+    "customer_charging":false,
+    "public_launch":false
+  },
+  "prepared_workstreams":[
+    "cutover_preflight",
+    "customer_zero_rehearsal",
+    "kill_switch_matrix",
+    "rollback_contract",
+    "incident_bridge",
+    "future_live_evidence_manifest",
+    "launch_stop_conditions"
+  ],
+  "rule":"External gate completion must be independently evidenced; readiness rehearsal never grants activation authority."
+}
