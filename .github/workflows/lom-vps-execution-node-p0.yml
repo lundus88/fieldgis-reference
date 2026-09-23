@@ -1,0 +1,34 @@
+name: LOM VPS Execution Node P0
+
+on:
+  push:
+    branches: [lom/vps-execution-node-p0]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  vps-node-p0:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: VPS execution node regression
+        run: |
+          cd vl/lom-vps-execution-node-p0
+          python3 test_runner.py
+          python3 test_body_executor_adapter.py
+      - name: VPS live-canary contract regression
+        run: |
+          cd vl/lom-vps-execution-node-p0
+          python3 test_canary.py
+          python3 -m json.tool vps-canary-contract.json >/dev/null
+      - name: Existing ACP runtime policy regression
+        run: |
+          cd vl/agent-control-plane
+          python3 run_runtime_policy_tests.py
+          python3 run_nonproduction_transition_tests.py
+      - name: Verify policy document JSON
+        run: python3 -m json.tool vl/lom-vps-execution-node-p0/node-policy.json >/dev/null

@@ -1,0 +1,28 @@
+{
+  "version": "1.0",
+  "mode": "NON_PRODUCTION_CANARY",
+  "required_checks": [
+    "unprivileged_os_identity",
+    "sudo_denied",
+    "docker_socket_denied",
+    "production_secrets_absent",
+    "acp_allow_enforced",
+    "acp_deny_enforced",
+    "registered_health_probe_pass",
+    "production_capability_denied",
+    "connector_capability_denied",
+    "identical_replay_idempotent",
+    "changed_replay_denied",
+    "journal_restart_integrity",
+    "heartbeat_evidence_available"
+  ],
+  "authority": {
+    "autonomous_ceiling": "PREPARE_PR",
+    "protected_main_merge": "HUMAN_ONLY",
+    "production_deploy": "HUMAN_ONLY",
+    "production_data_mutation": "HUMAN_ONLY",
+    "connector_execution_during_p0_canary": "DISABLED"
+  },
+  "pass_rule": "ALL_REQUIRED_CHECKS_PASS",
+  "missing_or_unknown_rule": "HOLD"
+}
