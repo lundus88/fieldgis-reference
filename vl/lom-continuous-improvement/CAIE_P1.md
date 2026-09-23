@@ -16,11 +16,14 @@ Canonical operating loop:
 - append-only JSONL record
 - monotonic sequence numbers
 - keyed HMAC-SHA256 hash chain
-- fsync on append
+- sealed sidecar head checkpoint to detect suffix/tail truncation
+- fsync on append and atomic head-seal replacement
 - startup verification before use
-- malformed, reordered, deleted, modified or wrong-key records fail closed
+- malformed, reordered, deleted, modified, tail-truncated or wrong-key records fail closed
 
 The repository contains no Production ledger key. Runtime callers must inject integrity material.
+
+The file reference implementation is intentionally **single-writer**. Concurrent multi-process writers require a future datastore/locking adapter; P1 fails closed rather than claiming safe distributed writes.
 
 ### Durable task board
 The board is reconstructed from the ledger rather than trusted in-memory state. Process restart can recover task state, remediation-attempt count, role assignments and authority classification.
@@ -41,7 +44,7 @@ Supported trigger classes:
 - CI_FAILURE
 - OBSERVABILITY_ALERT
 
-External event IDs are idempotent across process restarts. A previously accepted or rejected event is not processed twice.
+External event IDs are idempotent across process restarts. A previously accepted or rejected event is not processed twice. Task creation is persisted before the acknowledgement event so a crash in that narrow window can still be recognized as already accepted on restart.
 
 ### Scorer registry
 Named scorers have:
@@ -109,8 +112,8 @@ CI must test the exact pull-request head and every push to `main`.
 
 P1 is complete only when the regression suite proves:
 - event idempotency;
-- ledger tamper detection;
-- restart recovery;
+- ledger tamper and tail-truncation detection;
+- restart recovery and crash-window event idempotency;
 - task-state enforcement;
 - scorer hard gates;
 - bounded remediation;
