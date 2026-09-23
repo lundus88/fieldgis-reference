@@ -104,3 +104,4 @@ Key rules:
 - all resolution remains observational; execution authority stays NONE.
 
 This directly prevents stale repository text or prior assumptions from outranking newer authoritative evidence.
+false
