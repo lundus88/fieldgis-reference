@@ -1,0 +1,167 @@
+{
+  "version": "1.0",
+  "mode": "NON_PRODUCTION_INTEGRATION",
+  "required_organs": [
+    "brain",
+    "ears",
+    "eyes",
+    "hands",
+    "heart",
+    "immune_system",
+    "locomotion",
+    "memory",
+    "metabolism",
+    "nervous_system",
+    "skin",
+    "voice"
+  ],
+  "organs": [
+    {
+      "organ": "brain",
+      "purpose": "reasoning, planning, model routing, bounded improvement",
+      "canonical_components": [
+        "vl/lom-agentic-os-p0/intelligence_core.py",
+        "vl/lom-agentic-os-p1/multimodel_fabric.py",
+        "vl/lom-agentic-os-p2/runtime.py",
+        "vl/lom-continuous-improvement/caie_p1.py",
+        "vl/lom-gate-e-orchestrator/orchestrator.py"
+      ]
+    },
+    {
+      "organ": "ears",
+      "purpose": "event intake, exception intake, signal reception",
+      "canonical_components": [
+        "vl/lom-control-plane/exception-queue.schema.json",
+        "vl/lom-director-pursuit-queue/build_queue.py",
+        "vl/lom-6-2-real-measurement-instrumentation/technical-measurement-event.schema.json"
+      ]
+    },
+    {
+      "organ": "eyes",
+      "purpose": "telemetry, evidence, observability, drift awareness",
+      "canonical_components": [
+        "vl/lom-6-11-live-operational-evidence-fabric/evidence_fabric.py",
+        "vl/lom-6-2-real-measurement-instrumentation/telemetry.py",
+        "vl/lom-6-4-operational-intelligence-dashboard/dashboard.py"
+      ]
+    },
+    {
+      "organ": "hands",
+      "purpose": "bounded non-production execution, factory work and remediation",
+      "canonical_components": [
+        "vl/agent-control-plane/nonproduction_transition.py",
+        "vl/lom-6-6-governed-remediation-planner/planner.py",
+        ".github/workflows/vl-factory-runner.yml"
+      ]
+    },
+    {
+      "organ": "heart",
+      "purpose": "cadence, scheduling, continuous operations and prioritization",
+      "canonical_components": [
+        "vl/lom-director-loop/director_loop.py",
+        "vl/lom-continuous-ops/continuous-ops-policy.json",
+        "vl/lom-6-5-evidence-driven-alerts-director-brief/brief.py"
+      ]
+    },
+    {
+      "organ": "immune_system",
+      "purpose": "security policy, adversarial resistance, containment and rollback governance",
+      "canonical_components": [
+        "vl/lom-security-hardening/validate_authority_alignment.py",
+        "vl/agent-control-plane/run_adversarial_tests.py",
+        "vl/remediation-governance/remediation_policy.py",
+        "docs/commercial/LDS_ROLLBACK_DRILL.md"
+      ]
+    },
+    {
+      "organ": "locomotion",
+      "purpose": "move artifacts and work safely across non-production stages without granting release authority",
+      "canonical_components": [
+        "vl/lom-6-8-governed-pr-evidence-promotion/promotion.py",
+        "vl/visual-preview/verify-preview.mjs",
+        ".github/workflows/vl-factory-runner.yml"
+      ]
+    },
+    {
+      "organ": "memory",
+      "purpose": "project truth, immutable history, evidence lineage and recovery memory",
+      "canonical_components": [
+        "vl/lom-6-10-project-state-truth-layer/project_state_truth.py",
+        "vl/lom-operational-safety/event_ledger.py",
+        "vl/lom-6-3-5-evidence-lineage-chain-of-custody/lineage.py",
+        "vl/lom-gate-d-remediation/recovery_memory.py"
+      ]
+    },
+    {
+      "organ": "metabolism",
+      "purpose": "resource, cost, capacity and bottleneck awareness",
+      "canonical_components": [
+        "vl/lom-4-5-interoperability-resource-intelligence/runtime.py",
+        "docs/commercial/lds-autonomous-operations/anti_bottleneck.py",
+        "docs/commercial/lds-project-profitability-capacity/profitability_capacity.py",
+        "docs/commercial/lds-usage-cost-metering/engine.py"
+      ]
+    },
+    {
+      "organ": "nervous_system",
+      "purpose": "route signals through truth, policy, decision and evidence before action",
+      "canonical_components": [
+        "vl/lom-gate-e-orchestrator/orchestrator.py",
+        "vl/lom-control-plane/authority-matrix.json",
+        "vl/agent-control-plane/runtime_policy.py"
+      ]
+    },
+    {
+      "organ": "skin",
+      "purpose": "external boundary, connector governance, context minimization and exposure control",
+      "canonical_components": [
+        "vl/connector-governance/connector-registry.json",
+        "vl/connector-governance/validate_connector_registry.py",
+        "vl/context-governance/default-context-policy.json",
+        "vl/context-governance/pre_model_invocation.py"
+      ]
+    },
+    {
+      "organ": "voice",
+      "purpose": "director brief, human approval package and governed outward communication",
+      "canonical_components": [
+        "vl/lom-6-5-evidence-driven-alerts-director-brief/brief.py",
+        "vl/lom-6-9-human-approval-decision-package/decision.py",
+        "vl/lom-6-9-2-human-approval-receipt/receipt.py"
+      ]
+    }
+  ],
+  "closed_loop": [
+    "SENSE",
+    "ESTABLISH_TRUTH",
+    "CLASSIFY",
+    "POLICY_GATE",
+    "DECIDE",
+    "PREPARE_OR_EXECUTE_BOUNDED",
+    "VALIDATE",
+    "RECORD_EVIDENCE",
+    "LEARN"
+  ],
+  "candidate_enhancements": [
+    {
+      "name": "system_health_drift_p0",
+      "pull_request": 386,
+      "status": "DRAFT_HOLD_FOR_INTEGRATION",
+      "required_for_p0_body": false
+    },
+    {
+      "name": "vps_execution_node_p0",
+      "pull_request": 387,
+      "status": "DRAFT_LIVE_VPS_UNVERIFIED",
+      "required_for_p0_body": false
+    }
+  ],
+  "authority": {
+    "autonomous_ceiling": "PREPARE_PR",
+    "protected_main_merge": "HUMAN_ONLY",
+    "production_deploy": "HUMAN_ONLY",
+    "production_data_mutation": "HUMAN_ONLY",
+    "production_authority_change": "HUMAN_ONLY",
+    "financial_contractual_customer_commitment": "HUMAN_ONLY"
+  }
+}
