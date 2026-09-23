@@ -77,3 +77,10 @@ A later non-Production canary should prove:
 10. node heartbeat and evidence can be consumed by LOM Health & Drift.
 
 Until that evidence exists, status remains `REPOSITORY_CANDIDATE_ONLY`.
+
+
+## BodyRuntime executor bridge
+
+`body_executor_adapter.py` binds the canonical LOM `BodyRuntime` bounded-delegation contract to this node without introducing a second executor. Activation is fail-closed: a complete validator fixture is insufficient. The adapter requires fresh evidence classified as `LIVE_VPS_CANARY`, rejects `synthetic:*` sources, validates the canary on every invocation, accepts only registered PREPARE-level actions, requires matching ACP grant scope, and keeps Production locked. Identical requests are idempotent and return replay evidence rather than executing again.
+
+Repository CI therefore proves code and contract behavior only. Until a real VPS produces a fresh live canary, this adapter remains **HOLD / not activated**.
