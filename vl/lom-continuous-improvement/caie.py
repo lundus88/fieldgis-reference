@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, Iterable, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 HUMAN_ONLY_TARGETS = {
     "PROTECTED_MAIN_MERGE",
@@ -68,9 +68,18 @@ class Usage:
     retries: int
     tool_calls: int
 
+    def valid(self) -> bool:
+        return (
+            self.cost_usd >= 0
+            and self.elapsed_seconds >= 0
+            and self.retries >= 0
+            and self.tool_calls >= 0
+        )
+
     def within(self, budget: Budget) -> bool:
         return (
-            self.cost_usd <= budget.max_cost_usd
+            self.valid()
+            and self.cost_usd <= budget.max_cost_usd
             and self.elapsed_seconds <= budget.max_elapsed_seconds
             and self.retries <= budget.max_retries
             and self.tool_calls <= budget.max_tool_calls
@@ -138,10 +147,10 @@ class ImprovementTask:
     certifier_id: str
     budget: Budget
     trigger: Trigger
-    state: str = "DISCOVERED"
-    attempts: int = 0
-    history: List[str] = field(default_factory=lambda: ["DISCOVERED"])
-    reason: str = "CREATED"
+    state: str = field(default="DISCOVERED", init=False)
+    attempts: int = field(default=0, init=False)
+    history: List[str] = field(default_factory=lambda: ["DISCOVERED"], init=False)
+    reason: str = field(default="CREATED", init=False)
 
     def transition(self, new_state: str, reason: str) -> None:
         if new_state not in TASK_STATES:
@@ -259,20 +268,25 @@ class CAIE:
         if not evaluation.valid():
             task.transition("HOLD", "EVALUATION_SCORE_INVALID")
             return task.state
+        if not usage.valid():
+            task.transition("HOLD", "USAGE_EVIDENCE_INVALID")
+            return task.state
         if not usage.within(task.budget):
             task.transition("REJECT", "BUDGET_OVERRUN")
             return task.state
-        if baseline is not None:
-            if not baseline.valid() or not baseline.evidence_complete:
-                task.transition("HOLD", "BASELINE_EVIDENCE_INVALID")
-                return task.state
-            if (
-                evaluation.correctness < baseline.correctness
-                or evaluation.safety < baseline.safety
-                or evaluation.regression < baseline.regression
-            ):
-                task.transition("REJECT", "QUALITY_REGRESSION")
-                return task.state
+        if baseline is None:
+            task.transition("HOLD", "BASELINE_EVIDENCE_REQUIRED")
+            return task.state
+        if not baseline.valid() or not baseline.evidence_complete:
+            task.transition("HOLD", "BASELINE_EVIDENCE_INVALID")
+            return task.state
+        if (
+            evaluation.correctness < baseline.correctness
+            or evaluation.safety < baseline.safety
+            or evaluation.regression < baseline.regression
+        ):
+            task.transition("REJECT", "QUALITY_REGRESSION")
+            return task.state
         if evaluation.correctness < self.min_correctness:
             task.transition("REJECT", "CORRECTNESS_BELOW_THRESHOLD")
             return task.state
@@ -312,6 +326,14 @@ class CAIE:
     def prepare_pr(self, task: ImprovementTask) -> str:
         if task.state != "CERTIFIED":
             task.transition("HOLD", "PREPARE_PR_REQUIRES_CERTIFIED")
+            return task.state
+        required = ["DISCOVERED", "QUALIFIED", "PLANNED", "SANDBOX", "TESTED", "SCORED", "CERTIFIED"]
+        cursor = 0
+        for state in task.history:
+            if cursor < len(required) and state == required[cursor]:
+                cursor += 1
+        if cursor != len(required):
+            task.transition("HOLD", "CERTIFICATION_LINEAGE_INCOMPLETE")
             return task.state
         task.transition("PREPARE_PR", "AUTONOMOUS_CEILING_REACHED")
         return task.state
