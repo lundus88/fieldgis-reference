@@ -31,6 +31,20 @@ def validate_canary(contract: dict[str, Any], evidence: dict[str, Any]) -> dict[
     if authority.get("connector_execution_during_p0_canary") != "DISABLED":
         return {"status": "HOLD", "reason": "CONNECTOR_CANARY_BOUNDARY_WEAKENED"}
 
+    live_requirements = contract.get("live_evidence_requirements") or {}
+    expected_live = {
+        "evidence_class": "LIVE_VPS_CANARY",
+        "environment_class": "NON_PRODUCTION_VPS",
+        "operator_confirmation_required": True,
+        "node_attestation_required": True,
+        "source_binding": "vps:<node_id>:*",
+        "synthetic_sources_forbidden": True,
+        "collector_version": "1.0",
+    }
+    for key, value in expected_live.items():
+        if live_requirements.get(key) != value:
+            return {"status": "HOLD", "reason": "LIVE_EVIDENCE_CONTRACT_INVALID", "field": key}
+
     rows = evidence.get("checks")
     if evidence.get("schema") != "lom.vps-canary-evidence/1" or not isinstance(rows, list):
         return {"status": "HOLD", "reason": "CANARY_EVIDENCE_SCHEMA_INVALID"}
