@@ -1,0 +1,39 @@
+{
+  "schema":"ld.first-customer-acquisition-kit/1",
+  "status":"PREPARED_NON_PRODUCTION",
+  "positioning":{
+    "primary":"Kami setup siap untuk bisnes anda.",
+    "business_system":"Anda terangkan cara bisnes anda bekerja. LD bina sistemnya.",
+    "smart_admin":"LD bantu bisnes kecil urus pelanggan, dokumen dan follow-up tanpa tambah kerja admin."
+  },
+  "channels":[
+    "referral",
+    "organic",
+    "social",
+    "direct-demo"
+  ],
+  "first_validation_batch":{
+    "target_prospects":5,
+    "measure":[
+      "qualified_response",
+      "paid_conversion_after_payment_gate_opens",
+      "setup_time",
+      "support_burden",
+      "upgrade_interest"
+    ]
+  },
+  "demo_verticals":[
+    "cafe",
+    "homestay",
+    "tutor"
+  ],
+  "rules":{
+    "no_spam":true,
+    "contact_consent_required":true,
+    "final_price":"HUMAN_ONLY",
+    "discount":"HUMAN_ONLY",
+    "customer_commitment":"HUMAN_ONLY",
+    "live_payment":"DISABLED_UNTIL_SEPARATE_GATE",
+    "production_publish":"HUMAN_ONLY"
+  }
+}
