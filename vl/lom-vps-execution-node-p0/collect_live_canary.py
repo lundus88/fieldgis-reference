@@ -60,7 +60,8 @@ def _row(node_id: str, name: str, passed: bool, observed_at: int, detail: dict[s
 
 def _safe_groups() -> list[str]:
     names: list[str] = []
-    for gid in os.getgroups():
+    gids = set(os.getgroups()) | {os.getgid()}
+    for gid in gids:
         try:
             names.append(grp.getgrgid(gid).gr_name)
         except KeyError:
