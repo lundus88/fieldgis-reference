@@ -144,6 +144,20 @@ class LedgerAndBoardTest(unittest.TestCase):
         with self.assertRaises(p1.LedgerIntegrityError):
             p1.PersistentRunLedger(self.h.path, integrity_key=KEY)
 
+    def test_tail_truncation_is_detected_by_head_seal(self):
+        self.h.accept()
+        lines = self.h.path.read_text(encoding="utf-8").splitlines()
+        self.assertGreaterEqual(len(lines), 2)
+        self.h.path.write_text(lines[0] + "\n", encoding="utf-8")
+        with self.assertRaises(p1.LedgerIntegrityError):
+            p1.PersistentRunLedger(self.h.path, integrity_key=KEY)
+
+    def test_missing_head_seal_fails_closed(self):
+        self.h.accept()
+        Path(str(self.h.path) + ".head").unlink()
+        with self.assertRaises(p1.LedgerIntegrityError):
+            p1.PersistentRunLedger(self.h.path, integrity_key=KEY)
+
     def test_wrong_integrity_key_rejects_existing_ledger(self):
         self.h.accept()
         with self.assertRaises(p1.LedgerIntegrityError):
