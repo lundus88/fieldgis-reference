@@ -3,13 +3,16 @@
   "mode": "NON_PRODUCTION_INTEGRATION",
   "required_organs": [
     "brain",
-    "eyes",
     "ears",
-    "nervous_system",
-    "memory",
-    "immune_system",
-    "heart",
+    "eyes",
     "hands",
+    "heart",
+    "immune_system",
+    "locomotion",
+    "memory",
+    "metabolism",
+    "nervous_system",
+    "skin",
     "voice"
   ],
   "organs": [
@@ -25,15 +28,6 @@
       ]
     },
     {
-      "organ": "eyes",
-      "purpose": "telemetry, evidence, observability, drift awareness",
-      "canonical_components": [
-        "vl/lom-6-11-live-operational-evidence-fabric/evidence_fabric.py",
-        "vl/lom-6-2-real-measurement-instrumentation/telemetry.py",
-        "vl/lom-6-4-operational-intelligence-dashboard/dashboard.py"
-      ]
-    },
-    {
       "organ": "ears",
       "purpose": "event intake, exception intake, signal reception",
       "canonical_components": [
@@ -43,22 +37,30 @@
       ]
     },
     {
-      "organ": "nervous_system",
-      "purpose": "route signals through truth, policy, decision and evidence before action",
+      "organ": "eyes",
+      "purpose": "telemetry, evidence, observability, drift awareness",
       "canonical_components": [
-        "vl/lom-gate-e-orchestrator/orchestrator.py",
-        "vl/lom-control-plane/authority-matrix.json",
-        "vl/agent-control-plane/runtime_policy.py"
+        "vl/lom-6-11-live-operational-evidence-fabric/evidence_fabric.py",
+        "vl/lom-6-2-real-measurement-instrumentation/telemetry.py",
+        "vl/lom-6-4-operational-intelligence-dashboard/dashboard.py"
       ]
     },
     {
-      "organ": "memory",
-      "purpose": "project truth, immutable history, evidence lineage and recovery memory",
+      "organ": "hands",
+      "purpose": "bounded non-production execution, factory work and remediation",
       "canonical_components": [
-        "vl/lom-6-10-project-state-truth-layer/project_state_truth.py",
-        "vl/lom-operational-safety/event_ledger.py",
-        "vl/lom-6-3-5-evidence-lineage-chain-of-custody/lineage.py",
-        "vl/lom-gate-d-remediation/recovery_memory.py"
+        "vl/agent-control-plane/nonproduction_transition.py",
+        "vl/lom-6-6-governed-remediation-planner/planner.py",
+        ".github/workflows/vl-factory-runner.yml"
+      ]
+    },
+    {
+      "organ": "heart",
+      "purpose": "cadence, scheduling, continuous operations and prioritization",
+      "canonical_components": [
+        "vl/lom-director-loop/director_loop.py",
+        "vl/lom-continuous-ops/continuous-ops-policy.json",
+        "vl/lom-6-5-evidence-driven-alerts-director-brief/brief.py"
       ]
     },
     {
@@ -72,21 +74,51 @@
       ]
     },
     {
-      "organ": "heart",
-      "purpose": "cadence, scheduling, continuous operations and prioritization",
+      "organ": "locomotion",
+      "purpose": "move artifacts and work safely across non-production stages without granting release authority",
       "canonical_components": [
-        "vl/lom-director-loop/director_loop.py",
-        "vl/lom-continuous-ops/continuous-ops-policy.json",
-        "vl/lom-6-5-evidence-driven-alerts-director-brief/brief.py"
+        "vl/lom-6-8-governed-pr-evidence-promotion/promotion.py",
+        "vl/visual-preview/verify-preview.mjs",
+        ".github/workflows/vl-factory-runner.yml"
       ]
     },
     {
-      "organ": "hands",
-      "purpose": "bounded non-production execution, factory work and remediation",
+      "organ": "memory",
+      "purpose": "project truth, immutable history, evidence lineage and recovery memory",
       "canonical_components": [
-        "vl/agent-control-plane/nonproduction_transition.py",
-        "vl/lom-6-6-governed-remediation-planner/planner.py",
-        ".github/workflows/vl-factory-runner.yml"
+        "vl/lom-6-10-project-state-truth-layer/project_state_truth.py",
+        "vl/lom-operational-safety/event_ledger.py",
+        "vl/lom-6-3-5-evidence-lineage-chain-of-custody/lineage.py",
+        "vl/lom-gate-d-remediation/recovery_memory.py"
+      ]
+    },
+    {
+      "organ": "metabolism",
+      "purpose": "resource, cost, capacity and bottleneck awareness",
+      "canonical_components": [
+        "vl/lom-4-5-interoperability-resource-intelligence/runtime.py",
+        "docs/commercial/lds-autonomous-operations/anti_bottleneck.py",
+        "docs/commercial/lds-project-profitability-capacity/profitability_capacity.py",
+        "docs/commercial/lds-usage-cost-metering/engine.py"
+      ]
+    },
+    {
+      "organ": "nervous_system",
+      "purpose": "route signals through truth, policy, decision and evidence before action",
+      "canonical_components": [
+        "vl/lom-gate-e-orchestrator/orchestrator.py",
+        "vl/lom-control-plane/authority-matrix.json",
+        "vl/agent-control-plane/runtime_policy.py"
+      ]
+    },
+    {
+      "organ": "skin",
+      "purpose": "external boundary, connector governance, context minimization and exposure control",
+      "canonical_components": [
+        "vl/connector-governance/connector-registry.json",
+        "vl/connector-governance/validate_connector_registry.py",
+        "vl/context-governance/default-context-policy.json",
+        "vl/context-governance/pre_model_invocation.py"
       ]
     },
     {
