@@ -1,7 +1,8 @@
 # LOM CAIE P0 — Continuous Autonomous Improvement Engine
 
-Status: DEVELOPMENT / NON-PRODUCTION  
-Tracking: Issue #370
+Status: P0 MERGED / NON-PRODUCTION  
+Tracking: Issue #370  
+Hardening successor: CAIE P0.1 / Issue #375
 
 CAIE extends the existing LOM Continuous Improvement Orchestrator into an evidence-bound autonomous improvement pipeline:
 

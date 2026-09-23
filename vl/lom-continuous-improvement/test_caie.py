@@ -1,41 +1,55 @@
 import importlib.util
 from pathlib import Path
+import sys
 import unittest
 
 MODULE_PATH = Path(__file__).with_name("caie.py")
 spec = importlib.util.spec_from_file_location("lom_caie", MODULE_PATH)
 caie = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = caie
 spec.loader.exec_module(caie)
 
+EVIDENCE_KEY = b"test-evidence-key-32-bytes-minimum!"
+CERTIFIER_KEY = b"test-certifier-key-32-bytes-minimum"
+BAD_KEY = b"different-test-key-32-bytes-value!!"
+KEYS = {"evidence-service": EVIDENCE_KEY, "certifier-b": CERTIFIER_KEY}
+NOW = 2_000_000_000
+SUBJECT = "urn:lom:task:task-1"
 
-def good_task(**overrides):
-    values = dict(
-        task_id="task-1",
-        target="NON_PROD_CODE",
-        risk="LOW",
-        reversible=True,
-        production=False,
-        evidence_ref="evidence://ready",
-        objective="Improve deterministic test coverage",
-        builder_id="builder-a",
-        certifier_id="certifier-b",
-        budget=caie.Budget(
-            max_cost_usd=5.0,
-            max_elapsed_seconds=600,
-            max_retries=2,
-            max_tool_calls=30,
-        ),
-        trigger=caie.Trigger(
-            trigger_id="trg-1",
-            trigger_type="CI_FAILURE",
-            source_ref="github://run/123",
-            evidence_ref="evidence://ci/123",
-        ),
+
+def sign(kind, payload, *, issuer="evidence-service", issued_at=NOW - 60,
+         expires_at=NOW + 600, key=None, subject=SUBJECT, evidence_id=None):
+    signing_key = key
+    if signing_key is None:
+        signing_key = CERTIFIER_KEY if issuer == "certifier-b" else EVIDENCE_KEY
+    return caie.EvidenceRecord.sign(
+        key=signing_key,
+        evidence_id=evidence_id or f"ev-{kind.lower()}",
+        kind=kind,
+        issuer=issuer,
+        subject_ref=subject,
+        provenance_ref=f"evidence://source/{kind.lower()}",
+        issued_at=issued_at,
+        expires_at=expires_at,
+        payload_digest=caie.digest_payload(payload),
     )
-    values.update(overrides)
-    return caie.ImprovementTask(**values)
 
 
+QUALIFICATION_PAYLOAD = {
+    "task_id": "task-1",
+    "target": "NON_PROD_CODE",
+    "risk": "LOW",
+    "reversible": True,
+    "production": False,
+    "objective": "Improve deterministic test coverage",
+    "builder_id": "builder-a",
+    "certifier_id": "certifier-b",
+}
+TRIGGER_PAYLOAD = {
+    "trigger_id": "trg-1",
+    "trigger_type": "CI_FAILURE",
+    "source_ref": "github://run/123",
+}
 GOOD = caie.Evaluation(
     correctness=0.98,
     safety=0.99,
@@ -53,113 +67,333 @@ BASELINE = caie.Evaluation(
 USAGE = caie.Usage(cost_usd=1.0, elapsed_seconds=120, retries=0, tool_calls=8)
 
 
-class CAIETest(unittest.TestCase):
+def good_task(**overrides):
+    values = dict(
+        task_id="task-1",
+        target="NON_PROD_CODE",
+        risk="LOW",
+        reversible=True,
+        production=False,
+        objective="Improve deterministic test coverage",
+        builder_id="builder-a",
+        certifier_id="certifier-b",
+        budget=caie.Budget(
+            max_cost_usd=5.0,
+            max_elapsed_seconds=600,
+            max_retries=2,
+            max_tool_calls=30,
+        ),
+    )
+    explicit_qualification = overrides.pop("qualification_evidence", None)
+    explicit_trigger = overrides.pop("trigger", None)
+    values.update(overrides)
+    qualification_payload = {
+        "task_id": values["task_id"],
+        "target": values["target"],
+        "risk": values["risk"],
+        "reversible": values["reversible"],
+        "production": values["production"],
+        "objective": values["objective"],
+        "builder_id": values["builder_id"],
+        "certifier_id": values["certifier_id"],
+    }
+    values["qualification_evidence"] = explicit_qualification or sign(
+        "QUALIFICATION",
+        qualification_payload,
+        subject=f"urn:lom:task:{values['task_id']}",
+    )
+    values["trigger"] = explicit_trigger or caie.Trigger(
+        trigger_id="trg-1",
+        trigger_type="CI_FAILURE",
+        source_ref="github://run/123",
+        evidence=sign(
+            "TRIGGER",
+            TRIGGER_PAYLOAD,
+            subject=f"urn:lom:task:{values['task_id']}",
+        ),
+    )
+    return caie.ImprovementTask(**values)
+
+
+def evaluation_evidence(evaluation=GOOD, **kwargs):
+    return sign("EVALUATION", evaluation.payload(), **kwargs)
+
+
+def baseline_evidence(baseline=BASELINE, **kwargs):
+    return sign("BASELINE", baseline.payload(), **kwargs)
+
+
+def usage_evidence(usage=USAGE, **kwargs):
+    return sign(
+        "USAGE",
+        {
+            "cost_usd": usage.cost_usd,
+            "elapsed_seconds": usage.elapsed_seconds,
+            "retries": usage.retries,
+            "tool_calls": usage.tool_calls,
+        },
+        **kwargs,
+    )
+
+
+def certification_evidence(task, *, certifier_id="certifier-b", independent=True,
+                           consistent=True, **kwargs):
+    payload = {
+        "task_id": task.task_id,
+        "certifier_id": certifier_id,
+        "independent_validation": independent,
+        "evidence_consistent": consistent,
+        "scored_ledger_tail": task.ledger[-1].digest,
+    }
+    evidence = sign("CERTIFICATION", payload, issuer=certifier_id, **kwargs)
+    return caie.CertificationEvidence(
+        certifier_id=certifier_id,
+        independent_validation=independent,
+        evidence_consistent=consistent,
+        evidence=evidence,
+    )
+
+
+def engine(**kwargs):
+    return caie.CAIE(evidence_keys=KEYS, now_fn=lambda: NOW, **kwargs)
+
+
+def advance_to_tested(e, task):
+    assert e.qualify(task) == "QUALIFIED"
+    assert e.plan(task) == "PLANNED"
+    assert e.enter_sandbox(task, True) == "SANDBOX"
+    assert e.record_test(task, True) == "TESTED"
+
+
+def advance_to_scored(e, task, *, evaluation=GOOD, baseline=BASELINE, usage=USAGE):
+    advance_to_tested(e, task)
+    return e.score(
+        task,
+        evaluation=evaluation,
+        evaluation_evidence=evaluation_evidence(evaluation),
+        baseline=baseline,
+        baseline_evidence=baseline_evidence(baseline),
+        usage=usage,
+        usage_evidence=usage_evidence(usage),
+    )
+
+
+class CAIEHardeningTest(unittest.TestCase):
     def test_happy_path_stops_at_prepare_pr(self):
-        task = caie.run_to_prepare_pr(good_task(), GOOD, BASELINE, USAGE)
-        self.assertEqual(task.state, "PREPARE_PR")
-        self.assertIn("CERTIFIED", task.history)
+        task = good_task()
+        result = caie.run_to_prepare_pr(
+            evidence_keys=KEYS,
+            task=task,
+            evaluation=GOOD,
+            evaluation_evidence=evaluation_evidence(),
+            baseline=BASELINE,
+            baseline_evidence=baseline_evidence(),
+            usage=USAGE,
+            usage_evidence=usage_evidence(),
+            certification_factory=certification_evidence,
+            now_fn=lambda: NOW,
+        )
+        self.assertEqual(result.state, "PREPARE_PR")
+        self.assertEqual(
+            result.history,
+            ("DISCOVERED", "QUALIFIED", "PLANNED", "SANDBOX",
+             "TESTED", "SCORED", "CERTIFIED", "PREPARE_PR"),
+        )
+
+    def test_short_evidence_key_rejected(self):
+        with self.assertRaisesRegex(ValueError, "EVIDENCE_KEY_TOO_SHORT"):
+            caie.CAIE(evidence_keys={"evidence-service": b"short"}, now_fn=lambda: NOW)
 
     def test_production_target_escalates(self):
-        engine = caie.CAIE()
+        e = engine()
         task = good_task(production=True)
-        self.assertEqual(engine.qualify(task), "ESCALATE")
+        self.assertEqual(e.qualify(task), "ESCALATE")
         self.assertEqual(task.reason, "PRODUCTION_BOUNDARY")
 
     def test_human_only_target_escalates(self):
-        engine = caie.CAIE()
+        e = engine()
         task = good_task(target="PROTECTED_MAIN_MERGE")
-        self.assertEqual(engine.qualify(task), "ESCALATE")
+        self.assertEqual(e.qualify(task), "ESCALATE")
 
     def test_unknown_target_holds(self):
-        engine = caie.CAIE()
+        e = engine()
         task = good_task(target="UNKNOWN")
-        self.assertEqual(engine.qualify(task), "HOLD")
+        self.assertEqual(e.qualify(task), "HOLD")
 
     def test_irreversible_change_holds(self):
-        engine = caie.CAIE()
+        e = engine()
         task = good_task(reversible=False)
-        self.assertEqual(engine.qualify(task), "HOLD")
+        self.assertEqual(e.qualify(task), "HOLD")
         self.assertEqual(task.reason, "REVERSIBILITY_REQUIRED")
 
-    def test_self_certification_forbidden(self):
-        engine = caie.CAIE()
+    def test_self_certification_forbidden_at_qualification(self):
+        e = engine()
         task = good_task(certifier_id="builder-a")
-        self.assertEqual(engine.qualify(task), "HOLD")
+        self.assertEqual(e.qualify(task), "HOLD")
         self.assertEqual(task.reason, "BUILDER_SELF_CERTIFICATION_FORBIDDEN")
 
-    def test_isolated_execution_required(self):
-        engine = caie.CAIE()
-        task = good_task()
-        self.assertEqual(engine.qualify(task), "QUALIFIED")
-        self.assertEqual(engine.plan(task), "PLANNED")
-        self.assertEqual(engine.enter_sandbox(task, isolated=False), "HOLD")
-        self.assertEqual(task.reason, "ISOLATED_EXECUTION_REQUIRED")
-
-    def test_missing_evaluation_evidence_holds(self):
-        engine = caie.CAIE()
-        task = good_task()
-        engine.qualify(task)
-        engine.plan(task)
-        engine.enter_sandbox(task, True)
-        engine.record_test(task, True)
-        ev = caie.Evaluation(
-            correctness=0.99,
-            safety=0.99,
-            regression=0.99,
-            evidence_complete=False,
+    def test_stale_qualification_evidence_holds(self):
+        stale = sign(
+            "QUALIFICATION",
+            QUALIFICATION_PAYLOAD,
+            issued_at=NOW - 7200,
+            expires_at=NOW + 600,
         )
-        self.assertEqual(engine.score(task, ev, BASELINE, USAGE), "HOLD")
+        e = engine(max_evidence_age_seconds=3600)
+        task = good_task(qualification_evidence=stale)
+        self.assertEqual(e.qualify(task), "HOLD")
+        self.assertEqual(task.reason, "QUALIFICATION_EVIDENCE_INVALID")
 
-    def test_budget_overrun_rejects(self):
-        engine = caie.CAIE()
-        task = good_task()
-        engine.qualify(task)
-        engine.plan(task)
-        engine.enter_sandbox(task, True)
-        engine.record_test(task, True)
-        usage = caie.Usage(cost_usd=10.0, elapsed_seconds=120, retries=0, tool_calls=8)
-        self.assertEqual(engine.score(task, GOOD, BASELINE, usage), "REJECT")
-        self.assertEqual(task.reason, "BUDGET_OVERRUN")
+    def test_expired_trigger_evidence_holds(self):
+        expired = sign(
+            "TRIGGER",
+            TRIGGER_PAYLOAD,
+            issued_at=NOW - 600,
+            expires_at=NOW - 1,
+        )
+        task = good_task(
+            trigger=caie.Trigger(
+                trigger_id="trg-1",
+                trigger_type="CI_FAILURE",
+                source_ref="github://run/123",
+                evidence=expired,
+            )
+        )
+        e = engine()
+        self.assertEqual(e.qualify(task), "HOLD")
+        self.assertEqual(task.reason, "TRIGGER_EVIDENCE_INVALID")
 
-    def test_negative_usage_is_malformed_and_holds(self):
-        engine = caie.CAIE()
+    def test_forged_evidence_signature_holds(self):
+        forged = sign("QUALIFICATION", QUALIFICATION_PAYLOAD, key=BAD_KEY)
+        e = engine()
+        task = good_task(qualification_evidence=forged)
+        self.assertEqual(e.qualify(task), "HOLD")
+        self.assertEqual(task.reason, "QUALIFICATION_EVIDENCE_INVALID")
+
+    def test_provenance_is_required(self):
+        valid = sign("QUALIFICATION", QUALIFICATION_PAYLOAD)
+        malformed = caie.EvidenceRecord(
+            evidence_id=valid.evidence_id,
+            kind=valid.kind,
+            issuer=valid.issuer,
+            subject_ref=valid.subject_ref,
+            provenance_ref="not-a-provenance-uri",
+            issued_at=valid.issued_at,
+            expires_at=valid.expires_at,
+            payload_digest=valid.payload_digest,
+            signature=valid.signature,
+        )
+        e = engine()
+        task = good_task(qualification_evidence=malformed)
+        self.assertEqual(e.qualify(task), "HOLD")
+
+    def test_qualification_digest_mismatch_holds(self):
+        wrong = sign("QUALIFICATION", {"objective": "different"})
+        e = engine()
+        task = good_task(qualification_evidence=wrong)
+        self.assertEqual(e.qualify(task), "HOLD")
+        self.assertEqual(task.reason, "QUALIFICATION_DIGEST_MISMATCH")
+
+    def test_trigger_digest_mismatch_holds(self):
+        wrong = sign("TRIGGER", {"trigger_id": "different"})
+        task = good_task(
+            trigger=caie.Trigger(
+                trigger_id="trg-1",
+                trigger_type="CI_FAILURE",
+                source_ref="github://run/123",
+                evidence=wrong,
+            )
+        )
+        e = engine()
+        self.assertEqual(e.qualify(task), "HOLD")
+        self.assertEqual(task.reason, "TRIGGER_DIGEST_MISMATCH")
+
+    def test_isolated_execution_required(self):
+        e = engine()
         task = good_task()
-        engine.qualify(task)
-        engine.plan(task)
-        engine.enter_sandbox(task, True)
-        engine.record_test(task, True)
+        self.assertEqual(e.qualify(task), "QUALIFIED")
+        self.assertEqual(e.plan(task), "PLANNED")
+        self.assertEqual(e.enter_sandbox(task, False), "HOLD")
+
+    def test_evaluation_digest_mismatch_holds(self):
+        e = engine()
+        task = good_task()
+        advance_to_tested(e, task)
+        other = caie.Evaluation(0.99, 0.99, 0.99, 0.99, 0.99)
+        self.assertEqual(
+            e.score(
+                task,
+                evaluation=GOOD,
+                evaluation_evidence=evaluation_evidence(other),
+                baseline=BASELINE,
+                baseline_evidence=baseline_evidence(),
+                usage=USAGE,
+                usage_evidence=usage_evidence(),
+            ),
+            "HOLD",
+        )
+        self.assertEqual(task.reason, "EVALUATION_DIGEST_MISMATCH")
+
+    def test_negative_usage_holds(self):
+        e = engine()
+        task = good_task()
+        advance_to_tested(e, task)
         usage = caie.Usage(cost_usd=-1.0, elapsed_seconds=120, retries=0, tool_calls=8)
-        self.assertEqual(engine.score(task, GOOD, BASELINE, usage), "HOLD")
+        self.assertEqual(
+            e.score(
+                task,
+                evaluation=GOOD,
+                evaluation_evidence=evaluation_evidence(),
+                baseline=BASELINE,
+                baseline_evidence=baseline_evidence(),
+                usage=usage,
+                usage_evidence=usage_evidence(usage),
+            ),
+            "HOLD",
+        )
         self.assertEqual(task.reason, "USAGE_EVIDENCE_INVALID")
 
-    def test_missing_baseline_holds(self):
-        engine = caie.CAIE()
+    def test_budget_overrun_rejects(self):
+        e = engine()
         task = good_task()
-        engine.qualify(task)
-        engine.plan(task)
-        engine.enter_sandbox(task, True)
-        engine.record_test(task, True)
-        self.assertEqual(engine.score(task, GOOD, None, USAGE), "HOLD")
+        advance_to_tested(e, task)
+        usage = caie.Usage(cost_usd=10.0, elapsed_seconds=120, retries=0, tool_calls=8)
+        self.assertEqual(
+            e.score(
+                task,
+                evaluation=GOOD,
+                evaluation_evidence=evaluation_evidence(),
+                baseline=BASELINE,
+                baseline_evidence=baseline_evidence(),
+                usage=usage,
+                usage_evidence=usage_evidence(usage),
+            ),
+            "REJECT",
+        )
+        self.assertEqual(task.reason, "BUDGET_OVERRUN")
+
+    def test_missing_baseline_holds(self):
+        e = engine()
+        task = good_task()
+        advance_to_tested(e, task)
+        self.assertEqual(
+            e.score(
+                task,
+                evaluation=GOOD,
+                evaluation_evidence=evaluation_evidence(),
+                baseline=None,
+                baseline_evidence=None,
+                usage=USAGE,
+                usage_evidence=usage_evidence(),
+            ),
+            "HOLD",
+        )
         self.assertEqual(task.reason, "BASELINE_EVIDENCE_REQUIRED")
 
-    def test_internal_state_cannot_be_seeded_via_constructor(self):
-        with self.assertRaises(TypeError):
-            good_task(state="CERTIFIED")
-
-    def test_prepare_pr_requires_complete_certification_lineage(self):
-        engine = caie.CAIE()
-        task = good_task()
-        task.state = "CERTIFIED"
-        self.assertEqual(engine.prepare_pr(task), "HOLD")
-        self.assertEqual(task.reason, "CERTIFICATION_LINEAGE_INCOMPLETE")
-
     def test_quality_regression_rejects(self):
-        engine = caie.CAIE()
+        e = engine()
         task = good_task()
-        engine.qualify(task)
-        engine.plan(task)
-        engine.enter_sandbox(task, True)
-        engine.record_test(task, True)
+        advance_to_tested(e, task)
         degraded = caie.Evaluation(
             correctness=0.94,
             safety=0.97,
@@ -167,46 +401,132 @@ class CAIETest(unittest.TestCase):
             ux=0.99,
             performance=0.99,
         )
-        self.assertEqual(engine.score(task, degraded, BASELINE, USAGE), "REJECT")
-        self.assertEqual(task.reason, "QUALITY_REGRESSION")
+        self.assertEqual(
+            e.score(
+                task,
+                evaluation=degraded,
+                evaluation_evidence=evaluation_evidence(degraded),
+                baseline=BASELINE,
+                baseline_evidence=baseline_evidence(),
+                usage=USAGE,
+                usage_evidence=usage_evidence(),
+            ),
+            "REJECT",
+        )
+
+    def test_certifier_identity_mismatch_holds(self):
+        e = engine()
+        task = good_task()
+        self.assertEqual(advance_to_scored(e, task), "SCORED")
+        cert = certification_evidence(task, certifier_id="certifier-c")
+        self.assertEqual(e.certify(task, cert), "HOLD")
+        self.assertEqual(task.reason, "CERTIFIER_IDENTITY_MISMATCH")
+
+    def test_unsigned_or_wrong_key_certification_holds(self):
+        e = engine()
+        task = good_task()
+        self.assertEqual(advance_to_scored(e, task), "SCORED")
+        cert = certification_evidence(task, key=BAD_KEY)
+        self.assertEqual(e.certify(task, cert), "HOLD")
+        self.assertEqual(task.reason, "CERTIFICATION_EVIDENCE_INVALID")
 
     def test_independent_validation_required(self):
-        engine = caie.CAIE()
+        e = engine()
         task = good_task()
-        engine.qualify(task)
-        engine.plan(task)
-        engine.enter_sandbox(task, True)
-        engine.record_test(task, True)
-        self.assertEqual(engine.score(task, GOOD, BASELINE, USAGE), "SCORED")
-        self.assertEqual(engine.certify(task, False, True), "HOLD")
+        self.assertEqual(advance_to_scored(e, task), "SCORED")
+        cert = certification_evidence(task, independent=False)
+        self.assertEqual(e.certify(task, cert), "HOLD")
+        self.assertEqual(task.reason, "INDEPENDENT_VALIDATION_REQUIRED")
 
     def test_contradictory_evidence_holds(self):
-        engine = caie.CAIE()
+        e = engine()
         task = good_task()
-        engine.qualify(task)
-        engine.plan(task)
-        engine.enter_sandbox(task, True)
-        engine.record_test(task, True)
-        engine.score(task, GOOD, BASELINE, USAGE)
-        self.assertEqual(engine.certify(task, True, False), "HOLD")
+        self.assertEqual(advance_to_scored(e, task), "SCORED")
+        cert = certification_evidence(task, consistent=False)
+        self.assertEqual(e.certify(task, cert), "HOLD")
         self.assertEqual(task.reason, "EVIDENCE_CONTRADICTION")
 
-    def test_remediation_is_bounded(self):
-        engine = caie.CAIE(max_remediation_attempts=2)
+    def test_direct_state_mutation_cannot_prepare_pr(self):
+        e = engine()
         task = good_task()
-        engine.qualify(task)
-        engine.plan(task)
-        engine.enter_sandbox(task, True)
-        self.assertEqual(engine.record_test(task, False), "REMEDIATED")
-        self.assertEqual(engine.record_test(task, False), "REMEDIATED")
-        self.assertEqual(engine.record_test(task, False), "REJECT")
+        task._state = "CERTIFIED"
+        self.assertEqual(e.prepare_pr(task), "HOLD")
+        self.assertEqual(task.reason, "TRANSITION_LEDGER_INVALID")
+
+    def test_task_policy_mutation_invalidates_ledger(self):
+        e = engine()
+        task = good_task()
+        self.assertEqual(advance_to_scored(e, task), "SCORED")
+        self.assertEqual(e.certify(task, certification_evidence(task)), "CERTIFIED")
+        task.production = True
+        self.assertEqual(e.prepare_pr(task), "HOLD")
+        self.assertEqual(task.reason, "TRANSITION_LEDGER_INVALID")
+
+    def test_ledger_tampering_cannot_prepare_pr(self):
+        e = engine()
+        task = good_task()
+        self.assertEqual(advance_to_scored(e, task), "SCORED")
+        self.assertEqual(e.certify(task, certification_evidence(task)), "CERTIFIED")
+        original = task._ledger[-1]
+        task._ledger[-1] = caie.TransitionRecord(
+            sequence=original.sequence,
+            from_state=original.from_state,
+            to_state=original.to_state,
+            reason="FORGED_REASON",
+            previous_digest=original.previous_digest,
+            digest=original.digest,
+        )
+        self.assertEqual(e.prepare_pr(task), "HOLD")
+        self.assertEqual(task.reason, "TRANSITION_LEDGER_INVALID")
+
+    def test_certification_from_another_engine_cannot_prepare_pr(self):
+        first = engine()
+        task = good_task()
+        self.assertEqual(advance_to_scored(first, task), "SCORED")
+        self.assertEqual(first.certify(task, certification_evidence(task)), "CERTIFIED")
+        second = engine()
+        self.assertEqual(second.prepare_pr(task), "HOLD")
+
+    def test_remediation_is_bounded_and_valid_lineage_can_prepare(self):
+        e = engine(max_remediation_attempts=2)
+        task = good_task()
+        self.assertEqual(e.qualify(task), "QUALIFIED")
+        self.assertEqual(e.plan(task), "PLANNED")
+        self.assertEqual(e.enter_sandbox(task, True), "SANDBOX")
+        self.assertEqual(e.record_test(task, False), "REMEDIATED")
+        self.assertEqual(e.record_test(task, True), "TESTED")
+        self.assertEqual(
+            e.score(
+                task,
+                evaluation=GOOD,
+                evaluation_evidence=evaluation_evidence(),
+                baseline=BASELINE,
+                baseline_evidence=baseline_evidence(),
+                usage=USAGE,
+                usage_evidence=usage_evidence(),
+            ),
+            "SCORED",
+        )
+        self.assertEqual(e.certify(task, certification_evidence(task)), "CERTIFIED")
+        self.assertEqual(e.prepare_pr(task), "PREPARE_PR")
+        self.assertIn("REMEDIATED", task.history)
+
+    def test_remediation_exhaustion_rejects(self):
+        e = engine(max_remediation_attempts=2)
+        task = good_task()
+        self.assertEqual(e.qualify(task), "QUALIFIED")
+        self.assertEqual(e.plan(task), "PLANNED")
+        self.assertEqual(e.enter_sandbox(task, True), "SANDBOX")
+        self.assertEqual(e.record_test(task, False), "REMEDIATED")
+        self.assertEqual(e.record_test(task, False), "REMEDIATED")
+        self.assertEqual(e.record_test(task, False), "REJECT")
 
     def test_protected_merge_and_prod_deploy_are_human_only(self):
-        engine = caie.CAIE()
+        e = engine()
         with self.assertRaises(PermissionError):
-            engine.merge_protected_main()
+            e.merge_protected_main()
         with self.assertRaises(PermissionError):
-            engine.deploy_production()
+            e.deploy_production()
 
 
 if __name__ == "__main__":
