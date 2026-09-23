@@ -372,6 +372,8 @@ class TaskBoard:
 
     def start_attempt(self, task_id: str) -> TaskSnapshot:
         task = self.get(task_id)
+        if task.state not in {"ACTIVE", "REMEDIATING"}:
+            raise TaskStateError("ATTEMPT_REQUIRES_ACTIVE_OR_REMEDIATING")
         next_attempt = task.attempts + 1
         if next_attempt > task.max_remediation_attempts + 1:
             raise PolicyError("ATTEMPT_BUDGET_EXHAUSTED")
@@ -672,7 +674,9 @@ class AutonomousRemediationRuntime:
                     current = self.board.get(task_id)
                     if current.state == "ACTIVE":
                         self.board.transition(task_id, "VERIFYING", "EXECUTOR_EXCEPTION_REVIEW")
-                    self.board.transition(task_id, "REMEDIATING", "EXECUTOR_EXCEPTION_REMEDIATE")
+                        self.board.transition(task_id, "REMEDIATING", "EXECUTOR_EXCEPTION_REMEDIATE")
+                    elif current.state != "REMEDIATING":
+                        return self.board.transition(task_id, "HOLD", "EXECUTOR_EXCEPTION_STATE_INVALID")
                     continue
                 current = self.board.get(task_id)
                 if current.state == "ACTIVE":
