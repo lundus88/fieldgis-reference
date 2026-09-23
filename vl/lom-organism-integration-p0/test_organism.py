@@ -154,10 +154,23 @@ def test_failed_immune_system_makes_whole_body_failed():
     assert result["status"] == "FAILED"
 
 
-def test_candidate_enhancements_are_not_required_for_p0_body():
-    candidates = REGISTRY["candidate_enhancements"]
-    assert {item["pull_request"] for item in candidates} == {386, 387}
-    assert all(item["required_for_p0_body"] is False for item in candidates)
+def test_integrated_enhancements_match_merged_repo_truth():
+    items = REGISTRY["integrated_enhancements"]
+    assert {item["pull_request"] for item in items} == {386, 387}
+    health = next(item for item in items if item["pull_request"] == 386)
+    vps = next(item for item in items if item["pull_request"] == 387)
+    assert health["repository_status"] == "MERGED"
+    assert health["integration_status"] == "BOUND_TO_EYES"
+    assert vps["repository_status"] == "MERGED"
+    assert vps["integration_status"] == "BOUND_TO_HANDS_DORMANT"
+    assert vps["activation_status"] == "HOLD_LIVE_VPS_UNVERIFIED"
+    assert all(item["required_for_p0_body"] is False for item in items)
+
+
+def test_merged_bridges_are_canonical_organ_components():
+    organs = {item["organ"]: item for item in REGISTRY["organs"]}
+    assert "vl/lom-system-health-p0/body_probe_adapter.py" in organs["eyes"]["canonical_components"]
+    assert "vl/lom-vps-execution-node-p0/body_executor_adapter.py" in organs["hands"]["canonical_components"]
 
 
 if __name__ == "__main__":
