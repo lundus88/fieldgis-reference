@@ -1,0 +1,15 @@
+{
+  "business_name": "Jom Ngopi Cafe",
+  "vertical": "cafe",
+  "whatsapp": "60123456789",
+  "headline": "Order kegemaran anda dengan lebih mudah.",
+  "cta_label": "Order melalui WhatsApp",
+  "address": "Kota Kinabalu, Sabah",
+  "maps_url": "https://maps.google.com",
+  "social_url": "https://facebook.com",
+  "items": [
+    {"name":"Nasi Lemak Ayam","price":"RM10","description":"Menu sarapan popular."},
+    {"name":"Kopi Susu","price":"RM5","description":"Minuman signature."},
+    {"name":"Set Lunch","price":"RM15","description":"Set makan tengah hari."}
+  ]
+}
