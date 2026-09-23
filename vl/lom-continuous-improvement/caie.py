@@ -1,5 +1,12 @@
+from __future__ import annotations
+
 from dataclasses import dataclass, field
-from typing import List, Optional, Tuple
+import hashlib
+import hmac
+import json
+import secrets
+import time
+from typing import Callable, Dict, List, Optional, Sequence, Tuple
 
 HUMAN_ONLY_TARGETS = {
     "PROTECTED_MAIN_MERGE",
@@ -27,6 +34,15 @@ ALLOWED_TARGETS = {
     "OBSERVABILITY",
 }
 
+EVIDENCE_KINDS = {
+    "QUALIFICATION",
+    "TRIGGER",
+    "EVALUATION",
+    "BASELINE",
+    "USAGE",
+    "CERTIFICATION",
+}
+
 TASK_STATES = (
     "DISCOVERED",
     "QUALIFIED",
@@ -43,6 +59,43 @@ TASK_STATES = (
 )
 
 TRIGGER_TYPES = {"MANUAL", "SCHEDULE", "EVENT", "CI_FAILURE", "OBSERVABILITY_ALERT"}
+TERMINAL_STATES = {"PREPARE_PR", "HOLD", "REJECT", "ESCALATE"}
+
+ALLOWED_TRANSITIONS = {
+    "DISCOVERED": {"QUALIFIED", "HOLD", "ESCALATE"},
+    "QUALIFIED": {"PLANNED", "HOLD"},
+    "PLANNED": {"SANDBOX", "HOLD"},
+    "SANDBOX": {"TESTED", "REMEDIATED", "HOLD", "REJECT"},
+    "REMEDIATED": {"TESTED", "REMEDIATED", "HOLD", "REJECT"},
+    "TESTED": {"SCORED", "HOLD", "REJECT"},
+    "SCORED": {"CERTIFIED", "HOLD"},
+    "CERTIFIED": {"PREPARE_PR", "HOLD"},
+}
+
+HEX_DIGEST_LEN = 64
+
+
+def _canonical_json(value: object) -> str:
+    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+
+
+def digest_payload(value: object) -> str:
+    return hashlib.sha256(_canonical_json(value).encode("utf-8")).hexdigest()
+
+
+def _valid_digest(value: str) -> bool:
+    if len(value) != HEX_DIGEST_LEN:
+        return False
+    try:
+        int(value, 16)
+    except ValueError:
+        return False
+    return value != ("0" * HEX_DIGEST_LEN)
+
+
+def _valid_ref(value: str) -> bool:
+    value = value.strip()
+    return bool(value) and ("://" in value or value.startswith(("urn:", "sha256:")))
 
 
 @dataclass(frozen=True)
@@ -87,18 +140,116 @@ class Usage:
 
 
 @dataclass(frozen=True)
+class EvidenceRecord:
+    evidence_id: str
+    kind: str
+    issuer: str
+    subject_ref: str
+    provenance_ref: str
+    issued_at: int
+    expires_at: int
+    payload_digest: str
+    signature: str
+
+    def unsigned_payload(self) -> Dict[str, object]:
+        return {
+            "evidence_id": self.evidence_id,
+            "kind": self.kind,
+            "issuer": self.issuer,
+            "subject_ref": self.subject_ref,
+            "provenance_ref": self.provenance_ref,
+            "issued_at": self.issued_at,
+            "expires_at": self.expires_at,
+            "payload_digest": self.payload_digest,
+        }
+
+    @classmethod
+    def sign(
+        cls,
+        *,
+        key: bytes,
+        evidence_id: str,
+        kind: str,
+        issuer: str,
+        subject_ref: str,
+        provenance_ref: str,
+        issued_at: int,
+        expires_at: int,
+        payload_digest: str,
+    ) -> "EvidenceRecord":
+        unsigned = {
+            "evidence_id": evidence_id,
+            "kind": kind,
+            "issuer": issuer,
+            "subject_ref": subject_ref,
+            "provenance_ref": provenance_ref,
+            "issued_at": issued_at,
+            "expires_at": expires_at,
+            "payload_digest": payload_digest,
+        }
+        signature = hmac.new(
+            key,
+            _canonical_json(unsigned).encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+        return cls(signature=signature, **unsigned)
+
+    def verify(
+        self,
+        *,
+        key: bytes,
+        now: int,
+        max_age_seconds: int,
+        expected_kind: Optional[str] = None,
+        expected_subject_ref: Optional[str] = None,
+        expected_issuer: Optional[str] = None,
+        clock_skew_seconds: int = 60,
+    ) -> bool:
+        if (
+            not self.evidence_id.strip()
+            or self.kind not in EVIDENCE_KINDS
+            or not self.issuer.strip()
+            or not _valid_ref(self.subject_ref)
+            or not _valid_ref(self.provenance_ref)
+            or not _valid_digest(self.payload_digest)
+            or not _valid_digest(self.signature)
+        ):
+            return False
+        if expected_kind is not None and self.kind != expected_kind:
+            return False
+        if expected_subject_ref is not None and self.subject_ref != expected_subject_ref:
+            return False
+        if expected_issuer is not None and self.issuer != expected_issuer:
+            return False
+        if self.expires_at <= self.issued_at:
+            return False
+        if self.issued_at > now + clock_skew_seconds:
+            return False
+        if now > self.expires_at:
+            return False
+        if now - self.issued_at > max_age_seconds:
+            return False
+
+        expected_signature = hmac.new(
+            key,
+            _canonical_json(self.unsigned_payload()).encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+        return hmac.compare_digest(self.signature, expected_signature)
+
+
+@dataclass(frozen=True)
 class Trigger:
     trigger_id: str
     trigger_type: str
     source_ref: str
-    evidence_ref: str
+    evidence: EvidenceRecord
 
-    def valid(self) -> bool:
+    def basic_valid(self) -> bool:
         return (
             bool(self.trigger_id.strip())
             and self.trigger_type in TRIGGER_TYPES
-            and bool(self.source_ref.strip())
-            and bool(self.evidence_ref.strip())
+            and _valid_ref(self.source_ref)
         )
 
 
@@ -109,7 +260,6 @@ class Evaluation:
     regression: float
     ux: float = 1.0
     performance: float = 1.0
-    evidence_complete: bool = True
 
     def values(self) -> Tuple[float, ...]:
         return (
@@ -121,7 +271,7 @@ class Evaluation:
         )
 
     def valid(self) -> bool:
-        return all(0.0 <= v <= 1.0 for v in self.values())
+        return all(0.0 <= value <= 1.0 for value in self.values())
 
     def weighted_score(self) -> float:
         return round(
@@ -133,6 +283,33 @@ class Evaluation:
             4,
         )
 
+    def payload(self) -> Dict[str, float]:
+        return {
+            "correctness": self.correctness,
+            "safety": self.safety,
+            "regression": self.regression,
+            "ux": self.ux,
+            "performance": self.performance,
+        }
+
+
+@dataclass(frozen=True)
+class CertificationEvidence:
+    certifier_id: str
+    independent_validation: bool
+    evidence_consistent: bool
+    evidence: EvidenceRecord
+
+
+@dataclass(frozen=True)
+class TransitionRecord:
+    sequence: int
+    from_state: str
+    to_state: str
+    reason: str
+    previous_digest: str
+    digest: str
+
 
 @dataclass
 class ImprovementTask:
@@ -141,202 +318,406 @@ class ImprovementTask:
     risk: str
     reversible: bool
     production: bool
-    evidence_ref: str
     objective: str
     builder_id: str
     certifier_id: str
     budget: Budget
+    qualification_evidence: EvidenceRecord
     trigger: Trigger
-    state: str = field(default="DISCOVERED", init=False)
-    attempts: int = field(default=0, init=False)
-    history: List[str] = field(default_factory=lambda: ["DISCOVERED"], init=False)
-    reason: str = field(default="CREATED", init=False)
+    _state: str = field(default="DISCOVERED", init=False, repr=False)
+    _reason: str = field(default="CREATED", init=False, repr=False)
+    _attempts: int = field(default=0, init=False, repr=False)
+    _ledger: List[TransitionRecord] = field(default_factory=list, init=False, repr=False)
 
-    def transition(self, new_state: str, reason: str) -> None:
-        if new_state not in TASK_STATES:
-            raise ValueError("UNKNOWN_TASK_STATE")
-        self.state = new_state
-        self.reason = reason
-        self.history.append(new_state)
+    @property
+    def state(self) -> str:
+        return self._state
+
+    @property
+    def reason(self) -> str:
+        return self._reason
+
+    @property
+    def attempts(self) -> int:
+        return self._attempts
+
+    @property
+    def history(self) -> Tuple[str, ...]:
+        return tuple(["DISCOVERED"] + [record.to_state for record in self._ledger])
+
+    @property
+    def ledger(self) -> Tuple[TransitionRecord, ...]:
+        return tuple(self._ledger)
 
 
 class CAIE:
     """Bounded Continuous Autonomous Improvement Engine.
 
+    P0.1 hardening adds signed/fresh evidence and a tamper-evident transition ledger.
     Autonomous ceiling: PREPARE_PR.
     Protected-main merge and Production remain HUMAN_ONLY.
     """
 
     def __init__(
         self,
+        *,
+        evidence_key: bytes,
         min_correctness: float = 0.90,
         min_safety: float = 0.95,
         min_regression: float = 0.95,
         min_total_score: float = 0.92,
         max_remediation_attempts: int = 2,
+        max_evidence_age_seconds: int = 3600,
+        now_fn: Callable[[], float] = time.time,
     ) -> None:
+        if not isinstance(evidence_key, (bytes, bytearray)) or len(evidence_key) < 16:
+            raise ValueError("EVIDENCE_KEY_TOO_SHORT")
+        if max_remediation_attempts < 0:
+            raise ValueError("INVALID_REMEDIATION_LIMIT")
+        if max_evidence_age_seconds <= 0:
+            raise ValueError("INVALID_EVIDENCE_AGE")
+        for threshold in (
+            min_correctness,
+            min_safety,
+            min_regression,
+            min_total_score,
+        ):
+            if threshold < 0 or threshold > 1:
+                raise ValueError("INVALID_QUALITY_THRESHOLD")
+
+        self.__evidence_key = bytes(evidence_key)
+        self.__transition_key = secrets.token_bytes(32)
+        self.__certification_tokens: Dict[int, str] = {}
         self.min_correctness = min_correctness
         self.min_safety = min_safety
         self.min_regression = min_regression
         self.min_total_score = min_total_score
         self.max_remediation_attempts = max_remediation_attempts
+        self.max_evidence_age_seconds = max_evidence_age_seconds
+        self.now_fn = now_fn
+
+    def _now(self) -> int:
+        return int(self.now_fn())
+
+    def _verify_evidence(
+        self,
+        evidence: EvidenceRecord,
+        *,
+        kind: str,
+        subject_ref: str,
+        issuer: Optional[str] = None,
+    ) -> bool:
+        return evidence.verify(
+            key=self.__evidence_key,
+            now=self._now(),
+            max_age_seconds=self.max_evidence_age_seconds,
+            expected_kind=kind,
+            expected_subject_ref=subject_ref,
+            expected_issuer=issuer,
+        )
+
+    def _transition_digest(
+        self,
+        task: ImprovementTask,
+        *,
+        sequence: int,
+        from_state: str,
+        to_state: str,
+        reason: str,
+        previous_digest: str,
+    ) -> str:
+        payload = {
+            "task_id": task.task_id,
+            "sequence": sequence,
+            "from_state": from_state,
+            "to_state": to_state,
+            "reason": reason,
+            "previous_digest": previous_digest,
+        }
+        return hmac.new(
+            self.__transition_key,
+            _canonical_json(payload).encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+
+    def _transition(self, task: ImprovementTask, new_state: str, reason: str) -> str:
+        current = task._state
+        if current in TERMINAL_STATES:
+            return current
+        if new_state not in ALLOWED_TRANSITIONS.get(current, set()):
+            raise ValueError("ILLEGAL_STATE_TRANSITION")
+        previous_digest = task._ledger[-1].digest if task._ledger else ("0" * HEX_DIGEST_LEN)
+        sequence = len(task._ledger) + 1
+        digest = self._transition_digest(
+            task,
+            sequence=sequence,
+            from_state=current,
+            to_state=new_state,
+            reason=reason,
+            previous_digest=previous_digest,
+        )
+        task._ledger.append(
+            TransitionRecord(
+                sequence=sequence,
+                from_state=current,
+                to_state=new_state,
+                reason=reason,
+                previous_digest=previous_digest,
+                digest=digest,
+            )
+        )
+        task._state = new_state
+        task._reason = reason
+        return task._state
+
+    def _fail_closed(self, task: ImprovementTask, disposition: str, reason: str) -> str:
+        if task.state in TERMINAL_STATES:
+            return task.state
+        return self._transition(task, disposition, reason)
+
+    def _ledger_valid(self, task: ImprovementTask) -> bool:
+        previous_state = "DISCOVERED"
+        previous_digest = "0" * HEX_DIGEST_LEN
+        for expected_sequence, record in enumerate(task._ledger, start=1):
+            if record.sequence != expected_sequence:
+                return False
+            if record.from_state != previous_state:
+                return False
+            if record.to_state not in ALLOWED_TRANSITIONS.get(previous_state, set()):
+                return False
+            if record.previous_digest != previous_digest:
+                return False
+            expected_digest = self._transition_digest(
+                task,
+                sequence=record.sequence,
+                from_state=record.from_state,
+                to_state=record.to_state,
+                reason=record.reason,
+                previous_digest=record.previous_digest,
+            )
+            if not hmac.compare_digest(record.digest, expected_digest):
+                return False
+            previous_state = record.to_state
+            previous_digest = record.digest
+        return task._state == previous_state
+
+    @staticmethod
+    def _valid_success_history(history: Sequence[str]) -> bool:
+        if len(history) < 7 or history[0] != "DISCOVERED":
+            return False
+        index = 1
+        for required in ("QUALIFIED", "PLANNED", "SANDBOX"):
+            if index >= len(history) or history[index] != required:
+                return False
+            index += 1
+        while index < len(history) and history[index] == "REMEDIATED":
+            index += 1
+        for required in ("TESTED", "SCORED", "CERTIFIED"):
+            if index >= len(history) or history[index] != required:
+                return False
+            index += 1
+        return index == len(history)
 
     def qualify(self, task: ImprovementTask) -> str:
+        subject = f"urn:lom:task:{task.task_id}"
+        if task.state != "DISCOVERED":
+            return self._fail_closed(task, "HOLD", "QUALIFY_REQUIRES_DISCOVERED")
         if not task.task_id.strip() or not task.objective.strip():
-            task.transition("HOLD", "IDENTITY_OR_OBJECTIVE_REQUIRED")
-            return task.state
-        if not task.evidence_ref.strip():
-            task.transition("HOLD", "EVIDENCE_REFERENCE_REQUIRED")
-            return task.state
-        if not task.trigger.valid():
-            task.transition("HOLD", "TRIGGER_EVIDENCE_INVALID")
-            return task.state
+            return self._transition(task, "HOLD", "IDENTITY_OR_OBJECTIVE_REQUIRED")
+        if not self._verify_evidence(
+            task.qualification_evidence,
+            kind="QUALIFICATION",
+            subject_ref=subject,
+        ):
+            return self._transition(task, "HOLD", "QUALIFICATION_EVIDENCE_INVALID")
+        if not task.trigger.basic_valid():
+            return self._transition(task, "HOLD", "TRIGGER_INVALID")
+        if not self._verify_evidence(
+            task.trigger.evidence,
+            kind="TRIGGER",
+            subject_ref=subject,
+        ):
+            return self._transition(task, "HOLD", "TRIGGER_EVIDENCE_INVALID")
         if not task.budget.valid():
-            task.transition("HOLD", "BUDGET_INVALID")
-            return task.state
+            return self._transition(task, "HOLD", "BUDGET_INVALID")
         if task.target in HUMAN_ONLY_TARGETS:
-            task.transition("ESCALATE", "HUMAN_ONLY_TARGET")
-            return task.state
+            return self._transition(task, "ESCALATE", "HUMAN_ONLY_TARGET")
         if task.target not in ALLOWED_TARGETS:
-            task.transition("HOLD", "UNKNOWN_TARGET")
-            return task.state
+            return self._transition(task, "HOLD", "UNKNOWN_TARGET")
         if task.production:
-            task.transition("ESCALATE", "PRODUCTION_BOUNDARY")
-            return task.state
+            return self._transition(task, "ESCALATE", "PRODUCTION_BOUNDARY")
         if task.risk not in {"LOW", "MEDIUM", "HIGH"}:
-            task.transition("HOLD", "UNKNOWN_RISK")
-            return task.state
+            return self._transition(task, "HOLD", "UNKNOWN_RISK")
         if task.risk == "HIGH":
-            task.transition("ESCALATE", "HIGH_RISK")
-            return task.state
+            return self._transition(task, "ESCALATE", "HIGH_RISK")
         if not task.reversible:
-            task.transition("HOLD", "REVERSIBILITY_REQUIRED")
-            return task.state
+            return self._transition(task, "HOLD", "REVERSIBILITY_REQUIRED")
         if not task.builder_id.strip() or not task.certifier_id.strip():
-            task.transition("HOLD", "ROLE_IDENTITY_REQUIRED")
-            return task.state
+            return self._transition(task, "HOLD", "ROLE_IDENTITY_REQUIRED")
         if task.builder_id == task.certifier_id:
-            task.transition("HOLD", "BUILDER_SELF_CERTIFICATION_FORBIDDEN")
-            return task.state
-        task.transition("QUALIFIED", "BOUNDARY_CHECKS_PASSED")
-        return task.state
+            return self._transition(task, "HOLD", "BUILDER_SELF_CERTIFICATION_FORBIDDEN")
+        return self._transition(task, "QUALIFIED", "BOUNDARY_AND_EVIDENCE_CHECKS_PASSED")
 
     def plan(self, task: ImprovementTask) -> str:
         if task.state != "QUALIFIED":
-            task.transition("HOLD", "PLAN_REQUIRES_QUALIFIED")
-            return task.state
-        task.transition("PLANNED", "BOUNDED_PLAN_READY")
-        return task.state
+            return self._fail_closed(task, "HOLD", "PLAN_REQUIRES_QUALIFIED")
+        return self._transition(task, "PLANNED", "BOUNDED_PLAN_READY")
 
     def enter_sandbox(self, task: ImprovementTask, isolated: bool) -> str:
         if task.state != "PLANNED":
-            task.transition("HOLD", "SANDBOX_REQUIRES_PLANNED")
-            return task.state
+            return self._fail_closed(task, "HOLD", "SANDBOX_REQUIRES_PLANNED")
         if not isolated:
-            task.transition("HOLD", "ISOLATED_EXECUTION_REQUIRED")
-            return task.state
-        task.transition("SANDBOX", "ISOLATED_EXECUTION_CONFIRMED")
-        return task.state
+            return self._transition(task, "HOLD", "ISOLATED_EXECUTION_REQUIRED")
+        return self._transition(task, "SANDBOX", "ISOLATED_EXECUTION_CONFIRMED")
 
     def record_test(self, task: ImprovementTask, tests_passed: bool) -> str:
         if task.state not in {"SANDBOX", "REMEDIATED"}:
-            task.transition("HOLD", "TEST_REQUIRES_SANDBOX_OR_REMEDIATED")
-            return task.state
+            return self._fail_closed(task, "HOLD", "TEST_REQUIRES_SANDBOX_OR_REMEDIATED")
         if not tests_passed:
-            if task.attempts < self.max_remediation_attempts:
-                task.attempts += 1
-                task.transition("REMEDIATED", "TEST_FAILED_REMEDIATE")
-            else:
-                task.transition("REJECT", "TEST_FAILED_REMEDIATION_EXHAUSTED")
-            return task.state
-        task.transition("TESTED", "DETERMINISTIC_TESTS_PASSED")
-        return task.state
+            if task._attempts < self.max_remediation_attempts:
+                task._attempts += 1
+                return self._transition(task, "REMEDIATED", "TEST_FAILED_REMEDIATE")
+            return self._transition(task, "REJECT", "TEST_FAILED_REMEDIATION_EXHAUSTED")
+        return self._transition(task, "TESTED", "DETERMINISTIC_TESTS_PASSED")
 
     def score(
         self,
         task: ImprovementTask,
+        *,
         evaluation: Evaluation,
+        evaluation_evidence: EvidenceRecord,
         baseline: Optional[Evaluation],
+        baseline_evidence: Optional[EvidenceRecord],
         usage: Usage,
+        usage_evidence: EvidenceRecord,
     ) -> str:
+        subject = f"urn:lom:task:{task.task_id}"
         if task.state != "TESTED":
-            task.transition("HOLD", "SCORING_REQUIRES_TESTED")
-            return task.state
-        if not evaluation.evidence_complete:
-            task.transition("HOLD", "EVALUATION_EVIDENCE_INCOMPLETE")
-            return task.state
+            return self._fail_closed(task, "HOLD", "SCORING_REQUIRES_TESTED")
         if not evaluation.valid():
-            task.transition("HOLD", "EVALUATION_SCORE_INVALID")
-            return task.state
+            return self._transition(task, "HOLD", "EVALUATION_SCORE_INVALID")
+        if not self._verify_evidence(
+            evaluation_evidence,
+            kind="EVALUATION",
+            subject_ref=subject,
+        ):
+            return self._transition(task, "HOLD", "EVALUATION_EVIDENCE_INVALID")
+        if evaluation_evidence.payload_digest != digest_payload(evaluation.payload()):
+            return self._transition(task, "HOLD", "EVALUATION_DIGEST_MISMATCH")
         if not usage.valid():
-            task.transition("HOLD", "USAGE_EVIDENCE_INVALID")
-            return task.state
+            return self._transition(task, "HOLD", "USAGE_EVIDENCE_INVALID")
+        if not self._verify_evidence(
+            usage_evidence,
+            kind="USAGE",
+            subject_ref=subject,
+        ):
+            return self._transition(task, "HOLD", "USAGE_EVIDENCE_INVALID")
+        if usage_evidence.payload_digest != digest_payload(
+            {
+                "cost_usd": usage.cost_usd,
+                "elapsed_seconds": usage.elapsed_seconds,
+                "retries": usage.retries,
+                "tool_calls": usage.tool_calls,
+            }
+        ):
+            return self._transition(task, "HOLD", "USAGE_DIGEST_MISMATCH")
         if not usage.within(task.budget):
-            task.transition("REJECT", "BUDGET_OVERRUN")
-            return task.state
-        if baseline is None:
-            task.transition("HOLD", "BASELINE_EVIDENCE_REQUIRED")
-            return task.state
-        if not baseline.valid() or not baseline.evidence_complete:
-            task.transition("HOLD", "BASELINE_EVIDENCE_INVALID")
-            return task.state
+            return self._transition(task, "REJECT", "BUDGET_OVERRUN")
+        if baseline is None or baseline_evidence is None:
+            return self._transition(task, "HOLD", "BASELINE_EVIDENCE_REQUIRED")
+        if not baseline.valid():
+            return self._transition(task, "HOLD", "BASELINE_SCORE_INVALID")
+        if not self._verify_evidence(
+            baseline_evidence,
+            kind="BASELINE",
+            subject_ref=subject,
+        ):
+            return self._transition(task, "HOLD", "BASELINE_EVIDENCE_INVALID")
+        if baseline_evidence.payload_digest != digest_payload(baseline.payload()):
+            return self._transition(task, "HOLD", "BASELINE_DIGEST_MISMATCH")
         if (
             evaluation.correctness < baseline.correctness
             or evaluation.safety < baseline.safety
             or evaluation.regression < baseline.regression
         ):
-            task.transition("REJECT", "QUALITY_REGRESSION")
-            return task.state
+            return self._transition(task, "REJECT", "QUALITY_REGRESSION")
         if evaluation.correctness < self.min_correctness:
-            task.transition("REJECT", "CORRECTNESS_BELOW_THRESHOLD")
-            return task.state
+            return self._transition(task, "REJECT", "CORRECTNESS_BELOW_THRESHOLD")
         if evaluation.safety < self.min_safety:
-            task.transition("REJECT", "SAFETY_BELOW_THRESHOLD")
-            return task.state
+            return self._transition(task, "REJECT", "SAFETY_BELOW_THRESHOLD")
         if evaluation.regression < self.min_regression:
-            task.transition("REJECT", "REGRESSION_BELOW_THRESHOLD")
-            return task.state
+            return self._transition(task, "REJECT", "REGRESSION_BELOW_THRESHOLD")
         if evaluation.weighted_score() < self.min_total_score:
-            task.transition("REJECT", "TOTAL_SCORE_BELOW_THRESHOLD")
-            return task.state
-        task.transition("SCORED", "QUALITY_THRESHOLDS_PASSED")
-        return task.state
+            return self._transition(task, "REJECT", "TOTAL_SCORE_BELOW_THRESHOLD")
+        return self._transition(task, "SCORED", "SIGNED_QUALITY_EVIDENCE_PASSED")
 
-    def certify(
-        self,
-        task: ImprovementTask,
-        independent_validation: bool,
-        evidence_consistent: bool,
-    ) -> str:
+    def certify(self, task: ImprovementTask, certification: CertificationEvidence) -> str:
+        subject = f"urn:lom:task:{task.task_id}"
         if task.state != "SCORED":
-            task.transition("HOLD", "CERTIFICATION_REQUIRES_SCORED")
-            return task.state
-        if task.builder_id == task.certifier_id:
-            task.transition("HOLD", "BUILDER_SELF_CERTIFICATION_FORBIDDEN")
-            return task.state
-        if not independent_validation:
-            task.transition("HOLD", "INDEPENDENT_VALIDATION_REQUIRED")
-            return task.state
-        if not evidence_consistent:
-            task.transition("HOLD", "EVIDENCE_CONTRADICTION")
-            return task.state
-        task.transition("CERTIFIED", "INDEPENDENT_VALIDATION_PASSED")
-        return task.state
+            return self._fail_closed(task, "HOLD", "CERTIFICATION_REQUIRES_SCORED")
+        if certification.certifier_id != task.certifier_id:
+            return self._transition(task, "HOLD", "CERTIFIER_IDENTITY_MISMATCH")
+        if certification.certifier_id == task.builder_id:
+            return self._transition(task, "HOLD", "BUILDER_SELF_CERTIFICATION_FORBIDDEN")
+        if not certification.independent_validation:
+            return self._transition(task, "HOLD", "INDEPENDENT_VALIDATION_REQUIRED")
+        if not certification.evidence_consistent:
+            return self._transition(task, "HOLD", "EVIDENCE_CONTRADICTION")
+        if not self._verify_evidence(
+            certification.evidence,
+            kind="CERTIFICATION",
+            subject_ref=subject,
+            issuer=certification.certifier_id,
+        ):
+            return self._transition(task, "HOLD", "CERTIFICATION_EVIDENCE_INVALID")
+        expected_digest = digest_payload(
+            {
+                "task_id": task.task_id,
+                "certifier_id": certification.certifier_id,
+                "independent_validation": certification.independent_validation,
+                "evidence_consistent": certification.evidence_consistent,
+            }
+        )
+        if certification.evidence.payload_digest != expected_digest:
+            return self._transition(task, "HOLD", "CERTIFICATION_DIGEST_MISMATCH")
+        state = self._transition(task, "CERTIFIED", "INDEPENDENT_SIGNED_VALIDATION_PASSED")
+        token_payload = {
+            "task_id": task.task_id,
+            "ledger_tail": task._ledger[-1].digest,
+            "certifier_id": certification.certifier_id,
+        }
+        self.__certification_tokens[id(task)] = hmac.new(
+            self.__transition_key,
+            _canonical_json(token_payload).encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+        return state
 
     def prepare_pr(self, task: ImprovementTask) -> str:
         if task.state != "CERTIFIED":
-            task.transition("HOLD", "PREPARE_PR_REQUIRES_CERTIFIED")
+            return self._fail_closed(task, "HOLD", "PREPARE_PR_REQUIRES_CERTIFIED")
+        if not self._ledger_valid(task):
+            task._state = "HOLD"
+            task._reason = "TRANSITION_LEDGER_INVALID"
             return task.state
-        required = ["DISCOVERED", "QUALIFIED", "PLANNED", "SANDBOX", "TESTED", "SCORED", "CERTIFIED"]
-        cursor = 0
-        for state in task.history:
-            if cursor < len(required) and state == required[cursor]:
-                cursor += 1
-        if cursor != len(required):
-            task.transition("HOLD", "CERTIFICATION_LINEAGE_INCOMPLETE")
-            return task.state
-        task.transition("PREPARE_PR", "AUTONOMOUS_CEILING_REACHED")
-        return task.state
+        if not self._valid_success_history(task.history):
+            return self._transition(task, "HOLD", "CERTIFICATION_LINEAGE_INCOMPLETE")
+        expected_token = self.__certification_tokens.get(id(task))
+        if not expected_token:
+            return self._transition(task, "HOLD", "CERTIFICATION_TOKEN_REQUIRED")
+        token_payload = {
+            "task_id": task.task_id,
+            "ledger_tail": task._ledger[-1].digest,
+            "certifier_id": task.certifier_id,
+        }
+        actual_token = hmac.new(
+            self.__transition_key,
+            _canonical_json(token_payload).encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+        if not hmac.compare_digest(expected_token, actual_token):
+            return self._transition(task, "HOLD", "CERTIFICATION_TOKEN_INVALID")
+        return self._transition(task, "PREPARE_PR", "AUTONOMOUS_CEILING_REACHED")
 
     def merge_protected_main(self) -> None:
         raise PermissionError("HUMAN_APPROVAL_REQUIRED")
@@ -346,16 +727,21 @@ class CAIE:
 
 
 def run_to_prepare_pr(
+    *,
+    evidence_key: bytes,
     task: ImprovementTask,
     evaluation: Evaluation,
+    evaluation_evidence: EvidenceRecord,
     baseline: Evaluation,
+    baseline_evidence: EvidenceRecord,
     usage: Usage,
+    usage_evidence: EvidenceRecord,
+    certification: CertificationEvidence,
     tests_passed: bool = True,
     isolated: bool = True,
-    independent_validation: bool = True,
-    evidence_consistent: bool = True,
+    now_fn: Callable[[], float] = time.time,
 ) -> ImprovementTask:
-    engine = CAIE()
+    engine = CAIE(evidence_key=evidence_key, now_fn=now_fn)
     if engine.qualify(task) != "QUALIFIED":
         return task
     if engine.plan(task) != "PLANNED":
@@ -364,9 +750,17 @@ def run_to_prepare_pr(
         return task
     if engine.record_test(task, tests_passed=tests_passed) != "TESTED":
         return task
-    if engine.score(task, evaluation, baseline, usage) != "SCORED":
+    if engine.score(
+        task,
+        evaluation=evaluation,
+        evaluation_evidence=evaluation_evidence,
+        baseline=baseline,
+        baseline_evidence=baseline_evidence,
+        usage=usage,
+        usage_evidence=usage_evidence,
+    ) != "SCORED":
         return task
-    if engine.certify(task, independent_validation, evidence_consistent) != "CERTIFIED":
+    if engine.certify(task, certification) != "CERTIFIED":
         return task
     engine.prepare_pr(task)
     return task
