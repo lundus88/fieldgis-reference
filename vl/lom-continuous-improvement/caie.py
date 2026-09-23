@@ -6,7 +6,7 @@ import hmac
 import json
 import secrets
 import time
-from typing import Callable, Dict, List, Optional, Sequence, Tuple
+from typing import Callable, Dict, List, Mapping, Optional, Sequence, Tuple
 
 HUMAN_ONLY_TARGETS = {
     "PROTECTED_MAIN_MERGE",
@@ -361,7 +361,7 @@ class CAIE:
     def __init__(
         self,
         *,
-        evidence_key: bytes,
+        evidence_keys: Mapping[str, bytes],
         min_correctness: float = 0.90,
         min_safety: float = 0.95,
         min_regression: float = 0.95,
@@ -370,8 +370,15 @@ class CAIE:
         max_evidence_age_seconds: int = 3600,
         now_fn: Callable[[], float] = time.time,
     ) -> None:
-        if not isinstance(evidence_key, (bytes, bytearray)) or len(evidence_key) < 16:
-            raise ValueError("EVIDENCE_KEY_TOO_SHORT")
+        if not evidence_keys:
+            raise ValueError("EVIDENCE_KEYS_REQUIRED")
+        normalized_keys: Dict[str, bytes] = {}
+        for issuer, key in evidence_keys.items():
+            if not issuer.strip():
+                raise ValueError("EVIDENCE_ISSUER_REQUIRED")
+            if not isinstance(key, (bytes, bytearray)) or len(key) < 16:
+                raise ValueError("EVIDENCE_KEY_TOO_SHORT")
+            normalized_keys[issuer] = bytes(key)
         if max_remediation_attempts < 0:
             raise ValueError("INVALID_REMEDIATION_LIMIT")
         if max_evidence_age_seconds <= 0:
@@ -385,7 +392,7 @@ class CAIE:
             if threshold < 0 or threshold > 1:
                 raise ValueError("INVALID_QUALITY_THRESHOLD")
 
-        self.__evidence_key = bytes(evidence_key)
+        self.__evidence_keys = normalized_keys
         self.__transition_key = secrets.token_bytes(32)
         self.__certification_tokens: Dict[int, str] = {}
         self.min_correctness = min_correctness
@@ -407,13 +414,44 @@ class CAIE:
         subject_ref: str,
         issuer: Optional[str] = None,
     ) -> bool:
+        key = self.__evidence_keys.get(evidence.issuer)
+        if key is None:
+            return False
         return evidence.verify(
-            key=self.__evidence_key,
+            key=key,
             now=self._now(),
             max_age_seconds=self.max_evidence_age_seconds,
             expected_kind=kind,
             expected_subject_ref=subject_ref,
             expected_issuer=issuer,
+        )
+
+    @staticmethod
+    def _task_policy_digest(task: ImprovementTask) -> str:
+        return digest_payload(
+            {
+                "task_id": task.task_id,
+                "target": task.target,
+                "risk": task.risk,
+                "reversible": task.reversible,
+                "production": task.production,
+                "objective": task.objective,
+                "builder_id": task.builder_id,
+                "certifier_id": task.certifier_id,
+                "budget": {
+                    "max_cost_usd": task.budget.max_cost_usd,
+                    "max_elapsed_seconds": task.budget.max_elapsed_seconds,
+                    "max_retries": task.budget.max_retries,
+                    "max_tool_calls": task.budget.max_tool_calls,
+                },
+                "qualification_evidence_signature": task.qualification_evidence.signature,
+                "trigger": {
+                    "trigger_id": task.trigger.trigger_id,
+                    "trigger_type": task.trigger.trigger_type,
+                    "source_ref": task.trigger.source_ref,
+                    "evidence_signature": task.trigger.evidence.signature,
+                },
+            }
         )
 
     def _transition_digest(
@@ -433,6 +471,7 @@ class CAIE:
             "to_state": to_state,
             "reason": reason,
             "previous_digest": previous_digest,
+            "task_policy_digest": self._task_policy_digest(task),
         }
         return hmac.new(
             self.__transition_key,
@@ -530,6 +569,18 @@ class CAIE:
             subject_ref=subject,
         ):
             return self._transition(task, "HOLD", "QUALIFICATION_EVIDENCE_INVALID")
+        qualification_payload = {
+            "task_id": task.task_id,
+            "target": task.target,
+            "risk": task.risk,
+            "reversible": task.reversible,
+            "production": task.production,
+            "objective": task.objective,
+            "builder_id": task.builder_id,
+            "certifier_id": task.certifier_id,
+        }
+        if task.qualification_evidence.payload_digest != digest_payload(qualification_payload):
+            return self._transition(task, "HOLD", "QUALIFICATION_DIGEST_MISMATCH")
         if not task.trigger.basic_valid():
             return self._transition(task, "HOLD", "TRIGGER_INVALID")
         if not self._verify_evidence(
@@ -538,6 +589,13 @@ class CAIE:
             subject_ref=subject,
         ):
             return self._transition(task, "HOLD", "TRIGGER_EVIDENCE_INVALID")
+        trigger_payload = {
+            "trigger_id": task.trigger.trigger_id,
+            "trigger_type": task.trigger.trigger_type,
+            "source_ref": task.trigger.source_ref,
+        }
+        if task.trigger.evidence.payload_digest != digest_payload(trigger_payload):
+            return self._transition(task, "HOLD", "TRIGGER_DIGEST_MISMATCH")
         if not task.budget.valid():
             return self._transition(task, "HOLD", "BUDGET_INVALID")
         if task.target in HUMAN_ONLY_TARGETS:
@@ -676,6 +734,7 @@ class CAIE:
                 "certifier_id": certification.certifier_id,
                 "independent_validation": certification.independent_validation,
                 "evidence_consistent": certification.evidence_consistent,
+                "scored_ledger_tail": task._ledger[-1].digest,
             }
         )
         if certification.evidence.payload_digest != expected_digest:
@@ -728,7 +787,7 @@ class CAIE:
 
 def run_to_prepare_pr(
     *,
-    evidence_key: bytes,
+    evidence_keys: Mapping[str, bytes],
     task: ImprovementTask,
     evaluation: Evaluation,
     evaluation_evidence: EvidenceRecord,
@@ -736,12 +795,12 @@ def run_to_prepare_pr(
     baseline_evidence: EvidenceRecord,
     usage: Usage,
     usage_evidence: EvidenceRecord,
-    certification: CertificationEvidence,
+    certification_factory: Callable[[ImprovementTask], CertificationEvidence],
     tests_passed: bool = True,
     isolated: bool = True,
     now_fn: Callable[[], float] = time.time,
 ) -> ImprovementTask:
-    engine = CAIE(evidence_key=evidence_key, now_fn=now_fn)
+    engine = CAIE(evidence_keys=evidence_keys, now_fn=now_fn)
     if engine.qualify(task) != "QUALIFIED":
         return task
     if engine.plan(task) != "PLANNED":
@@ -760,6 +819,7 @@ def run_to_prepare_pr(
         usage_evidence=usage_evidence,
     ) != "SCORED":
         return task
+    certification = certification_factory(task)
     if engine.certify(task, certification) != "CERTIFIED":
         return task
     engine.prepare_pr(task)
