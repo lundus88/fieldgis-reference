@@ -18,6 +18,9 @@ ORGANS = {
     "heart",
     "hands",
     "voice",
+    "locomotion",
+    "skin",
+    "metabolism",
 }
 
 ALLOWED_SIGNAL_TYPES = {
