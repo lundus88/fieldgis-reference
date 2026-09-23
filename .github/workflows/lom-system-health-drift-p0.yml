@@ -23,6 +23,10 @@ jobs:
         run: |
           cd vl/lom-system-health-p0
           python3 test_journey_recovery.py
+      - name: Authoritative fact freshness and supersession
+        run: |
+          cd vl/lom-system-health-p0
+          python3 test_fact_truth.py
       - name: Existing Agentic OS P2 regression
         run: |
           cd vl/lom-agentic-os-p2
