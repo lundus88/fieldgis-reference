@@ -57,6 +57,40 @@ A conforming adapter exposes:
 
 All mutating operations require an idempotency key and return a deterministic evidence envelope.
 
+## Bukku sandbox binding P0
+
+The official Bukku developer documentation confirms the following integration contract:
+
+- API access is enabled in Bukku under **Control Panel → Integrations**;
+- authentication uses `Authorization: Bearer <AccessToken>`;
+- the company is selected using the `Company-Subdomain` header;
+- `Accept: application/json` is required;
+- JSON requests use `Content-Type: application/json`;
+- documented API rate limit: **600 requests/minute**;
+- staging API server: `https://api.staging.bukku.dev`;
+- Production API server: `https://api.bukku.my`;
+- Bukku recommends requesting a staging account before Production integration.
+
+The P0 binding therefore fixes only the documented transport/authentication contract.
+
+It intentionally does **not** guess invoice, payment or MyInvois endpoint paths or payloads. Exact routes stay unverified until their method, path, schema and semantics are confirmed against authorised Bukku documentation or staging evidence.
+
+Current state:
+
+`BUKKU_SANDBOX_BINDING = HOLD`
+
+Reason:
+
+`BUKKU_ROUTE_CAPABILITY_VERIFICATION_REQUIRED`
+
+The request builder performs **no network calls**. Production environment selection is rejected by the P0 runtime.
+
+See:
+- `BUKKU_SANDBOX_REQUEST.md`
+- `bukku_capabilities.json`
+- `bukku_binding.py`
+- `bukku_sandbox_gate.py`
+
 ## P0 Bukku posture
 
 Public Bukku materials confirm:
@@ -65,7 +99,7 @@ Public Bukku materials confirm:
 - MyInvois-related company/contact/product fields;
 - standard, consolidated and self-billed e-Invoice workflows.
 
-P0 does **not** assume a specific private API route, payload or automatic MyInvois submission capability until verified against authorised developer documentation and sandbox credentials.
+The integration does **not** claim automatic MyInvois API submission until the exact route and staging behaviour are verified.
 
 Therefore:
 - provider capability flags default to false;
@@ -89,7 +123,7 @@ Routine provider synchronization may be autonomous after all required evidence p
 
 ## Golden Transaction acceptance
 
-The P0 Golden Transaction must prove, using a deterministic non-Production fake provider:
+The P0 Golden Transaction must prove:
 
 1. approved quotation exists;
 2. payment is authoritatively reconciled;
@@ -101,6 +135,10 @@ The P0 Golden Transaction must prove, using a deterministic non-Production fake 
 8. delivery remains downstream of valid commercial evidence;
 9. replay does not create duplicate invoice/payment/receipt records;
 10. mismatches and unverified provider capabilities fail closed.
+
+The deterministic fake-provider Golden Transaction already covers the provider-neutral contract.
+
+The next proof is a **Bukku staging Golden Transaction**, which cannot run until Bukku provides authorised staging credentials and the exact routes are verified.
 
 ## Production gate
 
