@@ -1,7 +1,7 @@
 {
-  "schema": "lds.financebridge/1",
+  "schema": "lds.financebridge/2",
   "product_name": "LD FinanceBridge",
-  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "status": "PROVIDER_ONBOARDING_P1_NON_PRODUCTION",
   "provider_policy": {
     "provider_selected_at_runtime": true,
     "provider_neutral_core": true,
@@ -56,5 +56,10 @@
     "receipt_reference",
     "delivery_evidence",
     "final_reconciliation"
-  ]
+  ],
+  "provider_selection": {
+    "status": "SELECTED_PROVIDER_AWAITING_SANDBOX_CREDENTIALS",
+    "provider_identity_visibility": "PRIVATE_RUNTIME_ONLY",
+    "next_gate": "SANDBOX_CREDENTIALS_AND_ROUTE_EVIDENCE"
+  }
 }
