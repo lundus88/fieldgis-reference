@@ -256,7 +256,11 @@ def test_portfolio_uses_worst_verified_state_and_keeps_authority_boundary():
             max_age_seconds=300,
         ),
     ]
-    snapshot = build_portfolio_snapshot(health, sentinels)
+    snapshot = build_portfolio_snapshot(
+        health,
+        sentinels,
+        expected_project_ids={"lunduslead", "ebkl"},
+    )
     assert snapshot["overall"] == "DEGRADED"
     assert snapshot["autonomous_ceiling"] == "PREPARE_PR"
     assert snapshot["production_authority"] == "HUMAN_ONLY"
@@ -275,3 +279,38 @@ if __name__ == "__main__":
     for test in tests:
         test()
     print(f"PASS {len(tests)} LOM System Health & Drift P0 tests")
+
+
+def test_portfolio_missing_expected_project_fails_closed():
+    health = [assess_project_health(observation(production_sha=MAIN), now_epoch=NOW)]
+    sentinels = [
+        evaluate_regression_sentinel(
+            project_id="lunduslead",
+            expected_main_sha=MAIN,
+            required_journeys={"lead-golden"},
+            results=[regression()],
+            now_epoch=NOW,
+            max_age_seconds=300,
+        )
+    ]
+    snapshot = build_portfolio_snapshot(
+        health,
+        sentinels,
+        expected_project_ids={"lunduslead", "sabahlot"},
+    )
+    assert snapshot["overall"] == "HOLD"
+    missing = next(item for item in snapshot["projects"] if item["project_id"] == "sabahlot")
+    assert missing["status"] == "HOLD"
+    assert "HEALTH_ASSESSMENT_MISSING" in missing["reasons"]
+    assert "REGRESSION_SENTINEL_MISSING" in missing["reasons"]
+
+
+def test_portfolio_unknown_or_duplicate_status_fails_closed():
+    health = [
+        {"project_id": "x", "status": "MAGIC", "assessment_digest": "a"},
+        {"project_id": "x", "status": "HEALTHY", "assessment_digest": "b"},
+    ]
+    sentinels = [{"project_id": "x", "status": "HEALTHY", "sentinel_digest": "s"}]
+    snapshot = build_portfolio_snapshot(health, sentinels, expected_project_ids={"x"})
+    assert snapshot["overall"] == "HOLD"
+    assert "DUPLICATE_HEALTH_ASSESSMENT" in snapshot["integrity_reasons"]
