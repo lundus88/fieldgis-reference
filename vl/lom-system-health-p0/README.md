@@ -85,3 +85,22 @@ The registry defines the journey contract and required evidence; it does not pre
 Only registered, reversible, low-risk, non-Production recipes may reach `PREPARE_PR`. Production drift, runtime failure and critical Golden Journey failure require human review. Database drift, stale evidence and missing authority evidence remain HOLD. Unknown recovery reasons fail closed.
 
 This is preparation intelligence, not autonomous Production repair.
+
+
+## 7. Authoritative Fact Registry + Freshness/Supersession
+
+`fact_truth.py` fills a different gap from Project State Truth. Project State Truth answers **"what is the evidence-bound state of this project?"**. The fact registry answers **"what is the current defensible value of this specific fact?"**
+
+Examples include legal/business readiness, company-account readiness, provider credential readiness, deployment identity, domain binding and other operational facts.
+
+Key rules:
+
+- claims are immutable; no silent overwrite;
+- explicit `supersedes` relationships are required to retire a still-current conflicting claim;
+- stale, future, cross-domain or conflicting current claims => HOLD;
+- consequential domains (LEGAL, FINANCIAL, PRODUCTION, CUSTOMER_COMMITMENT, SECURITY_AUTHORITY) require current human confirmation before LOM treats the fact as actionable truth;
+- repository assertions cannot silently become legal/financial/Production authority;
+- non-consequential technical facts may resolve from fresh connected-system evidence;
+- all resolution remains observational; execution authority stays NONE.
+
+This directly prevents stale repository text or prior assumptions from outranking newer authoritative evidence.
