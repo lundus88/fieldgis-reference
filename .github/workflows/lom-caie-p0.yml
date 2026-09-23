@@ -1,0 +1,30 @@
+name: LOM CAIE P0
+
+on:
+  pull_request:
+    paths:
+      - "vl/lom-continuous-improvement/**"
+      - ".github/workflows/lom-caie-p0.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  caie-p0:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Compile CAIE runtime
+        run: python -m py_compile vl/lom-continuous-improvement/caie.py
+
+      - name: Run CAIE P0 tests
+        run: python vl/lom-continuous-improvement/test_caie.py
