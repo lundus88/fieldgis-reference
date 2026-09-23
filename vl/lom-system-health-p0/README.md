@@ -105,3 +105,7 @@ Key rules:
 
 This directly prevents stale repository text or prior assumptions from outranking newer authoritative evidence.
 false
+
+## BodyRuntime health bridge
+
+`body_probe_adapter.py` converts verified portfolio health into the canonical LOM homeostasis probe contract for the **eyes** organ. The bridge carries conservative evidence freshness into BodyRuntime, maps `ACTION_REQUIRED` to whole-body `HOLD`, rejects stale/unknown evidence, and has no execution authority. It cannot impersonate other organs or trigger recovery directly.
