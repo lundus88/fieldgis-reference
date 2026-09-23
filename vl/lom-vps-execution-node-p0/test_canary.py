@@ -31,16 +31,52 @@ def test_complete_synthetic_fixture_proves_validator_only():
     assert result["activation_status"] == "HOLD"
 
 
-def test_live_vps_evidence_can_activate_only_when_sources_are_not_synthetic():
+def live_evidence():
+    e = evidence()
+    e["evidence_class"] = "LIVE_VPS_CANARY"
+    e["node_attestation"] = {
+        "node_id": "node-01",
+        "environment_class": "NON_PRODUCTION_VPS",
+        "operator_confirmed": True,
+        "uid": 1001,
+        "hostname_hash": "sha256:" + "1" * 64,
+        "boot_id_hash": "sha256:" + "2" * 64,
+        "collector_version": "1.0",
+        "repo_sha": "a" * 40,
+        "observed_at_epoch": NOW,
+    }
+    for row in e["checks"]:
+        row["source_reference"] = f"vps:node-01:{row['name']}"
+    return e
+
+
+def test_live_vps_evidence_can_activate_only_with_bound_attestation():
+    result = validate_canary(CONTRACT, live_evidence())
+    assert result["status"] == "PASS"
+    assert result["attestation_valid"] is True
+    assert result["live_vps_verified"] is True
+    assert result["activation_status"] == "READY"
+    assert result["observed_at_epoch"] == NOW
+
+
+def test_live_class_without_attestation_holds():
     e = evidence()
     e["evidence_class"] = "LIVE_VPS_CANARY"
     for row in e["checks"]:
         row["source_reference"] = f"vps:node-01:{row['name']}"
     result = validate_canary(CONTRACT, e)
-    assert result["status"] == "PASS"
-    assert result["live_vps_verified"] is True
-    assert result["activation_status"] == "READY"
-    assert result["observed_at_epoch"] == NOW
+    assert result["status"] == "HOLD"
+    assert result["live_vps_verified"] is False
+    assert "LIVE_NODE_ATTESTATION_INVALID" in result["violations"]
+
+
+def test_live_sources_must_bind_to_attested_node():
+    e = live_evidence()
+    e["checks"][0]["source_reference"] = "vps:other-node:unprivileged_os_identity"
+    result = validate_canary(CONTRACT, e)
+    assert result["status"] == "HOLD"
+    assert result["live_vps_verified"] is False
+    assert "LIVE_SOURCE_BINDING_INVALID" in result["violations"]
 
 
 def test_missing_check_holds():
