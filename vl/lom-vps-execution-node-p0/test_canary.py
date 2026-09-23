@@ -11,6 +11,7 @@ NOW = 2_000_000_000
 def evidence(result="PASS"):
     return {
         "schema": "lom.vps-canary-evidence/1",
+        "evidence_class": "SYNTHETIC_VALIDATOR_FIXTURE",
         "checks": [
             {
                 "name": name,
@@ -26,7 +27,20 @@ def evidence(result="PASS"):
 def test_complete_synthetic_fixture_proves_validator_only():
     result = validate_canary(CONTRACT, evidence())
     assert result["status"] == "PASS"
+    assert result["live_vps_verified"] is False
+    assert result["activation_status"] == "HOLD"
+
+
+def test_live_vps_evidence_can_activate_only_when_sources_are_not_synthetic():
+    e = evidence()
+    e["evidence_class"] = "LIVE_VPS_CANARY"
+    for row in e["checks"]:
+        row["source_reference"] = f"vps:node-01:{row['name']}"
+    result = validate_canary(CONTRACT, e)
+    assert result["status"] == "PASS"
     assert result["live_vps_verified"] is True
+    assert result["activation_status"] == "READY"
+    assert result["observed_at_epoch"] == NOW
 
 
 def test_missing_check_holds():
