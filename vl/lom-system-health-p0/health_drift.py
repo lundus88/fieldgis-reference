@@ -348,6 +348,10 @@ def evaluate_regression_sentinel(
         status = _status_max(status, "HOLD")
         reasons.append("REQUIRED_JOURNEY_MISSING")
 
+    valid_times = [item.observed_at_epoch for item in items if item.observed_at_epoch > 0]
+    observed_floor = min(valid_times) if valid_times else None
+    fresh_until = min((item.observed_at_epoch + max_age_seconds for item in items if item.observed_at_epoch > 0), default=None)
+
     body = {
         "schema": SENTINEL_SCHEMA,
         "project_id": project_id,
@@ -357,6 +361,8 @@ def evaluate_regression_sentinel(
         "required_journeys": sorted(required),
         "missing_journeys": missing,
         "results": [asdict(item) for item in sorted(items, key=lambda x: x.journey_id)],
+        "observed_at_epoch": observed_floor,
+        "fresh_until_epoch": fresh_until,
         "autonomous_ceiling": "PREPARE_PR",
         "production_authority": "HUMAN_ONLY",
         "automatic_production_rollback": "DISABLED",
@@ -433,12 +439,25 @@ def build_portfolio_snapshot(
     if duplicate_health or duplicate_regression:
         overall = _status_max(overall, "HOLD")
 
+    observed_candidates = [
+        item.get("observed_at_epoch")
+        for item in [*health.values(), *regression.values()]
+        if isinstance(item.get("observed_at_epoch"), int) and item.get("observed_at_epoch") > 0
+    ]
+    fresh_candidates = [
+        item.get("fresh_until_epoch")
+        for item in [*health.values(), *regression.values()]
+        if isinstance(item.get("fresh_until_epoch"), int) and item.get("fresh_until_epoch") > 0
+    ]
+
     body = {
         "schema": "lom.portfolio-health/1",
         "overall": overall,
         "projects": projects,
         "expected_project_ids": sorted(expected),
         "integrity_reasons": integrity_reasons,
+        "observed_at_epoch": min(observed_candidates) if observed_candidates else None,
+        "fresh_until_epoch": min(fresh_candidates) if fresh_candidates else None,
         "autonomous_ceiling": "PREPARE_PR",
         "production_authority": "HUMAN_ONLY",
         "protected_main_merge": "HUMAN_ONLY",
