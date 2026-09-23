@@ -1,0 +1,45 @@
+{
+  "schema": "lom.growth-compounding.p0/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "purpose": "Select one evidence-bound reversible improvement candidate across Speed, Automation, Distribution, Learning, or Compounding and hand it to CAIE.",
+  "doctrine": [
+    "QUESTION_REQUIREMENTS",
+    "DELETE",
+    "SIMPLIFY",
+    "BUILD_MINIMUM_WORKING_SYSTEM",
+    "TEST",
+    "MEASURE",
+    "FIND_BOTTLENECK",
+    "ACCELERATE_BOTTLENECK",
+    "AUTOMATE_ELIGIBLE_WORK",
+    "OBSERVE",
+    "LEARN",
+    "REPEAT"
+  ],
+  "growth_levers": [
+    "SPEED",
+    "AUTOMATION",
+    "DISTRIBUTION",
+    "LEARNING",
+    "COMPOUNDING"
+  ],
+  "quality_precedence": true,
+  "single_bottleneck_focus": true,
+  "candidate_handoff": "CAIE",
+  "authority": {
+    "autonomous_ceiling": "PREPARE_PR",
+    "execution_authority": "NONE",
+    "protected_main_merge": "HUMAN_ONLY",
+    "production_authority": "HUMAN_ONLY",
+    "self_approval": "FORBIDDEN",
+    "automatic_gate_removal": "FORBIDDEN"
+  },
+  "fail_closed_on": [
+    "MISSING_EVIDENCE",
+    "STALE_EVIDENCE",
+    "CONTRADICTORY_EVIDENCE",
+    "NONFINITE_METRIC",
+    "UNKNOWN_TARGET",
+    "UNKNOWN_AUTHORITY"
+  ]
+}
