@@ -19,6 +19,11 @@ jobs:
         run: |
           cd vl/lom-vps-execution-node-p0
           python3 test_runner.py
+      - name: VPS live-canary contract regression
+        run: |
+          cd vl/lom-vps-execution-node-p0
+          python3 test_canary.py
+          python3 -m json.tool vps-canary-contract.json >/dev/null
       - name: Existing ACP runtime policy regression
         run: |
           cd vl/agent-control-plane
