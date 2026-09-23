@@ -1,7 +1,13 @@
-name: LOM CAIE P0
+name: LOM CAIE P0.1
 
 on:
   pull_request:
+    paths:
+      - "vl/lom-continuous-improvement/**"
+      - ".github/workflows/lom-caie-p0.yml"
+  push:
+    branches:
+      - main
     paths:
       - "vl/lom-continuous-improvement/**"
       - ".github/workflows/lom-caie-p0.yml"
@@ -15,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Checkout exact PR head
+      - name: Checkout exact tested commit
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -28,5 +34,5 @@ jobs:
       - name: Compile CAIE runtime
         run: python -m py_compile vl/lom-continuous-improvement/caie.py
 
-      - name: Run CAIE P0 tests
+      - name: Run CAIE P0.1 tests
         run: python vl/lom-continuous-improvement/test_caie.py
