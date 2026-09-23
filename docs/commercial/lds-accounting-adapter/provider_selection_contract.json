@@ -1,0 +1,22 @@
+{
+  "schema": "lds.financebridge-provider-selection/1",
+  "status": "SELECTED_PROVIDER_AWAITING_SANDBOX_CREDENTIALS",
+  "public_provider_identity": "PRIVATE_RUNTIME_ONLY",
+  "selection_criteria": {
+    "malaysia_einvoice_or_compliance_path_required": true,
+    "documented_api_required": true,
+    "controlled_test_or_sandbox_required": true,
+    "server_side_authentication_required": true,
+    "idempotent_or_replay_safe_integration_required": true,
+    "data_export_exit_path_required": true,
+    "provider_support_path_required": true,
+    "production_credentials_separate_from_test": true
+  },
+  "operational_policy": {
+    "provider_name_not_customer_facing": true,
+    "provider_name_not_ld_module_branding": true,
+    "provider_evidence_may_identify_actual_vendor_privately": true,
+    "switching_provider_must_not_change_ld_core_contract": true
+  },
+  "next_gate": "SANDBOX_CREDENTIALS_AND_ROUTE_EVIDENCE"
+}

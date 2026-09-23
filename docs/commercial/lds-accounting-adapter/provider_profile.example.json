@@ -1,0 +1,13 @@
+{
+  "schema": "lds.financebridge-private-provider-profile/1",
+  "environment": "staging",
+  "provider_alias": "provider-a",
+  "base_url": "https://sandbox.example.invalid",
+  "auth_scheme": "bearer",
+  "access_token": "DO_NOT_STORE_REAL_SECRET_HERE",
+  "tenant_header_name": "",
+  "tenant_key": "",
+  "documented_rate_limit_per_minute": 600,
+  "support_reference": "PRIVATE_EVIDENCE_REFERENCE",
+  "notes": "Example only. Real provider identity and credentials belong in authorised private runtime configuration."
+}
