@@ -1,4 +1,4 @@
-name: LD Ready Business Kit P0
+name: LD Ready Business Kit P0-P1
 on:
   push:
     branches: [ld/ready-business-kit-p0]
@@ -26,10 +26,18 @@ jobs:
         run: |
           cd vl/ld-ready-business-kit-p0
           python3 test_ready_business_kit.py
+      - name: P1 delivery-factory regressions
+        run: |
+          cd vl/ld-ready-business-kit-p0
+          python3 test_ready_business_p1.py
       - name: Generate three vertical previews
         run: |
           cd vl/ld-ready-business-kit-p0
           python3 build_previews.py
+      - name: Generate P1 delivery artifacts
+        run: |
+          cd vl/ld-ready-business-kit-p0
+          python3 build_p1_artifacts.py
       - name: Verify preview artifacts
         run: |
           test -f vl/ld-ready-business-kit-p0/generated/cafe.html
@@ -37,3 +45,9 @@ jobs:
           test -f vl/ld-ready-business-kit-p0/generated/tutor.html
           grep -q '"payment": "DISABLED"' vl/ld-ready-business-kit-p0/generated/cafe.manifest.json
           grep -q '"production": "LOCKED"' vl/ld-ready-business-kit-p0/generated/cafe.manifest.json
+          test -f vl/ld-ready-business-kit-p0/generated-p1/cafe.proposal.json
+          test -f vl/ld-ready-business-kit-p0/generated-p1/cafe.quotation.json
+          test -f vl/ld-ready-business-kit-p0/generated-p1/cafe.workspace.json
+          grep -q '"amount": null' vl/ld-ready-business-kit-p0/generated-p1/cafe.quotation.json
+          grep -q '"payment": "DISABLED"' vl/ld-ready-business-kit-p0/generated-p1/cafe.workspace.json
+          grep -q '"production": "LOCKED"' vl/ld-ready-business-kit-p0/generated-p1/cafe.workspace.json
