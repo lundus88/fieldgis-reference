@@ -1,0 +1,49 @@
+{
+  "schema": "lds.accounting-adapter/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "provider_policy": {
+    "primary_candidate": "bukku",
+    "local_fallback": "sql_accounting",
+    "international_future": "xero",
+    "provider_neutral_core": true
+  },
+  "production_ready": false,
+  "authority": {
+    "live_credentials": "HUMAN_ONLY",
+    "production_activation": "HUMAN_ONLY",
+    "quotation_commitment": "HUMAN_ONLY",
+    "exceptional_refund_credit_note": "HUMAN_ONLY",
+    "tax_override": "HUMAN_ONLY",
+    "high_value_manual_adjustment": "HUMAN_ONLY"
+  },
+  "operations": [
+    "health",
+    "upsert_customer",
+    "create_invoice",
+    "submit_einvoice",
+    "get_einvoice_status",
+    "record_payment",
+    "create_receipt_reference",
+    "reconcile"
+  ],
+  "invariants": [
+    "Every mutation requires an idempotency key",
+    "Provider acknowledgement is not authoritative payment evidence",
+    "Commercial invoice must match approved quotation/order",
+    "Tax e-Invoice status requires validated compliance evidence",
+    "Receipt requires authoritative paid and reconciled evidence",
+    "Unverified provider capability fails closed",
+    "Provider failure never silently advances LD commercial state",
+    "Production credentials must never be committed to source control"
+  ],
+  "golden_transaction": [
+    "approved_quotation",
+    "authoritative_payment_reconciliation",
+    "invoice_created",
+    "einvoice_validated_or_explicitly_not_required",
+    "accounting_recorded",
+    "receipt_reference",
+    "delivery_evidence",
+    "final_reconciliation"
+  ]
+}
