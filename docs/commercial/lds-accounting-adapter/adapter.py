@@ -19,6 +19,8 @@ class CommercialEvidence:
     customer_ref: str
     approved_quote_ref: str
     amount: float
+    approved_quote_amount: float
+    payment_amount: float
     currency: str
     payment_reconciled: bool
     tax_einvoice_required: bool
@@ -38,9 +40,19 @@ class FakeAccountingProvider:
         if not idem:
             return {"status":"HOLD","reason":"IDEMPOTENCY_KEY_REQUIRED"}
         key=(op,idem)
+        payload_digest=_digest(payload)
         if key in self._seen:
-            return dict(self._seen[key], replay=True)
-        result={"status":"PASS","operation":op,"evidence_digest":_digest({"op":op,"idem":idem,"payload":payload}),"replay":False}
+            previous=self._seen[key]
+            if previous["request_digest"] != payload_digest:
+                return {"status":"HOLD","reason":"IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_PAYLOAD"}
+            return dict(previous, replay=True)
+        result={
+            "status":"PASS",
+            "operation":op,
+            "request_digest":payload_digest,
+            "evidence_digest":_digest({"op":op,"idem":idem,"payload":payload}),
+            "replay":False
+        }
         self._seen[key]=result
         return result
 
@@ -49,6 +61,8 @@ class FakeAccountingProvider:
             return {"status":"HOLD","reason":"PROVIDER_INVOICE_CAPABILITY_UNVERIFIED"}
         if not evidence.approved_quote_ref or evidence.amount <= 0 or not evidence.order_ref or not evidence.customer_ref:
             return {"status":"HOLD","reason":"INVOICE_EVIDENCE_INCOMPLETE"}
+        if evidence.amount != evidence.approved_quote_amount:
+            return {"status":"HOLD","reason":"INVOICE_QUOTATION_AMOUNT_MISMATCH"}
         r=self._mutate("create_invoice",idem,evidence.__dict__)
         if r["status"]=="PASS":
             inv="INV-"+r["evidence_digest"][:12].upper()
@@ -73,6 +87,8 @@ class FakeAccountingProvider:
             return {"status":"HOLD","reason":"PROVIDER_PAYMENT_CAPABILITY_UNVERIFIED"}
         if not evidence.payment_reconciled:
             return {"status":"HOLD","reason":"AUTHORITATIVE_PAYMENT_RECONCILIATION_REQUIRED"}
+        if evidence.payment_amount != evidence.amount:
+            return {"status":"HOLD","reason":"PAYMENT_AMOUNT_MISMATCH"}
         return self._mutate("record_payment",idem,evidence.__dict__)
 
     def create_receipt_reference(self, idem:str, evidence:CommercialEvidence)->Dict:
@@ -80,6 +96,8 @@ class FakeAccountingProvider:
             return {"status":"HOLD","reason":"PROVIDER_RECEIPT_CAPABILITY_UNVERIFIED"}
         if not evidence.payment_reconciled:
             return {"status":"HOLD","reason":"PAID_RECONCILIATION_REQUIRED"}
+        if evidence.payment_amount != evidence.amount:
+            return {"status":"HOLD","reason":"RECEIPT_PAYMENT_AMOUNT_MISMATCH"}
         r=self._mutate("create_receipt_reference",idem,evidence.__dict__)
         if r["status"]=="PASS":
             r["receipt_reference"]="RCT-"+r["evidence_digest"][:12].upper()
@@ -90,8 +108,22 @@ class FakeAccountingProvider:
             return {"status":"HOLD","reason":"PROVIDER_RECONCILIATION_CAPABILITY_UNVERIFIED"}
         if not evidence.payment_reconciled:
             return {"status":"HOLD","reason":"PAYMENT_NOT_RECONCILED"}
+        if evidence.amount != evidence.approved_quote_amount:
+            return {"status":"HOLD","reason":"QUOTE_INVOICE_RECONCILIATION_FAILED"}
+        if evidence.payment_amount != evidence.amount:
+            return {"status":"HOLD","reason":"PAYMENT_INVOICE_RECONCILIATION_FAILED"}
         if evidence.tax_einvoice_required and compliance_status!="VALIDATED":
             return {"status":"HOLD","reason":"EINVOICE_VALIDATION_REQUIRED"}
         if not invoice_ref:
             return {"status":"HOLD","reason":"ACCOUNTING_INVOICE_REFERENCE_REQUIRED"}
-        return {"status":"PASS","reason":"ACCOUNTING_RECONCILED","evidence_digest":_digest({"order":evidence.order_ref,"invoice":invoice_ref,"compliance":compliance_status})}
+        return {
+            "status":"PASS",
+            "reason":"ACCOUNTING_RECONCILED",
+            "evidence_digest":_digest({
+                "order":evidence.order_ref,
+                "invoice":invoice_ref,
+                "compliance":compliance_status,
+                "amount":evidence.amount,
+                "currency":evidence.currency
+            })
+        }
