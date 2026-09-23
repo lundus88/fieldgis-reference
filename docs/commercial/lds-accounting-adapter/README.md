@@ -1,4 +1,4 @@
-# LD FinanceBridge P0
+# LD FinanceBridge P1
 
 Status: DEVELOPMENT / NON-PRODUCTION
 
@@ -147,3 +147,33 @@ It may change only after:
 - explicit human Production approval is recorded.
 
 This module does not activate billing, tax submission, Production credentials or Production deployment.
+
+
+## P1 provider onboarding
+
+P1 advances FinanceBridge from generic provider-neutral binding to a selected-provider sandbox onboarding process while preserving private provider identity.
+
+Current public state:
+
+`PROVIDER_SELECTION = SELECTED_PROVIDER_AWAITING_SANDBOX_CREDENTIALS`
+
+`FINANCEBRIDGE_ROUTE_EVIDENCE = HOLD`
+
+`ACCOUNTING_PRODUCTION_READY = HOLD`
+
+Public source code now defines:
+- provider selection criteria;
+- a private provider profile template;
+- route evidence schema validation;
+- a fail-closed sandbox Golden Transaction preflight;
+- deterministic tests for missing/invalid route evidence;
+- a runbook for collecting authorised route evidence without committing secrets or provider branding.
+
+Provider identity, credentials, actual staging base URL, support references and vendor-specific route evidence stay in authorised runtime/private evidence only.
+
+See:
+- `provider_selection_contract.json`
+- `provider_profile.example.json`
+- `provider_route_evidence.py`
+- `provider_sandbox_golden.py`
+- `PROVIDER_ROUTE_EVIDENCE_RUNBOOK.md`
