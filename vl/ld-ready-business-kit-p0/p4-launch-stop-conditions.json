@@ -1,0 +1,19 @@
+{
+  "schema":"ld.launch-stop-conditions/1",
+  "stop_if":[
+    "dedicated business phone not verified",
+    "company account not verified where required",
+    "commercial origin or HTTPS fingerprint missing",
+    "lead-intake security fingerprint missing or stale",
+    "payment provider Production configuration unverified",
+    "signed webhook verification absent",
+    "amount mismatch or payment state uncertainty",
+    "known-good rollback target missing",
+    "lead intake cannot be disabled independently",
+    "checkout or billing cannot be disabled independently",
+    "incident/support path unavailable",
+    "Golden Transaction evidence incomplete",
+    "Activation Snapshot missing, stale, expired or unauthorized"
+  ],
+  "rule":"Any stop condition returns cutover to HOLD."
+}
