@@ -27,6 +27,10 @@ jobs:
         run: |
           cd vl/lom-system-health-p0
           python3 test_fact_truth.py
+      - name: Human Gate Minimization Intelligence
+        run: |
+          cd vl/lom-system-health-p0
+          python3 test_human_gate_intelligence.py
       - name: Existing Agentic OS P2 regression
         run: |
           cd vl/lom-agentic-os-p2
