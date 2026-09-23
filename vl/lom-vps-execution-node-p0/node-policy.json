@@ -1,0 +1,38 @@
+{
+  "version": "1.0",
+  "mode": "NON_PRODUCTION_ONLY",
+  "deployment_status": "REPOSITORY_CANDIDATE_ONLY",
+  "allowed_capabilities": [
+    "spec.read",
+    "artifact.read",
+    "qa.execute",
+    "factory.plan",
+    "certification.propose",
+    "release.request_approval"
+  ],
+  "forbidden_capability_prefixes": [
+    "production.",
+    "connector.invoke:"
+  ],
+  "allowed_target_environments": [
+    "development",
+    "staging"
+  ],
+  "forbidden_host_features": [
+    "root",
+    "sudo",
+    "docker-socket",
+    "host-network",
+    "privileged-container",
+    "arbitrary-shell",
+    "arbitrary-url-fetch",
+    "ambient-production-credentials"
+  ],
+  "authority": {
+    "autonomous_ceiling": "PREPARE_PR",
+    "protected_main_merge": "HUMAN_ONLY",
+    "production_deploy": "HUMAN_ONLY",
+    "production_data_mutation": "HUMAN_ONLY",
+    "financial_legal_customer_commitment": "HUMAN_ONLY"
+  }
+}
