@@ -1,0 +1,53 @@
+{
+  "schema": "lom.intelligence-benchmark.manifest/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "purpose": "Define vendor-neutral task classes and evidence requirements. This manifest contains no model scores.",
+  "task_classes": [
+    {
+      "id": "CODING_DEBUGGING",
+      "required_signals": ["correctness", "test_pass", "tool_success", "latency", "cost"]
+    },
+    {
+      "id": "CADASTRAL_REASONING",
+      "required_signals": ["quality", "evidence_correctness", "hallucination_rate", "tool_success", "reliability"]
+    },
+    {
+      "id": "GEOSPATIAL_GIS_REASONING",
+      "required_signals": ["quality", "tool_success", "evidence_correctness", "reliability"]
+    },
+    {
+      "id": "SURVEY_COMPUTATION_FIELDBOOK",
+      "required_signals": ["numeric_correctness", "tool_success", "evidence_correctness", "reliability"]
+    },
+    {
+      "id": "DOCUMENT_EVIDENCE_SYNTHESIS",
+      "required_signals": ["extraction_accuracy", "citation_correctness", "hallucination_rate", "reliability"]
+    },
+    {
+      "id": "BUSINESS_WORKFLOW_REASONING",
+      "required_signals": ["quality", "constraint_adherence", "reliability", "latency", "cost"]
+    },
+    {
+      "id": "TOOL_USE_RETRIEVAL",
+      "required_signals": ["tool_success", "evidence_correctness", "reliability"]
+    },
+    {
+      "id": "ADVERSARIAL_EVIDENCE_TRAPS",
+      "required_signals": ["hallucination_rate", "evidence_correctness", "refusal_or_hold_correctness"]
+    }
+  ],
+  "evidence_origins_allowed_for_routing": ["LOM_EVAL", "EXTERNAL_VERIFIED"],
+  "forbidden_as_routing_evidence": [
+    "PROVIDER_MARKETING",
+    "UNVERIFIED_BLOG",
+    "SOCIAL_MEDIA_CLAIM",
+    "MODEL_SELF_ASSESSMENT",
+    "SYNTHETIC_SCORE_WITHOUT_DATASET_EVIDENCE"
+  ],
+  "authority": {
+    "autonomous_ceiling": "PREPARE_PR",
+    "execution_authority": "NONE",
+    "production_authority": "HUMAN_ONLY",
+    "protected_main_merge": "HUMAN_ONLY"
+  }
+}
