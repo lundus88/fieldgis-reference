@@ -1,0 +1,41 @@
+[Unit]
+Description=LOM Secure Task Ingress P0 (loopback-only)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=lom-runner
+Group=lom-runner
+WorkingDirectory=/home/lom-runner/fieldgis-reference/vl/lom-secure-task-ingress-v1
+Environment=PYTHONUNBUFFERED=1
+Environment=LOM_INGRESS_BIND=127.0.0.1
+Environment=LOM_INGRESS_PORT=8765
+Environment=LOM_INGRESS_DB=/home/lom-runner/lom-runtime/secure-ingress.db
+Environment=LOM_INGRESS_KEY_FILE=/home/lom-runner/.config/lom/ingress-hmac.key
+Environment=LOM_INGRESS_KEY_ID=vps-local-v1
+ExecStart=/usr/bin/python3 /home/lom-runner/fieldgis-reference/vl/lom-secure-task-ingress-v1/ingress_server.py
+Restart=on-failure
+RestartSec=10s
+UMask=0077
+
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadOnlyPaths=/home/lom-runner/fieldgis-reference /home/lom-runner/.config/lom
+ReadWritePaths=/home/lom-runner/lom-runtime
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+LockPersonality=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+CapabilityBoundingSet=
+AmbientCapabilities=
+
+[Install]
+WantedBy=multi-user.target
