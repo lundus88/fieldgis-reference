@@ -22,7 +22,7 @@ jobs:
       - name: Canonical ACP resolution regression
         run: |
           cd vl/agent-control-plane
-          python3 test_grant_resolution.py
+          python3 run_grant_resolution_tests.py
           python3 run_runtime_policy_tests.py
       - name: Resolver remains read only and non-production
         run: |
