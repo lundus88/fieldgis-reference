@@ -1,51 +1,71 @@
-# VPS Live Canary Runbook — P0
+# VPS Live Canary Runbook — P1
 
-Status: NOT RUN / NON-PRODUCTION
+Status: READY TO RUN / NON-PRODUCTION / LIVE VPS UNVERIFIED
 
-This runbook is the future evidence procedure for the real VPS. Repository CI validates the canary **contract and validator only**. Synthetic fixtures are never evidence that the VPS itself passed.
+Repository CI validates the collector, contract, resolver and fail-closed behavior. It does **not** prove the real VPS. A real PASS requires evidence generated on the authorized non-Production VPS by the dedicated unprivileged `lom-runner` identity.
 
 ## Preconditions
 
 - explicit non-Production canary window;
-- VPS access available through an authorized operator/tool;
-- dedicated unprivileged `lom-runner` user prepared;
-- no Production credentials exposed to the runner;
-- ACP evidence source available;
-- known rollback: disable/stop the runner service and preserve journal.
+- authorized operator access to the VPS;
+- dedicated `lom-runner` OS user exists and is not root;
+- repository checkout is at the exact intended `main` revision;
+- no Production/API credentials are intentionally injected into the runner environment;
+- rollback is known: stop/disable the runner and preserve evidence files.
 
-## Required live evidence
+Do not run the collector as root. Do not add the user to the Docker group or grant sudo merely to make a check pass.
 
-Capture every check in `vps-canary-contract.json` with a machine-readable source reference and timestamp.
+## Collect live evidence
 
-Required observations:
+From the repository checkout, as `lom-runner`:
 
-1. `id -u` proves the runner is not root.
-2. sudo attempt is denied.
-3. Docker socket access is denied and runner is not in Docker group.
-4. environment inventory proves Production/API secrets are absent; record key names only, never secret values.
-5. one registered staging action is explicitly allowed by ACP.
-6. one invalid/ungranted action is denied by ACP.
-7. built-in health probe passes.
-8. `production.*` request is denied.
-9. `connector.invoke:*` request is denied in P0.
-10. identical action replay returns idempotent no-op.
-11. changed replay is denied.
-12. restart runner and verify journal hash-chain integrity.
-13. capture node heartbeat evidence.
+```bash
+cd vl/lom-vps-execution-node-p0
+REPO_SHA="$(git rev-parse HEAD)"
+python3 collect_live_canary.py \
+  --confirm-live-vps \
+  --node-id openclaw-vps-01 \
+  --repo-sha "$REPO_SHA" \
+  --output "$HOME/lom-vps-canary-evidence.json"
+```
+
+The collector runs only registered diagnostics. It does not accept arbitrary shell, URL, token, secret or Production actions. The sudo check uses non-interactive `sudo -n true`; it never supplies credentials. Environment evidence records forbidden **key names only**, never values.
+
+## Resolve evidence
+
+```bash
+python3 resolve_live_canary.py \
+  --contract vps-canary-contract.json \
+  --evidence "$HOME/lom-vps-canary-evidence.json" \
+  --output "$HOME/lom-vps-canary-resolution.json"
+```
+
+Exit code:
+- `0`: all required checks PASS and evidence is accepted as live VPS evidence;
+- non-zero: HOLD. Do not activate the VPS adapter.
+
+## Required checks
+
+The evidence must prove all 13 checks:
+
+1. `unprivileged_os_identity`
+2. `sudo_denied`
+3. `docker_socket_denied`
+4. `production_secrets_absent`
+5. `acp_allow_enforced`
+6. `acp_deny_enforced`
+7. `registered_health_probe_pass`
+8. `production_capability_denied`
+9. `connector_capability_denied`
+10. `identical_replay_idempotent`
+11. `changed_replay_denied`
+12. `journal_restart_integrity`
+13. `heartbeat_evidence_available`
+
+Live evidence must also contain a node attestation bound to the same `node_id`, non-root UID, hashed hostname/boot identity, collector version, exact repository SHA and explicit `NON_PRODUCTION_VPS` classification. Synthetic sources cannot activate the node.
 
 ## PASS rule
 
-Every required check must be PASS. Missing, unknown, stale, unverifiable or failed checks mean HOLD.
+Every required check must PASS. Missing, unknown, stale, mismatched, synthetic, unattributed or failed evidence means HOLD.
 
-## What a PASS would mean
-
-A PASS would establish that the VPS is suitable as a bounded non-Production LOM execution node under the P0 contract.
-
-It would **not** authorize:
-- connector/OpenClaw execution through the node;
-- Production access;
-- Production deployment or rollback;
-- protected-main merge;
-- payment, customer, legal or financial actions.
-
-Those require separate later phases and human authority.
+A PASS means only that the VPS is suitable as a bounded **non-Production** LOM execution node under this contract. It does **not** authorize connector/OpenClaw execution, Production access, Production deploy/rollback, protected-main merge, payment, pricing, legal, customer or financial commitments.

@@ -24,5 +24,14 @@
     "connector_execution_during_p0_canary": "DISABLED"
   },
   "pass_rule": "ALL_REQUIRED_CHECKS_PASS",
-  "missing_or_unknown_rule": "HOLD"
+  "missing_or_unknown_rule": "HOLD",
+  "live_evidence_requirements": {
+    "evidence_class": "LIVE_VPS_CANARY",
+    "environment_class": "NON_PRODUCTION_VPS",
+    "operator_confirmation_required": true,
+    "node_attestation_required": true,
+    "source_binding": "vps:<node_id>:*",
+    "synthetic_sources_forbidden": true,
+    "collector_version": "1.0"
+  }
 }
