@@ -14,7 +14,7 @@ PROJECT = "ebkl"
 
 
 def canary(live=True, observed_at=NOW):
-    return {
+    out = {
         "schema": "lom.vps-canary-evidence/1",
         "evidence_class": "LIVE_VPS_CANARY" if live else "SYNTHETIC_VALIDATOR_FIXTURE",
         "checks": [
@@ -29,6 +29,19 @@ def canary(live=True, observed_at=NOW):
             for name in CONTRACT["required_checks"]
         ],
     }
+    if live:
+        out["node_attestation"] = {
+            "node_id": "node-01",
+            "environment_class": "NON_PRODUCTION_VPS",
+            "operator_confirmed": True,
+            "uid": 1001,
+            "hostname_hash": "sha256:" + "1" * 64,
+            "boot_id_hash": "sha256:" + "2" * 64,
+            "collector_version": "1.0",
+            "repo_sha": "a" * 40,
+            "observed_at_epoch": observed_at,
+        }
+    return out
 
 
 def grant():
