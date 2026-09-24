@@ -1,0 +1,31 @@
+name: LOM Secure Task Ingress v1
+
+on:
+  push:
+    branches: [lom/secure-task-ingress-v1]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  secure-task-ingress:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Secure ingress regression
+        run: |
+          cd vl/lom-secure-task-ingress-v1
+          python3 test_secure_task_ingress.py
+      - name: Existing VPS executor regression
+        run: |
+          cd vl/lom-vps-execution-node-p0
+          python3 test_runner.py
+          python3 test_body_executor_adapter.py
+      - name: Existing ACP policy regression
+        run: |
+          cd vl/agent-control-plane
+          python3 run_runtime_policy_tests.py
+          python3 run_nonproduction_transition_tests.py
