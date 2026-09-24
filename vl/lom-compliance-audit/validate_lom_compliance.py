@@ -33,6 +33,11 @@ REQUIRED = [
     'vl/lom-learning-evaluation/test_learning_core.py',
     'vl/lom-learning-evaluation/trust_confidence.py',
     'vl/lom-learning-evaluation/test_trust_confidence.py',
+    'vl/lom-governance/capability-registry.json',
+    'vl/lom-governance/validate_registries.py',
+    'vl/lom-knowledge-foundation/master-knowledge-registry.json',
+    'vl/lom-knowledge-foundation/retrieval_policy.py',
+    'vl/lom-knowledge-foundation/orchestrator_binding.py',
 ]
 
 WORKFLOWS = [
