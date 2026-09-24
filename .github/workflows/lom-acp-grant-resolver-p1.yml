@@ -1,0 +1,33 @@
+name: LOM ACP Grant Resolver P1
+
+on:
+  push:
+    branches: [lom/acp-grant-resolver-p1]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  grant-resolver:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Grant resolver client regression
+        run: |
+          cd vl/lom-secure-task-ingress-v1
+          python3 test_grant_resolver_client.py
+      - name: Canonical ACP resolution regression
+        run: |
+          cd vl/agent-control-plane
+          python3 run_grant_resolution_tests.py
+          python3 run_runtime_policy_tests.py
+      - name: Resolver remains read only and non-production
+        run: |
+          grep -q 'acp_read_agent_grant_chain_nonprod' vl/functions/vrs-agent-grant-resolver/index.ts
+          ! grep -q 'acp_delegate_agent_grant_nonprod' vl/functions/vrs-agent-grant-resolver/index.ts
+          ! grep -q 'acp_revoke_agent_grant' vl/functions/vrs-agent-grant-resolver/index.ts
+          ! grep -R -E '(SUPABASE_SERVICE_ROLE_KEY|OPENAI_API_KEY|GITHUB_TOKEN)=' vl/lom-secure-task-ingress-v1
+          grep -q 'production_locked: true' vl/functions/vrs-agent-grant-resolver/index.ts
