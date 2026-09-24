@@ -1,0 +1,39 @@
+{
+  "schema": "lom.master-knowledge-registry/1",
+  "owner": "LOM Knowledge Librarian",
+  "status": "INITIALIZED",
+  "classification": [
+    "AUTHORITATIVE_OFFICIAL",
+    "PROFESSIONAL_REFERENCE",
+    "TECHNICAL_REFERENCE",
+    "PROJECT_EVIDENCE",
+    "GENERATED_MATERIAL",
+    "ARCHIVE"
+  ],
+  "authority_order": [
+    "AUTHORITATIVE_OFFICIAL",
+    "PROFESSIONAL_REFERENCE",
+    "TECHNICAL_REFERENCE",
+    "PROJECT_EVIDENCE",
+    "GENERATED_MATERIAL",
+    "ARCHIVE"
+  ],
+  "records": [],
+  "required_fields": [
+    "name",
+    "domain",
+    "jurisdiction",
+    "source",
+    "provenance",
+    "authority_level",
+    "version_or_date",
+    "status",
+    "superseded_by",
+    "confidence",
+    "tags",
+    "location"
+  ],
+  "conflict_policy": "HIGHER_AUTHORITY_WINS_UNLESS_STALE_OR_OUT_OF_JURISDICTION",
+  "low_confidence_policy": "FAIL_CLOSED",
+  "duplicate_policy": "FLAG_ONLY_NO_AUTODELETE"
+}
