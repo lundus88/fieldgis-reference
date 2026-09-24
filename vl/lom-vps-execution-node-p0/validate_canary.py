@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from hashlib import sha256
 import json
+import re
 from typing import Any
 
 ALLOWED_RESULT = {"PASS", "FAIL", "NOT_RUN"}
+SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 
 
 def _digest(value: Any) -> str:
@@ -28,6 +30,20 @@ def validate_canary(contract: dict[str, Any], evidence: dict[str, Any]) -> dict[
         return {"status": "HOLD", "reason": "PRODUCTION_AUTHORITY_WEAKENED"}
     if authority.get("connector_execution_during_p0_canary") != "DISABLED":
         return {"status": "HOLD", "reason": "CONNECTOR_CANARY_BOUNDARY_WEAKENED"}
+
+    live_requirements = contract.get("live_evidence_requirements") or {}
+    expected_live = {
+        "evidence_class": "LIVE_VPS_CANARY",
+        "environment_class": "NON_PRODUCTION_VPS",
+        "operator_confirmation_required": True,
+        "node_attestation_required": True,
+        "source_binding": "vps:<node_id>:*",
+        "synthetic_sources_forbidden": True,
+        "collector_version": "1.0",
+    }
+    for key, value in expected_live.items():
+        if live_requirements.get(key) != value:
+            return {"status": "HOLD", "reason": "LIVE_EVIDENCE_CONTRACT_INVALID", "field": key}
 
     rows = evidence.get("checks")
     if evidence.get("schema") != "lom.vps-canary-evidence/1" or not isinstance(rows, list):
@@ -63,12 +79,40 @@ def validate_canary(contract: dict[str, Any], evidence: dict[str, Any]) -> dict[
         reason = "CANARY_NOT_PROVEN"
 
     evidence_class = str(evidence.get("evidence_class") or "UNCLASSIFIED")
-    live_sources = bool(by_name) and all(
-        not str(row.get("source_reference") or "").startswith("synthetic:")
+    attestation = evidence.get("node_attestation")
+    attestation_valid = False
+    node_id = ""
+    if evidence_class == "LIVE_VPS_CANARY":
+        if isinstance(attestation, dict):
+            node_id = str(attestation.get("node_id") or "").strip()
+            attestation_valid = all([
+                bool(node_id),
+                attestation.get("environment_class") == "NON_PRODUCTION_VPS",
+                attestation.get("operator_confirmed") is True,
+                isinstance(attestation.get("uid"), int) and attestation.get("uid") > 0,
+                str(attestation.get("hostname_hash") or "").startswith("sha256:"),
+                str(attestation.get("boot_id_hash") or "").startswith("sha256:"),
+                str(attestation.get("collector_version") or "") == "1.0",
+                bool(SHA_RE.fullmatch(str(attestation.get("repo_sha") or ""))),
+                isinstance(attestation.get("observed_at_epoch"), int) and attestation.get("observed_at_epoch") > 0,
+            ])
+        if not attestation_valid:
+            violations.append("LIVE_NODE_ATTESTATION_INVALID")
+
+    source_prefix = f"vps:{node_id}:" if node_id else ""
+    live_sources = bool(by_name) and bool(source_prefix) and all(
+        str(row.get("source_reference") or "").startswith(source_prefix)
         for row in by_name.values()
     )
-    live_candidate = evidence_class == "LIVE_VPS_CANARY" and live_sources
-    live_vps_verified = status == "PASS" and live_candidate
+    live_candidate = evidence_class == "LIVE_VPS_CANARY" and attestation_valid and live_sources
+    live_vps_verified = status == "PASS" and live_candidate and not violations
+    if evidence_class == "LIVE_VPS_CANARY" and not live_sources:
+        violations.append("LIVE_SOURCE_BINDING_INVALID")
+        live_vps_verified = False
+    if violations and status == "PASS":
+        status = "HOLD"
+        reason = "CANARY_NOT_PROVEN"
+
     observed_times = [
         row.get("observed_at_epoch")
         for row in by_name.values()
@@ -85,6 +129,8 @@ def validate_canary(contract: dict[str, Any], evidence: dict[str, Any]) -> dict[
         "not_run_checks": not_run,
         "violations": sorted(violations),
         "evidence_class": evidence_class,
+        "node_id": node_id or None,
+        "attestation_valid": attestation_valid,
         "observed_at_epoch": min(observed_times) if observed_times else None,
         "live_sources": live_sources,
         "live_vps_verified": live_vps_verified,
