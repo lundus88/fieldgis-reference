@@ -37,6 +37,8 @@ on:
       - 'vl/lom-6-*/**'
       - 'vl/lom-canonical-compliance/**'
       - 'vl/lom-final-hardening/**'
+      - 'vl/lom-governance/**'
+      - 'vl/lom-knowledge-foundation/**'
       - '.github/workflows/lom-*.yml'
   workflow_dispatch:
 
@@ -95,6 +97,14 @@ jobs:
           pytest -q vl/lom-gate-d-remediation
       - name: LOM 2.0 Gate E orchestrator
         run: pytest -q vl/lom-gate-e-orchestrator
+      - name: LOM Capability & Knowledge Registry
+        run: |
+          python vl/lom-governance/validate_registries.py
+          python vl/lom-governance/test_registries.py
+      - name: LOM Knowledge Authority Retrieval & Complete-Body E2E
+        run: |
+          python vl/lom-knowledge-foundation/test_retrieval_policy.py
+          python vl/lom-knowledge-foundation/test_complete_body_e2e.py
       - name: LOM 2.0 Gate F Mission Control
         working-directory: vl/lom-mission-control
         run: python -m unittest -q

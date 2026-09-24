@@ -13,7 +13,7 @@ cap=json.loads((ROOT/"vl/lom-governance/capability-registry.json").read_text())
 by_id={x["id"]:x for x in cap["capabilities"]}
 assert by_id["vps_execution"]["status"] == "BLOCKED"
 assert by_id["vps_execution"]["blocker"] == "LIVE_VPS_CANARY_NOT_PROVEN"
-assert by_id["autonomy_control"]["authority"] == "DEFAULT_DENY"
+assert by_id["autonomy_controller"]["authority"] == "DEFAULT_DENY"
 assert "PROTECTED_MAIN_MERGE" in by_id["orchestration"]["human_gate"]
 
 know=json.loads((ROOT/"vl/lom-knowledge-foundation/master-knowledge-registry.json").read_text())

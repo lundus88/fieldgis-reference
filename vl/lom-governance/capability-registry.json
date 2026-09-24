@@ -20,6 +20,168 @@
       ]
     },
     {
+      "id": "sre_operations",
+      "owner": "vl/lom-system-health-p0",
+      "status": "EXISTING",
+      "authority": "OBSERVE_DIAGNOSE_PREPARE",
+      "human_gate": [
+        "PRODUCTION_OPERATION"
+      ],
+      "health_source": "vl/lom-system-health-p0/health_drift.py",
+      "tests": [
+        "health/drift regression"
+      ]
+    },
+    {
+      "id": "cyber_immune_security",
+      "owner": "vl/lom-security-hardening",
+      "status": "EXISTING",
+      "authority": "HOLD_CONTAIN_REVIEW",
+      "human_gate": [
+        "AUTHORITY_WIDENING",
+        "AUTH_SECURITY_POLICY_CHANGE"
+      ],
+      "health_source": "security validation",
+      "tests": [
+        "adversarial",
+        "authority alignment"
+      ]
+    },
+    {
+      "id": "software_engineering",
+      "owner": ".github/workflows/vl-factory-runner.yml",
+      "status": "EXISTING",
+      "authority": "NON_PRODUCTION_BUILD",
+      "human_gate": [
+        "PROTECTED_MAIN_MERGE",
+        "PRODUCTION_RELEASE"
+      ],
+      "health_source": "factory run evidence",
+      "tests": [
+        "factory CI",
+        "QA gates"
+      ]
+    },
+    {
+      "id": "independent_qa_verification",
+      "owner": "vl/completion-governance",
+      "status": "EXISTING",
+      "authority": "VERIFY_ONLY",
+      "human_gate": [],
+      "health_source": "independent completion decision",
+      "tests": [
+        "independent completion regression"
+      ]
+    },
+    {
+      "id": "recovery_incident_command",
+      "owner": "vl/lom-gate-d-remediation",
+      "status": "EXISTING",
+      "authority": "NON_PRODUCTION_REMEDIATION",
+      "human_gate": [
+        "PRODUCTION_ROLLBACK"
+      ],
+      "health_source": "recovery memory",
+      "tests": [
+        "resilience harness",
+        "Gate D"
+      ]
+    },
+    {
+      "id": "observability",
+      "owner": "vl/lom-system-health-p0",
+      "status": "EXISTING",
+      "authority": "OBSERVE",
+      "human_gate": [],
+      "health_source": "health_drift.py",
+      "tests": [
+        "health/drift regression"
+      ]
+    },
+    {
+      "id": "data_knowledge_engineering",
+      "owner": "vl/lom-knowledge-foundation",
+      "status": "PARTIAL",
+      "authority": "RETRIEVE_RANK_EXPLAIN",
+      "human_gate": [
+        "AMBIGUOUS_AUTHORITY",
+        "SOURCE_CONFLICT_HIGH_RISK"
+      ],
+      "health_source": "master-knowledge-registry.json",
+      "tests": [
+        "knowledge registry validation",
+        "knowledge retrieval policy"
+      ]
+    },
+    {
+      "id": "software_supply_chain_guardian",
+      "owner": ".github/workflows/vl-supply-chain-attestation.yml",
+      "status": "EXISTING",
+      "authority": "ATTEST_VERIFY_ONLY",
+      "human_gate": [
+        "PRODUCTION_RELEASE"
+      ],
+      "health_source": "signed provenance + SPDX SBOM evidence",
+      "tests": [
+        "VL Supply Chain Attestation"
+      ]
+    },
+    {
+      "id": "finops_resource_controller",
+      "owner": "vl/lom-4-5-interoperability-resource-intelligence",
+      "status": "PARTIAL",
+      "authority": "OBSERVE_AND_BOUND",
+      "human_gate": [
+        "BILLING_CHANGE",
+        "FINANCIAL_COMMITMENT"
+      ],
+      "health_source": "cost/capacity evidence",
+      "tests": [
+        "usage/cost controls"
+      ]
+    },
+    {
+      "id": "autonomy_controller",
+      "owner": "vl/lom-operational-safety",
+      "status": "EXISTING",
+      "authority": "DEFAULT_DENY",
+      "human_gate": [
+        "HUMAN_ONLY_ACTIONS"
+      ],
+      "health_source": "action-registry.json",
+      "tests": [
+        "operational safety"
+      ]
+    },
+    {
+      "id": "capability_registry",
+      "owner": "vl/lom-governance",
+      "status": "EXISTING",
+      "authority": "OWNERSHIP_METADATA_ONLY",
+      "human_gate": [
+        "AUTHORITY_OWNER_CHANGE"
+      ],
+      "health_source": "capability-registry.json",
+      "tests": [
+        "registry validation"
+      ]
+    },
+    {
+      "id": "self_healing_homeostasis",
+      "owner": "vl/lom-organism-integration-p0",
+      "status": "PARTIAL",
+      "authority": "NON_PRODUCTION_BOUNDED_RECOVERY",
+      "human_gate": [
+        "CONSEQUENTIAL_ACTION",
+        "PRODUCTION_ROLLBACK"
+      ],
+      "health_source": "whole body status",
+      "tests": [
+        "organism integration",
+        "controlled E2E"
+      ]
+    },
+    {
       "id": "vps_execution",
       "owner": "vl/lom-vps-execution-node-p0",
       "status": "BLOCKED",
@@ -36,98 +198,6 @@
       "blocker": "LIVE_VPS_CANARY_NOT_PROVEN"
     },
     {
-      "id": "security",
-      "owner": "vl/lom-security-hardening",
-      "status": "EXISTING",
-      "authority": "HOLD_CONTAIN_REVIEW",
-      "human_gate": [
-        "AUTHORITY_WIDENING",
-        "AUTH_SECURITY_POLICY_CHANGE"
-      ],
-      "health_source": "security validation",
-      "tests": [
-        "adversarial",
-        "authority alignment"
-      ]
-    },
-    {
-      "id": "qa_verification",
-      "owner": "vl/lom-completion-validation",
-      "status": "PARTIAL",
-      "authority": "VERIFY_ONLY",
-      "human_gate": [
-        "SELF_CERTIFICATION_FORBIDDEN"
-      ],
-      "health_source": "independent validation evidence",
-      "tests": [
-        "golden workflow"
-      ]
-    },
-    {
-      "id": "recovery_incident",
-      "owner": "vl/lom-gate-d-remediation",
-      "status": "EXISTING",
-      "authority": "NON_PRODUCTION_REMEDIATION",
-      "human_gate": [
-        "PRODUCTION_ROLLBACK"
-      ],
-      "health_source": "recovery memory",
-      "tests": [
-        "resilience harness"
-      ]
-    },
-    {
-      "id": "observability",
-      "owner": "vl/lom-system-health-p0",
-      "status": "EXISTING",
-      "authority": "OBSERVE",
-      "human_gate": [],
-      "health_source": "health_drift.py",
-      "tests": [
-        "health/drift regression"
-      ]
-    },
-    {
-      "id": "finops_resource",
-      "owner": "vl/lom-4-5-interoperability-resource-intelligence",
-      "status": "PARTIAL",
-      "authority": "OBSERVE_AND_BOUND",
-      "human_gate": [
-        "BILLING_CHANGE",
-        "FINANCIAL_COMMITMENT"
-      ],
-      "health_source": "cost/capacity evidence",
-      "tests": [
-        "usage/cost controls"
-      ]
-    },
-    {
-      "id": "autonomy_control",
-      "owner": "vl/lom-operational-safety",
-      "status": "EXISTING",
-      "authority": "DEFAULT_DENY",
-      "human_gate": [
-        "HUMAN_ONLY_ACTIONS"
-      ],
-      "health_source": "action-registry.json",
-      "tests": [
-        "operational safety"
-      ]
-    },
-    {
-      "id": "organism_homeostasis",
-      "owner": "vl/lom-organism-integration-p0",
-      "status": "EXISTING",
-      "authority": "COORDINATE_ONLY",
-      "human_gate": [
-        "CONSEQUENTIAL_ACTION"
-      ],
-      "health_source": "whole body status",
-      "tests": [
-        "organ registry regression"
-      ]
-    },
-    {
       "id": "knowledge_authority",
       "owner": "vl/lom-knowledge-foundation",
       "status": "PARTIAL",
@@ -138,8 +208,27 @@
       ],
       "health_source": "master-knowledge-registry.json",
       "tests": [
-        "knowledge registry validation"
+        "knowledge registry validation",
+        "controlled E2E"
       ]
     }
-  ]
+  ],
+  "specialist_on_demand": {
+    "policy": "LOAD_ONLY_WHEN_DOMAIN_NEEDS_IT",
+    "domains": [
+      "ACCOUNTING_FINANCE",
+      "LEGAL_COMPLIANCE",
+      "COO_OPERATIONS",
+      "PROCUREMENT",
+      "RESEARCH",
+      "OTHER_SPECIALIST_DOMAIN"
+    ],
+    "rule": "NO_PERMANENT_DUPLICATE_AGENT_WHEN_EXISTING_SPECIALIST_OR_ADAPTER_CAN_SERVE",
+    "human_authority_preserved": true
+  },
+  "hr_policy": {
+    "mode": "HR_ADAPTER_PLUS_SPECIALIST_HRMS",
+    "duplicate_payroll_attendance_leave_engine_forbidden": true,
+    "build_new_only_on_proven_gap": true
+  }
 }

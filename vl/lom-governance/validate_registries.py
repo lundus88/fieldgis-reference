@@ -38,7 +38,20 @@ for row in cap.get("capabilities", []):
     owner=row.get("owner")
     if not owner:
         fail(f"missing owner for {cid}")
+    if not (ROOT / owner).exists():
+        fail(f"owner target does not exist for {cid}: {owner}")
     owners.setdefault(owner, []).append(cid)
+
+specialists=cap.get("specialist_on_demand") or {}
+if specialists.get("policy") != "LOAD_ONLY_WHEN_DOMAIN_NEEDS_IT":
+    fail("specialist-on-demand policy missing")
+if specialists.get("human_authority_preserved") is not True:
+    fail("specialist policy weakens human authority")
+hr=cap.get("hr_policy") or {}
+if hr.get("mode") != "HR_ADAPTER_PLUS_SPECIALIST_HRMS":
+    fail("HR adapter policy missing")
+if hr.get("duplicate_payroll_attendance_leave_engine_forbidden") is not True:
+    fail("duplicate HR engine prohibition missing")
 
 required = set(know.get("required_fields", []))
 if know.get("owner") != "LOM Knowledge Librarian":
