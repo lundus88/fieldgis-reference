@@ -55,8 +55,8 @@ begin
   end if;
 
   if v_leaf.revoked_at is not null
-     or v_leaf.valid_from > clock_timestamp()
-     or (v_leaf.valid_until is not null and v_leaf.valid_until <= clock_timestamp()) then
+     or v_leaf.valid_from > statement_timestamp()
+     or (v_leaf.valid_until is not null and v_leaf.valid_until <= statement_timestamp()) then
     raise exception 'ACP grant query leaf inactive';
   end if;
 
