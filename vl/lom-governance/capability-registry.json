@@ -1,0 +1,145 @@
+{
+  "schema": "lom.capability-registry/1",
+  "policy": "one capability -> one authoritative owner -> many consumers",
+  "default_status": "MISSING",
+  "duplicate_rule": "REUSE_EXTEND_INTEGRATE_BEFORE_BUILD",
+  "capabilities": [
+    {
+      "id": "orchestration",
+      "owner": "vl/lom-gate-e-orchestrator",
+      "status": "EXISTING",
+      "authority": "PREPARE_PR",
+      "human_gate": [
+        "PROTECTED_MAIN_MERGE",
+        "PRODUCTION_RELEASE"
+      ],
+      "health_source": "vl/lom-organism-integration-p0/organ-registry.json",
+      "tests": [
+        "lom compliance",
+        "organism integration"
+      ]
+    },
+    {
+      "id": "vps_execution",
+      "owner": "vl/lom-vps-execution-node-p0",
+      "status": "BLOCKED",
+      "authority": "NON_PRODUCTION_BOUNDED",
+      "human_gate": [
+        "LIVE_VPS_ACTIVATION",
+        "PRODUCTION_*"
+      ],
+      "health_source": "LIVE_VPS_CANARY",
+      "tests": [
+        "vps canary contract",
+        "runner tests"
+      ],
+      "blocker": "LIVE_VPS_CANARY_NOT_PROVEN"
+    },
+    {
+      "id": "security",
+      "owner": "vl/lom-security-hardening",
+      "status": "EXISTING",
+      "authority": "HOLD_CONTAIN_REVIEW",
+      "human_gate": [
+        "AUTHORITY_WIDENING",
+        "AUTH_SECURITY_POLICY_CHANGE"
+      ],
+      "health_source": "security validation",
+      "tests": [
+        "adversarial",
+        "authority alignment"
+      ]
+    },
+    {
+      "id": "qa_verification",
+      "owner": "vl/lom-completion-validation",
+      "status": "PARTIAL",
+      "authority": "VERIFY_ONLY",
+      "human_gate": [
+        "SELF_CERTIFICATION_FORBIDDEN"
+      ],
+      "health_source": "independent validation evidence",
+      "tests": [
+        "golden workflow"
+      ]
+    },
+    {
+      "id": "recovery_incident",
+      "owner": "vl/lom-gate-d-remediation",
+      "status": "EXISTING",
+      "authority": "NON_PRODUCTION_REMEDIATION",
+      "human_gate": [
+        "PRODUCTION_ROLLBACK"
+      ],
+      "health_source": "recovery memory",
+      "tests": [
+        "resilience harness"
+      ]
+    },
+    {
+      "id": "observability",
+      "owner": "vl/lom-system-health-p0",
+      "status": "EXISTING",
+      "authority": "OBSERVE",
+      "human_gate": [],
+      "health_source": "health_drift.py",
+      "tests": [
+        "health/drift regression"
+      ]
+    },
+    {
+      "id": "finops_resource",
+      "owner": "vl/lom-4-5-interoperability-resource-intelligence",
+      "status": "PARTIAL",
+      "authority": "OBSERVE_AND_BOUND",
+      "human_gate": [
+        "BILLING_CHANGE",
+        "FINANCIAL_COMMITMENT"
+      ],
+      "health_source": "cost/capacity evidence",
+      "tests": [
+        "usage/cost controls"
+      ]
+    },
+    {
+      "id": "autonomy_control",
+      "owner": "vl/lom-operational-safety",
+      "status": "EXISTING",
+      "authority": "DEFAULT_DENY",
+      "human_gate": [
+        "HUMAN_ONLY_ACTIONS"
+      ],
+      "health_source": "action-registry.json",
+      "tests": [
+        "operational safety"
+      ]
+    },
+    {
+      "id": "organism_homeostasis",
+      "owner": "vl/lom-organism-integration-p0",
+      "status": "EXISTING",
+      "authority": "COORDINATE_ONLY",
+      "human_gate": [
+        "CONSEQUENTIAL_ACTION"
+      ],
+      "health_source": "whole body status",
+      "tests": [
+        "organ registry regression"
+      ]
+    },
+    {
+      "id": "knowledge_authority",
+      "owner": "vl/lom-knowledge-foundation",
+      "status": "PARTIAL",
+      "authority": "RETRIEVE_AND_RANK_SOURCES",
+      "human_gate": [
+        "AMBIGUOUS_AUTHORITY",
+        "SOURCE_CONFLICT_HIGH_RISK"
+      ],
+      "health_source": "master-knowledge-registry.json",
+      "tests": [
+        "knowledge registry validation"
+      ]
+    }
+  ]
+}
