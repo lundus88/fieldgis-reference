@@ -1,0 +1,35 @@
+name: LOM ACP Authority Activation P2
+
+on:
+  push:
+    branches: [lom/acp-authority-activation-p2]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  authority-activation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Validate activation SQL candidates
+        run: python3 vl/agent-control-plane/check_lom_vps_activation_candidates.py
+      - name: Existing ACP persistence contract
+        run: |
+          python3 vl/agent-control-plane/check_persistence_contract.py
+          python3 vl/agent-control-plane/check_live_write_boundary.py
+          python3 vl/agent-control-plane/check_parent_grant_bootstrap.py
+      - name: Existing ACP runtime regression
+        run: |
+          cd vl/agent-control-plane
+          python3 run_grant_resolution_tests.py
+          python3 run_runtime_policy_tests.py
+          python3 run_nonproduction_transition_tests.py
+      - name: Candidate pack remains non-production and non-applied
+        run: |
+          grep -q 'CANDIDATE ONLY' vl/agent-control-plane/sql-candidates/acp_read_agent_grant_chain_nonprod.sql
+          grep -q 'CANDIDATE ONLY' vl/agent-control-plane/sql-candidates/acp_lom_vps_parent_grant_renewal.sql
+          ! grep -R -E '(SUPABASE_SERVICE_ROLE_KEY|OPENAI_API_KEY|GITHUB_TOKEN)=' vl/agent-control-plane/sql-candidates
