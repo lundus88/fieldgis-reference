@@ -1,13 +1,13 @@
 {
-  "schema":"ld.ready-business-onboarding/1",
-  "required_common":[
+  "schema": "ld.ready-business-onboarding/1",
+  "required_common": [
     "business_name",
     "vertical",
     "whatsapp",
     "headline",
     "cta_label"
   ],
-  "optional":[
+  "optional": [
     "logo",
     "brand_color",
     "address",
@@ -16,24 +16,25 @@
     "domain",
     "photos"
   ],
-  "vertical_payload":{
-    "cafe":"items[]",
-    "homestay":"rooms[]",
-    "tutor":"programs[]"
+  "vertical_payload": {
+    "cafe": "items[]",
+    "homestay": "rooms[]",
+    "tutor": "programs[]",
+    "property": "listings[]"
   },
-  "client_owns":[
+  "client_owns": [
     "domain",
     "business_content",
     "business_data"
   ],
-  "ld_manages":[
+  "ld_manages": [
     "template",
     "configuration",
     "qa",
     "hosting_when_contracted",
     "updates_when_contracted"
   ],
-  "human_gates":[
+  "human_gates": [
     "final_pricing",
     "discount",
     "customer_commitment",
