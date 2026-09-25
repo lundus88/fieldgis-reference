@@ -335,3 +335,179 @@ def generate_url_reference_preview(request: dict[str, Any]) -> dict[str, Any]:
         "production": "LOCKED",
         "human_approval_required": True,
     }
+
+
+IMAGE_MIME_TYPES = {"image/png", "image/jpeg", "image/webp"}
+IMAGE_SOURCE_AUTHORITIES = {
+    "CUSTOMER_PROVIDED",
+    "CUSTOMER_AUTHORIZED",
+    "REFERENCE_ONLY",
+}
+IMAGE_MAX_BYTES = 12 * 1024 * 1024
+IMAGE_MAX_DIMENSION = 12000
+IMAGE_MAX_PIXELS = 50_000_000
+IMAGE_SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+FORBIDDEN_IMAGE_SNAPSHOT_KEYS = {
+    "raw_bytes", "bytes", "base64", "data_url", "raw_image", "image_data",
+    "ocr_text", "full_text", "body_text", "extracted_text",
+    "embedded_assets", "copied_assets", "source_code",
+}
+
+def _normalize_image_evidence(evidence: Any) -> dict[str, Any]:
+    if not isinstance(evidence, dict):
+        return {"decision": "HOLD", "reason": "IMAGE_EVIDENCE_REQUIRED"}
+    if len(evidence) > 24:
+        return {"decision": "HOLD", "reason": "IMAGE_EVIDENCE_TOO_LARGE"}
+
+    forbidden = sorted(FORBIDDEN_IMAGE_SNAPSHOT_KEYS.intersection(evidence))
+    if forbidden:
+        return {"decision": "HOLD", "reason": "IMAGE_COPY_CONTENT_FORBIDDEN", "fields": forbidden}
+
+    if evidence.get("analysis_mode") != "APPROVED_READ_ONLY":
+        return {"decision": "HOLD", "reason": "IMAGE_ANALYSIS_NOT_APPROVED"}
+
+    asset_sha256 = _clean_text(evidence.get("asset_sha256"), 80).lower()
+    if not IMAGE_SHA256_RE.fullmatch(asset_sha256):
+        return {"decision": "HOLD", "reason": "IMAGE_DIGEST_INVALID"}
+
+    mime_type = _clean_text(evidence.get("mime_type"), 40).lower()
+    if mime_type not in IMAGE_MIME_TYPES:
+        return {"decision": "HOLD", "reason": "IMAGE_MIME_UNSUPPORTED"}
+
+    try:
+        width = int(evidence.get("width"))
+        height = int(evidence.get("height"))
+        byte_size = int(evidence.get("byte_size"))
+    except (TypeError, ValueError):
+        return {"decision": "HOLD", "reason": "IMAGE_METADATA_INVALID"}
+
+    if width <= 0 or height <= 0 or byte_size <= 0:
+        return {"decision": "HOLD", "reason": "IMAGE_METADATA_INVALID"}
+    if width > IMAGE_MAX_DIMENSION or height > IMAGE_MAX_DIMENSION:
+        return {"decision": "HOLD", "reason": "IMAGE_DIMENSIONS_EXCEEDED"}
+    if width * height > IMAGE_MAX_PIXELS:
+        return {"decision": "HOLD", "reason": "IMAGE_PIXELS_EXCEEDED"}
+    if byte_size > IMAGE_MAX_BYTES:
+        return {"decision": "HOLD", "reason": "IMAGE_SIZE_EXCEEDED"}
+
+    source_authority = _clean_text(evidence.get("source_authority"), 40).upper()
+    if source_authority not in IMAGE_SOURCE_AUTHORITIES:
+        return {"decision": "HOLD", "reason": "IMAGE_SOURCE_AUTHORITY_REQUIRED"}
+
+    section_types = evidence.get("section_types", [])
+    if not isinstance(section_types, list) or len(section_types) > 12:
+        return {"decision": "HOLD", "reason": "IMAGE_SECTIONS_INVALID"}
+    normalized_sections = []
+    for section in section_types:
+        key = _clean_text(section, 40).lower()
+        if key not in REFERENCE_SECTION_TYPES:
+            return {"decision": "HOLD", "reason": "IMAGE_SECTION_UNSUPPORTED", "section": key}
+        if key not in normalized_sections:
+            normalized_sections.append(key)
+
+    style_hints = evidence.get("style_hints", [])
+    if not isinstance(style_hints, list) or len(style_hints) > 8:
+        return {"decision": "HOLD", "reason": "IMAGE_STYLE_INVALID"}
+    normalized_styles = []
+    for hint in style_hints:
+        key = _clean_text(hint, 40).lower()
+        if key not in REFERENCE_STYLE_HINTS:
+            return {"decision": "HOLD", "reason": "IMAGE_STYLE_UNSUPPORTED", "style": key}
+        if key not in normalized_styles:
+            normalized_styles.append(key)
+
+    density = _clean_text(evidence.get("layout_density"), 20).lower() or "balanced"
+    if density not in REFERENCE_DENSITIES:
+        return {"decision": "HOLD", "reason": "IMAGE_DENSITY_INVALID"}
+
+    signals = {
+        "section_types": normalized_sections,
+        "style_hints": normalized_styles,
+        "layout_density": density,
+        "sticky_navigation": bool(evidence.get("sticky_navigation", False)),
+        "floating_cta": bool(evidence.get("floating_cta", False)),
+    }
+    normalized = {
+        "asset_sha256": asset_sha256,
+        "mime_type": mime_type,
+        "width": width,
+        "height": height,
+        "byte_size": byte_size,
+        "source_authority": source_authority,
+        "signals": signals,
+    }
+    return {
+        "decision": "ALLOW",
+        "evidence": normalized,
+        "snapshot_digest": _digest(normalized),
+    }
+
+def compile_image_reference_to_sitespec(request: dict[str, Any]) -> dict[str, Any]:
+    """
+    P2 Image/Screenshot-reference contract.
+
+    The image contributes only bounded structural design signals. This function
+    does not decode image bytes, perform OCR, copy text/assets or invoke a vision
+    model. A separately approved read-only visual-analysis adapter must produce
+    the bounded evidence manifest.
+    """
+    image = _normalize_image_evidence(request.get("image_evidence"))
+    if image["decision"] != "ALLOW":
+        return image
+
+    base_request = dict(request)
+    if not _clean_text(base_request.get("prompt"), 2000):
+        vertical = _clean_text(base_request.get("vertical"), 40)
+        if vertical not in SUPPORTED_VERTICALS:
+            return {"decision": "HOLD", "reason": "VERTICAL_REQUIRED_FOR_IMAGE_MODE"}
+        base_request["prompt"] = (
+            f"Create an original {vertical} business website using only the "
+            "approved structural design signals from the supplied image."
+        )
+
+    base = compile_prompt_to_sitespec(base_request)
+    if base["decision"] != "ALLOW":
+        return base
+
+    evidence = image["evidence"]
+    spec = json.loads(json.dumps(base["sitespec"]))
+    spec["source_mode"] = "IMAGE_REFERENCE"
+    spec["image_reference"] = {
+        "asset_sha256": evidence["asset_sha256"],
+        "mime_type": evidence["mime_type"],
+        "width": evidence["width"],
+        "height": evidence["height"],
+        "byte_size": evidence["byte_size"],
+        "source_authority": evidence["source_authority"],
+        "snapshot_digest": image["snapshot_digest"],
+        "structure_only": True,
+        "ocr_text_reuse": False,
+        "copy_assets": False,
+        "copy_branding": False,
+    }
+    spec["design_signals"] = evidence["signals"]
+    spec["content_policy"]["reference_content_reuse"] = False
+    spec["content_policy"]["original_output_required"] = True
+    spec["content_policy"]["ocr_copy_forbidden"] = True
+
+    return {
+        "decision": "ALLOW",
+        "sitespec": spec,
+        "onboarding": base["onboarding"],
+    }
+
+def generate_image_reference_preview(request: dict[str, Any]) -> dict[str, Any]:
+    compiled = compile_image_reference_to_sitespec(request)
+    if compiled["decision"] != "ALLOW":
+        return compiled
+    preview = render_preview(compiled["onboarding"])
+    if preview.get("decision") != "ALLOW":
+        return preview
+    return {
+        "decision": "ALLOW",
+        "sitespec": compiled["sitespec"],
+        "preview_html": preview["html"],
+        "preview_manifest": preview["manifest"],
+        "production": "LOCKED",
+        "human_approval_required": True,
+    }
