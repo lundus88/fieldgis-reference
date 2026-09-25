@@ -51,13 +51,6 @@ def test_deterministic_sitespec():
     b = compile_prompt_to_sitespec(BASE)
     assert a["sitespec"] == b["sitespec"]
 
-if __name__ == "__main__":
-    tests = [v for k, v in globals().items() if k.startswith("test_") and callable(v)]
-    for t in tests:
-        t()
-    print(f"PASS {len(tests)} LD AI Site Intelligence P0 tests")
-
-
 def test_explicit_unsupported_vertical_fails_closed():
     bad = dict(BASE)
     bad["vertical"] = "clinic"
@@ -79,3 +72,9 @@ def test_non_dict_cards_fail_closed():
     out = compile_prompt_to_sitespec(bad)
     assert out["decision"] == "HOLD"
     assert out["reason"] == "VERTICAL_CONTENT_INVALID"
+
+if __name__ == "__main__":
+    tests = [v for k, v in globals().items() if k.startswith("test_") and callable(v)]
+    for t in tests:
+        t()
+    print(f"PASS {len(tests)} LD AI Site Intelligence P0 tests")
