@@ -3,16 +3,19 @@
 --
 -- Purpose:
 --   Read one authoritative ACP grant chain for a non-production LOM VPS task.
--- Security:
---   - SECURITY DEFINER is necessary because private.agent_capability_grants is
---     intentionally not selectable by service_role.
---   - Empty search_path + fully qualified objects.
---   - EXECUTE revoked from PUBLIC/anon/authenticated.
---   - No DML and no generic SQL.
---   - Exact leaf binding to agent/project/environment.
---   - Maximum 16 grant rows and explicit cycle/missing-parent rejection.
+--
+-- Security architecture:
+--   1. Privileged table access lives only in a PRIVATE SECURITY DEFINER function.
+--   2. The exposed PUBLIC RPC is SECURITY INVOKER and contains no privileged SQL.
+--   3. service_role has private-schema USAGE in the existing ACP baseline but has
+--      no direct SELECT on private.agent_capability_grants.
+--   4. EXECUTE is revoked from PUBLIC/anon/authenticated on both functions and
+--      granted only to service_role.
+--   5. Empty search_path + fully qualified objects; no dynamic SQL or DML.
+--   6. Exact leaf binding to agent/project/environment.
+--   7. Maximum 16 grant rows and explicit cycle/missing-parent rejection.
 
-create or replace function public.acp_read_agent_grant_chain_nonprod(
+create or replace function private.acp_read_agent_grant_chain_nonprod_impl(
   p_grant_id uuid,
   p_agent_id text,
   p_project_id text,
@@ -145,8 +148,6 @@ begin
     raise exception 'ACP delegation cycle detected';
   end if;
 
-  -- If the last returned row still points to a parent, traversal stopped because
-  -- the chain exceeded the bound or an ancestor could not be read.
   select
     (last_row.delegated_from_grant_id is not null)
   into v_missing_parent
@@ -189,6 +190,30 @@ begin
 end;
 $$;
 
+revoke all on function private.acp_read_agent_grant_chain_nonprod_impl(uuid, text, text, text)
+  from public, anon, authenticated;
+
+grant execute on function private.acp_read_agent_grant_chain_nonprod_impl(uuid, text, text, text)
+  to service_role;
+
+comment on function private.acp_read_agent_grant_chain_nonprod_impl(uuid, text, text, text) is
+  'Privileged read-only ACP grant-chain implementation. Not an exposed Data API RPC.';
+
+create or replace function public.acp_read_agent_grant_chain_nonprod(
+  p_grant_id uuid,
+  p_agent_id text,
+  p_project_id text,
+  p_target_environment text
+)
+returns jsonb
+language sql
+security invoker
+set search_path = ''
+stable
+as $$
+  select private.acp_read_agent_grant_chain_nonprod_impl($1, $2, $3, $4);
+$$;
+
 revoke all on function public.acp_read_agent_grant_chain_nonprod(uuid, text, text, text)
   from public, anon, authenticated;
 
@@ -196,4 +221,4 @@ grant execute on function public.acp_read_agent_grant_chain_nonprod(uuid, text, 
   to service_role;
 
 comment on function public.acp_read_agent_grant_chain_nonprod(uuid, text, text, text) is
-  'Read-only non-production ACP grant-chain resolver for the dedicated server-side LOM resolver boundary. No grant mutation or direct table access is exposed.';
+  'Security-invoker wrapper for the dedicated server-side LOM non-production grant resolver. EXECUTE restricted to service_role.';
