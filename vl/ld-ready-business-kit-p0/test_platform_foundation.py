@@ -56,6 +56,21 @@ def test_duplicate_pack_id_fails_closed():
     assert out["decision"] == "HOLD"
     assert out["reason"] == "PACK_ID_DUPLICATE"
 
+def test_registry_reuses_full_industry_pack_validation():
+    bad = pack()
+    bad["capabilities"].append("UNKNOWN_CAPABILITY")
+    out = build_pack_registry([bad])
+    assert out["decision"] == "HOLD"
+    assert out["reason"] == "PACK_REGISTRY_VALIDATION_FAILED"
+    assert out["validation"]["reason"] == "PACK_CAPABILITY_UNKNOWN"
+
+def test_registry_rejects_unlocked_production_pack():
+    bad = pack()
+    bad["production"] = "ENABLED"
+    out = build_pack_registry([bad])
+    assert out["decision"] == "HOLD"
+    assert out["reason"] == "PACK_PRODUCTION_MUST_BE_LOCKED"
+
 def test_capability_resolver_reuses_existing_owners():
     out = resolve_capabilities(pack()["capabilities"])
     assert out["decision"] == "ALLOW"
@@ -77,16 +92,38 @@ def test_composed_runtime_keeps_authority_locked():
     assert out["authority"]["production_deploy"] == "HUMAN_ONLY"
 
 
+def actor_for(t, role="VIEWER", organization_ref=None, verified=True):
+    return {
+        "principal_id": "user-demo-1",
+        "membership_evidence": {
+            "verified": verified,
+            "evidence_ref": "membership-evidence-demo-1",
+            "organization_ref": organization_ref or t["organization_ref"],
+            "role": role,
+        },
+    }
+
+def test_membership_evidence_is_required():
+    t = tenant()
+    out = authorize_tenant_action(t, {"principal_id": "user-demo-1"}, "VIEW")
+    assert out["decision"] == "HOLD"
+    assert out["reason"] == "MEMBERSHIP_EVIDENCE_REQUIRED"
+
+def test_unverified_membership_fails_closed():
+    t = tenant()
+    out = authorize_tenant_action(t, actor_for(t, verified=False), "VIEW")
+    assert out["decision"] == "HOLD"
+    assert out["reason"] == "MEMBERSHIP_NOT_VERIFIED"
+
 def test_cross_tenant_access_is_denied():
     t = tenant()
-    actor = {"organization_ref": "another-org", "role": "OWNER"}
-    out = authorize_tenant_action(t, actor, "VIEW")
+    out = authorize_tenant_action(t, actor_for(t, role="OWNER", organization_ref="another-org"), "VIEW")
     assert out["decision"] == "HOLD"
     assert out["reason"] == "CROSS_TENANT_ACCESS_DENIED"
 
 def test_role_permissions_are_least_privilege():
     t = tenant()
-    viewer = {"organization_ref": t["organization_ref"], "role": "VIEWER"}
+    viewer = actor_for(t, role="VIEWER")
     assert authorize_tenant_action(t, viewer, "VIEW")["decision"] == "ALLOW"
     denied = authorize_tenant_action(t, viewer, "OPERATE")
     assert denied["decision"] == "HOLD"
@@ -94,9 +131,10 @@ def test_role_permissions_are_least_privilege():
 
 def test_role_access_never_grants_production_authority():
     t = tenant()
-    owner = {"organization_ref": t["organization_ref"], "role": "OWNER"}
+    owner = actor_for(t, role="OWNER")
     out = authorize_tenant_action(t, owner, "CONFIGURE_PACK")
     assert out["decision"] == "ALLOW"
+    assert len(out["authority_evidence_digest"]) == 64
     assert out["production_authority"] is False
     assert out["live_charging_authority"] is False
 

@@ -1,11 +1,16 @@
 name: LD Ready Business Kit P0-P1
 on:
   push:
-    branches: [ld/ready-business-kit-p0]
+    branches: [main, ld/ready-business-kit-p0]
+    paths:
+      - 'vl/ld-ready-business-kit-p0/**'
+      - 'docs/commercial/lds-business-engine/**'
+      - '.github/workflows/ld-ready-business-kit-p0.yml'
   pull_request:
     branches: [main]
     paths:
       - 'vl/ld-ready-business-kit-p0/**'
+      - 'docs/commercial/lds-business-engine/**'
       - '.github/workflows/ld-ready-business-kit-p0.yml'
 
 permissions:
