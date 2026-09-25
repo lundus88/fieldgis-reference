@@ -19,9 +19,10 @@
     {
       "generated_path": "supabase/migrations/20260925024937_acp_lom_vps_parent_grant_renewal.sql",
       "repository_path": "vl/migrations/20260925024937_acp_lom_vps_parent_grant_renewal.sql",
-      "sha256": "9659f3cc12b2400e75a035d2ffb899b53b59c2f304ff42cb84e1b2cd94a92681",
+      "sha256": "bdfc8de875599eb535bed8b98aacd88def39e1623e5ee6fefe52d3719d9cfb55",
       "apply_status": "NOT_APPLIED",
-      "human_gate_required": true
+      "human_gate_required": true,
+      "post_generation_hardening": "reject_any_active_same_identity_scope_parent"
     }
   ]
 }
