@@ -18,6 +18,7 @@ VERTICAL_REQUIRED = {
     "cafe": ["items"],
     "homestay": ["rooms"],
     "tutor": ["programs"],
+    "property": ["listings"],
 }
 
 def _digest(value: Any) -> str:
@@ -58,9 +59,12 @@ def render_preview(data: dict[str, Any]) -> dict[str, Any]:
     elif vertical=="homestay":
         section_title="Bilik & Pakej"
         cards=_cards(data["rooms"],"name","price")
-    else:
+    elif vertical=="tutor":
         section_title="Program Pembelajaran"
         cards=_cards(data["programs"],"name","price")
+    else:
+        section_title="Senarai Hartanah"
+        cards=_cards(data["listings"],"name","price")
 
     business=escape(data["business_name"])
     headline=escape(data["headline"])

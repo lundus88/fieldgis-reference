@@ -9,7 +9,7 @@ from urllib.parse import urlparse
 
 from ready_business_kit import render_preview
 
-SUPPORTED_VERTICALS = {"cafe", "homestay", "tutor"}
+SUPPORTED_VERTICALS = {"cafe", "homestay", "tutor", "property"}
 DEFAULTS = {
     "cafe": {
         "headline": "Nikmati pilihan terbaik kami dengan lebih mudah.",
@@ -25,6 +25,11 @@ DEFAULTS = {
         "headline": "Mulakan pembelajaran yang lebih terarah.",
         "cta_label": "Tanya melalui WhatsApp",
         "section_key": "programs",
+    },
+    "property": {
+        "headline": "Cari hartanah yang sesuai dengan lebih mudah.",
+        "cta_label": "Tanya broker melalui WhatsApp",
+        "section_key": "listings",
     },
 }
 
@@ -43,6 +48,7 @@ def _infer_vertical(prompt: str, explicit: str | None) -> str | None:
         "cafe": ("cafe", "café", "coffee", "kopi", "restaurant", "restoran", "food", "f&b"),
         "homestay": ("homestay", "hotel", "room", "bilik", "penginapan", "chalet"),
         "tutor": ("tutor", "tuition", "kelas", "education", "course", "kursus", "academy"),
+        "property": ("property", "hartanah", "tanah", "broker", "real estate", "listing"),
     }
     matches = [v for v, words in aliases.items() if any(w in p for w in words)]
     return matches[0] if len(matches) == 1 else None
@@ -162,7 +168,7 @@ def generate_prompt_preview(request: dict[str, Any]) -> dict[str, Any]:
 
 
 REFERENCE_SECTION_TYPES = {
-    "hero", "services", "features", "menu", "rooms", "programs",
+    "hero", "services", "features", "menu", "rooms", "programs", "listings", "map",
     "gallery", "about", "testimonials", "faq", "contact", "footer",
 }
 REFERENCE_STYLE_HINTS = {
