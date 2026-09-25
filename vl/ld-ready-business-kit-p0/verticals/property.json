@@ -1,0 +1,15 @@
+{
+  "business_name": "TanahPro Demo",
+  "vertical": "property",
+  "whatsapp": "60123456789",
+  "headline": "Cari tanah yang sesuai dengan lebih mudah.",
+  "cta_label": "Tanya broker sekarang",
+  "address": "Sabah, Malaysia",
+  "maps_url": "https://maps.google.com",
+  "social_url": "https://facebook.com",
+  "listings": [
+    {"name":"Tanah Pertanian 3.2 ekar","price":"RM320,000","description":"Contoh listing untuk Preview sahaja."},
+    {"name":"Tanah Kediaman 0.5 ekar","price":"RM180,000","description":"Contoh listing untuk Preview sahaja."},
+    {"name":"Tanah Komersial 1.1 ekar","price":"RM650,000","description":"Contoh listing untuk Preview sahaja."}
+  ]
+}
