@@ -71,8 +71,19 @@ HUMAN_ONLY_ACTIONS = {
     "DESTRUCTIVE_PRODUCTION_ACTION",
 }
 
+def _canonical(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {k: _canonical(v) for k, v in sorted(value.items())}
+    if isinstance(value, set):
+        return [_canonical(v) for v in sorted(value)]
+    if isinstance(value, (list, tuple)):
+        return [_canonical(v) for v in value]
+    return value
+
 def _digest(value: Any) -> str:
-    return sha256(json.dumps(value, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    return sha256(
+        json.dumps(_canonical(value), sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
 
 def validate_surface_registry() -> dict[str, Any]:
     allowed_modes = {"READ_ONLY", "ADVISORY_READ_ONLY", "BOUNDED_WORKFLOW"}
