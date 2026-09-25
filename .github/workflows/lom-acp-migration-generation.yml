@@ -1,0 +1,65 @@
+name: LOM ACP Migration Generation Evidence
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/agent-control-plane/sql-candidates/acp_read_agent_grant_chain_nonprod.sql'
+      - 'vl/agent-control-plane/sql-candidates/acp_lom_vps_parent_grant_renewal.sql'
+      - 'vl/agent-control-plane/check_acp_migration_generation.py'
+      - '.github/workflows/lom-acp-migration-generation.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  generate-migrations:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SUPABASE_CLI_VERSION: 2.117.0
+    steps:
+      - name: Checkout exact revision
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - name: Generate official migration filenames without remote access
+        shell: bash
+        run: |
+          set -euo pipefail
+          WORK="$RUNNER_TEMP/lom-acp-migration-generation"
+          mkdir -p "$WORK"
+          cd "$WORK"
+
+          npx -y "supabase@${SUPABASE_CLI_VERSION}" --version
+          npx -y "supabase@${SUPABASE_CLI_VERSION}" init
+
+          npx -y "supabase@${SUPABASE_CLI_VERSION}" migration new acp_read_agent_grant_chain_nonprod
+          RPC_FILE="$(find supabase/migrations -maxdepth 1 -type f -name '*_acp_read_agent_grant_chain_nonprod.sql' -print -quit)"
+          test -n "$RPC_FILE"
+          cp "$GITHUB_WORKSPACE/vl/agent-control-plane/sql-candidates/acp_read_agent_grant_chain_nonprod.sql" "$RPC_FILE"
+
+          sleep 1
+          npx -y "supabase@${SUPABASE_CLI_VERSION}" migration new acp_lom_vps_parent_grant_renewal
+          PARENT_FILE="$(find supabase/migrations -maxdepth 1 -type f -name '*_acp_lom_vps_parent_grant_renewal.sql' -print -quit)"
+          test -n "$PARENT_FILE"
+          cp "$GITHUB_WORKSPACE/vl/agent-control-plane/sql-candidates/acp_lom_vps_parent_grant_renewal.sql" "$PARENT_FILE"
+
+          mkdir -p "$GITHUB_WORKSPACE/acp-generated-migrations"
+          cp "$RPC_FILE" "$GITHUB_WORKSPACE/acp-generated-migrations/"
+          cp "$PARENT_FILE" "$GITHUB_WORKSPACE/acp-generated-migrations/"
+          (
+            cd "$GITHUB_WORKSPACE/acp-generated-migrations"
+            sha256sum *.sql > SHA256SUMS.txt
+          )
+
+          echo "GENERATED_RPC_PATH=$RPC_FILE"
+          echo "GENERATED_PARENT_PATH=$PARENT_FILE"
+          cat "$GITHUB_WORKSPACE/acp-generated-migrations/SHA256SUMS.txt"
+
+      - name: Upload short-lived migration-generation evidence
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: lom-acp-generated-migrations-${{ github.event.pull_request.head.sha }}
+          path: acp-generated-migrations/
+          if-no-files-found: error
+          retention-days: 1
