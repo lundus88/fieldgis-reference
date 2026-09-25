@@ -57,9 +57,9 @@ def _budget_not_wider(child: Mapping[str, Any], parent: Mapping[str, Any]) -> bo
     for key in ("timeout_seconds", "max_retries", "max_cost_minor"):
         child_value = child.get(key)
         parent_value = parent.get(key)
-        if child_value is None:
-            continue
-        if parent_value is None:
+        if parent_value is not None and child_value is None:
+            return False
+        if child_value is None or parent_value is None:
             continue
         if child_value > parent_value:
             return False
