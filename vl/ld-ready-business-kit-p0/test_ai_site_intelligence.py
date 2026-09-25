@@ -25,6 +25,22 @@ def test_prompt_preview_reuses_existing_renderer():
     assert out["preview_manifest"]["production"] == "LOCKED"
     assert out["human_approval_required"] is True
 
+
+def test_property_vertical_reuses_existing_renderer():
+    req = {
+        "prompt": "Bina website premium untuk broker tanah dengan listing dan WhatsApp.",
+        "business_name": "TanahPro Demo",
+        "whatsapp": "60123456789",
+        "listings": [
+            {"name": "Tanah Pertanian", "price": "RM320,000", "description": "Preview sahaja."}
+        ],
+    }
+    out = generate_prompt_preview(req)
+    assert out["decision"] == "ALLOW"
+    assert out["sitespec"]["vertical"] == "property"
+    assert out["preview_manifest"]["production"] == "LOCKED"
+    assert "Senarai Hartanah" in out["preview_html"]
+
 def test_missing_business_facts_fails_closed():
     bad = dict(BASE)
     bad.pop("whatsapp")
