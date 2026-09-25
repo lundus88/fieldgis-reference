@@ -6,6 +6,7 @@ on:
     paths:
       - 'vl/agent-control-plane/sql-candidates/acp_read_agent_grant_chain_nonprod.sql'
       - 'vl/agent-control-plane/sql-candidates/acp_lom_vps_parent_grant_renewal.sql'
+      - 'vl/agent-control-plane/sql-candidates/acp_delegation_budget_inheritance_hardening.sql'
       - 'vl/agent-control-plane/check_acp_migration_generation.py'
       - '.github/workflows/lom-acp-migration-generation.yml'
 
@@ -49,9 +50,16 @@ jobs:
           test -n "$PARENT_FILE"
           cp "$GITHUB_WORKSPACE/vl/agent-control-plane/sql-candidates/acp_lom_vps_parent_grant_renewal.sql" "$PARENT_FILE"
 
+          sleep 1
+          npx -y "supabase@${SUPABASE_CLI_VERSION}" migration new acp_delegation_budget_inheritance_hardening
+          BUDGET_FILE="$(find supabase/migrations -maxdepth 1 -type f -name '*_acp_delegation_budget_inheritance_hardening.sql' -print -quit)"
+          test -n "$BUDGET_FILE"
+          cp "$GITHUB_WORKSPACE/vl/agent-control-plane/sql-candidates/acp_delegation_budget_inheritance_hardening.sql" "$BUDGET_FILE"
+
           mkdir -p "$GITHUB_WORKSPACE/acp-generated-migrations"
           cp "$RPC_FILE" "$GITHUB_WORKSPACE/acp-generated-migrations/"
           cp "$PARENT_FILE" "$GITHUB_WORKSPACE/acp-generated-migrations/"
+          cp "$BUDGET_FILE" "$GITHUB_WORKSPACE/acp-generated-migrations/"
           (
             cd "$GITHUB_WORKSPACE/acp-generated-migrations"
             sha256sum *.sql > SHA256SUMS.txt
@@ -59,6 +67,7 @@ jobs:
 
           echo "GENERATED_RPC_PATH=$RPC_FILE"
           echo "GENERATED_PARENT_PATH=$PARENT_FILE"
+          echo "GENERATED_BUDGET_HARDENING_PATH=$BUDGET_FILE"
           cat "$GITHUB_WORKSPACE/acp-generated-migrations/SHA256SUMS.txt"
 
       - name: Upload short-lived migration-generation evidence
