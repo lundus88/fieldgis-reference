@@ -72,3 +72,15 @@ The Property Pack does not claim access to JTU, PBT, land-office or other govern
 Production deployment, live customer charging, customer commitment, privilege widening and destructive Production actions remain HUMAN_ONLY.
 
 This package is not Production authority. It is a development consolidation layer.
+
+## Platform Foundation P0
+
+The next bounded layer adds:
+- multi-tenant organisation configuration;
+- package entitlement enforcement;
+- deterministic Industry Pack registry;
+- capability ownership resolution using REUSE_BEFORE_BUILD.
+
+This layer remains DEVELOPMENT / NON-PRODUCTION and does not create Production database authority, billing authority or deployment authority.
+
+See `PLATFORM_FOUNDATION_P0.md`.
