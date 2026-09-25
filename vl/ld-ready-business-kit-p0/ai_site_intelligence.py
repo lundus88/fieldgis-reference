@@ -4,6 +4,7 @@ from hashlib import sha256
 import json
 import re
 from typing import Any
+from urllib.parse import urlparse
 
 from ready_business_kit import render_preview
 
@@ -34,8 +35,8 @@ def _clean_text(value: Any, limit: int = 500) -> str:
     return text[:limit]
 
 def _infer_vertical(prompt: str, explicit: str | None) -> str | None:
-    if explicit in SUPPORTED_VERTICALS:
-        return explicit
+    if explicit:
+        return explicit if explicit in SUPPORTED_VERTICALS else None
     p = prompt.lower()
     aliases = {
         "cafe": ("cafe", "café", "coffee", "kopi", "restaurant", "restoran", "food", "f&b"),
@@ -44,6 +45,20 @@ def _infer_vertical(prompt: str, explicit: str | None) -> str | None:
     }
     matches = [v for v, words in aliases.items() if any(w in p for w in words)]
     return matches[0] if len(matches) == 1 else None
+
+def _safe_http_url(value: Any) -> str | None:
+    text = _clean_text(value, 500)
+    if not text:
+        return None
+    parsed = urlparse(text)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        return None
+    return text
+
+def _validate_cards(cards: Any, max_items: int = 50) -> bool:
+    if not isinstance(cards, list) or not cards or len(cards) > max_items:
+        return False
+    return all(isinstance(item, dict) for item in cards)
 
 def compile_prompt_to_sitespec(request: dict[str, Any]) -> dict[str, Any]:
     """
@@ -75,8 +90,8 @@ def compile_prompt_to_sitespec(request: dict[str, Any]) -> dict[str, Any]:
     cfg = DEFAULTS[vertical]
     section_key = cfg["section_key"]
     cards = request.get(section_key)
-    if not isinstance(cards, list) or not cards:
-        return {"decision": "HOLD", "reason": "VERTICAL_CONTENT_REQUIRED", "missing": [section_key]}
+    if not _validate_cards(cards):
+        return {"decision": "HOLD", "reason": "VERTICAL_CONTENT_INVALID", "missing": [section_key]}
 
     headline = _clean_text(request.get("headline"), 180) or cfg["headline"]
     cta_label = _clean_text(request.get("cta_label"), 80) or cfg["cta_label"]
@@ -89,9 +104,16 @@ def compile_prompt_to_sitespec(request: dict[str, Any]) -> dict[str, Any]:
         "cta_label": cta_label,
         section_key: cards,
     }
-    for optional in ("address", "maps_url", "social_url"):
-        value = _clean_text(request.get(optional), 500)
-        if value:
+    address = _clean_text(request.get("address"), 500)
+    if address:
+        onboarding["address"] = address
+
+    for optional in ("maps_url", "social_url"):
+        raw = request.get(optional)
+        if raw:
+            value = _safe_http_url(raw)
+            if value is None:
+                return {"decision": "HOLD", "reason": "UNSAFE_URL", "field": optional}
             onboarding[optional] = value
 
     sections = [
