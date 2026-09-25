@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 from html import escape
 from hashlib import sha256
 import json
@@ -18,6 +17,13 @@ VERTICAL_REQUIRED = {
     "cafe": ["items"],
     "homestay": ["rooms"],
     "tutor": ["programs"],
+}
+
+DESIGN_DENSITIES = {"sparse", "balanced", "dense"}
+HEADLINE_SCALES = {"compact", "standard", "large"}
+DESIGN_STYLE_HINTS = {
+    "minimal", "editorial", "premium", "corporate", "friendly",
+    "bold", "clean", "warm", "modern", "classic",
 }
 
 def _digest(value: Any) -> str:
@@ -46,7 +52,62 @@ def _cards(items: list[dict[str, Any]], title_key: str, meta_key: str) -> str:
         blocks.append(f"<article class='card'><h3>{title}</h3><p class='meta'>{meta}</p><p>{desc}</p></article>")
     return "\n".join(blocks)
 
-def render_preview(data: dict[str, Any]) -> dict[str, Any]:
+def _normalize_design_signals(signals: Any) -> dict[str, Any]:
+    if not isinstance(signals, dict):
+        signals = {}
+
+    density = str(signals.get("layout_density", "balanced")).strip().lower()
+    if density not in DESIGN_DENSITIES:
+        density = "balanced"
+
+    headline_scale = str(signals.get("headline_scale", "standard")).strip().lower()
+    if headline_scale not in HEADLINE_SCALES:
+        headline_scale = "standard"
+
+    style_hints = signals.get("style_hints", [])
+    normalized_hints: list[str] = []
+    if isinstance(style_hints, list):
+        for hint in style_hints[:8]:
+            key = str(hint).strip().lower()
+            if key in DESIGN_STYLE_HINTS and key not in normalized_hints:
+                normalized_hints.append(key)
+
+    return {
+        "layout_density": density,
+        "headline_scale": headline_scale,
+        "style_hints": normalized_hints,
+    }
+
+def _design_tokens(signals: dict[str, Any]) -> dict[str, str]:
+    density = signals["layout_density"]
+    density_tokens = {
+        "dense": {"main_padding": "18px", "hero_padding": "36px 0 20px", "gap": "10px", "card_padding": "14px"},
+        "balanced": {"main_padding": "24px", "hero_padding": "56px 0 28px", "gap": "16px", "card_padding": "18px"},
+        "sparse": {"main_padding": "32px", "hero_padding": "76px 0 38px", "gap": "24px", "card_padding": "24px"},
+    }[density]
+
+    headline_size = {
+        "compact": "clamp(30px,5vw,56px)",
+        "standard": "clamp(36px,7vw,72px)",
+        "large": "clamp(44px,9vw,92px)",
+    }[signals["headline_scale"]]
+
+    hints = set(signals["style_hints"])
+    radius = "16px"
+    if "minimal" in hints or "bold" in hints:
+        radius = "8px"
+    elif "premium" in hints or "warm" in hints:
+        radius = "20px"
+    elif "classic" in hints:
+        radius = "12px"
+
+    return {
+        **density_tokens,
+        "headline_size": headline_size,
+        "radius": radius,
+    }
+
+def render_preview(data: dict[str, Any], design_signals: dict[str, Any] | None = None) -> dict[str, Any]:
     v=validate_onboarding(data)
     if v["decision"]!="ALLOW":
         return v
@@ -70,6 +131,9 @@ def render_preview(data: dict[str, Any]) -> dict[str, Any]:
     social=escape(data.get("social_url",""))
     maps=escape(data.get("maps_url",""))
 
+    normalized_design=_normalize_design_signals(design_signals)
+    tokens=_design_tokens(normalized_design)
+
     html=f"""<!doctype html>
 <html lang='ms'>
 <head>
@@ -78,12 +142,12 @@ def render_preview(data: dict[str, Any]) -> dict[str, Any]:
 <title>{business}</title>
 <style>
 body{{font-family:system-ui,sans-serif;margin:0;background:#f7f7f7;color:#171717}}
-main{{max-width:960px;margin:auto;padding:24px}}
-.hero{{padding:56px 0 28px}}
-h1{{font-size:clamp(36px,7vw,72px);line-height:1;margin:0 0 18px}}
-.cta{{display:inline-block;padding:14px 20px;border-radius:12px;background:#111;color:#fff;text-decoration:none;font-weight:700}}
-.grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}}
-.card{{background:#fff;border:1px solid #e7e7e7;border-radius:16px;padding:18px}}
+main{{max-width:960px;margin:auto;padding:{tokens["main_padding"]}}}
+.hero{{padding:{tokens["hero_padding"]}}}
+h1{{font-size:{tokens["headline_size"]};line-height:1;margin:0 0 18px}}
+.cta{{display:inline-block;padding:14px 20px;border-radius:{tokens["radius"]};background:#111;color:#fff;text-decoration:none;font-weight:700}}
+.grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:{tokens["gap"]}}}
+.card{{background:#fff;border:1px solid #e7e7e7;border-radius:{tokens["radius"]};padding:{tokens["card_padding"]}}}
 .meta{{font-weight:700}}
 footer{{padding:36px 0;color:#555}}
 </style>
@@ -114,6 +178,8 @@ footer{{padding:36px 0;color:#555}}
         "vertical":vertical,
         "business_name":data["business_name"],
         "onboarding_digest":v["digest"],
+        "design_signals":normalized_design,
+        "design_digest":_digest(normalized_design),
         "lead_capture":"CONFIG_REQUIRED",
         "payment":"DISABLED",
         "production":"LOCKED",
