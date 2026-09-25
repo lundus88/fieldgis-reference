@@ -7,8 +7,8 @@ ROOT=Path(__file__).resolve().parent
 def load(name):
     return json.loads((ROOT/"verticals"/name).read_text())
 
-def test_three_verticals_render():
-    for name in ["cafe.json","homestay.json","tutor.json"]:
+def test_four_verticals_render():
+    for name in ["cafe.json","homestay.json","tutor.json","property.json"]:
         data=load(name)
         v=validate_onboarding(data)
         assert v["decision"]=="ALLOW"
