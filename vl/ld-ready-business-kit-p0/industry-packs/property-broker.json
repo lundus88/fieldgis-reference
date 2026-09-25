@@ -1,0 +1,56 @@
+{
+  "schema": "ld.industry-pack/1",
+  "pack_id": "property-broker",
+  "name": "Property / Broker Edition",
+  "vertical": "property",
+  "capabilities": [
+    "AUTH",
+    "CUSTOMER_DB",
+    "LEAD_CRM",
+    "QUOTATION",
+    "ORDER",
+    "PAYMENT",
+    "INVOICE",
+    "RECEIPT",
+    "PROJECT_STATUS",
+    "FILE_UPLOAD",
+    "PDF_GENERATOR",
+    "NOTIFICATION",
+    "APPROVAL_WORKFLOW",
+    "AUDIT_EVIDENCE",
+    "AI_ASSISTANT",
+    "MAP_VIEWER",
+    "LISTING",
+    "MATCHING",
+    "VIEWING",
+    "DEAL_PIPELINE"
+  ],
+  "entities": [
+    "owner",
+    "buyer",
+    "broker",
+    "property_listing",
+    "lead",
+    "viewing",
+    "offer",
+    "deal",
+    "document"
+  ],
+  "workflows": [
+    "owner_to_listing",
+    "listing_to_lead",
+    "buyer_match",
+    "viewing",
+    "negotiation",
+    "deal",
+    "delivery_and_support"
+  ],
+  "human_gates": [
+    "FINAL_PRICING",
+    "CUSTOMER_COMMITMENT",
+    "PRODUCTION_DEPLOY",
+    "LIVE_CHARGING"
+  ],
+  "production": "LOCKED",
+  "notes": "Reference implementation only. Does not claim access to government land databases and does not replace licensed professional verification."
+}
