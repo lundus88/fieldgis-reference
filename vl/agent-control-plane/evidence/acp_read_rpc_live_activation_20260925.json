@@ -1,0 +1,57 @@
+{
+  "schema": "vl.acp-read-rpc-live-activation-evidence/1",
+  "captured_at_utc": "2026-09-25T02:57:42Z",
+  "project_ref": "wczelfmnqpgzfdszxubl",
+  "repository_main_sha": "cacbe8f20f12ea30141e2000e2a63c6c86390e44",
+  "migration": {
+    "repository_file": "vl/migrations/20260925024934_acp_read_agent_grant_chain_nonprod.sql",
+    "remote_history_version": "20260925025656",
+    "remote_history_name": "acp_read_agent_grant_chain_nonprod",
+    "apply_status": "APPLIED",
+    "apply_result": "success"
+  },
+  "function_boundary": {
+    "private_impl": {
+      "schema": "private",
+      "name": "acp_read_agent_grant_chain_nonprod_impl",
+      "security_definer": true,
+      "volatility": "stable",
+      "empty_search_path": true,
+      "anon_execute": false,
+      "authenticated_execute": false,
+      "service_role_execute": true
+    },
+    "public_wrapper": {
+      "schema": "public",
+      "name": "acp_read_agent_grant_chain_nonprod",
+      "security_definer": false,
+      "security_invoker": true,
+      "volatility": "stable",
+      "empty_search_path": true,
+      "anon_execute": false,
+      "authenticated_execute": false,
+      "service_role_execute": true
+    },
+    "service_role_private_schema_usage": true,
+    "service_role_direct_grant_table_select": false
+  },
+  "negative_tests": {
+    "production_environment_rejected": true,
+    "missing_grant_rejected": true
+  },
+  "advisors": {
+    "security_new_blocking_findings": false,
+    "performance_new_blocking_findings": false,
+    "existing_security_info_count": 34,
+    "existing_unindexed_foreign_keys_info_count": 2,
+    "existing_unused_index_info_count": 60,
+    "existing_auth_connection_strategy_info_count": 1
+  },
+  "unresolved_gates": {
+    "parent_grant_migration": "NOT_APPLIED",
+    "active_nonproduction_grants": 0,
+    "active_lom_vps_runner_grants": 0,
+    "resolver_edge_function_deployed": false,
+    "live_vps_activation": "HOLD"
+  }
+}
