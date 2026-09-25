@@ -44,7 +44,7 @@ def test_missing_vertical_content_fails_closed():
     bad.pop("items")
     out = compile_prompt_to_sitespec(bad)
     assert out["decision"] == "HOLD"
-    assert out["reason"] == "VERTICAL_CONTENT_REQUIRED"
+    assert out["reason"] == "VERTICAL_CONTENT_INVALID"
 
 def test_deterministic_sitespec():
     a = compile_prompt_to_sitespec(BASE)
@@ -56,3 +56,26 @@ if __name__ == "__main__":
     for t in tests:
         t()
     print(f"PASS {len(tests)} LD AI Site Intelligence P0 tests")
+
+
+def test_explicit_unsupported_vertical_fails_closed():
+    bad = dict(BASE)
+    bad["vertical"] = "clinic"
+    out = compile_prompt_to_sitespec(bad)
+    assert out["decision"] == "HOLD"
+    assert out["reason"] == "VERTICAL_UNRESOLVED"
+
+def test_unsafe_optional_url_fails_closed():
+    bad = dict(BASE)
+    bad["social_url"] = "javascript:alert(1)"
+    out = compile_prompt_to_sitespec(bad)
+    assert out["decision"] == "HOLD"
+    assert out["reason"] == "UNSAFE_URL"
+    assert out["field"] == "social_url"
+
+def test_non_dict_cards_fail_closed():
+    bad = dict(BASE)
+    bad["items"] = ["Latte"]
+    out = compile_prompt_to_sitespec(bad)
+    assert out["decision"] == "HOLD"
+    assert out["reason"] == "VERTICAL_CONTENT_INVALID"
