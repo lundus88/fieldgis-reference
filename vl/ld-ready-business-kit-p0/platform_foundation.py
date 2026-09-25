@@ -13,6 +13,23 @@ RESOLVER_SCHEMA = "ld.capability-resolution/1"
 
 PACKAGE_ORDER = ["launch", "starter", "professional", "business", "enterprise"]
 
+ROLE_PERMISSIONS = {
+    "OWNER": {"VIEW", "OPERATE", "MANAGE_MEMBERS", "CONFIGURE_PACK", "REQUEST_PACKAGE_CHANGE"},
+    "ADMIN": {"VIEW", "OPERATE", "MANAGE_MEMBERS"},
+    "OPERATOR": {"VIEW", "OPERATE"},
+    "VIEWER": {"VIEW"},
+}
+
+CAPABILITY_DEPENDENCIES = {
+    "QUOTATION": {"LEAD_CRM"},
+    "ORDER": {"QUOTATION"},
+    "PAYMENT": {"ORDER"},
+    "RECEIPT": {"PAYMENT"},
+    "MATCHING": {"LISTING", "LEAD_CRM"},
+    "VIEWING": {"LISTING", "LEAD_CRM"},
+    "DEAL_PIPELINE": {"LEAD_CRM", "ORDER"},
+}
+
 PACKAGE_CAPABILITIES = {
     "launch": {"AUTH", "CUSTOMER_DB", "LEAD_CRM", "NOTIFICATION"},
     "starter": {"AUTH", "CUSTOMER_DB", "LEAD_CRM", "QUOTATION", "FILE_UPLOAD", "NOTIFICATION", "PROJECT_STATUS"},
@@ -61,7 +78,7 @@ def _digest(value: Any) -> str:
 def validate_tenant(tenant: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(tenant, dict):
         return {"decision": "HOLD", "reason": "TENANT_REQUIRED"}
-    required = ["schema", "tenant_id", "organisation_name", "package", "industry_pack"]
+    required = ["schema", "tenant_id", "organisation_name", "organization_ref", "package", "industry_pack"]
     missing = [k for k in required if not tenant.get(k)]
     if missing:
         return {"decision": "HOLD", "reason": "TENANT_INCOMPLETE", "missing": sorted(missing)}
@@ -73,7 +90,65 @@ def validate_tenant(tenant: dict[str, Any]) -> dict[str, Any]:
         return {"decision": "HOLD", "reason": "PACKAGE_UNSUPPORTED"}
     if tenant.get("production_write_authority", False):
         return {"decision": "HOLD", "reason": "TENANT_CANNOT_GRANT_PRODUCTION_WRITE"}
+    if not str(tenant["organization_ref"]).strip():
+        return {"decision": "HOLD", "reason": "ORGANIZATION_BINDING_REQUIRED"}
     return {"decision": "ALLOW", "digest": _digest(tenant)}
+
+def authorize_tenant_action(tenant: dict[str, Any], actor: dict[str, Any], action: str) -> dict[str, Any]:
+    tv = validate_tenant(tenant)
+    if tv["decision"] != "ALLOW":
+        return tv
+    if not isinstance(actor, dict) or not actor.get("organization_ref") or not actor.get("role"):
+        return {"decision": "HOLD", "reason": "ACTOR_CONTEXT_REQUIRED"}
+    if actor["organization_ref"] != tenant["organization_ref"]:
+        return {"decision": "HOLD", "reason": "CROSS_TENANT_ACCESS_DENIED"}
+    role = str(actor["role"]).upper()
+    if role not in ROLE_PERMISSIONS:
+        return {"decision": "HOLD", "reason": "ROLE_UNSUPPORTED"}
+    if action not in ROLE_PERMISSIONS[role]:
+        return {"decision": "HOLD", "reason": "ROLE_PERMISSION_DENIED", "role": role, "action": action}
+    return {
+        "decision": "ALLOW",
+        "tenant_id": tenant["tenant_id"],
+        "organization_ref": tenant["organization_ref"],
+        "role": role,
+        "action": action,
+        "production_authority": False,
+        "live_charging_authority": False,
+    }
+
+def validate_capability_dependencies(requested_capabilities: list[str]) -> dict[str, Any]:
+    requested = set(requested_capabilities)
+    missing = {}
+    for capability in sorted(requested):
+        required = CAPABILITY_DEPENDENCIES.get(capability, set())
+        absent = sorted(required - requested)
+        if absent:
+            missing[capability] = absent
+    if missing:
+        return {"decision": "HOLD", "reason": "CAPABILITY_DEPENDENCY_MISSING", "missing": missing}
+    return {"decision": "ALLOW"}
+
+def evaluate_package_change(tenant: dict[str, Any], new_package: str, active_capabilities: list[str]) -> dict[str, Any]:
+    tv = validate_tenant(tenant)
+    if tv["decision"] != "ALLOW":
+        return tv
+    if new_package not in PACKAGE_ORDER:
+        return {"decision": "HOLD", "reason": "PACKAGE_UNSUPPORTED"}
+    if new_package == tenant["package"]:
+        return {"decision": "ALLOW", "reason": "NO_CHANGE"}
+    allowed = PACKAGE_CAPABILITIES[new_package]
+    active = set(active_capabilities or [])
+    removed = [] if "*" in allowed else sorted(active - allowed)
+    return {
+        "decision": "HUMAN_GATE",
+        "reason": "PACKAGE_CHANGE_HUMAN_APPROVAL_REQUIRED",
+        "from_package": tenant["package"],
+        "to_package": new_package,
+        "capabilities_removed_from_entitlement": removed,
+        "data_deletion_authorized": False,
+        "automatic_upgrade_authorized": False,
+    }
 
 def resolve_entitlement(tenant: dict[str, Any], requested_capabilities: list[str]) -> dict[str, Any]:
     tv = validate_tenant(tenant)
@@ -139,6 +214,9 @@ def resolve_capabilities(requested_capabilities: list[str]) -> dict[str, Any]:
     if not isinstance(requested_capabilities, list) or not requested_capabilities:
         return {"decision": "HOLD", "reason": "CAPABILITY_REQUEST_REQUIRED"}
     requested = sorted(set(requested_capabilities))
+    dependency = validate_capability_dependencies(requested)
+    if dependency["decision"] != "ALLOW":
+        return dependency
     unknown = sorted(set(requested) - set(CAPABILITY_OWNERS))
     if unknown:
         return {
