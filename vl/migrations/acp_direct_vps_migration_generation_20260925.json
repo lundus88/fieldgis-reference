@@ -1,0 +1,27 @@
+{
+  "schema": "vl.acp-migration-generation-evidence/1",
+  "generated_at_utc": "2026-09-25T02:49:38Z",
+  "github_run_id": 36087835702,
+  "github_job_id": 107923554606,
+  "generator": "supabase migration new",
+  "supabase_cli_version": "2.117.0",
+  "remote_project_access": false,
+  "credentials_used": false,
+  "live_database_mutation": false,
+  "migrations": [
+    {
+      "generated_path": "supabase/migrations/20260925024934_acp_read_agent_grant_chain_nonprod.sql",
+      "repository_path": "vl/migrations/20260925024934_acp_read_agent_grant_chain_nonprod.sql",
+      "sha256": "1577b58c255a08a8fcf4983ed751ae2ce6bd7af994455c6862182c444a3a80a7",
+      "apply_status": "NOT_APPLIED",
+      "human_gate_required": true
+    },
+    {
+      "generated_path": "supabase/migrations/20260925024937_acp_lom_vps_parent_grant_renewal.sql",
+      "repository_path": "vl/migrations/20260925024937_acp_lom_vps_parent_grant_renewal.sql",
+      "sha256": "9659f3cc12b2400e75a035d2ffb899b53b59c2f304ff42cb84e1b2cd94a92681",
+      "apply_status": "NOT_APPLIED",
+      "human_gate_required": true
+    }
+  ]
+}
