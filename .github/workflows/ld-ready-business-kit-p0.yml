@@ -42,6 +42,10 @@ jobs:
         run: |
           cd vl/ld-ready-business-kit-p0
           python3 test_ai_site_intelligence_image.py
+      - name: AI Site Intelligence P3 conversational edit regressions
+        run: |
+          cd vl/ld-ready-business-kit-p0
+          python3 test_ai_site_intelligence_conversation.py
       - name: Generate three vertical previews
         run: |
           cd vl/ld-ready-business-kit-p0

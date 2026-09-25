@@ -7,7 +7,7 @@ import ipaddress
 from typing import Any
 from urllib.parse import urlparse
 
-from ready_business_kit import render_preview
+from ready_business_kit import render_preview, validate_onboarding
 
 SUPPORTED_VERTICALS = {"cafe", "homestay", "tutor"}
 DEFAULTS = {
@@ -148,7 +148,7 @@ def generate_prompt_preview(request: dict[str, Any]) -> dict[str, Any]:
     compiled = compile_prompt_to_sitespec(request)
     if compiled["decision"] != "ALLOW":
         return compiled
-    preview = render_preview(compiled["onboarding"])
+    preview = render_preview(compiled["onboarding"], compiled["sitespec"].get("design_signals"))
     if preview.get("decision") != "ALLOW":
         return preview
     return {
@@ -506,6 +506,293 @@ def generate_image_reference_preview(request: dict[str, Any]) -> dict[str, Any]:
     return {
         "decision": "ALLOW",
         "sitespec": compiled["sitespec"],
+        "preview_html": preview["html"],
+        "preview_manifest": preview["manifest"],
+        "production": "LOCKED",
+        "human_approval_required": True,
+    }
+
+
+EDIT_TONES = {
+    "professional", "premium", "friendly", "warm", "modern",
+    "minimal", "corporate", "bold", "classic",
+}
+EDIT_HEADLINE_SCALES = {"compact", "standard", "large"}
+EDIT_MAX_ACTIONS = 8
+EDIT_ALLOWED_OPS = {
+    "SET_HEADLINE",
+    "SET_CTA_LABEL",
+    "SET_TONE",
+    "SET_STYLE_HINTS",
+    "SET_LAYOUT_DENSITY",
+    "SET_HEADLINE_SCALE",
+    "REORDER_CARDS",
+}
+
+def create_edit_state(
+    sitespec: dict[str, Any],
+    onboarding: dict[str, Any],
+    revision: int = 0,
+) -> dict[str, Any]:
+    if not isinstance(sitespec, dict) or sitespec.get("schema") != "ld.ai-site-spec/1":
+        return {"decision": "HOLD", "reason": "EDIT_SITESPEC_INVALID"}
+    if not isinstance(onboarding, dict):
+        return {"decision": "HOLD", "reason": "EDIT_ONBOARDING_INVALID"}
+
+    validated = validate_onboarding(onboarding)
+    if validated.get("decision") != "ALLOW":
+        return {"decision": "HOLD", "reason": "EDIT_ONBOARDING_INVALID"}
+
+    authority = sitespec.get("authority", {})
+    if (
+        authority.get("customer_commitment") != "HUMAN_ONLY"
+        or authority.get("production_publish") != "HUMAN_ONLY"
+    ):
+        return {"decision": "HOLD", "reason": "EDIT_AUTHORITY_INVARIANT"}
+
+    if sitespec.get("vertical") != onboarding.get("vertical"):
+        return {"decision": "HOLD", "reason": "EDIT_VERTICAL_MISMATCH"}
+    if sitespec.get("business_name") != onboarding.get("business_name"):
+        return {"decision": "HOLD", "reason": "EDIT_BUSINESS_NAME_MISMATCH"}
+
+    if not isinstance(revision, int) or revision < 0 or revision > 10000:
+        return {"decision": "HOLD", "reason": "EDIT_REVISION_INVALID"}
+
+    spec_copy = json.loads(json.dumps(sitespec))
+    onboarding_copy = json.loads(json.dumps(onboarding))
+    core = {
+        "schema": "ld.ai-site-edit-state/1",
+        "revision": revision,
+        "sitespec": spec_copy,
+        "onboarding": onboarding_copy,
+    }
+    return {
+        "decision": "ALLOW",
+        **core,
+        "state_digest": _digest(core),
+    }
+
+def _normalize_edit_action(
+    action: Any,
+    onboarding: dict[str, Any],
+    seen_ops: set[str],
+) -> dict[str, Any]:
+    if not isinstance(action, dict):
+        return {"decision": "HOLD", "reason": "EDIT_ACTION_INVALID"}
+
+    op = _clean_text(action.get("op"), 60).upper()
+    if op not in EDIT_ALLOWED_OPS:
+        return {"decision": "HOLD", "reason": "EDIT_OPERATION_FORBIDDEN", "op": op}
+    if op in seen_ops:
+        return {"decision": "HOLD", "reason": "EDIT_DUPLICATE_OPERATION", "op": op}
+
+    allowed_keys = {
+        "SET_HEADLINE": {"op", "value"},
+        "SET_CTA_LABEL": {"op", "value"},
+        "SET_TONE": {"op", "value"},
+        "SET_STYLE_HINTS": {"op", "value"},
+        "SET_LAYOUT_DENSITY": {"op", "value"},
+        "SET_HEADLINE_SCALE": {"op", "value"},
+        "REORDER_CARDS": {"op", "order"},
+    }[op]
+    extra = sorted(set(action) - allowed_keys)
+    if extra:
+        return {"decision": "HOLD", "reason": "EDIT_ACTION_FIELDS_FORBIDDEN", "fields": extra}
+
+    if op == "SET_HEADLINE":
+        raw_value = _clean_text(action.get("value"), 10000)
+        if not raw_value or len(raw_value) > 180:
+            return {"decision": "HOLD", "reason": "EDIT_HEADLINE_INVALID"}
+        normalized = {"op": op, "value": raw_value}
+
+    elif op == "SET_CTA_LABEL":
+        raw_value = _clean_text(action.get("value"), 10000)
+        if not raw_value or len(raw_value) > 80:
+            return {"decision": "HOLD", "reason": "EDIT_CTA_INVALID"}
+        normalized = {"op": op, "value": raw_value}
+
+    elif op == "SET_TONE":
+        value = _clean_text(action.get("value"), 40).lower()
+        if value not in EDIT_TONES:
+            return {"decision": "HOLD", "reason": "EDIT_TONE_INVALID"}
+        normalized = {"op": op, "value": value}
+
+    elif op == "SET_STYLE_HINTS":
+        value = action.get("value")
+        if not isinstance(value, list) or len(value) > 4:
+            return {"decision": "HOLD", "reason": "EDIT_STYLE_HINTS_INVALID"}
+        hints: list[str] = []
+        for hint in value:
+            key = _clean_text(hint, 40).lower()
+            if key not in REFERENCE_STYLE_HINTS:
+                return {"decision": "HOLD", "reason": "EDIT_STYLE_HINT_INVALID", "style": key}
+            if key not in hints:
+                hints.append(key)
+        normalized = {"op": op, "value": hints}
+
+    elif op == "SET_LAYOUT_DENSITY":
+        value = _clean_text(action.get("value"), 20).lower()
+        if value not in REFERENCE_DENSITIES:
+            return {"decision": "HOLD", "reason": "EDIT_LAYOUT_DENSITY_INVALID"}
+        normalized = {"op": op, "value": value}
+
+    elif op == "SET_HEADLINE_SCALE":
+        value = _clean_text(action.get("value"), 20).lower()
+        if value not in EDIT_HEADLINE_SCALES:
+            return {"decision": "HOLD", "reason": "EDIT_HEADLINE_SCALE_INVALID"}
+        normalized = {"op": op, "value": value}
+
+    else:
+        section_key = DEFAULTS[onboarding["vertical"]]["section_key"]
+        cards = onboarding.get(section_key, [])
+        order = action.get("order")
+        if (
+            not isinstance(order, list)
+            or len(order) != len(cards)
+            or not all(type(i) is int for i in order)
+            or sorted(order) != list(range(len(cards)))
+        ):
+            return {"decision": "HOLD", "reason": "EDIT_CARD_ORDER_INVALID"}
+        normalized = {"op": op, "order": order}
+
+    return {"decision": "ALLOW", "action": normalized}
+
+def compile_conversational_edit(
+    state: dict[str, Any],
+    edit: dict[str, Any],
+) -> dict[str, Any]:
+    """
+    P3 conversational-edit contract.
+
+    Free-form conversation text is evidence of user intent only. A model or UI
+    may propose bounded edit actions, but only this allowlisted action language
+    may mutate SiteSpec/onboarding state.
+    """
+    if not isinstance(state, dict) or state.get("schema") != "ld.ai-site-edit-state/1":
+        return {"decision": "HOLD", "reason": "EDIT_STATE_REQUIRED"}
+    if not isinstance(edit, dict):
+        return {"decision": "HOLD", "reason": "EDIT_REQUEST_INVALID"}
+
+    rebuilt = create_edit_state(
+        state.get("sitespec"),
+        state.get("onboarding"),
+        state.get("revision"),
+    )
+    if rebuilt.get("decision") != "ALLOW":
+        return rebuilt
+    if rebuilt["state_digest"] != state.get("state_digest"):
+        return {"decision": "HOLD", "reason": "EDIT_STATE_TAMPERED"}
+
+    if edit.get("base_state_digest") != state["state_digest"]:
+        return {"decision": "HOLD", "reason": "EDIT_STALE_BASE"}
+
+    request_text = _clean_text(edit.get("edit_request"), 10000)
+    if not request_text:
+        return {"decision": "HOLD", "reason": "EDIT_REQUEST_TEXT_REQUIRED"}
+    if len(request_text) > 2000:
+        return {"decision": "HOLD", "reason": "EDIT_REQUEST_TEXT_TOO_LONG"}
+
+    actions = edit.get("actions")
+    if (
+        not isinstance(actions, list)
+        or not actions
+        or len(actions) > EDIT_MAX_ACTIONS
+    ):
+        return {"decision": "HOLD", "reason": "EDIT_ACTIONS_INVALID"}
+
+    normalized_actions: list[dict[str, Any]] = []
+    seen_ops: set[str] = set()
+    for action in actions:
+        normalized = _normalize_edit_action(action, state["onboarding"], seen_ops)
+        if normalized.get("decision") != "ALLOW":
+            return normalized
+        op = normalized["action"]["op"]
+        seen_ops.add(op)
+        normalized_actions.append(normalized["action"])
+
+    spec = json.loads(json.dumps(state["sitespec"]))
+    onboarding = json.loads(json.dumps(state["onboarding"]))
+    design = json.loads(json.dumps(spec.get("design_signals", {})))
+    changed_fields: list[str] = []
+
+    for action in normalized_actions:
+        op = action["op"]
+        if op == "SET_HEADLINE":
+            onboarding["headline"] = action["value"]
+            changed_fields.append("headline")
+        elif op == "SET_CTA_LABEL":
+            onboarding["cta_label"] = action["value"]
+            changed_fields.append("cta_label")
+        elif op == "SET_TONE":
+            spec["tone"] = action["value"]
+            changed_fields.append("tone")
+        elif op == "SET_STYLE_HINTS":
+            design["style_hints"] = action["value"]
+            changed_fields.append("design_signals.style_hints")
+        elif op == "SET_LAYOUT_DENSITY":
+            design["layout_density"] = action["value"]
+            changed_fields.append("design_signals.layout_density")
+        elif op == "SET_HEADLINE_SCALE":
+            design["headline_scale"] = action["value"]
+            changed_fields.append("design_signals.headline_scale")
+        elif op == "REORDER_CARDS":
+            section_key = DEFAULTS[onboarding["vertical"]]["section_key"]
+            cards = onboarding[section_key]
+            onboarding[section_key] = [cards[i] for i in action["order"]]
+            changed_fields.append(section_key)
+
+    spec["design_signals"] = design
+    spec["facts_digest"] = _digest(onboarding)
+    spec.setdefault("content_policy", {})["conversation_business_fact_mutation"] = False
+    next_revision = state["revision"] + 1
+    spec["revision"] = next_revision
+    spec["last_edit"] = {
+        "schema": "ld.ai-site-edit-evidence/1",
+        "base_state_digest": state["state_digest"],
+        "edit_request_digest": _digest({"edit_request": request_text}),
+        "actions_digest": _digest(normalized_actions),
+        "changed_fields": changed_fields,
+        "revision": next_revision,
+    }
+
+    new_state = create_edit_state(spec, onboarding, next_revision)
+    if new_state.get("decision") != "ALLOW":
+        return new_state
+
+    return {
+        "decision": "ALLOW",
+        "state": {
+            "schema": new_state["schema"],
+            "revision": new_state["revision"],
+            "sitespec": new_state["sitespec"],
+            "onboarding": new_state["onboarding"],
+            "state_digest": new_state["state_digest"],
+        },
+        "normalized_actions": normalized_actions,
+        "changed_fields": changed_fields,
+    }
+
+def generate_conversational_edit_preview(
+    state: dict[str, Any],
+    edit: dict[str, Any],
+) -> dict[str, Any]:
+    compiled = compile_conversational_edit(state, edit)
+    if compiled.get("decision") != "ALLOW":
+        return compiled
+
+    new_state = compiled["state"]
+    preview = render_preview(
+        new_state["onboarding"],
+        new_state["sitespec"].get("design_signals"),
+    )
+    if preview.get("decision") != "ALLOW":
+        return preview
+
+    return {
+        "decision": "ALLOW",
+        "state": new_state,
+        "normalized_actions": compiled["normalized_actions"],
+        "changed_fields": compiled["changed_fields"],
         "preview_html": preview["html"],
         "preview_manifest": preview["manifest"],
         "production": "LOCKED",
