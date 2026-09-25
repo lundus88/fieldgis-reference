@@ -7,8 +7,29 @@ PARENT = (ROOT / "acp_lom_vps_parent_grant_renewal.sql").read_text()
 
 errors = []
 
+private_marker = "create or replace function private.acp_read_agent_grant_chain_nonprod_impl"
+public_marker = "create or replace function public.acp_read_agent_grant_chain_nonprod"
+if private_marker not in READ.lower():
+    errors.append("read RPC missing private implementation")
+if public_marker not in READ.lower():
+    errors.append("read RPC missing public wrapper")
+
+if private_marker in READ.lower() and public_marker in READ.lower():
+    lower = READ.lower()
+    private_start = lower.index(private_marker)
+    public_start = lower.index(public_marker)
+    private_sql = lower[private_start:public_start]
+    public_sql = lower[public_start:]
+    if "security definer" not in private_sql:
+        errors.append("private implementation must be SECURITY DEFINER")
+    if "security invoker" not in public_sql:
+        errors.append("public wrapper must be SECURITY INVOKER")
+    if "security definer" in public_sql:
+        errors.append("public wrapper must not be SECURITY DEFINER")
+    if "private.agent_capability_grants" in public_sql:
+        errors.append("public wrapper must not access the private grant table directly")
+
 required_read = [
-    "security definer",
     "set search_path = ''",
     "stable",
     "private.agent_capability_grants",
@@ -17,9 +38,11 @@ required_read = [
     "production.approve",
     "production.promote",
     "c.depth < 16",
+    "revoke all on function private.acp_read_agent_grant_chain_nonprod_impl",
+    "grant execute on function private.acp_read_agent_grant_chain_nonprod_impl",
     "revoke all on function public.acp_read_agent_grant_chain_nonprod",
-    "from public, anon, authenticated",
     "grant execute on function public.acp_read_agent_grant_chain_nonprod",
+    "from public, anon, authenticated",
     "to service_role",
 ]
 for marker in required_read:
