@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from hashlib import sha256
 import hmac
 import importlib.util
@@ -201,6 +202,7 @@ class GrantResolverClient:
             grant_id,
             by_id,
             expected_agent_id=self.config.agent_id,
+            now=datetime.fromtimestamp(now_epoch, tz=timezone.utc),
         )
         runtime_grant = resolved.as_runtime_grant()
         scope = runtime_grant.get("scope") or {}
