@@ -2,10 +2,13 @@ import json
 from pathlib import Path
 
 from platform_foundation import (
+    authorize_tenant_action,
     build_pack_registry,
     compose_tenant_runtime,
+    evaluate_package_change,
     resolve_capabilities,
     resolve_entitlement,
+    validate_capability_dependencies,
     validate_tenant,
 )
 
@@ -72,6 +75,45 @@ def test_composed_runtime_keeps_authority_locked():
     assert out["production"] == "LOCKED"
     assert out["live_charging"] == "LOCKED"
     assert out["authority"]["production_deploy"] == "HUMAN_ONLY"
+
+
+def test_cross_tenant_access_is_denied():
+    t = tenant()
+    actor = {"organization_ref": "another-org", "role": "OWNER"}
+    out = authorize_tenant_action(t, actor, "VIEW")
+    assert out["decision"] == "HOLD"
+    assert out["reason"] == "CROSS_TENANT_ACCESS_DENIED"
+
+def test_role_permissions_are_least_privilege():
+    t = tenant()
+    viewer = {"organization_ref": t["organization_ref"], "role": "VIEWER"}
+    assert authorize_tenant_action(t, viewer, "VIEW")["decision"] == "ALLOW"
+    denied = authorize_tenant_action(t, viewer, "OPERATE")
+    assert denied["decision"] == "HOLD"
+    assert denied["reason"] == "ROLE_PERMISSION_DENIED"
+
+def test_role_access_never_grants_production_authority():
+    t = tenant()
+    owner = {"organization_ref": t["organization_ref"], "role": "OWNER"}
+    out = authorize_tenant_action(t, owner, "CONFIGURE_PACK")
+    assert out["decision"] == "ALLOW"
+    assert out["production_authority"] is False
+    assert out["live_charging_authority"] is False
+
+def test_capability_dependencies_fail_closed():
+    out = validate_capability_dependencies(["PAYMENT"])
+    assert out["decision"] == "HOLD"
+    assert out["reason"] == "CAPABILITY_DEPENDENCY_MISSING"
+    assert "ORDER" in out["missing"]["PAYMENT"]
+
+def test_package_change_is_always_human_gated_and_non_destructive():
+    t = tenant()
+    active = pack()["capabilities"]
+    out = evaluate_package_change(t, "launch", active)
+    assert out["decision"] == "HUMAN_GATE"
+    assert out["automatic_upgrade_authorized"] is False
+    assert out["data_deletion_authorized"] is False
+    assert "LISTING" in out["capabilities_removed_from_entitlement"]
 
 def test_tenant_pack_mismatch_fails_closed():
     t = tenant()
