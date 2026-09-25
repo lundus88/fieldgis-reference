@@ -13,8 +13,9 @@
       "generated_path": "supabase/migrations/20260925024934_acp_read_agent_grant_chain_nonprod.sql",
       "repository_path": "vl/migrations/20260925024934_acp_read_agent_grant_chain_nonprod.sql",
       "sha256": "1577b58c255a08a8fcf4983ed751ae2ce6bd7af994455c6862182c444a3a80a7",
-      "apply_status": "NOT_APPLIED",
-      "human_gate_required": true
+      "apply_status": "APPLIED",
+      "human_gate_required": true,
+      "remote_history_version": "20260925025656"
     },
     {
       "generated_path": "supabase/migrations/20260925024937_acp_lom_vps_parent_grant_renewal.sql",
@@ -23,6 +24,15 @@
       "apply_status": "NOT_APPLIED",
       "human_gate_required": true,
       "post_generation_hardening": "reject_any_active_same_identity_scope_parent"
+    },
+    {
+      "generated_path": "supabase/migrations/20260925034053_acp_delegation_budget_inheritance_hardening.sql",
+      "repository_path": "vl/migrations/20260925034053_acp_delegation_budget_inheritance_hardening.sql",
+      "sha256": "089b9aad38b1c247068966d7eba4427ac76ffc82386b8eb48710fb361bd58a01",
+      "apply_status": "NOT_APPLIED",
+      "human_gate_required": true,
+      "generation_run_id": 36091314505,
+      "generation_job_id": 107934160073
     }
   ]
 }
