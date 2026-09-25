@@ -60,3 +60,31 @@ This P0 does not authorize:
 - automatic package upgrades.
 
 Those remain separately human-gated.
+
+## Organisation binding and RBAC
+
+The Business Engine tenant contract is bound to the existing organisation model through `organization_ref`. This is deliberately an integration contract, not a second organisation database.
+
+Runtime storage must preserve the authoritative organisation / membership controls already used by the platform.
+
+P0 role permissions are least-privilege and bounded to non-Production actions:
+- OWNER: view, operate, manage members, configure pack, request package change;
+- ADMIN: view, operate, manage members;
+- OPERATOR: view and operate;
+- VIEWER: view only.
+
+A matching role never grants Production deployment, live charging or other human-only authority.
+
+Cross-tenant organisation mismatch fails closed.
+
+## Capability dependency guard
+
+Capability composition now validates required dependencies before ownership resolution. For example, PAYMENT cannot be composed without ORDER, and MATCHING cannot be composed without LISTING and LEAD_CRM.
+
+This prevents a package or Industry Pack from producing a structurally incomplete runtime.
+
+## Package change / downgrade guard
+
+Package changes are never automatic in P0.
+
+Any upgrade or downgrade returns a HUMAN_GATE. A downgrade reports capabilities that would leave entitlement but explicitly grants **no data deletion authority**. Existing customer data must not be destroyed merely because an entitlement changed.
