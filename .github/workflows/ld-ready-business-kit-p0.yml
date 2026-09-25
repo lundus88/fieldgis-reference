@@ -30,6 +30,10 @@ jobs:
         run: |
           cd vl/ld-ready-business-kit-p0
           python3 test_business_engine.py
+      - name: Platform Foundation P0 regressions
+        run: |
+          cd vl/ld-ready-business-kit-p0
+          python3 test_platform_foundation.py
       - name: P1 delivery-factory regressions
         run: |
           cd vl/ld-ready-business-kit-p0
