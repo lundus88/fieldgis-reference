@@ -18,7 +18,20 @@ Review objective:
 - prove EXECUTE is restricted to the server-side resolver role;
 - prove no direct private-table access is granted to VPS or API clients.
 
-Because this is a SECURITY DEFINER function in an exposed RPC schema, review must be strict. It uses an empty search path, fully qualified objects, explicit EXECUTE revocation, exact leaf binding, and no dynamic SQL. Supabase security advisors must be run after migration application.
+The privileged reader is now a SECURITY DEFINER function in the private schema. The exposed public RPC is SECURITY INVOKER only and delegates to the private implementation. Both functions use an empty search path, explicit EXECUTE revocation, and service-role-only execution. The public wrapper contains no direct grant-table access or privileged SQL.
+
+## Verified pre-apply baseline — 2026-09-25
+
+Read-only live checks on `vrs-core` confirmed:
+
+- PostgreSQL 17.6;
+- `service_role` has USAGE on schema `private`;
+- `service_role` has no direct SELECT on `private.agent_capability_grants`;
+- the read-only resolver RPC is not yet live;
+- active non-production grants: 0;
+- active `lom-vps-runner` grants: 0.
+
+Supabase advisors were also captured before any DDL. Security findings are existing INFO-level private-table RLS-with-no-policy notices; performance findings are existing INFO-level unindexed/unused-index notices. None was created by this candidate because no DDL has been applied. Re-run both advisor classes immediately after any approved migration application.
 
 ## Candidate B — short-lived staging parent grant renewal
 
