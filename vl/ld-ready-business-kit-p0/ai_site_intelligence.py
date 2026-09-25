@@ -3,6 +3,7 @@ from __future__ import annotations
 from hashlib import sha256
 import json
 import re
+import ipaddress
 from typing import Any
 from urllib.parse import urlparse
 
@@ -145,6 +146,182 @@ def compile_prompt_to_sitespec(request: dict[str, Any]) -> dict[str, Any]:
 
 def generate_prompt_preview(request: dict[str, Any]) -> dict[str, Any]:
     compiled = compile_prompt_to_sitespec(request)
+    if compiled["decision"] != "ALLOW":
+        return compiled
+    preview = render_preview(compiled["onboarding"])
+    if preview.get("decision") != "ALLOW":
+        return preview
+    return {
+        "decision": "ALLOW",
+        "sitespec": compiled["sitespec"],
+        "preview_html": preview["html"],
+        "preview_manifest": preview["manifest"],
+        "production": "LOCKED",
+        "human_approval_required": True,
+    }
+
+
+REFERENCE_SECTION_TYPES = {
+    "hero", "services", "features", "menu", "rooms", "programs",
+    "gallery", "about", "testimonials", "faq", "contact", "footer",
+}
+REFERENCE_STYLE_HINTS = {
+    "minimal", "editorial", "premium", "corporate", "friendly",
+    "bold", "clean", "warm", "modern", "classic",
+}
+REFERENCE_DENSITIES = {"sparse", "balanced", "dense"}
+FORBIDDEN_REFERENCE_SNAPSHOT_KEYS = {
+    "raw_html", "html", "body_text", "full_text", "css", "javascript",
+    "script", "source_code", "images", "assets",
+}
+
+def _safe_reference_url(value: Any) -> dict[str, Any] | None:
+    text = _clean_text(value, 2000)
+    if not text:
+        return None
+    parsed = urlparse(text)
+    if parsed.scheme.lower() != "https" or not parsed.hostname:
+        return None
+    if parsed.username or parsed.password:
+        return None
+
+    host = parsed.hostname.rstrip(".").lower()
+    try:
+        ip = ipaddress.ip_address(host)
+        if not ip.is_global:
+            return None
+    except ValueError:
+        if host == "localhost" or host.endswith(".localhost") or host.endswith(".local") or "." not in host:
+            return None
+        try:
+            host = host.encode("idna").decode("ascii")
+        except UnicodeError:
+            return None
+
+    try:
+        port = parsed.port
+    except ValueError:
+        return None
+    if port not in (None, 443):
+        return None
+
+    path = parsed.path or "/"
+    normalized = f"https://{host}{path}"
+    return {
+        "url": normalized,
+        "host": host,
+        "query_stripped": bool(parsed.query),
+        "fragment_stripped": bool(parsed.fragment),
+    }
+
+def _normalize_reference_snapshot(snapshot: Any, reference_url: str) -> dict[str, Any]:
+    if not isinstance(snapshot, dict):
+        return {"decision": "HOLD", "reason": "REFERENCE_SNAPSHOT_REQUIRED"}
+    if len(snapshot) > 20:
+        return {"decision": "HOLD", "reason": "REFERENCE_SNAPSHOT_TOO_LARGE"}
+
+    forbidden = sorted(FORBIDDEN_REFERENCE_SNAPSHOT_KEYS.intersection(snapshot))
+    if forbidden:
+        return {"decision": "HOLD", "reason": "REFERENCE_COPY_CONTENT_FORBIDDEN", "fields": forbidden}
+
+    if snapshot.get("capture_mode") != "APPROVED_READ_ONLY":
+        return {"decision": "HOLD", "reason": "REFERENCE_CAPTURE_NOT_APPROVED"}
+
+    source = _safe_reference_url(snapshot.get("source_url"))
+    if source is None or source["url"] != reference_url:
+        return {"decision": "HOLD", "reason": "REFERENCE_SOURCE_MISMATCH"}
+
+    section_types = snapshot.get("section_types", [])
+    if not isinstance(section_types, list) or len(section_types) > 12:
+        return {"decision": "HOLD", "reason": "REFERENCE_SECTIONS_INVALID"}
+    normalized_sections = []
+    for section in section_types:
+        key = _clean_text(section, 40).lower()
+        if key not in REFERENCE_SECTION_TYPES:
+            return {"decision": "HOLD", "reason": "REFERENCE_SECTION_UNSUPPORTED", "section": key}
+        if key not in normalized_sections:
+            normalized_sections.append(key)
+
+    style_hints = snapshot.get("style_hints", [])
+    if not isinstance(style_hints, list) or len(style_hints) > 8:
+        return {"decision": "HOLD", "reason": "REFERENCE_STYLE_INVALID"}
+    normalized_styles = []
+    for hint in style_hints:
+        key = _clean_text(hint, 40).lower()
+        if key not in REFERENCE_STYLE_HINTS:
+            return {"decision": "HOLD", "reason": "REFERENCE_STYLE_UNSUPPORTED", "style": key}
+        if key not in normalized_styles:
+            normalized_styles.append(key)
+
+    density = _clean_text(snapshot.get("layout_density"), 20).lower() or "balanced"
+    if density not in REFERENCE_DENSITIES:
+        return {"decision": "HOLD", "reason": "REFERENCE_DENSITY_INVALID"}
+
+    signals = {
+        "section_types": normalized_sections,
+        "style_hints": normalized_styles,
+        "layout_density": density,
+        "sticky_navigation": bool(snapshot.get("sticky_navigation", False)),
+        "floating_cta": bool(snapshot.get("floating_cta", False)),
+    }
+    return {"decision": "ALLOW", "signals": signals, "snapshot_digest": _digest(signals)}
+
+def compile_url_reference_to_sitespec(request: dict[str, Any]) -> dict[str, Any]:
+    """
+    P1 URL-reference contract.
+
+    The URL is a structural design reference only. This function performs no
+    network request and never copies third-party body text, HTML, CSS, scripts,
+    images or assets. An approved read-only capture adapter must provide the
+    bounded structural snapshot.
+    """
+    reference = _safe_reference_url(request.get("reference_url"))
+    if reference is None:
+        return {"decision": "HOLD", "reason": "REFERENCE_URL_UNSAFE"}
+
+    snapshot = _normalize_reference_snapshot(request.get("reference_snapshot"), reference["url"])
+    if snapshot["decision"] != "ALLOW":
+        return snapshot
+
+    base_request = dict(request)
+    if not _clean_text(base_request.get("prompt"), 2000):
+        vertical = _clean_text(base_request.get("vertical"), 40)
+        if vertical not in SUPPORTED_VERTICALS:
+            return {"decision": "HOLD", "reason": "VERTICAL_REQUIRED_FOR_URL_MODE"}
+        base_request["prompt"] = (
+            f"Create an original {vertical} business website using only the "
+            "approved structural design signals from the reference."
+        )
+
+    base = compile_prompt_to_sitespec(base_request)
+    if base["decision"] != "ALLOW":
+        return base
+
+    spec = json.loads(json.dumps(base["sitespec"]))
+    spec["source_mode"] = "URL_REFERENCE"
+    spec["reference"] = {
+        "url": reference["url"],
+        "host": reference["host"],
+        "snapshot_digest": snapshot["snapshot_digest"],
+        "structure_only": True,
+        "copy_text": False,
+        "copy_code": False,
+        "copy_assets": False,
+        "query_stripped": reference["query_stripped"],
+        "fragment_stripped": reference["fragment_stripped"],
+    }
+    spec["design_signals"] = snapshot["signals"]
+    spec["content_policy"]["reference_content_reuse"] = False
+    spec["content_policy"]["original_output_required"] = True
+
+    return {
+        "decision": "ALLOW",
+        "sitespec": spec,
+        "onboarding": base["onboarding"],
+    }
+
+def generate_url_reference_preview(request: dict[str, Any]) -> dict[str, Any]:
+    compiled = compile_url_reference_to_sitespec(request)
     if compiled["decision"] != "ALLOW":
         return compiled
     preview = render_preview(compiled["onboarding"])
