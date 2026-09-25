@@ -62,6 +62,9 @@ def main():
     bad = dict(CHILD); bad["budget"] = {"timeout_seconds": 700, "max_retries": 1, "max_cost_minor": 500}
     checks["budget_escalation_denied"] = expect_error("budget_escalation", {"g-root": dict(ROOT), "g-child": bad}, "DENY_DELEGATION_ESCALATION")
 
+    bad = dict(CHILD); bad["budget"] = {"timeout_seconds": 300, "max_retries": 1}
+    checks["missing_parent_budget_bound_denied"] = expect_error("missing_parent_budget_bound", {"g-root": dict(ROOT), "g-child": bad}, "DENY_DELEGATION_ESCALATION")
+
     bad = dict(CHILD); bad["valid_until"] = "2026-09-02T00:00:00Z"
     checks["expiry_extension_denied"] = expect_error("expiry_extension", {"g-root": dict(ROOT), "g-child": bad}, "DENY_DELEGATION_ESCALATION")
 
