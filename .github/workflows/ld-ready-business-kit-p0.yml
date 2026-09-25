@@ -39,6 +39,10 @@ jobs:
         run: |
           cd vl/ld-ready-business-kit-p0
           python3 test_platform_foundation.py
+      - name: Business Engine P1 integration regressions
+        run: |
+          cd vl/ld-ready-business-kit-p0
+          python3 test_business_engine_p1.py
       - name: P1 delivery-factory regressions
         run: |
           cd vl/ld-ready-business-kit-p0
