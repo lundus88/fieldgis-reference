@@ -38,6 +38,10 @@ jobs:
         run: |
           cd vl/ld-ready-business-kit-p0
           python3 test_ai_site_intelligence_url.py
+      - name: AI Site Intelligence P2 image regressions
+        run: |
+          cd vl/ld-ready-business-kit-p0
+          python3 test_ai_site_intelligence_image.py
       - name: Generate three vertical previews
         run: |
           cd vl/ld-ready-business-kit-p0
