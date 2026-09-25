@@ -600,16 +600,16 @@ def _normalize_edit_action(
         return {"decision": "HOLD", "reason": "EDIT_ACTION_FIELDS_FORBIDDEN", "fields": extra}
 
     if op == "SET_HEADLINE":
-        value = _clean_text(action.get("value"), 180)
-        if not value:
+        raw_value = _clean_text(action.get("value"), 10000)
+        if not raw_value or len(raw_value) > 180:
             return {"decision": "HOLD", "reason": "EDIT_HEADLINE_INVALID"}
-        normalized = {"op": op, "value": value}
+        normalized = {"op": op, "value": raw_value}
 
     elif op == "SET_CTA_LABEL":
-        value = _clean_text(action.get("value"), 80)
-        if not value:
+        raw_value = _clean_text(action.get("value"), 10000)
+        if not raw_value or len(raw_value) > 80:
             return {"decision": "HOLD", "reason": "EDIT_CTA_INVALID"}
-        normalized = {"op": op, "value": value}
+        normalized = {"op": op, "value": raw_value}
 
     elif op == "SET_TONE":
         value = _clean_text(action.get("value"), 40).lower()
@@ -649,7 +649,7 @@ def _normalize_edit_action(
         if (
             not isinstance(order, list)
             or len(order) != len(cards)
-            or not all(isinstance(i, int) for i in order)
+            or not all(type(i) is int for i in order)
             or sorted(order) != list(range(len(cards)))
         ):
             return {"decision": "HOLD", "reason": "EDIT_CARD_ORDER_INVALID"}
@@ -686,9 +686,11 @@ def compile_conversational_edit(
     if edit.get("base_state_digest") != state["state_digest"]:
         return {"decision": "HOLD", "reason": "EDIT_STALE_BASE"}
 
-    request_text = _clean_text(edit.get("edit_request"), 2000)
+    request_text = _clean_text(edit.get("edit_request"), 10000)
     if not request_text:
         return {"decision": "HOLD", "reason": "EDIT_REQUEST_TEXT_REQUIRED"}
+    if len(request_text) > 2000:
+        return {"decision": "HOLD", "reason": "EDIT_REQUEST_TEXT_TOO_LONG"}
 
     actions = edit.get("actions")
     if (
