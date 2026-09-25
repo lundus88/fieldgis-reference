@@ -4,5 +4,6 @@
   "organisation_name": "TanahPro Demo",
   "package": "business",
   "industry_pack": "property-broker",
-  "production_write_authority": false
+  "production_write_authority": false,
+  "organization_ref": "org-demo-tanahpro"
 }
