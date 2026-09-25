@@ -22,6 +22,11 @@ jobs:
       - name: Checkout exact revision
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
+      - name: Verify committed migration evidence
+        run: |
+          python3 vl/agent-control-plane/check_acp_migration_generation.py
+          python3 vl/agent-control-plane/check_acp_generated_migrations.py
+
       - name: Generate official migration filenames without remote access
         shell: bash
         run: |
