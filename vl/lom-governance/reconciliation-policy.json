@@ -1,0 +1,57 @@
+{
+  "schema": "lom.reconciliation-policy/1",
+  "status": "CANONICAL_NON_PRODUCTION_GOVERNANCE",
+  "purpose": "Standardize bounded retry, dead-letter-equivalent HOLD, remediation and deterministic replay across LOM event/job components without introducing a second queue engine.",
+  "states": [
+    "RECEIVED",
+    "VALIDATED",
+    "ROUTED",
+    "CLAIMED",
+    "EXECUTING",
+    "VERIFYING",
+    "COMPLETED",
+    "HOLD",
+    "ESCALATED",
+    "FAILED",
+    "CANCELLED"
+  ],
+  "retry_policy": {
+    "infinite_retry_forbidden": true,
+    "attempt_budget_required": true,
+    "retry_requires_reason": true,
+    "retry_requires_same_or_narrower_authority": true,
+    "retry_requires_idempotency_binding": true,
+    "exhausted_attempts_terminal": "HOLD"
+  },
+  "reconciliation": {
+    "dead_letter_equivalent": "HOLD",
+    "evidence_refs_required": true,
+    "failure_reason_required": true,
+    "original_event_preserved": true,
+    "original_payload_digest_preserved": true,
+    "replay_requires_remediation_evidence": true,
+    "changed_replay_requires_new_event_id": true,
+    "authority_or_evidence_conflict_requires_human_review": true,
+    "production_replay_requires_human_approval": true,
+    "policy_gate_bypass_forbidden": true
+  },
+  "classification": {
+    "TRANSIENT_PROVIDER_FAILURE": "RETRY_WITHIN_BUDGET",
+    "RATE_LIMIT": "RETRY_WITHIN_BUDGET",
+    "LEASE_EXPIRED": "RECONCILE_THEN_RETRY_WITHIN_BUDGET",
+    "INVALID_PAYLOAD": "HOLD",
+    "UNKNOWN_CAPABILITY": "HOLD",
+    "EVIDENCE_MISSING_OR_STALE": "HOLD",
+    "AUTHORITY_CONFLICT": "ESCALATED",
+    "POLICY_DENIAL": "HOLD",
+    "TAMPER_OR_DIGEST_MISMATCH": "ESCALATED",
+    "ATTEMPT_BUDGET_EXHAUSTED": "HOLD"
+  },
+  "invariants": {
+    "fail_closed": true,
+    "no_synthetic_pass": true,
+    "no_authority_widening_during_recovery": true,
+    "no_automatic_human_gate_approval": true,
+    "append_only_failure_evidence": true
+  }
+}
