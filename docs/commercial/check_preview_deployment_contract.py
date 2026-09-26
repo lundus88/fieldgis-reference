@@ -8,48 +8,65 @@ contract=json.loads((root/"LDS_PREVIEW_DEPLOYMENT_CONTRACT.json").read_text())
 errors=[]
 
 for token in [
-    "Status: NON-PRODUCTION",
-    "Approval received on 2026-09-19",
-    "deployment target: preview only",
-    "Production payment secrets: absent",
-    "customer data: prohibited",
-    "real customer charging: prohibited",
-    "AUTHORIZED_PENDING_SAFE_MUTATION_PATH",
-    "Do not promote to Production."
+    "Status: **NON-PRODUCTION / PREVIEW V4 READY**",
+    "lundus-digital-systems-preview",
+    "dpl_F4rugJSSdfWMmUzb6T2ShGSRnZCJ",
+    "visual QA: `PASS`",
+    "workflow QA: `PASS`",
+    "Production promotion: not authorised",
+    "Preview readiness is evidence only"
 ]:
     if token not in plan:
         errors.append(f"plan missing {token}")
 
 if contract.get("schema")!="lds.preview-deployment/1":
     errors.append("preview contract schema drift")
-if contract.get("status")!="authorized_pending_safe_mutation_path":
-    errors.append("preview status must reflect human approval plus safe-tooling hold")
+if contract.get("status")!="preview_v4_ready_non_production":
+    errors.append("preview contract status drift")
 if contract.get("deployment_authorized") is not True:
-    errors.append("deployment_authorized must be true after human approval")
+    errors.append("Preview deployment authorization evidence missing")
 if contract.get("project_creation_authorized") is not True:
-    errors.append("project_creation_authorized must be true after human approval")
+    errors.append("Preview project creation authorization evidence missing")
 if contract.get("production_promotion_authorized") is not False:
-    errors.append("production promotion must remain false")
-for key in ["customer_data_allowed","live_form_submission_allowed","live_checkout_allowed","production_secrets_allowed","indexing_allowed"]:
-    if contract.get(key) is not False:
-        errors.append(f"{key} must remain false")
+    errors.append("Production promotion must remain false")
+if contract.get("project_name")!="lundus-digital-systems-preview":
+    errors.append("Preview project name drift")
+if contract.get("project_id")!="prj_9areW7U50izhbz8yNrXK2r1YcJ1F":
+    errors.append("Preview project id drift")
+if contract.get("preview_deployment_id")!="dpl_F4rugJSSdfWMmUzb6T2ShGSRnZCJ":
+    errors.append("Preview deployment id drift")
+if contract.get("commercial_surface_source_sha")!="57d4fe20c89e6cffc94047e7f6f7b4da4f4f538f":
+    errors.append("Preview source SHA drift")
 if contract.get("target")!="preview":
     errors.append("target must remain preview")
+if contract.get("preview_state")!="READY":
+    errors.append("Preview state must remain READY")
+if contract.get("visual_qa")!="PASS":
+    errors.append("Preview visual QA must remain PASS")
+if contract.get("workflow_qa")!="PASS":
+    errors.append("Preview workflow QA must remain PASS")
 if contract.get("production_domain") is not None:
     errors.append("production_domain must remain null")
+if contract.get("production_alias_authorized") is not False:
+    errors.append("Production alias authorization must remain false")
+for key in [
+    "customer_data_allowed",
+    "live_form_submission_allowed",
+    "live_checkout_allowed",
+    "public_lead_intake_allowed",
+    "production_secrets_allowed",
+    "indexing_allowed"
+]:
+    if contract.get(key) is not False:
+        errors.append(f"{key} must remain false")
 if contract.get("root_directory")!="commercial/lundus-digital-systems":
     errors.append("root_directory drift")
-if contract.get("execution_state")!="blocked_by_tooling_and_auth_path":
-    errors.append("execution_state must remain blocked until a safe project-scoped mutation + authenticated path exists")
-preflight=contract.get("preflight_evidence",{})
-if preflight.get("vercel_cli_installed") is not False:
-    errors.append("preflight must record local Vercel CLI unavailable")
-if preflight.get("ephemeral_npx_auth_verified") is not False:
-    errors.append("preflight must record ephemeral CLI auth unverified")
-if preflight.get("connected_vercel_read_access") is not True:
-    errors.append("connected Vercel read access evidence missing")
-if preflight.get("connected_project_creation_control") is not False:
-    errors.append("project-creation control must remain unavailable")
+if contract.get("execution_state")!="preview_deployed_and_validated":
+    errors.append("Preview execution state drift")
+authority=contract.get("production_authority",{})
+for key in ["dns_binding","payment_activation","public_lead_intake","production_promotion","public_launch"]:
+    if authority.get(key) is not False:
+        errors.append(f"Production authority must remain false: {key}")
 
 if errors:
     print("LDS preview deployment contract: FAIL")
@@ -57,5 +74,5 @@ if errors:
     sys.exit(1)
 
 print("LDS preview deployment contract: PASS")
-print("project_creation_authorized=true deployment_authorized=true production_promotion_authorized=false")
-print("execution_state=blocked_by_tooling_and_auth_path")
+print("preview_state=READY visual_qa=PASS workflow_qa=PASS")
+print("production_promotion_authorized=false public_launch=false")
