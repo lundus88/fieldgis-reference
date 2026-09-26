@@ -26,6 +26,23 @@ Status: NON-PRODUCTION / EVIDENCE-BOUND
 | HR | NO_DUPLICATE | HR Adapter + specialist HRMS | no second payroll/attendance/leave engine |
 | Specialist domains | ON_DEMAND | capability-specific specialist | no permanent duplicate agents |
 
+## Canonical core values doctrine
+
+LOM governance now binds ten core operating values in `core-values-doctrine.json`:
+
+- Evidence Before Action
+- Reversible by Default
+- Fail Closed, Recover Gracefully
+- Single Source of Truth
+- Provenance Everywhere
+- Capability Before Autonomy
+- Measure Before Scale
+- Economic Intelligence
+- Independent Verification for High-Risk Outputs
+- Institutional Memory, Not Repetition
+
+These are governance constraints, not new duplicate modules. Registry validation must fail if the canonical doctrine, its human-authority protections, vendor-neutral core rule or anti-duplication invariant drifts.
+
 ## Controlled loop target
 
 `Sense -> Establish Truth -> Retrieve Authoritative Knowledge -> Reason -> Plan -> Policy Gate -> Execute Bounded Sandbox -> Independent Verify -> Record Evidence -> Recover/Learn -> Result`
