@@ -35,6 +35,7 @@ REQUIRED = [
     'vl/lom-learning-evaluation/test_trust_confidence.py',
     'vl/lom-governance/capability-registry.json',
     'vl/lom-governance/validate_registries.py',
+    'vl/lom-governance/LONG_TERM_EXECUTION_DOCTRINE.md',
     'vl/lom-knowledge-foundation/master-knowledge-registry.json',
     'vl/lom-knowledge-foundation/retrieval_policy.py',
     'vl/lom-knowledge-foundation/orchestrator_binding.py',
@@ -55,6 +56,11 @@ WORKFLOWS = [
 ]
 
 TEXT_ASSERTIONS = {
+    'vl/lom-governance/LONG_TERM_EXECUTION_DOCTRINE.md': [
+        'Think Long Term → Take Calculated Risks → Compound Value → Keep Learning → Build Capable Teams → Build Repeatable Systems → Execute → Measure → Improve → Scale',
+        'Never sacrifice trust, safety, evidence or long-term value for short-term growth.',
+        'human-only Production approval',
+    ],
     'vl/LOM_V1.md': [
         'Request → Plan → Execute → Verify → Human Approval → Release → Audit',
         'Production approval is human-only',
