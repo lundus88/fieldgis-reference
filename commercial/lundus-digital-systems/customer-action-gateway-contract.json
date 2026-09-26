@@ -1,0 +1,28 @@
+{
+  "schema": "lds.customer-action-gateway/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "supported_actions": [
+    "REQUEST_CHANGE",
+    "UAT_ACCEPT"
+  ],
+  "reuses": [
+    "lds.customer-org-iam/1",
+    "lds.change-request-scope-ledger/1",
+    "lds.unified-commercial-control-plane/1"
+  ],
+  "invariants": [
+    "The gateway is an adapter and must not become a second source of truth",
+    "Cross-organization customer actions are denied",
+    "Customer project actions require an authorized project-management role",
+    "Every consequential action requires an idempotency key",
+    "Duplicate actions must not create a second mutation",
+    "Change requests are handed to the existing Change Request and Scope Ledger",
+    "UAT acceptance is handed to the existing Integrated Customer Lifecycle Gate",
+    "The gateway itself never mutates authoritative lifecycle or commercial state",
+    "The gateway never authorizes pricing payment charging refund Production deployment destructive data action or privilege elevation",
+    "Portal UI activation remains separate from backend gateway readiness"
+  ],
+  "production_activation_authorized": false,
+  "live_charging_authorized": false,
+  "authoritative_state_mutation_authorized": false
+}
