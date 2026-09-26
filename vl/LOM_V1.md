@@ -109,3 +109,16 @@ A higher state must never be inferred from a lower one.
 
 ## Current status
 As of the creation of this document, Issue #128 Phase 1–7 is CONTRACT_PROVEN only. The dedicated implementations remain in draft PRs #134–#140 and are not present on current `main`. LOM therefore remains NOT LEVEL-6 RUNTIME PROVEN.
+
+
+## Long-Term Execution Doctrine
+
+LOM adopts the cross-cutting doctrine defined in `vl/lom-governance/LONG_TERM_EXECUTION_DOCTRINE.md`:
+
+`Think Long Term → Take Calculated Risks → Compound Value → Keep Learning → Build Capable Teams → Build Repeatable Systems → Execute → Measure → Improve → Scale`
+
+Mandatory guardrail:
+
+`Never sacrifice trust, safety, evidence or long-term value for short-term growth.`
+
+This doctrine does not create a new module or authority path. It must reuse existing LOM governance, planning, learning, safety, QA, audit and human-approval controls.
