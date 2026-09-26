@@ -4,6 +4,7 @@ import sys
 ROOT = Path(__file__).parent / "sql-candidates"
 READ = (ROOT / "acp_read_agent_grant_chain_nonprod.sql").read_text()
 PARENT = (ROOT / "acp_lom_vps_parent_grant_renewal.sql").read_text()
+BUDGET = (ROOT / "acp_delegation_budget_inheritance_hardening.sql").read_text()
 
 errors = []
 
@@ -79,6 +80,16 @@ for marker in required_parent:
     if marker.lower() not in PARENT.lower():
         errors.append(f"parent renewal missing required marker: {marker}")
 
+required_budget = [
+    "create or replace function private.validate_agent_capability_grant()",
+    "parent_row.budget ? key and not (new.budget ? key)",
+    "ACP delegated budget missing parent bound for %",
+    "ACP delegated budget exceeds parent for %",
+]
+for marker in required_budget:
+    if marker.lower() not in BUDGET.lower():
+        errors.append(f"budget hardening missing required marker: {marker}")
+
 forbidden_parent = [
     "production.approve",
     "production.promote",
@@ -87,14 +98,15 @@ forbidden_parent = [
     "release.request_approval",
     "grant all",
     "service_role",
+    "g.capabilities @> array['factory.plan']::text[]",
 ]
 for marker in forbidden_parent:
     if marker.lower() in PARENT.lower():
         errors.append(f"parent renewal contains forbidden marker: {marker}")
 
-if "CANDIDATE ONLY" not in READ or "CANDIDATE ONLY" not in PARENT:
+if "CANDIDATE ONLY" not in READ or "CANDIDATE ONLY" not in PARENT or "CANDIDATE ONLY" not in BUDGET:
     errors.append("candidate-only status must be explicit")
-if "DO NOT APPLY DIRECTLY" not in READ or "DO NOT APPLY DIRECTLY" not in PARENT:
+if "DO NOT APPLY DIRECTLY" not in READ or "DO NOT APPLY DIRECTLY" not in PARENT or "DO NOT APPLY DIRECTLY" not in BUDGET:
     errors.append("direct-apply prohibition must be explicit")
 
 if errors:

@@ -56,6 +56,11 @@ on:
         required: false
         default: '0'
         type: string
+      max_cost_minor:
+        description: Maximum cost in minor units (delegate only)
+        required: false
+        default: '0'
+        type: string
       valid_from:
         description: RFC3339 activation time (delegate only)
         required: false
@@ -102,6 +107,7 @@ jobs:
           TARGET_ENVIRONMENT: ${{ inputs.target_environment }}
           TIMEOUT_SECONDS: ${{ inputs.timeout_seconds }}
           MAX_RETRIES: ${{ inputs.max_retries }}
+          MAX_COST_MINOR: ${{ inputs.max_cost_minor }}
           VALID_FROM: ${{ inputs.valid_from }}
           VALID_UNTIL: ${{ inputs.valid_until }}
           GRANT_ID: ${{ inputs.grant_id }}
@@ -162,6 +168,7 @@ jobs:
                   raise SystemExit('production capability prohibited')
               timeout=bounded_int('TIMEOUT_SECONDS',1,3600)
               retries=bounded_int('MAX_RETRIES',0,10)
+              max_cost_minor=bounded_int('MAX_COST_MINOR',0,1000000000)
               valid_from_dt, valid_from=parse_time('VALID_FROM')
               valid_until_dt, valid_until=parse_time('VALID_UNTIL')
               if valid_until_dt <= valid_from_dt:
@@ -171,7 +178,7 @@ jobs:
                   'agent_id':agent_id,'agent_version':agent_version,'role_name':role_name,
                   'capabilities':caps,
                   'scope':{'project_id':project_id,'target_environment':target},
-                  'budget':{'timeout_seconds':timeout,'max_retries':retries},
+                  'budget':{'timeout_seconds':timeout,'max_retries':retries,'max_cost_minor':max_cost_minor},
                   'valid_from':valid_from,'valid_until':valid_until,
               }
           elif op == 'revoke_grant':
