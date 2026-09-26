@@ -5,15 +5,21 @@
   "snapshot_status": "HOLD_NOT_FORMED",
   "single_use": true,
   "release": {
-    "commercial_surface_source_sha": "57d4fe20c89e6cffc94047e7f6f7b4da4f4f538f",
+    "commercial_surface_source_sha": "42b16dfb2a27e09b41cdf1ebbbd2c0dff02adb54",
     "final_activation_gate_merge_sha": "b2b9a97a03a825404a0ebe571a1cbfcfea743c09",
     "preview_project": "lundus-digital-systems-preview",
     "preview_project_id": "prj_9areW7U50izhbz8yNrXK2r1YcJ1F",
-    "preview_deployment_id": "dpl_F4rugJSSdfWMmUzb6T2ShGSRnZCJ",
+    "preview_deployment_id": "dpl_EtpmqbwrL8G3rdRMgfxjTpBY9yhK",
     "preview_state": "READY",
     "preview_target": "preview",
-    "preview_visual_qa": "PASS",
-    "preview_workflow_qa": "PASS"
+    "preview_visual_qa": "HISTORICAL_PASS_CURRENT_RERUN_HOLD",
+    "preview_workflow_qa": "STATIC_CURRENTNESS_PASS",
+    "current_main_sha_at_preview_verification": "dd3b1bd3c786cccd8c75792ea73819b26d0216e1",
+    "preview_currentness_evidence": "docs/commercial/LDS_PREVIEW_CURRENTNESS_EVIDENCE_2026-09-21.json",
+    "preview_deployment_url": "lundus-digital-systems-preview-2sb5x2m50-lundus-projects.vercel.app",
+    "preview_currentness": "PASS_DEPLOYMENT_STATIC_VISUAL_RERUN_HOLD",
+    "preview_static_qa": "PASS",
+    "preview_responsive_structure_qa": "PASS"
   },
   "business_licence": {
     "manifest": "docs/commercial/LDS_BUSINESS_LICENCE_EVIDENCE.json",
@@ -70,6 +76,7 @@
     "launched_at": null
   },
   "blockers": [
+    "PREVIEW_CURRENT_VISUAL_QA",
     "LEGAL_TRUST_READY",
     "DOMAIN_EMAIL_READY",
     "LIVE_LEAD_INTAKE",

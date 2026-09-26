@@ -1,6 +1,6 @@
 # LUNDUS DIGITAL SYSTEMS — Final Commercial Activation Gate
 
-Status date: 2026-09-20
+Status date: 2026-09-21
 Overall status: HOLD
 Authority: HUMAN-GATED
 Scope: final pre-launch activation control; repository readiness is not Production activation authority.
@@ -66,11 +66,13 @@ Baseline PASS:
 - Preview V4 deployment
 - Preview V4 visual QA
 - Preview V4 workflow QA
+- refreshed Preview deployment/static currentness QA on 21 September 2026
 - final commercial domain ownership verification: `lundusdigital.com`
 - BUSINESS_REGISTRATION_READY
 - LICENCE_READY
 
 Still HOLD or not live-verified:
+- PREVIEW_CURRENT_VISUAL_QA
 - LEGAL_TRUST_READY
 - LIVE_LEAD_INTAKE
 - live_billing
@@ -130,20 +132,36 @@ Interpretation:
 
 ## 7. Preview deployment state
 
-Preview execution is complete and verified within the approved isolated scope.
+Preview deployment currentness has been refreshed in the approved isolated project without any Production promotion.
 
 Current state:
 - PREVIEW_PROJECT_CREATED: PASS
-- PREVIEW_EXECUTION: PASS / V4 READY
-- PREVIEW_V4_VISUAL_QA: PASS
-- PREVIEW_V4_WORKFLOW_QA: PASS
+- PREVIEW_EXECUTION: PASS / CURRENT DEPLOYMENT READY
+- PREVIEW_CURRENTNESS_STATIC: PASS
+- PREVIEW_CURRENT_RESPONSIVE_STRUCTURE_QA: PASS
+- PREVIEW_CURRENT_VISUAL_QA: HOLD
+- PREVIEW_V4_VISUAL_QA: PASS / HISTORICAL EVIDENCE ONLY
+- PREVIEW_V4_WORKFLOW_QA: PASS / HISTORICAL EVIDENCE
 - project: `lundus-digital-systems-preview`
 - project id: `prj_9areW7U50izhbz8yNrXK2r1YcJ1F`
-- V4 Preview deployment id: `dpl_F4rugJSSdfWMmUzb6T2ShGSRnZCJ`
-- commercial surface source SHA: `57d4fe20c89e6cffc94047e7f6f7b4da4f4f538f`
-- Vercel API target for V4: non-Production / `null`; CLI reported Preview
-- Production aliases on V4: none
+- canonical refreshed Preview deployment id: `dpl_EtpmqbwrL8G3rdRMgfxjTpBY9yhK`
+- canonical refreshed Preview URL: `lundus-digital-systems-preview-2sb5x2m50-lundus-projects.vercel.app`
+- deployed commercial source SHA: `42b16dfb2a27e09b41cdf1ebbbd2c0dff02adb54`
+- later observed protected-main SHA: `dd3b1bd3c786cccd8c75792ea73819b26d0216e1`
+- commercial-path drift between those SHAs: none
+- Vercel API target: non-Production / `null`
+- Production aliases: none
+- Preview environment variables: none
+- Preview access protection: Vercel SSO
+- direct HTTP protection response includes `x-robots-tag: noindex`
+- current commercial-surface contract/static QA: PASS
+- current rendered browser visual rerun: HOLD / browser runtime unavailable
 - Production promotion authorized: false
+
+Evidence:
+- `docs/commercial/LDS_PREVIEW_CURRENTNESS_EVIDENCE_2026-09-21.json`
+
+Historical V4 visual QA must not be substituted for a fresh visual pass on the refreshed deployment. Public activation remains HOLD until current rendered visual QA is explicitly evidenced as PASS.
 
 Preview constraints remain:
 - no Production promotion
@@ -224,17 +242,17 @@ Rule:
 ## 10. Controlled activation sequence from current state
 
 1. **COMPLETE:** capture and verify official business-registration/licence evidence.
-2. Provision and verify a dedicated LD business phone. The existing SSM-registered business address is already verified and approved for public display; no replacement address is required while it remains current. Policy versions 1.0 are already approved effective 20 September 2026.
-3. Verify Production lead-intake, WAF, Turnstile, payment and notification configuration; capture configuration fingerprints without enabling public charging.
-4. Obtain separate explicit human authority for the minimum controlled Production configuration needed to perform one Golden Transaction; this authority is not public-launch authority.
-5. Perform one controlled paid Commercial Golden Transaction only after LEGAL_TRUST_READY is PASS and all Production transaction prerequisites are current.
-6. Reconcile provider amount, backend order amount, signed webhook, fulfilment, receipt/invoice, notification, support path and order close.
-7. Set GOLDEN_TRANSACTION_PASS only from complete reconciled evidence.
-8. Revalidate the exact commercial artifact, Preview evidence, business-registration evidence, legal/support versions, lead-intake configuration and payment-provider configuration.
-9. Form a fresh single-use Activation Snapshot with every mandatory gate PASS and no blockers.
-10. Obtain explicit human approval of that exact Activation Snapshot.
-11. Public payment activation / public launch may proceed only by consuming that approved, unexpired snapshot.
-12. Any material drift before consumption invalidates the snapshot and returns the launch decision to HOLD.
+2. Complete and evidence current rendered visual QA on the refreshed Preview deployment.\n3. Provision and verify a dedicated LD business phone. The existing SSM-registered business address is already verified and approved for public display; no replacement address is required while it remains current. Policy versions 1.0 are already approved effective 20 September 2026.
+4. Verify Production lead-intake, WAF, Turnstile, payment and notification configuration; capture configuration fingerprints without enabling public charging.
+5. Obtain separate explicit human authority for the minimum controlled Production configuration needed to perform one Golden Transaction; this authority is not public-launch authority.
+6. Perform one controlled paid Commercial Golden Transaction only after LEGAL_TRUST_READY is PASS and all Production transaction prerequisites are current.
+7. Reconcile provider amount, backend order amount, signed webhook, fulfilment, receipt/invoice, notification, support path and order close.
+8. Set GOLDEN_TRANSACTION_PASS only from complete reconciled evidence.
+9. Revalidate the exact commercial artifact, Preview evidence, business-registration evidence, legal/support versions, lead-intake configuration and payment-provider configuration.
+10. Form a fresh single-use Activation Snapshot with every mandatory gate PASS and no blockers.
+11. Obtain explicit human approval of that exact Activation Snapshot.
+12. Public payment activation / public launch may proceed only by consuming that approved, unexpired snapshot.
+13. Any material drift before consumption invalidates the snapshot and returns the launch decision to HOLD.
 
 ## 11. Commercial Golden Transaction acceptance
 
@@ -272,9 +290,12 @@ A dry-run PASS is not a live Golden Transaction PASS.
 - FULFILMENT_PASS: MERGED_RC / not live-verified
 - NOTIFICATION_READY: MERGED_RC / not live-verified
 - PREVIEW_PLAN_MERGED: PASS
-- PREVIEW_EXECUTION: PASS / V4 READY
-- PREVIEW_V4_VISUAL_QA: PASS
-- PREVIEW_V4_WORKFLOW_QA: PASS
+- PREVIEW_EXECUTION: PASS / CURRENT DEPLOYMENT READY
+- PREVIEW_CURRENTNESS_STATIC: PASS
+- PREVIEW_CURRENT_RESPONSIVE_STRUCTURE_QA: PASS
+- PREVIEW_CURRENT_VISUAL_QA: HOLD
+- PREVIEW_V4_VISUAL_QA: PASS / HISTORICAL ONLY
+- PREVIEW_V4_WORKFLOW_QA: PASS / HISTORICAL
 - LIVE_LEAD_INTAKE: HOLD
 - SUPPORT_ROLLBACK_PASS: BASELINE_PASS / commercial live proof pending
 - SECURITY_QA_PASS: RC_BASELINE_PASS / Production activation HOLD
@@ -305,6 +326,7 @@ Do not activate public payment if any of these are true:
 - customer notification evidence is unavailable where required
 - rollback/support path is not usable
 - Golden Transaction has not passed
+- current rendered Preview visual QA has not passed
 - Activation Snapshot is missing, expired, already consumed or based on stale evidence
 - exact release / Preview / configuration inputs differ from the approved snapshot
 

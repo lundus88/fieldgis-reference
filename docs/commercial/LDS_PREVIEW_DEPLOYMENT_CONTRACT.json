@@ -1,12 +1,12 @@
 {
   "schema": "lds.preview-deployment/1",
-  "status": "authorized_pending_safe_mutation_path",
+  "status": "deployed_current_static_verified_visual_rerun_hold",
   "deployment_authorized": true,
   "project_creation_authorized": true,
   "production_promotion_authorized": false,
   "proposed_project_name": "lundus-digital-systems-preview",
   "source_repository": "lundus88/fieldgis-reference",
-  "source_branch": "p0/lundus-digital-systems-commercial-surface",
+  "source_branch": "main",
   "root_directory": "commercial/lundus-digital-systems",
   "target": "preview",
   "production_domain": null,
@@ -25,13 +25,32 @@
   ],
   "human_approval_date": "2026-09-19",
   "authorization_scope": "Create dedicated isolated Vercel project and deploy Preview only; no Production promotion/domain/secrets/customer data/live billing.",
-  "execution_state": "blocked_by_tooling_and_auth_path",
-  "execution_blocker": "Connected Vercel tools expose read access and deployment, but no project-creation/explicit-project-selection mutation path. Local runtime has no installed Vercel CLI; ephemeral npx Vercel auth preflight timed out before identity could be verified. Deployment is therefore aborted per ambiguous-project stop condition.",
+  "execution_state": "current_preview_refresh_complete",
+  "execution_blocker": "Fresh rendered browser visual QA for the refreshed deployment remains pending; repository/static/responsive currentness and Vercel deployment evidence are PASS.",
   "preflight_evidence": {
     "vercel_cli_installed": false,
     "ephemeral_npx_auth_verified": false,
     "connected_vercel_read_access": true,
     "connected_project_creation_control": false,
-    "existing_fieldgis_reference_deployments_observed_target": "production"
+    "existing_fieldgis_reference_deployments_observed_target": "production",
+    "explicit_project_scoped_rest_deployment": true,
+    "production_environment_guard": "PASS_EMPTY_ENV"
+  },
+  "current_preview": {
+    "evidence_manifest": "docs/commercial/LDS_PREVIEW_CURRENTNESS_EVIDENCE_2026-09-21.json",
+    "source_sha": "42b16dfb2a27e09b41cdf1ebbbd2c0dff02adb54",
+    "observed_current_main_sha": "dd3b1bd3c786cccd8c75792ea73819b26d0216e1",
+    "commercial_drift_since_source": false,
+    "project_id": "prj_9areW7U50izhbz8yNrXK2r1YcJ1F",
+    "deployment_id": "dpl_EtpmqbwrL8G3rdRMgfxjTpBY9yhK",
+    "deployment_url": "lundus-digital-systems-preview-2sb5x2m50-lundus-projects.vercel.app",
+    "state": "READY",
+    "api_target": null,
+    "aliases": [],
+    "environment_keys": [],
+    "deployment_protection": "VERCEL_SSO",
+    "static_surface_qa": "PASS",
+    "responsive_structure_qa": "PASS",
+    "current_visual_browser_qa": "HOLD"
   }
 }
