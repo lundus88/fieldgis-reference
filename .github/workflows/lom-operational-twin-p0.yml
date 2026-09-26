@@ -1,0 +1,27 @@
+name: LOM Operational Twin P0
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/lom-operational-twin-p0/**'
+      - '.github/workflows/lom-operational-twin-p0.yml'
+  push:
+    branches: [lom/operational-twin-p0]
+    paths:
+      - 'vl/lom-operational-twin-p0/**'
+      - '.github/workflows/lom-operational-twin-p0.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  deterministic-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Run Operational Twin P0 tests
+        run: |
+          cd vl/lom-operational-twin-p0
+          python3 test_operational_twin.py
