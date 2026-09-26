@@ -54,12 +54,12 @@ The gap is a canonical map of who owns which decision and where authority is res
 Required rule:
 Authentication != authorization != capability != execution authority.
 
-### G3 — Dead-letter / reconciliation standard
-Existing components implement HOLD, retry bounds, leases and idempotency, but there is no one canonical cross-component rule for poison/unprocessable work.
+### G3 — Dead-letter / reconciliation standard — CONTRACT ADDED
+Existing components implement HOLD, retry bounds, leases and idempotency. `reconciliation-policy.json` now defines the canonical cross-component rule for poison/unprocessable work without adding a second queue engine.
 
-Required treatment:
+Canonical treatment:
 - never infinite retry;
-- exhausted retry -> HOLD or DEAD_LETTER equivalent;
+- exhausted retry -> HOLD (dead-letter equivalent);
 - reason/evidence required;
 - human review for authority/evidence conflicts;
 - deterministic replay only after remediation;
