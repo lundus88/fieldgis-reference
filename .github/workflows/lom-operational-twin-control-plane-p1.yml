@@ -1,0 +1,27 @@
+name: LOM Operational Twin Control Plane P1
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/lom-operational-twin-control-plane-p1/**'
+      - '.github/workflows/lom-operational-twin-control-plane-p1.yml'
+  push:
+    branches: [lom/operational-twin-control-plane-p1]
+    paths:
+      - 'vl/lom-operational-twin-control-plane-p1/**'
+      - '.github/workflows/lom-operational-twin-control-plane-p1.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  deterministic-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Run Control Plane bridge tests
+        run: |
+          cd vl/lom-operational-twin-control-plane-p1
+          python3 test_control_plane_bridge.py
