@@ -1,0 +1,62 @@
+{
+  "schema": "vl.enterprise-access-policy/1",
+  "policy_id": "vl-enterprise-default",
+  "version": 1,
+  "default_decision": "deny",
+  "roles": {
+    "viewer": ["project.read", "artifact.read"],
+    "auditor": ["project.read", "artifact.read", "audit.read"],
+    "builder": ["project.read", "spec.read", "spec.propose", "factory.plan", "factory.enqueue", "artifact.read", "qa.execute", "connector.invoke"],
+    "reviewer": ["project.read", "spec.read", "artifact.read", "qa.execute", "certification.propose", "release.request_approval"],
+    "admin": ["project.read", "spec.read", "spec.propose", "factory.plan", "factory.enqueue", "artifact.read", "qa.execute", "certification.propose", "release.request_approval", "audit.read", "connector.invoke", "workspace.membership.manage"],
+    "owner": ["project.read", "spec.read", "spec.propose", "factory.plan", "factory.enqueue", "artifact.read", "qa.execute", "certification.propose", "release.request_approval", "audit.read", "connector.invoke", "workspace.membership.manage", "workspace.policy.manage"]
+  },
+  "never_role_derived_capabilities": [
+    "production.approve",
+    "production.promote",
+    "secret.admin",
+    "acp.policy.mutate"
+  ],
+  "production_approval": {
+    "human_only": true,
+    "explicit_grant_required": true,
+    "separation_of_duties": true,
+    "builder_cannot_approve_same_project": true
+  },
+  "membership": {
+    "workspace_membership_required": true,
+    "project_membership_required": true,
+    "project_scope_exact_match": true,
+    "inactive_membership_denied": true
+  },
+  "connector_policy": {
+    "explicit_connector_scope_required": true,
+    "ambient_credentials": false,
+    "paid_or_high_impact_requires_human_approval": true
+  },
+  "data_policy": {
+    "classifications": ["public", "internal", "confidential", "restricted"],
+    "retention_profiles": ["standard", "short", "regulated"],
+    "restricted_requires_explicit_project_grant": true
+  },
+  "identity_readiness": {
+    "supported_identity_modes": ["local", "oidc", "saml"],
+    "scim_ready": true,
+    "session_audit_required": true,
+    "device_audit_supported": true
+  },
+  "audit": {
+    "record_actor": true,
+    "record_workspace": true,
+    "record_project": true,
+    "record_action": true,
+    "record_policy": true,
+    "record_outcome": true,
+    "record_secret_values": false
+  },
+  "acp_integration": {
+    "authority_source": "ACP_CAPABILITY_GRANT",
+    "enterprise_layer_may_only_narrow": true,
+    "direct_execution_authority": false
+  }
+}
