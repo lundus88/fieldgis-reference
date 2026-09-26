@@ -8,6 +8,10 @@ on:
       - 'vl/public/index.html'
       - 'vl/migrations/20260901_assisted_build_execution_gate.sql'
       - 'vl/migrations/20260901_assisted_build_product_alignment.sql'
+      - 'vl/migrations/20260914_public_security_definer_boundary.sql'
+      - 'vl/migrations/20260914_security_invoker_rpc_guarded_entry.sql'
+      - 'vl/tests/check_database_security_rpc.py'
+      - 'vl/tests/database-security/**'
       - '.github/workflows/vl-assisted-build-contract.yml'
   workflow_dispatch:
 
@@ -95,3 +99,24 @@ jobs:
           ! grep -Eqi '/functions/v1/.*(promot|deploy|runner|approve|payment)' "$F"
           ! grep -Eqi 'approve_production|promote_production|create_production_promotion|production_approval_bypassed.?true|production_promotion_bypassed.?true' "$M" "$A"
           echo 'VL ASSISTED BUILD CONTRACT: PASS'
+
+  database-security-rpc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Check effective RPC and founder guardrails
+        run: |
+          python3 vl/tests/check_database_security_rpc.py
+          python3 vl/resilience/check_founder_internal_guardrails.py
+      - name: Install pinned PostgreSQL fixture runtime
+        working-directory: vl/tests/database-security
+        run: npm ci --ignore-scripts
+      - name: Test RPC privileges and contracts in isolated PostgreSQL
+        working-directory: vl/tests/database-security
+        run: npm test
