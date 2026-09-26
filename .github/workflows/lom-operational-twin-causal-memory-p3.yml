@@ -1,0 +1,60 @@
+name: LOM Operational Twin Causal Memory P3
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/lom-operational-twin-causal-memory-p3/**'
+      - 'vl/lom-operational-twin-world-model-p2/**'
+      - 'vl/lom-operational-safety/event_ledger.py'
+      - 'vl/lom-gate-d-remediation/recovery_memory.py'
+      - 'vl/lom-learning-evaluation/learning_core.py'
+      - '.github/workflows/lom-operational-twin-causal-memory-p3.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'vl/lom-operational-twin-causal-memory-p3/**'
+      - 'vl/lom-operational-twin-world-model-p2/**'
+      - 'vl/lom-operational-safety/event_ledger.py'
+      - 'vl/lom-gate-d-remediation/recovery_memory.py'
+      - 'vl/lom-learning-evaluation/learning_core.py'
+      - '.github/workflows/lom-operational-twin-causal-memory-p3.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  causal-memory-p3:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Compile Causal Memory Adapter
+        run: python -m py_compile vl/lom-operational-twin-causal-memory-p3/causal_memory_adapter.py
+
+      - name: Run Causal Memory tests
+        working-directory: vl/lom-operational-twin-causal-memory-p3
+        run: python test_causal_memory_adapter.py
+
+      - name: Re-run World Model P2 regression
+        working-directory: vl/lom-operational-twin-world-model-p2
+        run: python test_world_state_graph.py
+
+      - name: Re-run Operational Safety ledger regression
+        working-directory: vl/lom-operational-safety
+        run: python -m unittest -v test_operational_safety.py
+
+      - name: Re-run Learning Core regression
+        working-directory: vl/lom-learning-evaluation
+        run: python -m unittest -v test_learning_core.py
+
+      - name: Assert authority boundary
+        run: |
+          grep -q 'AUTONOMOUS_CEILING = "PREPARE_PR"' vl/lom-operational-twin-causal-memory-p3/causal_memory_adapter.py
+          grep -q 'EXECUTION_AUTHORITY = "NONE"' vl/lom-operational-twin-causal-memory-p3/causal_memory_adapter.py
+          grep -q 'PRODUCTION_AUTHORITY = "HUMAN_ONLY"' vl/lom-operational-twin-causal-memory-p3/causal_memory_adapter.py
+          grep -q 'PROTECTED_MAIN_MERGE = "HUMAN_ONLY"' vl/lom-operational-twin-causal-memory-p3/causal_memory_adapter.py
+          grep -q '"memory_persistence": "NONE"' vl/lom-operational-twin-causal-memory-p3/causal_memory_adapter.py
