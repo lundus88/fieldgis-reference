@@ -1,0 +1,53 @@
+name: LOM Operational Twin World Model P2
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/lom-operational-twin-world-model-p2/**'
+      - 'vl/lom-operational-twin-p0/**'
+      - 'vl/lom-operational-twin-control-plane-p1/**'
+      - 'vl/lom-portfolio-runtime/source-registry.json'
+      - '.github/workflows/lom-operational-twin-world-model-p2.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'vl/lom-operational-twin-world-model-p2/**'
+      - 'vl/lom-operational-twin-p0/**'
+      - 'vl/lom-operational-twin-control-plane-p1/**'
+      - 'vl/lom-portfolio-runtime/source-registry.json'
+      - '.github/workflows/lom-operational-twin-world-model-p2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  world-model-p2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Compile World State Graph
+        run: python -m py_compile vl/lom-operational-twin-world-model-p2/world_state_graph.py
+
+      - name: Run World State Graph tests
+        working-directory: vl/lom-operational-twin-world-model-p2
+        run: python test_world_state_graph.py
+
+      - name: Re-run Operational Twin P0 regression
+        working-directory: vl/lom-operational-twin-p0
+        run: python test_operational_twin.py
+
+      - name: Re-run Control Plane P1 regression
+        working-directory: vl/lom-operational-twin-control-plane-p1
+        run: python test_control_plane_bridge.py
+
+      - name: Assert authority boundary
+        run: |
+          grep -q 'AUTONOMOUS_CEILING = "PREPARE_PR"' vl/lom-operational-twin-world-model-p2/world_state_graph.py
+          grep -q 'EXECUTION_AUTHORITY = "NONE"' vl/lom-operational-twin-world-model-p2/world_state_graph.py
+          grep -q 'PRODUCTION_AUTHORITY = "HUMAN_ONLY"' vl/lom-operational-twin-world-model-p2/world_state_graph.py
+          grep -q 'PROTECTED_MAIN_MERGE = "HUMAN_ONLY"' vl/lom-operational-twin-world-model-p2/world_state_graph.py
