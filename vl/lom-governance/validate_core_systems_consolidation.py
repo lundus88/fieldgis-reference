@@ -6,6 +6,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 EVENT = ROOT / "vl/lom-governance/event-envelope.schema.json"
 AUTH = ROOT / "vl/lom-governance/authority-plane-map.json"
+RECON = ROOT / "vl/lom-governance/reconciliation-policy.json"
 
 def fail(msg: str) -> None:
     print(f"FAIL: {msg}")
@@ -13,6 +14,7 @@ def fail(msg: str) -> None:
 
 event = json.loads(EVENT.read_text(encoding="utf-8"))
 auth = json.loads(AUTH.read_text(encoding="utf-8"))
+recon = json.loads(RECON.read_text(encoding="utf-8"))
 
 if event.get("$id") != "lom.event-envelope/1":
     fail("event envelope id mismatch")
@@ -53,6 +55,47 @@ for key in (
 if inv.get("delegation_may_widen_scope") is not False:
     fail("delegation widening invariant broken")
 
+if recon.get("schema") != "lom.reconciliation-policy/1":
+    fail("reconciliation policy schema mismatch")
+retry = recon.get("retry_policy") or {}
+for key in (
+    "infinite_retry_forbidden",
+    "attempt_budget_required",
+    "retry_requires_reason",
+    "retry_requires_same_or_narrower_authority",
+    "retry_requires_idempotency_binding",
+):
+    if retry.get(key) is not True:
+        fail(f"reconciliation retry invariant missing: {key}")
+if retry.get("exhausted_attempts_terminal") != "HOLD":
+    fail("attempt budget exhaustion must HOLD")
+
+rec = recon.get("reconciliation") or {}
+for key in (
+    "evidence_refs_required",
+    "failure_reason_required",
+    "original_event_preserved",
+    "original_payload_digest_preserved",
+    "replay_requires_remediation_evidence",
+    "authority_or_evidence_conflict_requires_human_review",
+    "production_replay_requires_human_approval",
+    "policy_gate_bypass_forbidden",
+):
+    if rec.get(key) is not True:
+        fail(f"reconciliation invariant missing: {key}")
+
+rinv = recon.get("invariants") or {}
+for key in (
+    "fail_closed",
+    "no_synthetic_pass",
+    "no_authority_widening_during_recovery",
+    "no_automatic_human_gate_approval",
+    "append_only_failure_evidence",
+):
+    if rinv.get(key) is not True:
+        fail(f"reconciliation hard invariant missing: {key}")
+
 print("LOM_CORE_SYSTEMS_CONSOLIDATION=PASS")
 print(f"EVENT_FIELDS={len(required)}")
 print(f"AUTHORITY_LAYERS={len(layers)}")
+print(f"RECON_STATES={len(recon.get('states') or [])}")
