@@ -55,3 +55,20 @@ LD manages:
 - No legal/tax/compliance claims.
 - Final prices and discounts remain human-approved.
 - Generated preview is not treated as customer acceptance.
+
+
+## Flagship website template library
+
+A governed design/configuration layer now sits above the existing renderer. It does not replace this Ready Business Kit.
+
+Initial flagship set:
+- Surveyor Pro
+- Property & Land
+- Contractor & Engineering
+- SME Corporate
+- Commerce Launch
+- Premium Professional
+
+Delivery lanes are bounded targets only: EXPRESS_24H, FAST_48H and STANDARD_3DAY. Eligibility requires ready customer inputs, locked scope and intact QA. Production release and customer commitments remain human-gated.
+
+See `docs/commercial/LD_WEBSITE_TEMPLATE_LIBRARY_P0.md`.
