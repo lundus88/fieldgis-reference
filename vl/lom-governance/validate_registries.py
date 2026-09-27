@@ -70,9 +70,21 @@ required_principles = {
     "economic_intelligence",
     "independent_verification",
     "institutional_memory",
+    "compress_time_to_outcome",
+    "speed_without_quality_debt",
+    "outcome_over_artifact",
+    "productize_repeatable_customize_valuable",
+    "customer_sovereignty_portability",
+    "continuous_competitive_adaptation",
 }
 if principle_ids != required_principles:
     fail("core values doctrine principles mismatch")
+compass = doctrine.get("outcome_compass") or {}
+if compass.get("north_star") != "Compress Time-to-Outcome without compromising trust, quality, evidence or human authority.":
+    fail("outcome compass north star mismatch")
+if compass.get("optimization_order") != ["SAFE","USEFUL","FAST","MEASURABLE","REPEATABLE","SCALABLE","SELF_IMPROVING"]:
+    fail("outcome compass optimization order mismatch")
+
 hard = doctrine.get("hard_invariants") or {}
 for key in (
     "human_authority_preserved",
