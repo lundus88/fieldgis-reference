@@ -6,61 +6,148 @@
       "id": "evidence_before_action",
       "name": "Evidence Before Action",
       "rule": "Material decisions and consequential actions require traceable evidence, source context, confidence state and auditability.",
-      "enforcement": ["FAIL_CLOSED_ON_INSUFFICIENT_EVIDENCE","EVIDENCE_REFERENCE_REQUIRED_FOR_HIGH_RISK"]
+      "enforcement": [
+        "FAIL_CLOSED_ON_INSUFFICIENT_EVIDENCE",
+        "EVIDENCE_REFERENCE_REQUIRED_FOR_HIGH_RISK"
+      ]
     },
     {
       "id": "reversible_by_default",
       "name": "Reversible by Default",
       "rule": "Prefer preview, draft, staged rollout, backup and rollback-capable execution before irreversible change.",
-      "enforcement": ["REVERSIBLE_ACTION_PREFERRED","IRREVERSIBLE_ACTION_REQUIRES_HUMAN_GATE"]
+      "enforcement": [
+        "REVERSIBLE_ACTION_PREFERRED",
+        "IRREVERSIBLE_ACTION_REQUIRES_HUMAN_GATE"
+      ]
     },
     {
       "id": "fail_closed_recover_gracefully",
       "name": "Fail Closed, Recover Gracefully",
       "rule": "Unknown authority, evidence, permission or system state blocks consequential action while bounded recovery remains available.",
-      "enforcement": ["DEFAULT_DENY","BOUNDED_RECOVERY_ONLY","NO_SINGLE_FAILURE_GLOBAL_BYPASS"]
+      "enforcement": [
+        "DEFAULT_DENY",
+        "BOUNDED_RECOVERY_ONLY",
+        "NO_SINGLE_FAILURE_GLOBAL_BYPASS"
+      ]
     },
     {
       "id": "single_source_of_truth",
       "name": "Single Source of Truth",
       "rule": "Each capability has one authoritative owner and other components must reuse, extend or integrate before building a duplicate.",
-      "enforcement": ["ONE_CAPABILITY_ONE_OWNER","REUSE_EXTEND_INTEGRATE_BEFORE_BUILD"]
+      "enforcement": [
+        "ONE_CAPABILITY_ONE_OWNER",
+        "REUSE_EXTEND_INTEGRATE_BEFORE_BUILD"
+      ]
     },
     {
       "id": "provenance_everywhere",
       "name": "Provenance Everywhere",
       "rule": "High-value outputs must preserve source, version, transformation, rule application, actor/tool identity, verification and approval lineage.",
-      "enforcement": ["LINEAGE_REQUIRED_FOR_HIGH_RISK_OUTPUT","NO_UNTRACEABLE_FINAL_OUTPUT"]
+      "enforcement": [
+        "LINEAGE_REQUIRED_FOR_HIGH_RISK_OUTPUT",
+        "NO_UNTRACEABLE_FINAL_OUTPUT"
+      ]
     },
     {
       "id": "capability_before_autonomy",
       "name": "Capability Before Autonomy",
       "rule": "Reasoning ability does not imply execution authority; execution capability must be tested and explicitly authorized before autonomous use.",
-      "enforcement": ["TEST_BEFORE_AUTONOMY","AUTHORITY_SEPARATE_FROM_CAPABILITY"]
+      "enforcement": [
+        "TEST_BEFORE_AUTONOMY",
+        "AUTHORITY_SEPARATE_FROM_CAPABILITY"
+      ]
     },
     {
       "id": "measure_before_scale",
       "name": "Measure Before Scale",
       "rule": "Reliability, error rate, latency, cost, acceptance and incident evidence must be measured before scale-up.",
-      "enforcement": ["METRICS_BEFORE_SCALE","NO_SCALE_ON_UNVERIFIED_RELIABILITY"]
+      "enforcement": [
+        "METRICS_BEFORE_SCALE",
+        "NO_SCALE_ON_UNVERIFIED_RELIABILITY"
+      ]
     },
     {
       "id": "economic_intelligence",
       "name": "Economic Intelligence",
       "rule": "Select models, compute, automation and human effort according to risk-adjusted value, cost and expected outcome.",
-      "enforcement": ["COST_VALUE_AWARE_ROUTING","NO_WASTEFUL_ESCALATION"]
+      "enforcement": [
+        "COST_VALUE_AWARE_ROUTING",
+        "NO_WASTEFUL_ESCALATION"
+      ]
     },
     {
       "id": "independent_verification",
       "name": "Independent Verification for High-Risk Outputs",
       "rule": "High-risk outputs require independent deterministic, rule-based, second-path or human verification appropriate to the domain.",
-      "enforcement": ["INDEPENDENT_CHECK_HIGH_RISK","BUILDER_SELF_REPORT_NOT_SUFFICIENT"]
+      "enforcement": [
+        "INDEPENDENT_CHECK_HIGH_RISK",
+        "BUILDER_SELF_REPORT_NOT_SUFFICIENT"
+      ]
     },
     {
       "id": "institutional_memory",
       "name": "Institutional Memory, Not Repetition",
       "rule": "Verified incidents, fixes, decisions and lessons must become reusable governed knowledge so repeated failures are reduced.",
-      "enforcement": ["LEARN_FROM_VERIFIED_OUTCOMES","NO_UNGOVERNED_MEMORY_PROMOTION"]
+      "enforcement": [
+        "LEARN_FROM_VERIFIED_OUTCOMES",
+        "NO_UNGOVERNED_MEMORY_PROMOTION"
+      ]
+    },
+    {
+      "id": "compress_time_to_outcome",
+      "name": "Compress Time-to-Outcome",
+      "rule": "Optimize for the shortest safe path from user intent to verified real-world outcome, not merely the fastest artifact generation.",
+      "enforcement": [
+        "OUTCOME_MILESTONE_REQUIRED",
+        "NO_SPEED_CLAIM_WITHOUT_SCOPE_AND_EVIDENCE"
+      ]
+    },
+    {
+      "id": "speed_without_quality_debt",
+      "name": "Speed Without Quality Debt",
+      "rule": "Increase delivery speed through reuse, automation and bounded scope without weakening QA, security, evidence or maintainability.",
+      "enforcement": [
+        "NO_QA_BYPASS_FOR_SPEED",
+        "NO_SECURITY_BYPASS_FOR_SPEED",
+        "REUSE_BEFORE_RUSH_BUILD"
+      ]
+    },
+    {
+      "id": "outcome_over_artifact",
+      "name": "Outcome Over Artifact",
+      "rule": "Treat websites, apps, documents and automations as means to measurable customer or operational outcomes rather than endpoints.",
+      "enforcement": [
+        "DEFINE_OUTCOME_BEFORE_BUILD",
+        "MEASURE_POST_DELIVERY_SIGNAL"
+      ]
+    },
+    {
+      "id": "productize_repeatable_customize_valuable",
+      "name": "Productize the Repeatable, Customize the Valuable",
+      "rule": "Standardize and automate repeatable work while reserving bespoke effort for high-value differentiation and domain-specific needs.",
+      "enforcement": [
+        "STANDARD_COMPONENT_FIRST",
+        "CUSTOM_BUILD_REQUIRES_VALUE_JUSTIFICATION"
+      ]
+    },
+    {
+      "id": "customer_sovereignty_portability",
+      "name": "Customer Sovereignty and Portability",
+      "rule": "Preserve clear customer ownership boundaries for domain, content and business data, with reasonable portability and no artificial lock-in.",
+      "enforcement": [
+        "OWNERSHIP_BOUNDARY_EXPLICIT",
+        "PORTABILITY_NOT_ARTIFICIALLY_BLOCKED"
+      ]
+    },
+    {
+      "id": "continuous_competitive_adaptation",
+      "name": "Continuous Competitive Adaptation",
+      "rule": "Continuously observe market capability, benchmark gaps, test bounded improvements and retain only changes that improve outcome, trust, margin, reliability or scale.",
+      "enforcement": [
+        "EVIDENCE_BEFORE_ADOPTION",
+        "NO_BLIND_FEATURE_COPYING",
+        "RETAIN_ONLY_MEASURED_VALUE"
+      ]
     }
   ],
   "hard_invariants": {
@@ -71,5 +158,27 @@
     "vendor_neutral_core": true,
     "duplicate_core_capability_forbidden_without_proven_gap": true
   },
-  "operating_summary": "Think with evidence. Act within authority. Preserve traceability. Prefer reversible actions. Verify before scaling. Learn from every outcome."
+  "operating_summary": "Compress time-to-outcome with evidence. Act within authority. Preserve trust, quality, portability and traceability. Productize repeatable work, verify before scaling, and adapt from measured outcomes.",
+  "outcome_compass": {
+    "north_star": "Compress Time-to-Outcome without compromising trust, quality, evidence or human authority.",
+    "operating_loop": [
+      "INTENT",
+      "BOUNDED_SCOPE",
+      "REUSE_OR_COMPOSE",
+      "BUILD_OR_CONFIGURE",
+      "VERIFY",
+      "DELIVER",
+      "MEASURE_OUTCOME",
+      "LEARN"
+    ],
+    "optimization_order": [
+      "SAFE",
+      "USEFUL",
+      "FAST",
+      "MEASURABLE",
+      "REPEATABLE",
+      "SCALABLE",
+      "SELF_IMPROVING"
+    ]
+  }
 }
