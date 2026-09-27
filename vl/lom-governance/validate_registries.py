@@ -7,6 +7,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[2]
 CAP = ROOT / "vl/lom-governance/capability-registry.json"
 KNOW = ROOT / "vl/lom-knowledge-foundation/master-knowledge-registry.json"
+DOCTRINE = ROOT / "vl/lom-governance/core-values-doctrine.json"
 
 VALID_STATUS = {"EXISTING","PARTIAL","MISSING","DUPLICATE","BLOCKED"}
 VALID_AUTH = {
@@ -20,6 +21,7 @@ def fail(msg: str) -> None:
 
 cap = json.loads(CAP.read_text(encoding="utf-8"))
 know = json.loads(KNOW.read_text(encoding="utf-8"))
+doctrine = json.loads(DOCTRINE.read_text(encoding="utf-8"))
 
 if cap.get("policy") != "one capability -> one authoritative owner -> many consumers":
     fail("anti-duplication policy mismatch")
@@ -53,6 +55,36 @@ if hr.get("mode") != "HR_ADAPTER_PLUS_SPECIALIST_HRMS":
 if hr.get("duplicate_payroll_attendance_leave_engine_forbidden") is not True:
     fail("duplicate HR engine prohibition missing")
 
+if doctrine.get("schema") != "lom.core-values-doctrine/1":
+    fail("core values doctrine schema mismatch")
+principles = doctrine.get("principles") or []
+principle_ids = {p.get("id") for p in principles}
+required_principles = {
+    "evidence_before_action",
+    "reversible_by_default",
+    "fail_closed_recover_gracefully",
+    "single_source_of_truth",
+    "provenance_everywhere",
+    "capability_before_autonomy",
+    "measure_before_scale",
+    "economic_intelligence",
+    "independent_verification",
+    "institutional_memory",
+}
+if principle_ids != required_principles:
+    fail("core values doctrine principles mismatch")
+hard = doctrine.get("hard_invariants") or {}
+for key in (
+    "human_authority_preserved",
+    "production_change_requires_human_gate",
+    "authority_widening_requires_human_gate",
+    "financial_legal_customer_commitments_require_human_gate",
+    "vendor_neutral_core",
+    "duplicate_core_capability_forbidden_without_proven_gap",
+):
+    if hard.get(key) is not True:
+        fail(f"core doctrine hard invariant missing: {key}")
+
 required = set(know.get("required_fields", []))
 if know.get("owner") != "LOM Knowledge Librarian":
     fail("knowledge librarian owner missing")
@@ -75,3 +107,4 @@ for i,row in enumerate(know.get("records", [])):
 print("LOM_REGISTRY_VALIDATION=PASS")
 print(f"CAPABILITIES={len(ids)}")
 print(f"KNOWLEDGE_RECORDS={len(know.get('records', []))}")
+print(f"CORE_VALUES={len(principles)}")
