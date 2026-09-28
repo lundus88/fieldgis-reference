@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 import importlib.util
 from pathlib import Path
+import sys
 
 MODULE = Path(__file__).with_name("hvae.py")
 spec = importlib.util.spec_from_file_location("hvae", MODULE)
 hvae = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = hvae
 spec.loader.exec_module(hvae)
 
 def c(**kw):
