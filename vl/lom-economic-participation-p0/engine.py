@@ -219,9 +219,9 @@ def transition_task(
             _audit(task,event,actor,"DENY","WORKER_OWNERSHIP_REQUIRED",previous,previous)
             return {"decision":"DENY","reason":"WORKER_OWNERSHIP_REQUIRED","status":task.status}
 
-    if event == "START_REVISION" and task.revision_count >= 2:
-        _audit(task,event,actor,"DENY","REVISION_LIMIT_REACHED",previous,previous)
-        return {"decision":"DENY","reason":"REVISION_LIMIT_REACHED","status":task.status}
+    if event == "START_REVISION" and task.revision_count == 0:
+        _audit(task,event,actor,"DENY","REVISION_NOT_REQUESTED",previous,previous)
+        return {"decision":"DENY","reason":"REVISION_NOT_REQUESTED","status":task.status}
 
     if event in {"QA_PASS","QA_REVISION","QA_ESCALATE","QA_REJECT"}:
         if qa is None:
