@@ -15,6 +15,8 @@ assert by_id["vps_execution"]["status"] == "BLOCKED"
 assert by_id["vps_execution"]["blocker"] == "LIVE_VPS_CANARY_NOT_PROVEN"
 assert by_id["autonomy_controller"]["authority"] == "DEFAULT_DENY"
 assert "PROTECTED_MAIN_MERGE" in by_id["orchestration"]["human_gate"]
+assert by_id["high_value_absorption"]["owner"] == "vl/lom-governance"
+assert by_id["high_value_absorption"]["authority"] == "CLASSIFY_PROPOSE_PREPARE_PR"
 
 know=json.loads((ROOT/"vl/lom-knowledge-foundation/master-knowledge-registry.json").read_text())
 assert know["duplicate_policy"] == "FLAG_ONLY_NO_AUTODELETE"
