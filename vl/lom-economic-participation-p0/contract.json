@@ -1,0 +1,48 @@
+{
+  "schema": "lom.economic-participation.p0/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "owner": "vl/lom-economic-participation-p0",
+  "task_types": ["SCRIPT_POLISH"],
+  "states": [
+    "DRAFT","FUNDED","READY","ASSIGNED","IN_PROGRESS","SUBMITTED","QA_CHECK",
+    "REVISION_REQUIRED","ESCALATED","REJECTED","PASS","PAYABLE",
+    "PAYOUT_PROCESSING","PAID","RECONCILED","CLOSED","CANCELLED",
+    "PAYMENT_HELD","DISPUTED","SECURITY_REVIEW"
+  ],
+  "qa": {
+    "pass_threshold": 85,
+    "revision_floor": 70,
+    "minimum_pass_confidence": 0.80,
+    "max_revisions": 2,
+    "weights": {
+      "factual_consistency": 30,
+      "hook_quality": 15,
+      "clarity_readability": 15,
+      "message_focus": 10,
+      "cta_quality": 10,
+      "duration_format": 5,
+      "tone_audience_fit": 5,
+      "policy_safety": 10
+    },
+    "hard_fail_codes": [
+      "MATERIAL_FACT_CHANGED",
+      "PRICE_OR_OFFER_INVENTED",
+      "FAKE_TESTIMONIAL",
+      "FABRICATED_RESULT",
+      "SERIOUS_POLICY_VIOLATION"
+    ]
+  },
+  "invariants": [
+    "No READY state without a valid reserved funding allocation",
+    "No PASS state without QA evidence",
+    "Maximum two revisions",
+    "Every material transition is audit-attributable",
+    "One task may create at most one active payable entitlement",
+    "Synthetic pilot evidence must never be represented as real customer revenue or worker evidence",
+    "Actual payout remains outside this capability and requires an existing approved payment path",
+    "Production activation financial commitment payout approval and protected-main merge remain HUMAN_ONLY"
+  ],
+  "production_activation_authorized": false,
+  "automatic_payout_authorized": false,
+  "protected_main_merge_authorized": false
+}
