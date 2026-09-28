@@ -21,3 +21,5 @@ jobs:
       - run: python3 vl/lom-economic-participation-p0/check.py
       - working-directory: vl/lom-economic-participation-p0
         run: python3 -m unittest -v test_engine.py
+      - working-directory: vl/lom-economic-participation-p0
+        run: python3 run_shadow_batch1.py
