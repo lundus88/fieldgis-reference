@@ -11,3 +11,11 @@ Before a new capability is built, consumers must query the registry and follow:
 `reuse -> extend -> integrate -> build only on proven gap`
 
 The registry is governance metadata only. It does not introduce a second CRM, payment, accounting, order, QA, analytics, referral, HR or audit engine.
+
+## High-Value Absorption
+
+New ideas, technologies, research and competitor patterns must pass the governed HVAE path before implementation:
+
+`evidence -> duplicate scan -> architecture classification -> risk/impact -> controlled absorption -> measurement`
+
+HVAE is a shared governance capability, not a standalone product or second self-improvement engine. It must classify findings as reuse/upgrade, domain capability, adapter, template, shared engine, new module, knowledge-only or reject. New modules require a proven independent domain boundary.

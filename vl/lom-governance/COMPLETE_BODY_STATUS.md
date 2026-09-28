@@ -21,6 +21,7 @@ Status: NON-PRODUCTION / EVIDENCE-BOUND
 | FinOps / Resource controller | PARTIAL | lom-4-5 resource intelligence | cost/capacity controls; consequential billing remains human |
 | Autonomy controller | EXISTING | lom-operational-safety | default deny + HUMAN_ONLY actions |
 | Capability registry | EXISTING | lom-governance | one capability -> one owner -> many consumers |
+| High-value absorption / architecture intake | EXISTING | lom-governance (HVAE) | evidence-bound reuse/extend/integrate/build classification; PREPARE_PR ceiling |
 | Self-healing / Homeostasis | PARTIAL | lom-organism-integration-p0 | bounded non-Production recovery only |
 | VPS always-on execution | BLOCKED | lom-vps-execution-node-p0 | LIVE_VPS_CANARY_NOT_PROVEN |
 | HR | NO_DUPLICATE | HR Adapter + specialist HRMS | no second payroll/attendance/leave engine |
@@ -70,3 +71,13 @@ HOLD or HUMAN_REVIEW is mandatory when:
 ## Remaining blocker
 
 The sole external runtime blocker for the always-on heart is a real non-Production VPS canary. Repository or synthetic CI evidence cannot substitute for it.
+
+## High-Value Absorption Gate
+
+Every proposed capability or technology intake is classified before implementation. HVAE composes the existing capability registry, Knowledge Foundation, continuous-improvement controls and independent QA. It does not create a second learning, memory, QA, evidence or execution engine.
+
+Required sequence:
+
+`Source -> Value -> Evidence -> Duplicate Scan -> Architecture Class -> Risk -> Integration Plan -> Controlled Test -> Human Gate -> Measure -> Keep/Refine/Rollback`
+
+A new module is permitted only when distinct domain rules, lifecycle and data boundaries are proven. Protected-main merge and Production authority remain HUMAN_ONLY.

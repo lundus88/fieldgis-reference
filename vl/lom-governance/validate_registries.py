@@ -8,6 +8,7 @@ ROOT = Path(__file__).resolve().parents[2]
 CAP = ROOT / "vl/lom-governance/capability-registry.json"
 KNOW = ROOT / "vl/lom-knowledge-foundation/master-knowledge-registry.json"
 DOCTRINE = ROOT / "vl/lom-governance/core-values-doctrine.json"
+HVAE = ROOT / "vl/lom-governance/high-value-absorption-policy.json"
 
 VALID_STATUS = {"EXISTING","PARTIAL","MISSING","DUPLICATE","BLOCKED"}
 VALID_AUTH = {
@@ -22,6 +23,7 @@ def fail(msg: str) -> None:
 cap = json.loads(CAP.read_text(encoding="utf-8"))
 know = json.loads(KNOW.read_text(encoding="utf-8"))
 doctrine = json.loads(DOCTRINE.read_text(encoding="utf-8"))
+hvae = json.loads(HVAE.read_text(encoding="utf-8"))
 
 if cap.get("policy") != "one capability -> one authoritative owner -> many consumers":
     fail("anti-duplication policy mismatch")
@@ -97,6 +99,33 @@ for key in (
     if hard.get(key) is not True:
         fail(f"core doctrine hard invariant missing: {key}")
 
+if hvae.get("schema") != "lom.high-value-absorption-policy/1":
+    fail("HVAE schema mismatch")
+if hvae.get("owner") != "vl/lom-governance":
+    fail("HVAE owner mismatch")
+if hvae.get("principle") != "Novel != Valuable. Valuable != Necessary. Necessary != New Module.":
+    fail("HVAE principle mismatch")
+if (hvae.get("autonomy") or {}).get("ceiling") != "PREPARE_PR":
+    fail("HVAE autonomy ceiling widened")
+if (hvae.get("autonomy") or {}).get("production_authority") != "HUMAN_ONLY":
+    fail("HVAE production authority must remain HUMAN_ONLY")
+if (hvae.get("autonomy") or {}).get("self_approval") != "FORBIDDEN":
+    fail("HVAE self approval must remain forbidden")
+if (hvae.get("autonomy") or {}).get("automatic_module_creation") != "FORBIDDEN":
+    fail("HVAE automatic module creation must remain forbidden")
+if hvae.get("reuse_order") != ["REUSE","EXTEND","INTEGRATE","BUILD_ONLY_ON_PROVEN_GAP"]:
+    fail("HVAE reuse-first order mismatch")
+required_hvae = {
+    "evidence_present",
+    "owner_identified",
+    "duplicate_scan_complete",
+    "architecture_target_identified",
+    "risk_assessed",
+    "rollback_defined_for_runtime_change",
+}
+if set(hvae.get("mandatory_checks", [])) != required_hvae:
+    fail("HVAE mandatory checks mismatch")
+
 required = set(know.get("required_fields", []))
 if know.get("owner") != "LOM Knowledge Librarian":
     fail("knowledge librarian owner missing")
@@ -120,3 +149,4 @@ print("LOM_REGISTRY_VALIDATION=PASS")
 print(f"CAPABILITIES={len(ids)}")
 print(f"KNOWLEDGE_RECORDS={len(know.get('records', []))}")
 print(f"CORE_VALUES={len(principles)}")
+print(f"HVAE_DISPOSITIONS={len(hvae.get('dispositions', []))}")
