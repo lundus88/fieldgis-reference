@@ -131,7 +131,7 @@ Activation requires all of the following in one controlled non-Production window
 12. Production/connector attempts are rejected;
 13. worker and heartbeat remain healthy after restart.
 
-Only after all checks PASS may the office workstation be classified as an optional emergency/admin fallback rather than a normal operational dependency.
+Only after all checks PASS may the direct VPS path be activated. The office workstation `BPTSBH-G03-L011` remains excluded from the runtime path and must not be configured as a worker, scheduler, ingress, queue, heartbeat, evidence source or execution fallback. Human administration may use an approved client, but no client workstation is an operational dependency.
 
 ## Stop conditions
 
