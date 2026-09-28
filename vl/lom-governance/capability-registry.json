@@ -211,6 +211,29 @@
         "knowledge registry validation",
         "controlled E2E"
       ]
+    },
+    {
+      "id": "high_value_absorption",
+      "owner": "vl/lom-governance",
+      "status": "EXISTING",
+      "authority": "CLASSIFY_PROPOSE_PREPARE_PR",
+      "human_gate": [
+        "PROTECTED_MAIN_MERGE",
+        "PRODUCTION_RELEASE",
+        "AUTHORITY_WIDENING",
+        "FINANCIAL_LEGAL_CUSTOMER_COMMITMENT"
+      ],
+      "health_source": "vl/lom-governance/high-value-absorption-policy.json",
+      "tests": [
+        "HVAE governance regression",
+        "registry validation"
+      ],
+      "composition": [
+        "vl/lom-governance/capability-registry.json",
+        "vl/lom-knowledge-foundation",
+        "vl/lom-continuous-improvement",
+        "vl/completion-governance"
+      ]
     }
   ],
   "specialist_on_demand": {
