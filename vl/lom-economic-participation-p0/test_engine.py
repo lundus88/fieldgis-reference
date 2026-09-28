@@ -72,7 +72,11 @@ class TestEconomicParticipation(unittest.TestCase):
         self.assertEqual(transition_task(self.task,"START_QA","QA_SERVICE")["decision"],"ALLOW")
         rev2=QAResult("qa-r2",30,10,10,7,6,4,4,9,0.90,())
         self.assertEqual(transition_task(self.task,"QA_REVISION","QA_SERVICE",qa=rev2)["decision"],"ALLOW")
-        r=transition_task(self.task,"START_REVISION","WORKER",worker=self.worker)
+        self.assertEqual(transition_task(self.task,"START_REVISION","WORKER",worker=self.worker)["decision"],"ALLOW")
+        self.assertEqual(transition_task(self.task,"SUBMIT_WORK","WORKER",worker=self.worker)["decision"],"ALLOW")
+        self.assertEqual(transition_task(self.task,"START_QA","QA_SERVICE")["decision"],"ALLOW")
+        rev3=QAResult("qa-r3",30,10,10,7,6,4,4,9,0.90,())
+        r=transition_task(self.task,"QA_REVISION","QA_SERVICE",qa=rev3)
         self.assertEqual(r["decision"],"DENY")
         self.assertEqual(r["reason"],"REVISION_LIMIT_REACHED")
 
