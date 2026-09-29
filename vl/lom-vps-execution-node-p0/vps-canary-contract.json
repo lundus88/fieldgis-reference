@@ -33,10 +33,7 @@
     "source_binding": "vps:<node_id>:*",
     "synthetic_sources_forbidden": true,
     "collector_version": "1.0",
-    "authorized_node_id": "v103067",
-    "excluded_runtime_nodes": [
-      "BPTSBH-G03-L011"
-    ]
+    "authorized_node_id": "v103067"
   },
   "runtime_host_policy": "VPS_ONLY",
   "office_workstation_runtime_dependency": "FORBIDDEN"
