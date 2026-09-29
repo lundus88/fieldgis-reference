@@ -16,5 +16,10 @@ class GovernanceDoctrineTests(unittest.TestCase):
         docs["charter"]=docs["charter"].replace("Founder-Led Constitutional Platform","Different model")
         self.assertIn("CHARTER_FOUNDER_LED_MODEL_MISSING",validate_governance_docs(docs))
 
+    def test_best_of_world_principle_is_locked(self):
+        docs=load_docs()
+        docs["charter"]=docs["charter"].replace("BEST-OF-WORLD ARCHITECTURE","REMOVED PRINCIPLE")
+        self.assertIn("BEST_OF_WORLD_ARCHITECTURE_MISSING",validate_governance_docs(docs))
+
 if __name__=="__main__":
     unittest.main()
