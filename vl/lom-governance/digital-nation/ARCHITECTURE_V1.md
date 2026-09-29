@@ -261,3 +261,34 @@ Primary:
 North-star operational measure:
 
 **Time from qualified member intent to verified useful economic outcome.**
+
+
+## 13. Advanced society control loop
+
+The architecture must support all twelve advanced-society fundamentals through existing owners and thin composition layers.
+
+Canonical institutional loop:
+
+```text
+Charter / Policy
+→ Identity / Authority
+→ Education / Skill
+→ Market / Business / Work
+→ Payment / Treasury / Accounting
+→ Delivery / Acceptance
+→ Trust / Rights / Appeal
+→ Statistics / Measurement
+→ Research / Innovation
+→ Continuous Improvement
+→ Verified Change
+```
+
+System maturity is evidence-based:
+
+```text
+DEFINED → TESTED → PREVIEW_PROVEN → PILOT_PROVEN → PRODUCTION_PROVEN
+```
+
+CI PASS may advance a component to TESTED, but never by itself to PILOT_PROVEN or PRODUCTION_PROVEN.
+
+Detailed mapping: `ADVANCED_SOCIETY_FUNDAMENTALS_V1.md` and `ADVANCED_SOCIETY_IMPLEMENTATION_MATRIX_V1.md`.
