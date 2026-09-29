@@ -1,0 +1,144 @@
+{
+  "schema": "lom.global-nation-benchmark.hypotheses/1",
+  "status": "RESEARCH_HYPOTHESES_UNVERIFIED_FOR_LOM",
+  "updated_at": "2026-09-29",
+  "hypotheses": [
+    {
+      "economy": "United States",
+      "candidate_areas": [
+        "innovation",
+        "entrepreneurship",
+        "venture_capital",
+        "research_universities",
+        "technology",
+        "startup_ecosystem",
+        "intellectual_property",
+        "capital_markets"
+      ],
+      "evidence_status": "UNVERIFIED_FOR_LOM"
+    },
+    {
+      "economy": "China",
+      "candidate_areas": [
+        "execution",
+        "infrastructure",
+        "manufacturing_scale",
+        "supply_chain",
+        "industrialisation",
+        "long_term_planning",
+        "logistics",
+        "production_capacity"
+      ],
+      "evidence_status": "UNVERIFIED_FOR_LOM"
+    },
+    {
+      "economy": "Singapore",
+      "candidate_areas": [
+        "digital_administration",
+        "efficient_administration",
+        "trade_hub",
+        "business_facilitation",
+        "urban_planning",
+        "public_service_efficiency",
+        "digital_identity",
+        "service_integration"
+      ],
+      "evidence_status": "UNVERIFIED_FOR_LOM"
+    },
+    {
+      "economy": "Switzerland",
+      "candidate_areas": [
+        "institutions",
+        "financial_system",
+        "innovation",
+        "stability",
+        "high_value_industry",
+        "research",
+        "precision_industry",
+        "trust"
+      ],
+      "evidence_status": "UNVERIFIED_FOR_LOM"
+    },
+    {
+      "economy": "Nordic countries",
+      "candidate_areas": [
+        "human_development",
+        "education",
+        "social_protection",
+        "healthcare",
+        "work_life_systems",
+        "public_trust",
+        "digital_services",
+        "social_mobility"
+      ],
+      "evidence_status": "UNVERIFIED_FOR_LOM"
+    },
+    {
+      "economy": "Germany",
+      "candidate_areas": [
+        "engineering",
+        "industrial_quality",
+        "vocational_training",
+        "advanced_manufacturing",
+        "sme_ecosystem",
+        "technical_standards",
+        "export_capability"
+      ],
+      "evidence_status": "UNVERIFIED_FOR_LOM"
+    },
+    {
+      "economy": "Japan",
+      "candidate_areas": [
+        "quality",
+        "reliability",
+        "lean_systems",
+        "advanced_manufacturing",
+        "continuous_improvement",
+        "process_discipline",
+        "robotics",
+        "industrial_excellence"
+      ],
+      "evidence_status": "UNVERIFIED_FOR_LOM"
+    },
+    {
+      "economy": "Republic of Korea",
+      "candidate_areas": [
+        "research_development",
+        "semiconductors",
+        "digital_infrastructure",
+        "technology_industry",
+        "industrial_policy",
+        "education",
+        "technology_exports"
+      ],
+      "evidence_status": "UNVERIFIED_FOR_LOM"
+    },
+    {
+      "economy": "United Arab Emirates",
+      "candidate_areas": [
+        "rapid_transformation",
+        "investment_attraction",
+        "digital_services",
+        "infrastructure",
+        "global_connectivity",
+        "business_facilitation",
+        "smart_services"
+      ],
+      "evidence_status": "UNVERIFIED_FOR_LOM"
+    },
+    {
+      "economy": "Netherlands",
+      "candidate_areas": [
+        "logistics",
+        "trade",
+        "port_management",
+        "water_management",
+        "spatial_planning",
+        "agriculture_technology",
+        "infrastructure_integration"
+      ],
+      "evidence_status": "UNVERIFIED_FOR_LOM"
+    }
+  ],
+  "rule": "A candidate area is a research hypothesis, not an accepted factual conclusion or absorption approval."
+}
