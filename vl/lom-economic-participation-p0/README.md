@@ -20,7 +20,7 @@ This capability owns only:
 - assignment eligibility;
 - submission/revision records;
 - deterministic task QA policy;
-- worker reputation events;
+- worker reputation evidence events for LOM Trust;
 - worker earnings entitlement records;
 - shadow-pilot and scale-gate evidence.
 
@@ -33,6 +33,8 @@ It must reuse:
 
 It must not create:
 - a second CRM;
+- a second reputation engine or aggregate reputation score;
+- a second dispute-resolution engine;
 - a second payment processor;
 - a second accounting ledger;
 - a payroll/HRMS engine;
@@ -100,15 +102,14 @@ This P0 emits an earning entitlement only. Actual payout remains through an exis
 
 Starter -> Verified -> Specialist -> Senior
 
-Reputation derives from evidence-backed events:
+This capability emits evidence-backed worker performance events only:
 - accepted quality;
 - reliability;
-- revision rate;
-- integrity;
-- specialization;
+- revision count;
+- integrity review signals;
 - completion timeliness.
 
-One minor failure must not cause disproportionate reputation loss. Fraud/security events are reviewed separately.
+LOM Trust is the authoritative owner of reputation aggregation and any consequential reputation action. This capability does not own reputation scoring. Opening a dispute only freezes the local task/entitlement state; dispute resolution remains with LOM Trust.
 
 ## Pilot
 
