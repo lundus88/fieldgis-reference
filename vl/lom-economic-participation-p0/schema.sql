@@ -70,12 +70,16 @@ create table if not exists lom_ep_earnings_entitlements (
   created_at timestamptz not null default now()
 );
 
-create table if not exists lom_ep_reputation_events (
+create table if not exists lom_ep_reputation_evidence_events (
   event_id uuid primary key,
   worker_id uuid not null references lom_ep_worker_profiles(worker_id),
   task_id uuid references lom_ep_tasks(task_id),
-  delta integer not null,
+  dimension text not null,
+  signal text not null,
   reason_code text not null,
+  evidence_ref text not null,
+  source_event_id text not null,
+  authoritative_aggregate boolean not null default false check (authoritative_aggregate = false),
   created_at timestamptz not null default now()
 );
 
