@@ -1,0 +1,226 @@
+{
+  "schema": "lom.digital-nation.strategic-institutions/1",
+  "status": "DRAFT_NON_PRODUCTION",
+  "updated_at": "2026-09-29",
+  "policy": "PLATFORM_INSTITUTIONS_NOT_SOVEREIGN_POWERS",
+  "institutions": [
+    {
+      "id": "charter_policy_rights_registry",
+      "priority": "P0",
+      "owner": "LOM Core Governance",
+      "reuse": [
+        "policy registry",
+        "authority",
+        "audit",
+        "appeals"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "continuity_succession_protocol",
+      "priority": "P0",
+      "owner": "Founder + LOM Core Governance",
+      "reuse": [
+        "authority grants",
+        "human gates",
+        "audit"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "integrity_inspector",
+      "priority": "P0",
+      "owner": "Independent QA / Governance",
+      "reuse": [
+        "audit",
+        "evidence",
+        "financial controls",
+        "security"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "critical_digital_infrastructure",
+      "priority": "P0",
+      "owner": "LOM Platform / SRE",
+      "reuse": [
+        "VPS execution",
+        "observability",
+        "security",
+        "storage",
+        "payments adapters"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "emergency_management",
+      "priority": "P0",
+      "owner": "LOM SRE / Trust",
+      "reuse": [
+        "incident response",
+        "recovery",
+        "communications",
+        "security"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "records_archives_memory",
+      "priority": "P0",
+      "owner": "LOM Knowledge / Evidence",
+      "reuse": [
+        "evidence lineage",
+        "audit",
+        "knowledge foundation"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "member_rights_ombuds",
+      "priority": "P0",
+      "owner": "LOM Governance",
+      "reuse": [
+        "support",
+        "appeals",
+        "audit",
+        "trust"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "standards_quality_accreditation",
+      "priority": "P1",
+      "owner": "LOM QA / Domain Owners",
+      "reuse": [
+        "QA",
+        "skills evidence",
+        "security",
+        "accessibility"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "public_interest_knowledge",
+      "priority": "P1",
+      "owner": "LOM Knowledge",
+      "reuse": [
+        "knowledge foundation",
+        "statistics",
+        "policy registry"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "research_science_innovation",
+      "priority": "P1",
+      "owner": "LOM R&D",
+      "reuse": [
+        "HVAE",
+        "Product Factory",
+        "QA",
+        "knowledge foundation"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "strategic_projects_registry",
+      "priority": "P1",
+      "owner": "LOM Core",
+      "reuse": [
+        "project governance",
+        "budget evidence",
+        "audit"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "procurement_vendor_system",
+      "priority": "P1",
+      "owner": "LOM Operations / Finance",
+      "reuse": [
+        "treasury",
+        "vendor adapters",
+        "audit",
+        "human approval"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "strategic_reserves_recovery",
+      "priority": "P1",
+      "owner": "LOM Treasury / SRE",
+      "reuse": [
+        "treasury",
+        "recovery",
+        "capacity planning"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "supply_logistics_coordination",
+      "priority": "P2",
+      "owner": "LD Operations",
+      "reuse": [
+        "delivery",
+        "partner adapters",
+        "commerce"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "sustainability_resource_efficiency",
+      "priority": "P2",
+      "owner": "LOM Platform / FinOps",
+      "reuse": [
+        "resource controller",
+        "observability",
+        "capacity"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "external_partnerships_interoperability",
+      "priority": "P2",
+      "owner": "LOM Platform / LD",
+      "reuse": [
+        "partner platform",
+        "adapters",
+        "contracts"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "youth_family_vulnerable_safety",
+      "priority": "P2",
+      "owner": "LOM Trust / Identity",
+      "reuse": [
+        "identity relationships",
+        "privacy",
+        "safety controls"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "society_scale_analytics",
+      "priority": "P2",
+      "owner": "LOM Intelligence",
+      "reuse": [
+        "statistics",
+        "economic twin",
+        "privacy aggregation"
+      ],
+      "new_engine": false
+    }
+  ],
+  "hard_boundaries": [
+    "No legal citizenship claim",
+    "No sovereign enforcement power",
+    "No statutory court claim",
+    "No public taxation authority",
+    "No legal-tender issuance",
+    "No diplomatic recognition claim",
+    "No AI self-succession or self-authority expansion",
+    "No Production activation without explicit human gate"
+  ],
+  "production_activation_authorized": false
+}
