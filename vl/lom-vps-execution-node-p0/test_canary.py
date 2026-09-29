@@ -35,7 +35,7 @@ def live_evidence():
     e = evidence()
     e["evidence_class"] = "LIVE_VPS_CANARY"
     e["node_attestation"] = {
-        "node_id": "node-01",
+        "node_id": "v103067",
         "environment_class": "NON_PRODUCTION_VPS",
         "operator_confirmed": True,
         "uid": 1001,
@@ -46,7 +46,7 @@ def live_evidence():
         "observed_at_epoch": NOW,
     }
     for row in e["checks"]:
-        row["source_reference"] = f"vps:node-01:{row['name']}"
+        row["source_reference"] = f"vps:v103067:{row['name']}"
     return e
 
 
@@ -63,7 +63,7 @@ def test_live_class_without_attestation_holds():
     e = evidence()
     e["evidence_class"] = "LIVE_VPS_CANARY"
     for row in e["checks"]:
-        row["source_reference"] = f"vps:node-01:{row['name']}"
+        row["source_reference"] = f"vps:v103067:{row['name']}"
     result = validate_canary(CONTRACT, e)
     assert result["status"] == "HOLD"
     assert result["live_vps_verified"] is False
@@ -77,6 +77,17 @@ def test_live_sources_must_bind_to_attested_node():
     assert result["status"] == "HOLD"
     assert result["live_vps_verified"] is False
     assert "LIVE_SOURCE_BINDING_INVALID" in result["violations"]
+
+
+def test_non_authorized_runtime_node_holds():
+    e = live_evidence()
+    e["node_attestation"]["node_id"] = "office-node"
+    for row in e["checks"]:
+        row["source_reference"] = f"vps:office-node:{row['name']}"
+    result = validate_canary(CONTRACT, e)
+    assert result["status"] == "HOLD"
+    assert result["live_vps_verified"] is False
+    assert "UNAUTHORIZED_RUNTIME_NODE" in result["violations"]
 
 
 def test_missing_check_holds():

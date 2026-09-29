@@ -8,6 +8,10 @@ on:
       - 'commercial/lundus-digital-systems/test_client_portal_state.py'
       - 'commercial/lundus-digital-systems/CLIENT_PORTAL_V1.md'
       - 'commercial/lundus-digital-systems/check_client_portal.py'
+      - 'commercial/lundus-digital-systems/customer_action_gateway.py'
+      - 'commercial/lundus-digital-systems/customer-action-gateway-contract.json'
+      - 'commercial/lundus-digital-systems/test_customer_action_gateway.py'
+      - 'commercial/lundus-digital-systems/CUSTOMER_ACTION_GATEWAY_P2.md'
       - '.github/workflows/lds-client-portal.yml'
   push:
     branches: [main]
@@ -17,6 +21,10 @@ on:
       - 'commercial/lundus-digital-systems/test_client_portal_state.py'
       - 'commercial/lundus-digital-systems/CLIENT_PORTAL_V1.md'
       - 'commercial/lundus-digital-systems/check_client_portal.py'
+      - 'commercial/lundus-digital-systems/customer_action_gateway.py'
+      - 'commercial/lundus-digital-systems/customer-action-gateway-contract.json'
+      - 'commercial/lundus-digital-systems/test_customer_action_gateway.py'
+      - 'commercial/lundus-digital-systems/CUSTOMER_ACTION_GATEWAY_P2.md'
       - '.github/workflows/lds-client-portal.yml'
 
 permissions:
@@ -35,3 +43,6 @@ jobs:
       - name: Run portal state tests
         working-directory: commercial/lundus-digital-systems
         run: python3 -m unittest -v test_client_portal_state.py
+      - name: Run customer action gateway P2 tests
+        working-directory: commercial/lundus-digital-systems
+        run: python3 -m unittest -v test_customer_action_gateway.py

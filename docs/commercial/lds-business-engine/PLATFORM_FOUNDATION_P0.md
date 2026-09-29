@@ -88,3 +88,11 @@ This prevents a package or Industry Pack from producing a structurally incomplet
 Package changes are never automatic in P0.
 
 Any upgrade or downgrade returns a HUMAN_GATE. A downgrade reports capabilities that would leave entitlement but explicitly grants **no data deletion authority**. Existing customer data must not be destroyed merely because an entitlement changed.
+
+## Post-merge hardening
+
+The exact-main workflow must run after relevant merges to ensure the merged commit, not only the PR head, passes the Business Engine regression suite.
+
+Tenant actions must be authorized from verified organisation-membership evidence. A caller-supplied role without membership evidence is not sufficient authority.
+
+The Industry Pack Registry reuses the canonical Industry Pack validator. Registry admission also requires Production to remain LOCKED. This prevents a pack from bypassing capability, human-gate or Production-lock validation through the registry path.

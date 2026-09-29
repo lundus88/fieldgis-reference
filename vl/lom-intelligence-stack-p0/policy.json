@@ -1,0 +1,35 @@
+{
+  "schema": "lom.intelligence-stack.p0/1",
+  "status": "DEVELOPMENT_NON_PRODUCTION",
+  "canonical_router_owner": "vl/lom-agentic-os-p0/intelligence_core.py",
+  "p0_components": [
+    "MODEL_REGISTRY",
+    "INTELLIGENCE_BENCHMARK",
+    "TASK_SCOPED_ROUTE_COMPILER"
+  ],
+  "rules": [
+    "NO_GLOBAL_MODEL_WINNER",
+    "EXACT_MODEL_VERSION_BINDING",
+    "FRESH_EVIDENCE_REQUIRED",
+    "MEASURED_SCORES_ONLY",
+    "MARKETING_IS_NOT_BENCHMARK_EVIDENCE",
+    "QUALITY_AND_RELIABILITY_BEFORE_COST",
+    "NO_SECRET_OR_CREDENTIAL_STORAGE",
+    "NON_PRODUCTION_ONLY"
+  ],
+  "future_phases_not_implemented_here": [
+    "RAG_INTELLIGENCE",
+    "CRITIC_VERIFIER_ENSEMBLE",
+    "FAILURE_DATASET",
+    "DISTILLATION",
+    "LORA_DOMAIN_ADAPTERS",
+    "PRIVATE_SELF_HOSTED_MODELS"
+  ],
+  "authority": {
+    "autonomous_ceiling": "PREPARE_PR",
+    "execution_authority": "NONE",
+    "production_authority": "HUMAN_ONLY",
+    "protected_main_merge": "HUMAN_ONLY",
+    "self_approval": "FORBIDDEN"
+  }
+}

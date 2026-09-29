@@ -22,7 +22,7 @@ def canary(live=True, observed_at=NOW):
                 "name": name,
                 "result": "PASS",
                 "source_reference": (
-                    f"vps:node-01:{name}" if live else f"synthetic:{name}"
+                    f"vps:v103067:{name}" if live else f"synthetic:{name}"
                 ),
                 "observed_at_epoch": observed_at,
             }
@@ -31,7 +31,7 @@ def canary(live=True, observed_at=NOW):
     }
     if live:
         out["node_attestation"] = {
-            "node_id": "node-01",
+            "node_id": "v103067",
             "environment_class": "NON_PRODUCTION_VPS",
             "operator_confirmed": True,
             "uid": 1001,

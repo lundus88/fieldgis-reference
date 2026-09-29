@@ -84,3 +84,20 @@ The next bounded layer adds:
 This layer remains DEVELOPMENT / NON-PRODUCTION and does not create Production database authority, billing authority or deployment authority.
 
 See `PLATFORM_FOUNDATION_P0.md`.
+
+## Business Engine P1
+
+P1 adds a governed integration layer over existing specialist systems rather than creating replacements.
+
+Flow:
+
+Tenant / Organisation
+→ Entitlement
+→ Verified Membership
+→ Business Engine P1 Integration Plan
+→ Existing Client Portal / Delivery Factory / Pricing / Profitability / Mission Control
+→ Existing Human Gates
+
+P1 grants no new Production, live-charging, final-pricing or privilege authority.
+
+See `BUSINESS_ENGINE_P1_INTEGRATION.md`.

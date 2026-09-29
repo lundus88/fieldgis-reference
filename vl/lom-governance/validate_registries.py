@@ -7,6 +7,8 @@ import sys
 ROOT = Path(__file__).resolve().parents[2]
 CAP = ROOT / "vl/lom-governance/capability-registry.json"
 KNOW = ROOT / "vl/lom-knowledge-foundation/master-knowledge-registry.json"
+DOCTRINE = ROOT / "vl/lom-governance/core-values-doctrine.json"
+HVAE = ROOT / "vl/lom-governance/high-value-absorption-policy.json"
 
 VALID_STATUS = {"EXISTING","PARTIAL","MISSING","DUPLICATE","BLOCKED"}
 VALID_AUTH = {
@@ -20,6 +22,8 @@ def fail(msg: str) -> None:
 
 cap = json.loads(CAP.read_text(encoding="utf-8"))
 know = json.loads(KNOW.read_text(encoding="utf-8"))
+doctrine = json.loads(DOCTRINE.read_text(encoding="utf-8"))
+hvae = json.loads(HVAE.read_text(encoding="utf-8"))
 
 if cap.get("policy") != "one capability -> one authoritative owner -> many consumers":
     fail("anti-duplication policy mismatch")
@@ -53,6 +57,90 @@ if hr.get("mode") != "HR_ADAPTER_PLUS_SPECIALIST_HRMS":
 if hr.get("duplicate_payroll_attendance_leave_engine_forbidden") is not True:
     fail("duplicate HR engine prohibition missing")
 
+vps = next((row for row in cap.get("capabilities", []) if row.get("id") == "vps_execution"), None)
+if not vps:
+    fail("vps execution capability missing")
+if vps.get("runtime_host_policy") != "VPS_ONLY":
+    fail("VPS-only runtime policy missing")
+if vps.get("canonical_runtime_node") != "v103067":
+    fail("canonical VPS runtime node mismatch")
+if vps.get("office_workstation_role") != "EXCLUDED_FROM_RUNTIME":
+    fail("office workstation must be excluded from LOM runtime")
+if vps.get("fallback_to_office_workstation") != "FORBIDDEN":
+    fail("office workstation fallback must remain forbidden")
+excluded = set(vps.get("excluded_operational_dependencies") or [])
+if {"OFFICE_WORKSTATION"} - excluded:
+    fail("office workstation exclusion missing")
+
+if doctrine.get("schema") != "lom.core-values-doctrine/1":
+    fail("core values doctrine schema mismatch")
+principles = doctrine.get("principles") or []
+principle_ids = {p.get("id") for p in principles}
+required_principles = {
+    "evidence_before_action",
+    "reversible_by_default",
+    "fail_closed_recover_gracefully",
+    "single_source_of_truth",
+    "provenance_everywhere",
+    "capability_before_autonomy",
+    "measure_before_scale",
+    "economic_intelligence",
+    "independent_verification",
+    "institutional_memory",
+    "compress_time_to_outcome",
+    "speed_without_quality_debt",
+    "outcome_over_artifact",
+    "productize_repeatable_customize_valuable",
+    "customer_sovereignty_portability",
+    "continuous_competitive_adaptation",
+}
+if principle_ids != required_principles:
+    fail("core values doctrine principles mismatch")
+compass = doctrine.get("outcome_compass") or {}
+if compass.get("north_star") != "Compress Time-to-Outcome without compromising trust, quality, evidence or human authority.":
+    fail("outcome compass north star mismatch")
+if compass.get("optimization_order") != ["SAFE","USEFUL","FAST","MEASURABLE","REPEATABLE","SCALABLE","SELF_IMPROVING"]:
+    fail("outcome compass optimization order mismatch")
+
+hard = doctrine.get("hard_invariants") or {}
+for key in (
+    "human_authority_preserved",
+    "production_change_requires_human_gate",
+    "authority_widening_requires_human_gate",
+    "financial_legal_customer_commitments_require_human_gate",
+    "vendor_neutral_core",
+    "duplicate_core_capability_forbidden_without_proven_gap",
+):
+    if hard.get(key) is not True:
+        fail(f"core doctrine hard invariant missing: {key}")
+
+if hvae.get("schema") != "lom.high-value-absorption-policy/1":
+    fail("HVAE schema mismatch")
+if hvae.get("owner") != "vl/lom-governance":
+    fail("HVAE owner mismatch")
+if hvae.get("principle") != "Novel != Valuable. Valuable != Necessary. Necessary != New Module.":
+    fail("HVAE principle mismatch")
+if (hvae.get("autonomy") or {}).get("ceiling") != "PREPARE_PR":
+    fail("HVAE autonomy ceiling widened")
+if (hvae.get("autonomy") or {}).get("production_authority") != "HUMAN_ONLY":
+    fail("HVAE production authority must remain HUMAN_ONLY")
+if (hvae.get("autonomy") or {}).get("self_approval") != "FORBIDDEN":
+    fail("HVAE self approval must remain forbidden")
+if (hvae.get("autonomy") or {}).get("automatic_module_creation") != "FORBIDDEN":
+    fail("HVAE automatic module creation must remain forbidden")
+if hvae.get("reuse_order") != ["REUSE","EXTEND","INTEGRATE","BUILD_ONLY_ON_PROVEN_GAP"]:
+    fail("HVAE reuse-first order mismatch")
+required_hvae = {
+    "evidence_present",
+    "owner_identified",
+    "duplicate_scan_complete",
+    "architecture_target_identified",
+    "risk_assessed",
+    "rollback_defined_for_runtime_change",
+}
+if set(hvae.get("mandatory_checks", [])) != required_hvae:
+    fail("HVAE mandatory checks mismatch")
+
 required = set(know.get("required_fields", []))
 if know.get("owner") != "LOM Knowledge Librarian":
     fail("knowledge librarian owner missing")
@@ -75,3 +163,5 @@ for i,row in enumerate(know.get("records", [])):
 print("LOM_REGISTRY_VALIDATION=PASS")
 print(f"CAPABILITIES={len(ids)}")
 print(f"KNOWLEDGE_RECORDS={len(know.get('records', []))}")
+print(f"CORE_VALUES={len(principles)}")
+print(f"HVAE_DISPOSITIONS={len(hvae.get('dispositions', []))}")

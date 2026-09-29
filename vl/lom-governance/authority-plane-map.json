@@ -1,0 +1,50 @@
+{
+  "schema": "lom.authority-plane-map/1",
+  "status": "CANONICAL_MAPPING_NON_PRODUCTION",
+  "principle": "authentication != authorization != capability != execution authority",
+  "layers": [
+    {
+      "layer": "AUTHENTICATION",
+      "owner": "boundary-specific identity mechanism",
+      "examples": ["signed task ingress","OIDC where configured"],
+      "may_grant_execution_authority": false
+    },
+    {
+      "layer": "AUTHORIZATION",
+      "owner": "Agent Control Plane / authoritative grants",
+      "examples": ["grant resolution","scope","expiry","risk ceiling"],
+      "may_grant_execution_authority": false
+    },
+    {
+      "layer": "CAPABILITY_ELIGIBILITY",
+      "owner": "capability registry + operational safety",
+      "examples": ["registered capability","certification","environment constraints"],
+      "may_grant_execution_authority": false
+    },
+    {
+      "layer": "ACTION_POLICY",
+      "owner": "authority matrix + operational safety",
+      "examples": ["default deny","HUMAN_ONLY","evidence requirements"],
+      "may_grant_execution_authority": false
+    },
+    {
+      "layer": "EXECUTION",
+      "owner": "bounded executor / VPS execution node when runtime-proven",
+      "examples": ["non-production action adapter","worker lease"],
+      "may_grant_execution_authority": false
+    },
+    {
+      "layer": "HUMAN_AUTHORITY",
+      "owner": "human approver",
+      "examples": ["protected-main merge","Production release","financial/legal/customer commitment","authority widening"],
+      "may_grant_execution_authority": true
+    }
+  ],
+  "invariants": {
+    "default_deny": true,
+    "delegation_may_widen_scope": false,
+    "production_approval_human_only": true,
+    "authentication_alone_never_authorizes_action": true,
+    "capability_presence_alone_never_authorizes_action": true
+  }
+}

@@ -24,7 +24,8 @@
         "vl/lom-agentic-os-p1/multimodel_fabric.py",
         "vl/lom-agentic-os-p2/runtime.py",
         "vl/lom-continuous-improvement/caie_p1.py",
-        "vl/lom-gate-e-orchestrator/orchestrator.py"
+        "vl/lom-gate-e-orchestrator/orchestrator.py",
+        "vl/lom-governance/hvae.py"
       ]
     },
     {

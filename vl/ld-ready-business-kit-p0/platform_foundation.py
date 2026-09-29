@@ -5,6 +5,8 @@ import json
 import re
 from typing import Any
 
+from business_engine import validate_industry_pack
+
 FOUNDATION_SCHEMA = "ld.business-platform-foundation/1"
 TENANT_SCHEMA = "ld.tenant/1"
 ENTITLEMENT_SCHEMA = "ld.entitlement/1"
@@ -98,21 +100,42 @@ def authorize_tenant_action(tenant: dict[str, Any], actor: dict[str, Any], actio
     tv = validate_tenant(tenant)
     if tv["decision"] != "ALLOW":
         return tv
-    if not isinstance(actor, dict) or not actor.get("organization_ref") or not actor.get("role"):
+    if not isinstance(actor, dict) or not actor.get("principal_id"):
         return {"decision": "HOLD", "reason": "ACTOR_CONTEXT_REQUIRED"}
-    if actor["organization_ref"] != tenant["organization_ref"]:
+
+    evidence = actor.get("membership_evidence")
+    if not isinstance(evidence, dict):
+        return {"decision": "HOLD", "reason": "MEMBERSHIP_EVIDENCE_REQUIRED"}
+    required = ["verified", "evidence_ref", "organization_ref", "role"]
+    missing = [k for k in required if evidence.get(k) in (None, "")]
+    if missing:
+        return {"decision": "HOLD", "reason": "MEMBERSHIP_EVIDENCE_INCOMPLETE", "missing": sorted(missing)}
+    if evidence.get("verified") is not True:
+        return {"decision": "HOLD", "reason": "MEMBERSHIP_NOT_VERIFIED"}
+    if evidence["organization_ref"] != tenant["organization_ref"]:
         return {"decision": "HOLD", "reason": "CROSS_TENANT_ACCESS_DENIED"}
-    role = str(actor["role"]).upper()
+
+    role = str(evidence["role"]).upper()
     if role not in ROLE_PERMISSIONS:
         return {"decision": "HOLD", "reason": "ROLE_UNSUPPORTED"}
     if action not in ROLE_PERMISSIONS[role]:
         return {"decision": "HOLD", "reason": "ROLE_PERMISSION_DENIED", "role": role, "action": action}
+
+    authority_evidence = {
+        "principal_id": actor["principal_id"],
+        "evidence_ref": evidence["evidence_ref"],
+        "organization_ref": evidence["organization_ref"],
+        "role": role,
+        "action": action,
+    }
     return {
         "decision": "ALLOW",
         "tenant_id": tenant["tenant_id"],
         "organization_ref": tenant["organization_ref"],
+        "principal_id": actor["principal_id"],
         "role": role,
         "action": action,
+        "authority_evidence_digest": _digest(authority_evidence),
         "production_authority": False,
         "live_charging_authority": False,
     }
@@ -187,11 +210,19 @@ def build_pack_registry(packs: list[dict[str, Any]]) -> dict[str, Any]:
     ids = []
     entries = []
     for pack in packs:
-        pack_id = pack.get("pack_id") if isinstance(pack, dict) else None
-        vertical = pack.get("vertical") if isinstance(pack, dict) else None
-        capabilities = pack.get("capabilities") if isinstance(pack, dict) else None
-        if not pack_id or not vertical or not isinstance(capabilities, list) or not capabilities:
-            return {"decision": "HOLD", "reason": "PACK_REGISTRY_ENTRY_INVALID"}
+        validation = validate_industry_pack(pack)
+        if validation["decision"] != "ALLOW":
+            return {
+                "decision": "HOLD",
+                "reason": "PACK_REGISTRY_VALIDATION_FAILED",
+                "validation": validation,
+            }
+        if pack.get("production", "LOCKED") != "LOCKED":
+            return {"decision": "HOLD", "reason": "PACK_PRODUCTION_MUST_BE_LOCKED"}
+
+        pack_id = pack["pack_id"]
+        vertical = pack["vertical"]
+        capabilities = pack["capabilities"]
         if pack_id in ids:
             return {"decision": "HOLD", "reason": "PACK_ID_DUPLICATE", "pack_id": pack_id}
         ids.append(pack_id)
@@ -199,7 +230,8 @@ def build_pack_registry(packs: list[dict[str, Any]]) -> dict[str, Any]:
             "pack_id": pack_id,
             "vertical": vertical,
             "capabilities": sorted(set(capabilities)),
-            "production": pack.get("production", "LOCKED"),
+            "pack_digest": validation["digest"],
+            "production": "LOCKED",
         })
     entries = sorted(entries, key=lambda x: x["pack_id"])
     return {

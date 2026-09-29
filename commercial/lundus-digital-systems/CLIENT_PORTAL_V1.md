@@ -44,3 +44,14 @@ The eventual runtime must enforce authenticated customer-account/project ownersh
 Request Change, UAT Approval and other mutations are visible only as disabled placeholders in v1. Each must be implemented later as a separately approved, evidence-backed, idempotent workflow.
 
 No Production activation is authorized by this package.
+
+## P2 backend action gateway
+
+A non-Production Customer Action Gateway now prepares governed handoffs for:
+
+- Request Change → existing Change Request & Scope Ledger;
+- UAT Accept → existing Integrated Customer Lifecycle Gate.
+
+This does **not** activate the portal buttons. The v1 portal remains read-only until a separate runtime activation is reviewed and approved.
+
+The gateway reuses Customer Organization & IAM, requires idempotency, fails closed across organizations, and never mutates authoritative state itself.

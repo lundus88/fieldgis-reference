@@ -1,0 +1,70 @@
+{
+  "schema": "lom.high-value-absorption-policy/1",
+  "name": "LOM High-Value Absorption Engine (HVAE)",
+  "status": "NON_PRODUCTION_GOVERNANCE_CAPABILITY",
+  "owner": "vl/lom-governance",
+  "principle": "Novel != Valuable. Valuable != Necessary. Necessary != New Module.",
+  "purpose": "Convert external or internal discoveries into governed, evidence-bound improvements without duplicating existing LOM capabilities.",
+  "pipeline": [
+    "SOURCE_INTAKE",
+    "UNDERSTAND",
+    "VALUE_EXTRACTION",
+    "EVIDENCE_VALIDATION",
+    "DUPLICATE_DETECTION",
+    "ARCHITECTURE_CLASSIFICATION",
+    "IMPACT_RISK_ANALYSIS",
+    "INTEGRATION_PLANNING",
+    "CONTROLLED_ABSORPTION",
+    "POST_ABSORPTION_MEASUREMENT"
+  ],
+  "dispositions": [
+    "REJECT",
+    "KNOWLEDGE_ONLY",
+    "UPGRADE_EXISTING_CAPABILITY",
+    "ADD_DOMAIN_CAPABILITY",
+    "ADD_ADAPTER",
+    "ADD_TEMPLATE",
+    "ADD_SHARED_ENGINE",
+    "ADD_NEW_MODULE"
+  ],
+  "classification_rules": {
+    "already_owned_capability": "UPGRADE_EXISTING_CAPABILITY",
+    "subset_of_domain_system": "ADD_DOMAIN_CAPABILITY",
+    "external_service_integration_only": "ADD_ADAPTER",
+    "reusable_pattern_without_independent_lifecycle": "ADD_TEMPLATE",
+    "cross_domain_reusable_logic_with_independent_contracts": "ADD_SHARED_ENGINE",
+    "new_domain_with_distinct_rules_lifecycle_and_data": "ADD_NEW_MODULE",
+    "informational_value_without_runtime_change": "KNOWLEDGE_ONLY"
+  },
+  "mandatory_checks": [
+    "evidence_present",
+    "owner_identified",
+    "duplicate_scan_complete",
+    "architecture_target_identified",
+    "risk_assessed",
+    "rollback_defined_for_runtime_change"
+  ],
+  "human_gates": [
+    "PROTECTED_MAIN_MERGE",
+    "PRODUCTION_RELEASE",
+    "AUTHORITY_WIDENING",
+    "FINANCIAL_LEGAL_CUSTOMER_COMMITMENT"
+  ],
+  "autonomy": {
+    "ceiling": "PREPARE_PR",
+    "production_authority": "HUMAN_ONLY",
+    "self_approval": "FORBIDDEN",
+    "automatic_module_creation": "FORBIDDEN"
+  },
+  "reuse_order": [
+    "REUSE",
+    "EXTEND",
+    "INTEGRATE",
+    "BUILD_ONLY_ON_PROVEN_GAP"
+  ],
+  "post_absorption": {
+    "required": true,
+    "measure": ["quality", "time_to_outcome", "cost", "defect_rate", "operational_risk", "business_value"],
+    "outcomes": ["KEEP", "REFINE", "ROLLBACK"]
+  }
+}

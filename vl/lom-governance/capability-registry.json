@@ -195,7 +195,14 @@
         "vps canary contract",
         "runner tests"
       ],
-      "blocker": "LIVE_VPS_CANARY_NOT_PROVEN"
+      "blocker": "LIVE_VPS_CANARY_NOT_PROVEN",
+      "runtime_host_policy": "VPS_ONLY",
+      "canonical_runtime_node": "v103067",
+      "office_workstation_role": "EXCLUDED_FROM_RUNTIME",
+      "excluded_operational_dependencies": [
+        "OFFICE_WORKSTATION"
+      ],
+      "fallback_to_office_workstation": "FORBIDDEN"
     },
     {
       "id": "knowledge_authority",
@@ -210,6 +217,53 @@
       "tests": [
         "knowledge registry validation",
         "controlled E2E"
+      ]
+    },
+    {
+      "id": "high_value_absorption",
+      "owner": "vl/lom-governance",
+      "status": "EXISTING",
+      "authority": "CLASSIFY_PROPOSE_PREPARE_PR",
+      "human_gate": [
+        "PROTECTED_MAIN_MERGE",
+        "PRODUCTION_RELEASE",
+        "AUTHORITY_WIDENING",
+        "FINANCIAL_LEGAL_CUSTOMER_COMMITMENT"
+      ],
+      "health_source": "vl/lom-governance/high-value-absorption-policy.json",
+      "tests": [
+        "HVAE governance regression",
+        "registry validation"
+      ],
+      "composition": [
+        "vl/lom-governance/capability-registry.json",
+        "vl/lom-knowledge-foundation",
+        "vl/lom-continuous-improvement",
+        "vl/completion-governance"
+      ]
+    },
+    {
+      "id": "economic_participation",
+      "owner": "vl/lom-economic-participation-p0",
+      "status": "PARTIAL",
+      "authority": "NON_PRODUCTION_TASK_LIFECYCLE_AND_ENTITLEMENT_PREPARATION",
+      "human_gate": [
+        "LIVE_PILOT_ACTIVATION",
+        "PAYOUT_APPROVAL",
+        "FINANCIAL_COMMITMENT",
+        "PRODUCTION_RELEASE",
+        "PROTECTED_MAIN_MERGE"
+      ],
+      "health_source": "vl/lom-economic-participation-p0/contract.json",
+      "tests": [
+        "economic participation P0 regression",
+        "registry validation"
+      ],
+      "composition": [
+        "vl/lom-gate-c-runtime",
+        "vl/completion-governance",
+        "vl/lom-security-hardening",
+        "docs/commercial/lds-partner-affiliate"
       ]
     }
   ],

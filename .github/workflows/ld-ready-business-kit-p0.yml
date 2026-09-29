@@ -1,11 +1,16 @@
 name: LD Ready Business Kit P0-P1
 on:
   push:
-    branches: [ld/ready-business-kit-p0]
+    branches: [main, ld/ready-business-kit-p0]
+    paths:
+      - 'vl/ld-ready-business-kit-p0/**'
+      - 'docs/commercial/lds-business-engine/**'
+      - '.github/workflows/ld-ready-business-kit-p0.yml'
   pull_request:
     branches: [main]
     paths:
       - 'vl/ld-ready-business-kit-p0/**'
+      - 'docs/commercial/lds-business-engine/**'
       - '.github/workflows/ld-ready-business-kit-p0.yml'
 
 permissions:
@@ -30,10 +35,18 @@ jobs:
         run: |
           cd vl/ld-ready-business-kit-p0
           python3 test_business_engine.py
+      - name: Website template library regressions
+        run: |
+          cd vl/ld-ready-business-kit-p0
+          python3 test_website_template_library.py
       - name: Platform Foundation P0 regressions
         run: |
           cd vl/ld-ready-business-kit-p0
           python3 test_platform_foundation.py
+      - name: Business Engine P1 integration regressions
+        run: |
+          cd vl/ld-ready-business-kit-p0
+          python3 test_business_engine_p1.py
       - name: P1 delivery-factory regressions
         run: |
           cd vl/ld-ready-business-kit-p0
