@@ -57,6 +57,21 @@ if hr.get("mode") != "HR_ADAPTER_PLUS_SPECIALIST_HRMS":
 if hr.get("duplicate_payroll_attendance_leave_engine_forbidden") is not True:
     fail("duplicate HR engine prohibition missing")
 
+vps = next((row for row in cap.get("capabilities", []) if row.get("id") == "vps_execution"), None)
+if not vps:
+    fail("vps execution capability missing")
+if vps.get("runtime_host_policy") != "VPS_ONLY":
+    fail("VPS-only runtime policy missing")
+if vps.get("canonical_runtime_node") != "v103067":
+    fail("canonical VPS runtime node mismatch")
+if vps.get("office_workstation_role") != "EXCLUDED_FROM_RUNTIME":
+    fail("office workstation must be excluded from LOM runtime")
+if vps.get("fallback_to_office_workstation") != "FORBIDDEN":
+    fail("office workstation fallback must remain forbidden")
+excluded = set(vps.get("excluded_operational_dependencies") or [])
+if {"OFFICE_WORKSTATION"} - excluded:
+    fail("office workstation exclusion missing")
+
 if doctrine.get("schema") != "lom.core-values-doctrine/1":
     fail("core values doctrine schema mismatch")
 principles = doctrine.get("principles") or []

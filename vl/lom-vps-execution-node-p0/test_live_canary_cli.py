@@ -14,7 +14,7 @@ def live_evidence():
         "schema": "lom.vps-canary-evidence/1",
         "evidence_class": "LIVE_VPS_CANARY",
         "node_attestation": {
-            "node_id": "node-01",
+            "node_id": "v103067",
             "environment_class": "NON_PRODUCTION_VPS",
             "operator_confirmed": True,
             "uid": 1001,
@@ -28,7 +28,7 @@ def live_evidence():
             {
                 "name": name,
                 "result": "PASS",
-                "source_reference": f"vps:node-01:{name}",
+                "source_reference": f"vps:v103067:{name}",
                 "observed_at_epoch": NOW,
             }
             for name in CONTRACT["required_checks"]

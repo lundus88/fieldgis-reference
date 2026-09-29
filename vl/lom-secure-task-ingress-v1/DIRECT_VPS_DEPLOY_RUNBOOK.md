@@ -10,16 +10,18 @@ This deployment is additive. It must not replace or modify the existing `lom-wor
 
 ## Objective
 
-Establish the first BPTSBH-independent runtime boundary:
+Establish the canonical VPS-only runtime boundary:
 
-`LOM -> signed task transport -> loopback Secure Task Ingress -> durable queue`
+`LOM -> signed task transport -> loopback Secure Task Ingress -> durable queue -> ACP -> VPS runner -> evidence`
+
+Office workstations are excluded from the operational dependency graph. There is no workstation failover path.
 
 P0 intentionally stops before public network exposure. ACP handoff remains fail-closed until an authoritative grant loader for `private.agent_capability_grants` is available through an approved least-privilege path.
 
 ## Preconditions
 
 - exact reviewed repository revision;
-- current 13/13 live VPS canary remains PASS;
+- a fresh 13/13 live VPS canary for authorized node `v103067` is PASS at deployment time;
 - `lom-worker.service` and `lom-heartbeat.timer` remain healthy;
 - no Production credentials are injected;
 - no Docker/sudo/root authority is granted to `lom-runner`;
@@ -66,6 +68,18 @@ Required result:
 - listener only on `127.0.0.1:8765`;
 - Production locked;
 - no listener on `0.0.0.0` or public interface.
+
+## BPTSBH exclusion acceptance
+
+Before classifying the runtime as operational:
+
+- no LOM worker/service/timer is required on any office workstation;
+- no LOM runtime secret or queue is stored there;
+- no heartbeat or evidence source depends on that workstation;
+- no scheduled task on that workstation is required for VPS continuity;
+- loss or shutdown of that workstation leaves VPS health and bounded execution unchanged.
+
+Any dependency on the office workstation is a deployment failure, not a fallback condition.
 
 ## Stop conditions
 

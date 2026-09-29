@@ -23,7 +23,7 @@ Status: NON-PRODUCTION / EVIDENCE-BOUND
 | Capability registry | EXISTING | lom-governance | one capability -> one owner -> many consumers |
 | High-value absorption / architecture intake | EXISTING | lom-governance (HVAE) | evidence-bound reuse/extend/integrate/build classification; PREPARE_PR ceiling |
 | Self-healing / Homeostasis | PARTIAL | lom-organism-integration-p0 | bounded non-Production recovery only |
-| VPS always-on execution | BLOCKED | lom-vps-execution-node-p0 | LIVE_VPS_CANARY_NOT_PROVEN |
+| VPS always-on execution | BLOCKED / VPS_ONLY TARGET | lom-vps-execution-node-p0 | authorized node v103067; LIVE_VPS_CANARY_NOT_PROVEN |
 | HR | NO_DUPLICATE | HR Adapter + specialist HRMS | no second payroll/attendance/leave engine |
 | Specialist domains | ON_DEMAND | capability-specific specialist | no permanent duplicate agents |
 
@@ -68,9 +68,13 @@ HOLD or HUMAN_REVIEW is mandatory when:
 - legal/contractual and customer commitments;
 - live VPS activation after real canary evidence.
 
+## Runtime boundary
+
+The canonical execution host policy is `VPS_ONLY` on node `v103067`. Office workstations are excluded from the operational dependency graph. No runtime fallback to an office workstation is permitted.
+
 ## Remaining blocker
 
-The sole external runtime blocker for the always-on heart is a real non-Production VPS canary. Repository or synthetic CI evidence cannot substitute for it.
+The sole external runtime blocker for the always-on heart is a fresh real non-Production VPS canary on authorized node `v103067`. Repository or synthetic CI evidence cannot substitute for it.
 
 ## High-Value Absorption Gate
 
