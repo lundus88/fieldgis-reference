@@ -99,7 +99,13 @@ LOM Digital Nation will **not** launch a cryptocurrency, security, deposit-like 
 
 ## 9. Governance
 
-LOM Core owns policy, orchestration, audit and authority boundaries.
+LOM Virtual World uses a **Founder-Led Constitutional Platform** model.
+
+The Founder retains final strategic authority for the platform, but no person or AI may bypass the active Charter, policy, authority, evidence and audit controls. Changes to the Charter or governing rules must use an explicit, versioned and auditable amendment path.
+
+There are **no elections or binding member votes that determine governing power**. Member proposals, feedback, consultation and petitions may inform decisions but do not transfer final platform authority.
+
+LOM Core owns policy orchestration, audit and authority boundaries.
 
 Human approval is mandatory for high-impact actions including:
 - production activation;
@@ -111,7 +117,9 @@ Human approval is mandatory for high-impact actions including:
 - release of sensitive data;
 - changes to the founding governance model.
 
-No AI component may grant itself greater authority.
+Continuity and succession must be predefined for periods when the Founder or another critical human authority cannot act. Any delegation must be bounded, time-limited where appropriate, revocable and fully audited.
+
+No AI component may grant itself greater authority, amend the Charter on its own, appoint itself as successor, or waive a required human gate.
 
 ## 10. Domain ownership and non-duplication
 
@@ -175,3 +183,29 @@ Production launch remains a separate human-gated decision.
 ## 15. Founding statement
 
 **LOM Digital Nation — a borderless digital society where people can learn, work, build, trade and grow wealth through one trusted digital ecosystem.**
+
+
+## 16. Advanced society fundamentals
+
+LOM Virtual World adopts twelve institutional fundamentals:
+
+1. Rule of Law & Institutions
+2. Productive Economy
+3. Financial & Capital System
+4. Education & Human Capital
+5. Science, Technology & Innovation
+6. Infrastructure
+7. Administrative Capacity
+8. Security & Resilience
+9. Health, Wellbeing & Social Protection
+10. Financial Management
+11. Global Economic Relations
+12. Continuous Improvement
+
+These are implemented as private-platform capabilities and lawful external integrations, not as sovereign powers.
+
+Canonical operating doctrine:
+
+**Digital-First + AI-Native + Automation-First + Human-Centred + Evidence-Based + Secure + Auditable + Scalable**
+
+Detailed mapping and evidence maturity are defined in `ADVANCED_SOCIETY_FUNDAMENTALS_V1.md`.
