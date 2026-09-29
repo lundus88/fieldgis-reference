@@ -1,0 +1,28 @@
+{
+  "schema": "lom.digital-nation.dispute-adapter/1",
+  "status": "DRAFT_NON_PRODUCTION",
+  "owner": "LOM Trust",
+  "composes": [
+    "docs/commercial/lds-customer-fraud-payment-abuse",
+    "commercial/lundus-digital-systems/refund.html",
+    "docs/commercial/lds-autonomous-operations"
+  ],
+  "states": [
+    "OPEN",
+    "EVIDENCE_GATHERING",
+    "MEDIATION",
+    "HUMAN_REVIEW",
+    "RESOLVED",
+    "APPEALED",
+    "CLOSED"
+  ],
+  "invariants": [
+    "A complaint or chargeback is not fraud by default.",
+    "Material decisions preserve transaction, payment, delivery and communication evidence.",
+    "High-impact or disputed-value decisions require human review.",
+    "A platform resolution is not a court judgment.",
+    "An appeal path is available for material adverse outcomes.",
+    "Production activation remains separately human-gated."
+  ],
+  "production_activation_authorized": false
+}
