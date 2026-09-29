@@ -170,6 +170,92 @@
         "privacy aggregation"
       ],
       "new_engine": false
+    },
+    {
+      "id": "world_search_navigation",
+      "priority": "P0",
+      "owner": "LOM Core",
+      "reuse": [
+        "search",
+        "market",
+        "education",
+        "opportunity",
+        "capability registry"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "privacy_data_control_center",
+      "priority": "P0",
+      "owner": "LOM Core",
+      "reuse": [
+        "identity",
+        "consent",
+        "security",
+        "audit"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "member_service_center",
+      "priority": "P0",
+      "owner": "LOM Core",
+      "reuse": [
+        "support",
+        "UrusMY",
+        "LOM Trust",
+        "domain routers"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "personal_home_dashboard",
+      "priority": "P0",
+      "owner": "LOM Experience",
+      "reuse": [
+        "identity",
+        "market",
+        "education",
+        "opportunity",
+        "events"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "community_groups",
+      "priority": "P1",
+      "owner": "LOM Community",
+      "reuse": [
+        "identity",
+        "communications",
+        "roles",
+        "trust"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "member_voice_transparency",
+      "priority": "P1",
+      "owner": "LOM Core Governance",
+      "reuse": [
+        "feedback",
+        "audit",
+        "appeals",
+        "policy registry"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "developer_partner_platform",
+      "priority": "P2",
+      "owner": "LOM Platform",
+      "reuse": [
+        "API contracts",
+        "adapters",
+        "webhooks",
+        "capability registry"
+      ],
+      "new_engine": false
     }
   ],
   "forbidden": [
