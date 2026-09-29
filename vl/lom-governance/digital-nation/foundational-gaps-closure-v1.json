@@ -1,0 +1,127 @@
+{
+  "schema": "lom.digital-nation.foundational-gaps-closure/1",
+  "status": "DRAFT_NON_PRODUCTION",
+  "updated_at": "2026-09-29",
+  "policy": "CLOSE_FOUNDATIONS_BEFORE_MORE_SURFACE_AREA",
+  "capabilities": [
+    {
+      "id": "persistent_world_state_runtime",
+      "priority": "P0",
+      "owner": "LOM Operational Twin + Domain Owners",
+      "reuse": [
+        "vl/lom-operational-twin-world-model-p2",
+        "canonical source registries",
+        "Event Ledger",
+        "Recovery Memory",
+        "Golden World events",
+        "Evidence Lineage"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "economic_bootstrapping_liquidity",
+      "priority": "P0",
+      "owner": "LOM Market + LundusLead + Economic Participation",
+      "reuse": [
+        "LOM Market",
+        "LundusLead",
+        "Economic Participation",
+        "LOM Education",
+        "Treasury",
+        "affiliate/referral"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "jurisdiction_compliance_router",
+      "priority": "P0",
+      "owner": "LD Global Commerce Readiness + LOM Core",
+      "reuse": [
+        "lds-global-commerce-readiness",
+        "country-support-matrix",
+        "Knowledge Foundation",
+        "payment adapter",
+        "accounting adapter",
+        "privacy controls"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "delegated_authority_permission_wallet",
+      "priority": "P0",
+      "owner": "Agent Control Plane + Identity",
+      "reuse": [
+        "vl/agent-control-plane",
+        "identity",
+        "organization roles",
+        "human gates",
+        "audit"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "policy_lifecycle_change_control",
+      "priority": "P1",
+      "owner": "LOM Core Governance",
+      "reuse": [
+        "Founding Charter",
+        "policy registry",
+        "audit",
+        "human gates",
+        "appeals"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "market_fairness_economic_integrity",
+      "priority": "P1",
+      "owner": "LOM Trust + LD Commerce",
+      "reuse": [
+        "lds-customer-fraud-payment-abuse",
+        "LOM Trust",
+        "market analytics",
+        "dispute",
+        "reputation evidence"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "world_simulation_sandbox",
+      "priority": "P1",
+      "owner": "LOM QA / Intelligence",
+      "reuse": [
+        "Golden World Preview Runner",
+        "Operational Twin",
+        "CI fixtures",
+        "System Health",
+        "CAIE"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "culture_social_cohesion",
+      "priority": "P1",
+      "owner": "LOM Community / Education",
+      "reuse": [
+        "Community & Groups",
+        "LOM Education",
+        "Creator Hub",
+        "Trust & Safety",
+        "Member Voice"
+      ],
+      "new_engine": false
+    }
+  ],
+  "invariants": [
+    "World-state projection is never a second source of truth.",
+    "Liquidity mechanisms must not fabricate demand, transactions, reviews or revenue.",
+    "Unsupported or unknown jurisdiction conditions fail to MANUAL_REVIEW.",
+    "Delegated authority is monotonic-restrictive and auditable.",
+    "AI cannot self-amend authority or policy.",
+    "Market anomaly is not proof of wrongdoing.",
+    "Synthetic evidence is never real-world evidence.",
+    "Culture must not coerce political or private beliefs.",
+    "Production activation remains explicit human authority."
+  ],
+  "production_activation_authorized": false
+}
