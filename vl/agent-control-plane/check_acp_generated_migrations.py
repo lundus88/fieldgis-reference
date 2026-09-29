@@ -17,6 +17,8 @@ candidate_map = {
         ROOT / "vl" / "agent-control-plane" / "sql-candidates" / "acp_read_agent_grant_chain_nonprod.sql",
     "20260925024937_acp_lom_vps_parent_grant_renewal.sql":
         ROOT / "vl" / "agent-control-plane" / "sql-candidates" / "acp_lom_vps_parent_grant_renewal.sql",
+    "20260925034053_acp_delegation_budget_inheritance_hardening.sql":
+        ROOT / "vl" / "agent-control-plane" / "sql-candidates" / "acp_delegation_budget_inheritance_hardening.sql",
 }
 
 for entry in manifest["migrations"]:
@@ -29,7 +31,12 @@ for entry in manifest["migrations"]:
     assert raw == candidate, f"generated migration drifted from reviewed candidate: {basename}"
     digest = hashlib.sha256(raw).hexdigest()
     assert digest == entry["sha256"], f"sha256 mismatch for {basename}"
-    assert entry["apply_status"] == "NOT_APPLIED"
+    assert entry["apply_status"] in {"NOT_APPLIED", "APPLIED"}
+    if basename == "20260925024934_acp_read_agent_grant_chain_nonprod.sql":
+        assert entry["apply_status"] == "APPLIED"
+        assert entry["remote_history_version"] == "20260925025656"
+    else:
+        assert entry["apply_status"] == "NOT_APPLIED"
     assert entry["human_gate_required"] is True
 
 print("LOM_ACP_GENERATED_MIGRATIONS=PASS")

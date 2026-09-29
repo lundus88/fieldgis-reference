@@ -53,7 +53,6 @@ begin
       and g.valid_from <= v_valid_from
       and (g.valid_until is null or g.valid_until > v_valid_from)
       and g.scope = v_scope
-      and g.capabilities @> array['factory.plan']::text[]
   ) then
     raise exception 'active LOM VPS staging parent grant already exists';
   end if;
