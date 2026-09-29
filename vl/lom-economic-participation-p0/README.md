@@ -133,3 +133,8 @@ Hard stops:
 - accounting/payment reconciliation mismatch.
 
 Synthetic evidence must never be represented as real customer, revenue or worker evidence.
+
+
+## Base refresh
+
+Refreshed against current `main` on 2026-09-29 before Digital Nation dependency review. This note does not grant merge, Production, payout, or live-pilot authority.
