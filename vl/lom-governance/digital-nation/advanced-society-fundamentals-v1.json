@@ -1,0 +1,184 @@
+{
+  "schema": "lom.digital-nation.advanced-society-fundamentals/1",
+  "status": "DRAFT_NON_PRODUCTION",
+  "updated_at": "2026-09-29",
+  "doctrine": [
+    "DIGITAL_FIRST",
+    "AI_NATIVE",
+    "AUTOMATION_FIRST",
+    "HUMAN_CENTRED",
+    "EVIDENCE_BASED",
+    "SECURE",
+    "AUDITABLE",
+    "SCALABLE"
+  ],
+  "pillars": [
+    {
+      "id": "rule_of_law_institutions",
+      "order": 1,
+      "owner": "LOM Core Governance",
+      "reuse": [
+        "charter",
+        "policy registry",
+        "authority",
+        "audit",
+        "appeals"
+      ],
+      "target": "TRUST_AND_ACCOUNTABILITY"
+    },
+    {
+      "id": "productive_economy",
+      "order": 2,
+      "owner": "LD Commerce / Economic Participation",
+      "reuse": [
+        "LOM Market",
+        "Business Engine",
+        "Opportunity Exchange",
+        "Product Factory"
+      ],
+      "target": "SUSTAINABLE_VALUE_CREATION"
+    },
+    {
+      "id": "financial_capital_system",
+      "order": 3,
+      "owner": "LD Adapter Layer / Treasury",
+      "reuse": [
+        "payment adapter",
+        "accounting adapter",
+        "treasury",
+        "fraud controls"
+      ],
+      "target": "SAFE_AUDITABLE_CAPITAL_FLOW"
+    },
+    {
+      "id": "education_human_capital",
+      "order": 4,
+      "owner": "LOM Education",
+      "reuse": [
+        "skill evidence",
+        "diagnostics",
+        "mastery",
+        "opportunity matching"
+      ],
+      "target": "SKILL_PRODUCTIVITY_INCOME"
+    },
+    {
+      "id": "science_technology_innovation",
+      "order": 5,
+      "owner": "LOM R&D / HVAE",
+      "reuse": [
+        "knowledge foundation",
+        "HVAE",
+        "Product Factory",
+        "QA"
+      ],
+      "target": "RESEARCH_TO_MARKET"
+    },
+    {
+      "id": "infrastructure",
+      "order": 6,
+      "owner": "LOM Platform / SRE",
+      "reuse": [
+        "VPS",
+        "storage",
+        "communications",
+        "search",
+        "payments connectivity",
+        "recovery"
+      ],
+      "target": "RELIABLE_DIGITAL_UTILITIES"
+    },
+    {
+      "id": "administrative_capacity",
+      "order": 7,
+      "owner": "LOM Core",
+      "reuse": [
+        "registries",
+        "orchestration",
+        "case workflows",
+        "statistics"
+      ],
+      "target": "POLICY_TO_EXECUTION"
+    },
+    {
+      "id": "security_resilience",
+      "order": 8,
+      "owner": "LOM Trust / Security / SRE",
+      "reuse": [
+        "security",
+        "fraud controls",
+        "incident response",
+        "recovery"
+      ],
+      "target": "SAFE_CONTINUITY"
+    },
+    {
+      "id": "health_social_protection",
+      "order": 9,
+      "owner": "LOM Wellbeing / Opportunity",
+      "reuse": [
+        "health access layer",
+        "education",
+        "opportunity rematching",
+        "treasury"
+      ],
+      "target": "RECOVERY_TO_PARTICIPATION"
+    },
+    {
+      "id": "financial_management",
+      "order": 10,
+      "owner": "LOM Treasury / Finance",
+      "reuse": [
+        "treasury",
+        "accounting",
+        "budget controls",
+        "procurement"
+      ],
+      "target": "CAPITAL_DISCIPLINE"
+    },
+    {
+      "id": "global_economic_relations",
+      "order": 11,
+      "owner": "LD Global / Partner Platform",
+      "reuse": [
+        "global commerce bridge",
+        "localization",
+        "partner adapters",
+        "opportunity"
+      ],
+      "target": "GLOBAL_NETWORK_ADVANTAGE"
+    },
+    {
+      "id": "continuous_improvement",
+      "order": 12,
+      "owner": "LOM Core",
+      "reuse": [
+        "System Health",
+        "CAIE",
+        "Evidence Lineage",
+        "Completion Governance",
+        "HVAE"
+      ],
+      "target": "CLOSED_LOOP_IMPROVEMENT"
+    }
+  ],
+  "maturity_stages": [
+    "DEFINED",
+    "TESTED",
+    "PREVIEW_PROVEN",
+    "PILOT_PROVEN",
+    "PRODUCTION_PROVEN"
+  ],
+  "hard_boundaries": [
+    "No legal citizenship claim",
+    "No public taxation authority",
+    "No legal-tender issuance",
+    "No unlicensed banking lending insurance or investment activity",
+    "No statutory court police military or border authority",
+    "No diplomatic recognition claim",
+    "No AI self-authority expansion",
+    "No person or AI bypasses active authority evidence and audit controls",
+    "Production activation remains explicit human authority"
+  ],
+  "production_activation_authorized": false
+}
