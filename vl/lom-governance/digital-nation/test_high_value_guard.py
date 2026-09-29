@@ -14,14 +14,17 @@ class HighValueGuardTests(unittest.TestCase):
         self.assertEqual(out["decision"],"ALLOW_PREVIEW_COMPOSITION")
         self.assertFalse(out["production_authority"])
 
+    def _capability(self, registry, capability_id):
+        return next(item for item in registry["capabilities"] if item["id"] == capability_id)
+
     def test_duplicate_engine_fails(self):
         r=load_registry(REG)
-        r["capabilities"][0]["new_engine"]=True
+        self._capability(r, "member_economic_passport")["new_engine"]=True
         self.assertIn("UNAPPROVED_NEW_ENGINE:member_economic_passport",validate_high_value_registry(r))
 
     def test_reuse_is_mandatory(self):
         r=load_registry(REG)
-        r["capabilities"][0]["reuse"]=[]
+        self._capability(r, "member_economic_passport")["reuse"]=[]
         self.assertIn("REUSE_REQUIRED:member_economic_passport",validate_high_value_registry(r))
 
 if __name__=="__main__":
