@@ -21,4 +21,4 @@ jobs:
           python-version: "3.12"
       - name: Run Digital Nation P0 tests
         working-directory: vl/lom-governance/digital-nation
-        run: python -m unittest -q test_golden_world_transaction.py
+        run: python -m unittest discover -q -p "test_*.py"
