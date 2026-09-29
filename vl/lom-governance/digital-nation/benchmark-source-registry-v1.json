@@ -1,0 +1,49 @@
+{
+  "schema": "lom.global-nation-benchmark.source-registry/1",
+  "status": "ACTIVE_RESEARCH_REFERENCE",
+  "updated_at": "2026-09-29",
+  "sources": [
+    {
+      "id": "world_bank_wgi",
+      "name": "World Bank Worldwide Governance Indicators",
+      "domain": "governance",
+      "url": "https://www.worldbank.org/en/publication/worldwide-governance-indicators",
+      "notes": "Use with methodology/uncertainty; not a definitive standalone rating."
+    },
+    {
+      "id": "oecd_dgi",
+      "name": "OECD Digital Government Index",
+      "domain": "digital_government",
+      "url": "https://www.oecd.org/en/topics/digital-government.html",
+      "notes": "Whole-of-government, human-centred digital transformation benchmark."
+    },
+    {
+      "id": "un_egov",
+      "name": "UN E-Government Survey",
+      "domain": "digital_government",
+      "url": "https://desapublications.un.org/publications/un-e-government-survey-2024",
+      "notes": "Global coverage of UN Member States; record survey edition and reference period."
+    },
+    {
+      "id": "wipo_gii",
+      "name": "WIPO Global Innovation Index",
+      "domain": "innovation",
+      "url": "https://www.wipo.int/en/web/global-innovation-index/2025/index",
+      "notes": "Use underlying dimensions and methodology, not only composite rank."
+    },
+    {
+      "id": "itu_idi",
+      "name": "ITU ICT Development Index",
+      "domain": "connectivity",
+      "url": "https://www.itu.int/itu-d/reports/statistics/idi2025/",
+      "notes": "Connectivity and meaningful digital-development evidence."
+    },
+    {
+      "id": "who_uhc",
+      "name": "WHO Universal Health Coverage indicators",
+      "domain": "health",
+      "url": "https://www.who.int/data/uhc-2025-technical-appendices-and-regional-data-tables",
+      "notes": "Use service coverage/financial hardship definitions and reference years."
+    }
+  ]
+}
