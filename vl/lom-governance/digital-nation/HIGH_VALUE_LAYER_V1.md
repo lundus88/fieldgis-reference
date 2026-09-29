@@ -361,3 +361,18 @@ The economic layer alone is insufficient for a credible Virtual World. The follo
 - **Developer & Partner Platform** — controlled APIs/adapters so the ecosystem can expand without LOM rebuilding every external service.
 
 Detailed controls and sequencing are defined in `SOCIETY_ESSENTIALS_V1.md`.
+
+
+## Institutional strength additions
+
+For a country-scale virtual society, high-value architecture must include more than commerce and community. The following are now priority institutional capabilities:
+
+- **Continuity & Succession Protocol** — preserves legitimate human authority if the Founder is temporarily unavailable; AI cannot self-appoint.
+- **Critical Digital Infrastructure** — identity, authorization, runtime, storage, communications, payments connectivity, audit and recovery treated as essential services.
+- **Integrity & Inspector Function** — independent evidence review for conflicts, privileged-access abuse, financial irregularity and policy exceptions.
+- **Records & Institutional Memory** — authoritative history for policies, decisions, releases, incidents and evidence.
+- **Member Rights & Ombuds** — escalation and appeal channel for unresolved platform decisions.
+- **Research, Science & Innovation** — evidence-to-prototype-to-controlled-pilot pipeline.
+- **Procurement & Vendor Governance** — controlled acquisition with budget, conflict, contract and delivery evidence.
+
+Detailed design: `STRATEGIC_SOCIETY_INSTITUTIONS_V1.md`.
