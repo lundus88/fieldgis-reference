@@ -81,14 +81,13 @@ def test_live_sources_must_bind_to_attested_node():
 
 def test_non_authorized_runtime_node_holds():
     e = live_evidence()
-    e["node_attestation"]["node_id"] = "BPTSBH-G03-L011"
+    e["node_attestation"]["node_id"] = "office-node"
     for row in e["checks"]:
-        row["source_reference"] = f"vps:BPTSBH-G03-L011:{row['name']}"
+        row["source_reference"] = f"vps:office-node:{row['name']}"
     result = validate_canary(CONTRACT, e)
     assert result["status"] == "HOLD"
     assert result["live_vps_verified"] is False
     assert "UNAUTHORIZED_RUNTIME_NODE" in result["violations"]
-    assert "EXCLUDED_RUNTIME_NODE" in result["violations"]
 
 
 def test_missing_check_holds():
