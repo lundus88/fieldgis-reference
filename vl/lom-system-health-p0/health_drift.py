@@ -60,6 +60,19 @@ class ProjectObservation:
 
 
 @dataclass(frozen=True)
+class OperationalHealthObservation:
+    observed_at_epoch: int
+    max_age_seconds: int
+    awaiting_approval_runs: int
+    pending_approvals: int
+    queued_release_validation_jobs: int
+    cert_health_status: str
+    cert_health_updated_at_epoch: int
+    max_cert_health_age_seconds: int
+    evidence_refs: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class RegressionResult:
     project_id: str
     journey_id: str
@@ -285,6 +298,74 @@ def _hold(project_id: str, reason: str) -> dict[str, Any]:
         "production_authority": "HUMAN_ONLY",
         "protected_main_merge": "HUMAN_ONLY",
         "production_mutation": "DISABLED",
+    }
+    return {**body, "assessment_digest": digest(body)}
+
+
+def assess_operational_health(observation: OperationalHealthObservation, *, now_epoch: int) -> dict[str, Any]:
+    """Fail-closed operational debt and certification-freshness assessment.
+
+    This is observational only. It never expires approvals, mutates queues, or refreshes
+    certification state. Those remain governed actions outside this health classifier.
+    """
+    if observation.max_age_seconds <= 0 or observation.observed_at_epoch <= 0:
+        return _hold("lom-core", "OPERATIONAL_OBSERVATION_TIME_INVALID")
+    if observation.observed_at_epoch > now_epoch:
+        return _hold("lom-core", "OPERATIONAL_OBSERVATION_FROM_FUTURE")
+    if now_epoch - observation.observed_at_epoch > observation.max_age_seconds:
+        return _hold("lom-core", "OPERATIONAL_OBSERVATION_STALE")
+    if not observation.evidence_refs:
+        return _hold("lom-core", "OPERATIONAL_EVIDENCE_REFS_REQUIRED")
+    counters = (
+        observation.awaiting_approval_runs,
+        observation.pending_approvals,
+        observation.queued_release_validation_jobs,
+    )
+    if any((not isinstance(value, int) or value < 0) for value in counters):
+        return _hold("lom-core", "OPERATIONAL_COUNTER_INVALID")
+    if observation.max_cert_health_age_seconds <= 0 or observation.cert_health_updated_at_epoch <= 0:
+        return _hold("lom-core", "CERT_HEALTH_TIME_INVALID")
+    if observation.cert_health_updated_at_epoch > now_epoch:
+        return _hold("lom-core", "CERT_HEALTH_FROM_FUTURE")
+
+    status = "HEALTHY"
+    reasons: list[str] = []
+
+    cert_age = now_epoch - observation.cert_health_updated_at_epoch
+    if cert_age > observation.max_cert_health_age_seconds:
+        status = _status_max(status, "HOLD")
+        reasons.append("CERT_HEALTH_STALE")
+    elif observation.cert_health_status.lower() != "ok":
+        status = _status_max(status, "ACTION_REQUIRED")
+        reasons.append("CERT_HEALTH_NOT_OK")
+
+    if observation.queued_release_validation_jobs > 0:
+        status = _status_max(status, "HOLD")
+        reasons.append("RELEASE_VALIDATION_QUEUE_NOT_EMPTY")
+    if observation.awaiting_approval_runs > 0:
+        status = _status_max(status, "DEGRADED")
+        reasons.append("AWAITING_APPROVAL_BACKLOG")
+    if observation.pending_approvals > 0:
+        status = _status_max(status, "DEGRADED")
+        reasons.append("PENDING_APPROVAL_BACKLOG")
+
+    body = {
+        "schema": "lom.operational-health/1",
+        "project_id": "lom-core",
+        "status": status,
+        "reasons": sorted(set(reasons)) if reasons else ["OPERATIONAL_SIGNALS_HEALTHY"],
+        "awaiting_approval_runs": observation.awaiting_approval_runs,
+        "pending_approvals": observation.pending_approvals,
+        "queued_release_validation_jobs": observation.queued_release_validation_jobs,
+        "cert_health_status": observation.cert_health_status,
+        "cert_health_updated_at_epoch": observation.cert_health_updated_at_epoch,
+        "cert_health_age_seconds": cert_age,
+        "observed_at_epoch": observation.observed_at_epoch,
+        "fresh_until_epoch": observation.observed_at_epoch + observation.max_age_seconds,
+        "evidence_refs": sorted(set(observation.evidence_refs)),
+        "automatic_disposition": "DISABLED",
+        "production_authority": "HUMAN_ONLY",
+        "protected_main_merge": "HUMAN_ONLY",
     }
     return {**body, "assessment_digest": digest(body)}
 
