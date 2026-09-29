@@ -3,7 +3,7 @@ import unittest
 from engine import (
     FundingAllocation, WorkerProfile, Task, QAResult,
     qa_decision, transition_task, create_payable_entitlement,
-    reputation_delta, evaluate_scale_gate,
+    worker_reputation_evidence, evaluate_scale_gate,
 )
 
 def passing_qa():
@@ -100,9 +100,21 @@ class TestEconomicParticipation(unittest.TestCase):
         self.assertEqual(r["decision"],"DENY")
         self.assertEqual(self.task.status,"PAID")
 
-    def test_reputation_is_bounded(self):
-        self.assertEqual(reputation_delta(accepted=True,revision_count=0,integrity_event=False,on_time=True),5)
-        self.assertLess(reputation_delta(accepted=False,revision_count=2,integrity_event=True,on_time=False),0)
+    def test_reputation_emits_evidence_not_aggregate_score(self):
+        events = worker_reputation_evidence(
+            worker_id="worker-1",
+            task_id="task-1",
+            accepted=True,
+            revision_count=1,
+            integrity_event=False,
+            on_time=True,
+            source_event_id="evt-accept-1",
+            evidence_ref="evidence://task/1",
+        )
+        self.assertGreaterEqual(len(events), 3)
+        self.assertTrue(all(e["consumer"] == "LOM Trust" for e in events))
+        self.assertTrue(all(e["authoritative_aggregate"] is False for e in events))
+        self.assertTrue(all("global_score" not in e and "delta" not in e for e in events))
 
     def test_shadow_scale_gate(self):
         metrics={
