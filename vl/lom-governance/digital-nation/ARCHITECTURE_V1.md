@@ -292,3 +292,33 @@ DEFINED → TESTED → PREVIEW_PROVEN → PILOT_PROVEN → PRODUCTION_PROVEN
 CI PASS may advance a component to TESTED, but never by itself to PILOT_PROVEN or PRODUCTION_PROVEN.
 
 Detailed mapping: `ADVANCED_SOCIETY_FUNDAMENTALS_V1.md` and `ADVANCED_SOCIETY_IMPLEMENTATION_MATRIX_V1.md`.
+
+
+## 14. Best-of-World benchmark intake
+
+External national/institutional practices enter LOM through the governed benchmark path:
+
+```text
+World evidence
+→ Global Nation Benchmark Matrix
+→ HVAE
+→ duplication/compatibility/risk review
+→ security/legal/economic/governance review
+→ existing LOM owner
+→ Preview/Pilot evidence
+→ measured improvement
+```
+
+Rules:
+- benchmark capabilities, not whole countries;
+- no overall country ranking or political-system winner;
+- user-nominated country strengths remain hypotheses until verified;
+- record source, period, scope, limitations and trade-offs;
+- prefer adaptation through existing capabilities;
+- production remains a separate human gate.
+
+Canonical references:
+- `BEST_OF_WORLD_ARCHITECTURE_V1.md`
+- `GLOBAL_NATION_BENCHMARK_MATRIX_V1.md`
+- `global-nation-benchmark-v1.json`
+- `benchmark-source-registry-v1.json`
