@@ -1,0 +1,197 @@
+{
+  "schema": "lom.digital-nation.society-essentials/1",
+  "status": "DRAFT_NON_PRODUCTION",
+  "updated_at": "2026-09-29",
+  "policy": "COMPOSE_EXISTING_CAPABILITIES_FIRST",
+  "capabilities": [
+    {
+      "id": "world_search_navigation",
+      "priority": "P0",
+      "owner": "LOM Core",
+      "reuse": [
+        "search",
+        "capability registry",
+        "market",
+        "education",
+        "opportunity"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "world_directory_places",
+      "priority": "P0",
+      "owner": "LOM Virtual World",
+      "reuse": [
+        "virtual spaces",
+        "business registry",
+        "market",
+        "education"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "member_service_center",
+      "priority": "P0",
+      "owner": "LOM Core",
+      "reuse": [
+        "support",
+        "UrusMY",
+        "LOM Trust",
+        "domain routers"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "privacy_data_control_center",
+      "priority": "P0",
+      "owner": "LOM Core",
+      "reuse": [
+        "identity",
+        "consent",
+        "security",
+        "audit"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "accessibility_language_layer",
+      "priority": "P0",
+      "owner": "LOM Experience",
+      "reuse": [
+        "shared UI",
+        "localization",
+        "content adapters"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "safety_incident_resilience_center",
+      "priority": "P0",
+      "owner": "LOM Trust / SRE",
+      "reuse": [
+        "security",
+        "observability",
+        "recovery",
+        "trust"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "personal_home_dashboard",
+      "priority": "P0",
+      "owner": "LOM Experience",
+      "reuse": [
+        "identity",
+        "events",
+        "market",
+        "education",
+        "opportunity",
+        "commerce"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "community_groups",
+      "priority": "P1",
+      "owner": "LOM Community",
+      "reuse": [
+        "identity",
+        "roles",
+        "communications",
+        "trust"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "events_calendar",
+      "priority": "P1",
+      "owner": "LOM Experience",
+      "reuse": [
+        "notifications",
+        "calendar adapters",
+        "community",
+        "education"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "household_team_org_relationships",
+      "priority": "P1",
+      "owner": "LOM Core Identity",
+      "reuse": [
+        "identity",
+        "organization membership",
+        "authority"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "member_voice_transparency",
+      "priority": "P1",
+      "owner": "LOM Core Governance",
+      "reuse": [
+        "feedback",
+        "audit",
+        "appeals",
+        "policy registry"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "culture_media_creator_hub",
+      "priority": "P1",
+      "owner": "LD Content / Commerce",
+      "reuse": [
+        "content pipeline",
+        "creator economy",
+        "market",
+        "trust"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "developer_partner_platform",
+      "priority": "P2",
+      "owner": "LOM Platform",
+      "reuse": [
+        "API contracts",
+        "adapters",
+        "webhooks",
+        "capability registry"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "data_portability_interoperability",
+      "priority": "P2",
+      "owner": "LOM Platform",
+      "reuse": [
+        "stable IDs",
+        "evidence lineage",
+        "export adapters",
+        "contracts"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "verified_world_announcements",
+      "priority": "P2",
+      "owner": "LOM Core",
+      "reuse": [
+        "communications",
+        "provenance",
+        "notifications"
+      ],
+      "new_engine": false
+    }
+  ],
+  "governance_invariants": [
+    "Founder-led governance remains unchanged.",
+    "Member feedback and proposals are consultative unless explicitly granted another bounded platform role.",
+    "No relationship, group or community role silently grants financial or identity authority.",
+    "Private data is not searchable or shared by default.",
+    "Official platform announcements must be distinguishable from member content.",
+    "Production activation remains separately human-gated."
+  ],
+  "production_activation_authorized": false
+}
