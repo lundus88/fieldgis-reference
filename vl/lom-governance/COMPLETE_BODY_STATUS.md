@@ -70,7 +70,7 @@ HOLD or HUMAN_REVIEW is mandatory when:
 
 ## Runtime boundary
 
-The canonical execution host policy is `VPS_ONLY` on node `v103067`. `BPTSBH-G03-L011` and office workstations are excluded from the operational dependency graph. No runtime fallback to an office workstation is permitted.
+The canonical execution host policy is `VPS_ONLY` on node `v103067`. Office workstations are excluded from the operational dependency graph. No runtime fallback to an office workstation is permitted.
 
 ## Remaining blocker
 
