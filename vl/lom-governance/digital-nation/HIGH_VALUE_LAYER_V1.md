@@ -16,6 +16,33 @@ No capability in this layer may create a duplicate CRM, LMS, payment processor, 
 
 ## High-Value Capabilities
 
+### 0. LOM Market
+The unified market surface of LOM Virtual World.
+
+It combines:
+- services;
+- work/gigs;
+- digital goods/IP;
+- B2B demand/supply;
+- virtual assets.
+
+Canonical owner: LD Commerce, with LOM Trust owning disputes/reputation boundaries and LOM Core owning policy/authority.
+
+P0 front door:
+- Hire a Service
+- Find Work
+- Buy Digital Products
+- Start / Grow a Business
+
+High value:
+- creates one visible economic center for the Virtual World;
+- increases buyer/seller liquidity;
+- connects learning, work, business and commerce;
+- gives the Golden World Transaction a real customer-facing destination.
+
+It reuses existing marketplace, commerce, payment, opportunity and trust capabilities and must not become a duplicate commerce engine.
+
+
 ### 1. Member Economic Passport
 A private platform profile that combines:
 - LOM Member ID;
@@ -274,13 +301,14 @@ It must not expose private member data or fabricate economic statistics.
 ## Priority
 
 ### P0 — prove useful economic life
-1. Member Economic Passport
-2. Skill-to-Income Graph
-3. Opportunity Exchange
-4. Business-in-a-Box
-5. Evidence Wallet
-6. Trust Passport
-7. Golden World Transaction
+1. LOM Market
+2. Member Economic Passport
+3. Skill-to-Income Graph
+4. Opportunity Exchange
+5. Business-in-a-Box
+6. Evidence Wallet
+7. Trust Passport
+8. Golden World Transaction
 
 ### P1 — build network effects
 8. AI Personal Economic Agent
