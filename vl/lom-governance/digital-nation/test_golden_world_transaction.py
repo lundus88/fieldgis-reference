@@ -1,3 +1,5 @@
+import unittest
+
 from golden_world_transaction import preview_summary, validate_golden_world_transaction
 
 
@@ -19,7 +21,7 @@ def _event(n, event_type, **extra):
 
 
 def _valid():
-    seq = [
+    return [
         _event(1, "member.registered"),
         _event(2, "member.identity_verified", assurance_level="P0"),
         _event(3, "skill.signal_verified", skill_id="skill_001", verification_method="fixture"),
@@ -52,52 +54,51 @@ def _valid():
         _event(11, "reputation.updated", member_id="member_001", reputation_event_id="rep_001", reason_code="DELIVERY_ACCEPTED"),
         _event(12, "referral.attributed", order_id="order_001", referrer_id="member_002", attribution_rule="fixture-v1"),
     ]
-    return seq
 
 
-def test_valid_golden_world_transaction_allows():
-    result = validate_golden_world_transaction(_valid())
-    assert result.decision == "ALLOW"
-    assert result.reasons == []
+class GoldenWorldTransactionTests(unittest.TestCase):
+    def test_valid_golden_world_transaction_allows(self):
+        result = validate_golden_world_transaction(_valid())
+        self.assertEqual(result.decision, "ALLOW")
+        self.assertEqual(result.reasons, [])
+
+    def test_payment_user_assertion_fails_closed(self):
+        events = _valid()
+        events[6]["evidence_source"] = "user_assertion"
+        result = validate_golden_world_transaction(events)
+        self.assertEqual(result.decision, "DENY")
+        self.assertTrue(any("INVALID_PAYMENT_EVIDENCE_SOURCE" in r for r in result.reasons))
+
+    def test_earning_before_acceptance_fails_closed(self):
+        events = _valid()
+        earning = events.pop(9)
+        events.insert(8, earning)
+        result = validate_golden_world_transaction(events)
+        self.assertEqual(result.decision, "DENY")
+        self.assertIn("EARNING_BEFORE_ACCEPTANCE", result.reasons)
+
+    def test_prohibited_sovereign_claim_fails_closed(self):
+        events = _valid()
+        events[0]["authority_context"]["claims"] = ["government_authority"]
+        result = validate_golden_world_transaction(events)
+        self.assertEqual(result.decision, "DENY")
+        self.assertTrue(any("PROHIBITED_AUTHORITY_CLAIM" in r for r in result.reasons))
+
+    def test_consequential_event_requires_authority(self):
+        events = _valid()
+        events[9]["authority_context"]["decision"] = "AUTO_UNBOUNDED"
+        result = validate_golden_world_transaction(events)
+        self.assertEqual(result.decision, "DENY")
+        self.assertTrue(any("CONSEQUENTIAL_AUTHORITY_NOT_APPROVED" in r for r in result.reasons))
+
+    def test_preview_summary_never_grants_production_execution(self):
+        summary = preview_summary(_valid())
+        self.assertEqual(summary["decision"], "ALLOW")
+        self.assertEqual(summary["mode"], "PREVIEW_SYNTHETIC_ONLY")
+        self.assertFalse(summary["production_authority"])
+        self.assertFalse(summary["payment_execution"])
+        self.assertFalse(summary["payout_execution"])
 
 
-def test_payment_user_assertion_fails_closed():
-    events = _valid()
-    events[6]["evidence_source"] = "user_assertion"
-    result = validate_golden_world_transaction(events)
-    assert result.decision == "DENY"
-    assert any("INVALID_PAYMENT_EVIDENCE_SOURCE" in r for r in result.reasons)
-
-
-def test_earning_before_acceptance_fails_closed():
-    events = _valid()
-    earning = events.pop(9)
-    events.insert(8, earning)
-    result = validate_golden_world_transaction(events)
-    assert result.decision == "DENY"
-    assert "EARNING_BEFORE_ACCEPTANCE" in result.reasons
-
-
-def test_prohibited_sovereign_claim_fails_closed():
-    events = _valid()
-    events[0]["authority_context"]["claims"] = ["government_authority"]
-    result = validate_golden_world_transaction(events)
-    assert result.decision == "DENY"
-    assert any("PROHIBITED_AUTHORITY_CLAIM" in r for r in result.reasons)
-
-
-def test_consequential_event_requires_authority():
-    events = _valid()
-    events[9]["authority_context"]["decision"] = "AUTO_UNBOUNDED"
-    result = validate_golden_world_transaction(events)
-    assert result.decision == "DENY"
-    assert any("CONSEQUENTIAL_AUTHORITY_NOT_APPROVED" in r for r in result.reasons)
-
-
-def test_preview_summary_never_grants_production_execution():
-    summary = preview_summary(_valid())
-    assert summary["decision"] == "ALLOW"
-    assert summary["mode"] == "PREVIEW_SYNTHETIC_ONLY"
-    assert summary["production_authority"] is False
-    assert summary["payment_execution"] is False
-    assert summary["payout_execution"] is False
+if __name__ == "__main__":
+    unittest.main()
