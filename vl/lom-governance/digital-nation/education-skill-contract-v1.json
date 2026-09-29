@@ -1,0 +1,25 @@
+{
+  "schema": "lom.digital-nation.education-skill-adapter/1",
+  "status": "DRAFT_NON_PRODUCTION",
+  "owner": "LOM Education",
+  "role": "Authoritative Preview adapter for evidence-backed learning/skill signals used by Digital Nation",
+  "accepted_signal_status": [
+    "SELF_REPORTED",
+    "OBSERVED",
+    "VERIFIED"
+  ],
+  "verified_methods": [
+    "ASSESSMENT",
+    "HUMAN_REVIEW",
+    "SIGNED_PROVIDER_ASSERTION",
+    "DETERMINISTIC_RULE"
+  ],
+  "invariants": [
+    "Self-report alone never becomes VERIFIED.",
+    "A VERIFIED signal requires evidence_ref and a non-self-asserted verification method.",
+    "The adapter records skill evidence; it does not issue statutory professional licences.",
+    "Skill evidence is separable from identity and public reputation.",
+    "Production activation remains separately human-gated."
+  ],
+  "production_activation_authorized": false
+}
