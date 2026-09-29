@@ -209,3 +209,29 @@ Canonical operating doctrine:
 **Digital-First + AI-Native + Automation-First + Human-Centred + Evidence-Based + Secure + Auditable + Scalable**
 
 Detailed mapping and evidence maturity are defined in `ADVANCED_SOCIETY_FUNDAMENTALS_V1.md`.
+
+
+## 17. Best-of-World Architecture
+
+LOM Virtual Nation will not copy any one country as a complete model.
+
+Its official comparative-development principle is **BEST-OF-WORLD ARCHITECTURE**:
+
+**Learn from everyone. Copy no one blindly. Keep what works. Reject what fails. Integrate what creates value. Improve continuously.**
+
+External national/institutional practices must enter through the governed sequence:
+
+**Global Benchmark → Extract Fundamental → Evidence Check → Trade-off Review → Duplication Check → LOM Adaptation → Security Review → Legal Review → Economic Review → Governance Review → Integrate/Pilot → Measure → Improve**
+
+Every candidate must be assessed for:
+
+**Evidence + Compatibility + Risk + Value + Scalability + Auditability**
+
+Country prestige, popularity or a single index is never sufficient authority for adoption. LOM benchmarks specific capabilities, not whole political systems or countries.
+
+The canonical research instrument is the **LOM Global Nation Benchmark Matrix**, which may compare 20–30 economies across 30+ capability dimensions while prohibiting an overall country ranking, political-system winner or whole-country copy decision.
+
+Detailed controls:
+- `BEST_OF_WORLD_ARCHITECTURE_V1.md`
+- `GLOBAL_NATION_BENCHMARK_MATRIX_V1.md`
+- `global-nation-benchmark-v1.json`
