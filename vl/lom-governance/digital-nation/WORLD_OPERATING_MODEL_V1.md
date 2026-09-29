@@ -44,7 +44,7 @@ LOM Virtual World is not a sovereign country, government, central bank, court of
 | Courts | Platform dispute resolution / arbitration workflow, not state judiciary |
 | Police / enforcement | Trust & Safety / policy enforcement |
 | Parliament / civic governance | Community governance and policy consultation |
-| Elections | Platform governance voting where appropriate, not governmental elections |
+| Elections | No governing-power elections; member consultation/proposals only |
 | Central statistics | LOM Economic & Society Analytics |
 | Social support | Community support / grants / opportunity access |
 | Foreign trade | Global marketplace and partner network |
@@ -126,7 +126,7 @@ LOM never claims access to government databases unless an authorized integration
 - policy
 - community proposals
 - consultation
-- bounded platform voting
+- member consultation / proposals / petitions (non-binding)
 - human authority gates
 - audit
 - appeals
@@ -216,17 +216,26 @@ A crypto/token economy is not part of P0. It requires a separate legal, financia
 
 ## 7. Governance model
 
+LOM Virtual World is a **Founder-Led Constitutional Platform**.
+
+The Founder is the final strategic human authority. The active Charter and versioned policy system define how that authority is exercised operationally. No person or AI may silently bypass active rules, evidence requirements, audit controls or required human gates.
+
+There are no elections or binding member votes that determine governing power. Members may submit proposals, feedback, petitions and appeals through consultative channels.
+
 LOM Core remains the constitutional control plane.
 
 Authority hierarchy:
 1. applicable law;
 2. platform charter;
-3. security / trust policy;
-4. human authority gates;
-5. service/domain policy;
-6. automated execution within granted authority.
+3. Founder / delegated human authority within the Charter;
+4. security / trust policy;
+5. human authority gates;
+6. service/domain policy;
+7. automated execution within granted authority.
 
-AI may recommend, classify, route and execute bounded actions. AI may not grant itself authority, redefine the charter, create money, impose real taxes, issue statutory licences or create real-world legal title.
+AI may recommend, classify, route and execute bounded actions. AI may not grant itself authority, redefine the charter, appoint itself as successor, create money, impose real taxes, issue statutory licences or create real-world legal title.
+
+Succession and emergency delegation must be explicit, bounded, revocable and audited.
 
 ## 8. P0 — Virtual World Minimum Viable Society
 
@@ -294,3 +303,19 @@ Multi-language, multi-currency, cross-border commerce, partner ecosystems, regul
 LOM Virtual World should feel like a functioning society, but every legal boundary must remain explicit:
 
 **Digital society — real economic activity — real trust — real evidence — no false sovereignty.**
+
+
+## 11. Advanced society doctrine
+
+LOM Virtual World is designed around twelve fundamentals:
+Rule of Law & Institutions; Productive Economy; Financial & Capital System; Education & Human Capital; Science/Technology/Innovation; Infrastructure; Administrative Capacity; Security & Resilience; Health/Wellbeing/Social Protection; Financial Management; Global Economic Relations; Continuous Improvement.
+
+Operating doctrine:
+
+**Digital-First + AI-Native + Automation-First + Human-Centred + Evidence-Based + Secure + Auditable + Scalable**
+
+Member prosperity journey:
+
+**Join → Learn → Work → Earn → Hold lawful/platform assets → Build Business → Access regulated capital channels where available → Create Value → Contribute → Prosper**
+
+No financial, property, citizenship or institutional term in this journey overrides real-world law or creates regulated authority by itself.
