@@ -297,14 +297,73 @@ def create_payable_entitlement(task: Task, funding: FundingAllocation) -> Earnin
         funding_id=funding.funding_id,
     )
 
-def reputation_delta(*, accepted: bool, revision_count: int, integrity_event: bool, on_time: bool) -> int:
-    delta = 0
-    delta += 4 if accepted else -2
-    delta += 1 if on_time else -1
-    delta -= min(revision_count, 2)
+def worker_reputation_evidence(
+    *,
+    worker_id: str,
+    task_id: str,
+    accepted: bool,
+    revision_count: int,
+    integrity_event: bool,
+    on_time: bool,
+    source_event_id: str,
+    evidence_ref: str,
+) -> List[Dict]:
+    """Emit bounded evidence for the authoritative LOM Trust reputation owner.
+
+    This capability does not calculate or own an aggregate reputation score.
+    """
+    if not source_event_id or not evidence_ref:
+        raise ValueError("REPUTATION_EVIDENCE_REQUIRED")
+
+    events = [
+        {
+            "member_id": worker_id,
+            "task_id": task_id,
+            "dimension": "DELIVERY_RELIABILITY",
+            "reason_code": "DELIVERY_ACCEPTED" if accepted else "DELIVERY_NOT_ACCEPTED",
+            "signal": "POSITIVE" if accepted else "ADVERSE",
+            "evidence_ref": evidence_ref,
+            "source_event_id": source_event_id,
+            "consumer": "LOM Trust",
+            "authoritative_aggregate": False,
+        },
+        {
+            "member_id": worker_id,
+            "task_id": task_id,
+            "dimension": "DELIVERY_RELIABILITY",
+            "reason_code": "ON_TIME" if on_time else "LATE",
+            "signal": "POSITIVE" if on_time else "ADVERSE",
+            "evidence_ref": evidence_ref,
+            "source_event_id": source_event_id,
+            "consumer": "LOM Trust",
+            "authoritative_aggregate": False,
+        },
+        {
+            "member_id": worker_id,
+            "task_id": task_id,
+            "dimension": "DELIVERY_RELIABILITY",
+            "reason_code": "REVISION_COUNT",
+            "signal": "OBSERVATION",
+            "value": min(max(revision_count, 0), 2),
+            "evidence_ref": evidence_ref,
+            "source_event_id": source_event_id,
+            "consumer": "LOM Trust",
+            "authoritative_aggregate": False,
+        },
+    ]
     if integrity_event:
-        delta -= 10
-    return delta
+        events.append({
+            "member_id": worker_id,
+            "task_id": task_id,
+            "dimension": "POLICY_COMPLIANCE",
+            "reason_code": "INTEGRITY_REVIEW_REQUIRED",
+            "signal": "REVIEW_REQUIRED",
+            "evidence_ref": evidence_ref,
+            "source_event_id": source_event_id,
+            "consumer": "LOM Trust",
+            "authoritative_aggregate": False,
+        })
+    return events
 
 def evaluate_scale_gate(metrics: Dict) -> Dict:
     required = {
