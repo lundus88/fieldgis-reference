@@ -3,30 +3,38 @@
 Status: DRAFT / NON-PRODUCTION  
 Date: 2026-09-29
 
-The first binding audit intentionally distinguishes **existing reusable capability** from **unproven or unresolved capability**.
+The binding audit distinguishes **existing reusable capability**, **new thin Preview adapters**, and **unmerged dependencies**.
 
 | Binding | Status | Current evidence |
 |---|---|---|
 | Identity / authority | BOUND_PREVIEW | Existing ACP authority model on `main` |
 | Business registry / entitlement | BOUND_PREVIEW | Existing LD Business Engine foundation on `main` |
-| Payment confirmation | BOUND_PREVIEW | Existing payment gateway contract on `main`; provider still unbound |
+| Payment confirmation | BOUND_PREVIEW | Existing payment gateway contract on `main`; provider remains non-Production |
 | Affiliate / referral | BOUND_PREVIEW | Existing LD affiliate contract on `main` |
-| Economic participation | HOLD_PENDING_DEPENDENCY | PR #425 is open; not treated as merged capability |
-| Education / skill graph | HOLD_UNRESOLVED_OWNER | No authoritative runtime owner proven in inspected repos |
-| Reputation runtime | HOLD_UNRESOLVED_OWNER | Event contract exists, runtime owner not yet proven |
-| Dispute workflow | PARTIAL_PREVIEW | Existing fraud/dispute controls are reusable but incomplete |
+| Economic participation | HOLD_PENDING_DEPENDENCY | PR #425 remains separate and unmerged |
+| Education / skill signal | BOUND_PREVIEW | LOM Education thin evidence adapter established in PR #428 |
+| Reputation | BOUND_PREVIEW | LOM Trust evidence-backed dimensional reputation adapter established in PR #428 |
+| Dispute workflow | BOUND_PREVIEW | LOM Trust thin adapter composes existing LD trust/refund controls |
 
 ## Decision
 
-**P0 integration remains HOLD for full Golden World execution.**
+**The Digital Nation adapter layer is structurally ready except for Economic Participation.**
 
-This is a healthy hold: it prevents the architecture from claiming capabilities that are not yet proven.
+Full Golden World execution remains **HOLD** until the Economic Participation dependency is legitimately available. The hold is intentional: PR #425 is not treated as merged or Production-ready merely to make Digital Nation appear complete.
 
-## Next actions
+## Resolved in this iteration
 
-1. Keep PR #425 separate; do not merge it merely to satisfy Digital Nation.
-2. Establish an authoritative owner for Education/Skill signals.
-3. Establish an authoritative owner for evidence-backed Reputation.
-4. Define the thin dispute adapter that composes existing LD trust/refund/fraud controls.
-5. Once those gaps are resolved, rerun binding guard and Golden World CI.
-6. Only then build a Preview end-to-end journey. Production remains separately human-gated.
+- Education/Skill now has an explicit Preview owner without creating a second LMS.
+- Verified skill signals cannot be created from self-report alone.
+- Reputation now has an explicit Preview owner and uses evidence-backed dimensions rather than a single opaque human score.
+- Dispute handling now has a thin composed workflow with evidence, human review and appeal boundaries.
+- None of these adapters grants Production authority.
+
+## Next gate
+
+1. Validate exact-head CI for the new adapters.
+2. Keep PR #425 independent and review it on its own merits.
+3. When Economic Participation becomes an approved dependency, update its binding only after exact-main evidence exists.
+4. Run the complete **Golden World Journey Preview**.
+5. Review privacy, security, commercial and financial boundaries.
+6. Keep Production activation as a separate explicit human decision.
