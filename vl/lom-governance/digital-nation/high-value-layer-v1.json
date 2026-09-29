@@ -256,6 +256,88 @@
         "capability registry"
       ],
       "new_engine": false
+    },
+    {
+      "id": "continuity_succession_protocol",
+      "priority": "P0",
+      "owner": "Founder + LOM Core Governance",
+      "reuse": [
+        "authority grants",
+        "human gates",
+        "audit"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "critical_digital_infrastructure",
+      "priority": "P0",
+      "owner": "LOM Platform / SRE",
+      "reuse": [
+        "VPS execution",
+        "observability",
+        "security",
+        "recovery"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "integrity_inspector",
+      "priority": "P0",
+      "owner": "Independent QA / Governance",
+      "reuse": [
+        "audit",
+        "evidence",
+        "financial controls",
+        "security"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "records_archives_memory",
+      "priority": "P0",
+      "owner": "LOM Knowledge / Evidence",
+      "reuse": [
+        "evidence lineage",
+        "audit",
+        "knowledge foundation"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "member_rights_ombuds",
+      "priority": "P0",
+      "owner": "LOM Governance",
+      "reuse": [
+        "support",
+        "appeals",
+        "audit",
+        "trust"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "research_science_innovation",
+      "priority": "P1",
+      "owner": "LOM R&D",
+      "reuse": [
+        "HVAE",
+        "Product Factory",
+        "QA",
+        "knowledge foundation"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "procurement_vendor_system",
+      "priority": "P1",
+      "owner": "LOM Operations / Finance",
+      "reuse": [
+        "treasury",
+        "vendor adapters",
+        "audit",
+        "human approval"
+      ],
+      "new_engine": false
     }
   ],
   "forbidden": [
