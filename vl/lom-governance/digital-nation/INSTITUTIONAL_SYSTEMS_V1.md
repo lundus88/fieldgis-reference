@@ -298,3 +298,84 @@ P0 market entry points:
 4. Start / Grow a Business
 
 LOM Market is a commerce surface and orchestration layer, not a second payment, CRM, accounting, reputation or dispute engine.
+
+
+### P. LOM World Search & Navigation
+Purpose:
+- provide universal search across public/authorized people, businesses, services, work, learning, products, events and virtual places;
+- preserve permissions and privacy;
+- route users directly to useful actions.
+
+### Q. LOM Privacy & Data Control Center
+Purpose:
+- consent and profile visibility;
+- connected-service permissions;
+- evidence-sharing controls;
+- session/device review;
+- supported data export/account closure workflows;
+- privacy explanations and audit references.
+
+Private data is not searchable or public by default.
+
+### R. LOM Community & Groups
+Purpose:
+- professional, learning, creator, business, project and interest communities;
+- role-based moderation;
+- member reporting and trust controls;
+- public/private visibility.
+
+Community roles do not automatically grant platform governance, financial or identity authority.
+
+### S. LOM Events & Calendar
+Purpose:
+- classes, workshops, launches, community events, appointments, milestones and deadlines;
+- event discovery;
+- notifications and reminders through existing adapters.
+
+### T. LOM Member Service Center
+Purpose:
+- support;
+- account/security recovery routing;
+- order/transaction status;
+- dispute entry;
+- procedure help;
+- routing to UrusMY and domain systems.
+
+### U. LOM Member Voice & Transparency Center
+Purpose:
+- suggestions, feedback and non-binding proposals;
+- policy/change logs;
+- explanations of material platform decisions;
+- appeal routing.
+
+Founder-led governance remains unchanged; this is a consultative transparency surface, not an electoral legislature.
+
+### V. LOM Culture, Media & Creator Hub
+Purpose:
+- creator showcases;
+- educational/media content;
+- digital exhibitions and events;
+- lawful monetization through LD Commerce;
+- provenance and rights evidence.
+
+### W. LOM Developer & Partner Platform
+Purpose:
+- APIs;
+- adapters;
+- webhooks;
+- partner integrations;
+- sandbox contracts;
+- scoped permissions and auditability.
+
+No partner integration may bypass LOM policy or authority boundaries.
+
+### X. LOM Safety, Incident & Resilience Center
+Purpose:
+- account compromise;
+- fraud/payment concerns;
+- abuse reports;
+- service outages;
+- recovery status;
+- verified security notices.
+
+Composes LOM Trust, Security, Observability and Recovery capabilities.
