@@ -376,3 +376,14 @@ For a country-scale virtual society, high-value architecture must include more t
 - **Procurement & Vendor Governance** — controlled acquisition with budget, conflict, contract and delivery evidence.
 
 Detailed design: `STRATEGIC_SOCIETY_INSTITUTIONS_V1.md`.
+
+
+## Best-of-World intake
+
+High-value external practices are not copied directly. They enter through the **LOM Global Nation Benchmark Matrix** and existing HVAE path.
+
+Required sequence:
+
+**Benchmark → Evidence → Trade-offs → Duplication → Compatibility → Security/Legal/Economic/Governance Review → Adapt → Pilot → Measure → Improve**
+
+Country-level prestige or popularity is never sufficient evidence. No overall country ranking is produced; only capability-level patterns may progress to REFERENCE_ONLY, PILOT, ABSORB or REJECT.
