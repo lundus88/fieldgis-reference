@@ -1,0 +1,273 @@
+{
+  "schema": "lom.digital-nation.event-registry/1",
+  "status": "DRAFT_NON_PRODUCTION",
+  "version": "1.0.0",
+  "principles": [
+    "reuse_existing_engines",
+    "evidence_before_action",
+    "least_privilege",
+    "human_gate_for_consequential_actions",
+    "no_false_sovereignty",
+    "no_unlicensed_banking",
+    "auditable_state_transitions"
+  ],
+  "entities": [
+    {
+      "id": "member",
+      "key": "member_id",
+      "owner": "LOM Core"
+    },
+    {
+      "id": "business",
+      "key": "business_id",
+      "owner": "LD Business System"
+    },
+    {
+      "id": "skill_profile",
+      "key": "skill_profile_id",
+      "owner": "LOM Education"
+    },
+    {
+      "id": "opportunity",
+      "key": "opportunity_id",
+      "owner": "LundusLead / Economic Participation Network"
+    },
+    {
+      "id": "offer",
+      "key": "offer_id",
+      "owner": "LD Commerce"
+    },
+    {
+      "id": "order",
+      "key": "order_id",
+      "owner": "LD Commerce"
+    },
+    {
+      "id": "payment_reference",
+      "key": "payment_reference_id",
+      "owner": "Payment Adapter"
+    },
+    {
+      "id": "delivery",
+      "key": "delivery_id",
+      "owner": "LD Delivery"
+    },
+    {
+      "id": "acceptance",
+      "key": "acceptance_id",
+      "owner": "LD Commerce"
+    },
+    {
+      "id": "earning",
+      "key": "earning_id",
+      "owner": "Treasury Ledger"
+    },
+    {
+      "id": "reputation_event",
+      "key": "reputation_event_id",
+      "owner": "LOM Trust"
+    },
+    {
+      "id": "dispute",
+      "key": "dispute_id",
+      "owner": "LOM Trust Tribunal"
+    },
+    {
+      "id": "audit_event",
+      "key": "audit_event_id",
+      "owner": "LOM Core Audit"
+    }
+  ],
+  "events": [
+    {
+      "type": "member.registered",
+      "required": [
+        "event_id",
+        "occurred_at",
+        "member_id",
+        "actor_id",
+        "evidence_ref"
+      ],
+      "purpose": "Create a platform membership record."
+    },
+    {
+      "type": "member.identity_verified",
+      "required": [
+        "event_id",
+        "occurred_at",
+        "member_id",
+        "assurance_level",
+        "evidence_ref"
+      ],
+      "purpose": "Record bounded identity assurance; does not imply government identity issuance."
+    },
+    {
+      "type": "skill.signal_verified",
+      "required": [
+        "event_id",
+        "occurred_at",
+        "member_id",
+        "skill_id",
+        "verification_method",
+        "evidence_ref"
+      ],
+      "purpose": "Record a verified skill or learning signal."
+    },
+    {
+      "type": "opportunity.matched",
+      "required": [
+        "event_id",
+        "occurred_at",
+        "member_id",
+        "opportunity_id",
+        "match_basis"
+      ],
+      "purpose": "Record an explainable opportunity match."
+    },
+    {
+      "type": "business.registered",
+      "required": [
+        "event_id",
+        "occurred_at",
+        "business_id",
+        "owner_member_id",
+        "evidence_ref"
+      ],
+      "purpose": "Create a platform business profile only; not a statutory company registration."
+    },
+    {
+      "type": "offer.accepted",
+      "required": [
+        "event_id",
+        "occurred_at",
+        "offer_id",
+        "member_id",
+        "terms_ref"
+      ],
+      "purpose": "Record acceptance of platform commercial terms."
+    },
+    {
+      "type": "order.created",
+      "required": [
+        "event_id",
+        "occurred_at",
+        "order_id",
+        "buyer_id",
+        "seller_id",
+        "offer_id",
+        "amount",
+        "currency"
+      ],
+      "purpose": "Create the economic transaction intent."
+    },
+    {
+      "type": "payment.confirmed",
+      "required": [
+        "event_id",
+        "occurred_at",
+        "order_id",
+        "payment_reference_id",
+        "provider",
+        "amount",
+        "currency",
+        "evidence_ref"
+      ],
+      "purpose": "Record confirmation from a regulated or otherwise lawful payment rail."
+    },
+    {
+      "type": "delivery.submitted",
+      "required": [
+        "event_id",
+        "occurred_at",
+        "order_id",
+        "delivery_id",
+        "seller_id",
+        "evidence_ref"
+      ],
+      "purpose": "Record auditable delivery."
+    },
+    {
+      "type": "delivery.accepted",
+      "required": [
+        "event_id",
+        "occurred_at",
+        "order_id",
+        "acceptance_id",
+        "buyer_id",
+        "evidence_ref"
+      ],
+      "purpose": "Record buyer acceptance or governed acceptance policy."
+    },
+    {
+      "type": "earning.recorded",
+      "required": [
+        "event_id",
+        "occurred_at",
+        "order_id",
+        "earning_id",
+        "beneficiary_id",
+        "gross_amount",
+        "fees",
+        "net_amount",
+        "currency"
+      ],
+      "purpose": "Record platform earnings/commission ledger evidence."
+    },
+    {
+      "type": "reputation.updated",
+      "required": [
+        "event_id",
+        "occurred_at",
+        "member_id",
+        "reputation_event_id",
+        "reason_code",
+        "evidence_ref"
+      ],
+      "purpose": "Record bounded reputation evidence; never human-worth scoring."
+    },
+    {
+      "type": "referral.attributed",
+      "required": [
+        "event_id",
+        "occurred_at",
+        "order_id",
+        "referrer_id",
+        "attribution_rule",
+        "evidence_ref"
+      ],
+      "purpose": "Record affiliate/referral attribution."
+    },
+    {
+      "type": "dispute.opened",
+      "required": [
+        "event_id",
+        "occurred_at",
+        "dispute_id",
+        "order_id",
+        "opened_by",
+        "reason_code",
+        "evidence_ref"
+      ],
+      "purpose": "Open platform dispute resolution."
+    },
+    {
+      "type": "dispute.resolved",
+      "required": [
+        "event_id",
+        "occurred_at",
+        "dispute_id",
+        "resolution_code",
+        "decision_authority",
+        "evidence_ref"
+      ],
+      "purpose": "Record a platform dispute outcome and authority."
+    }
+  ],
+  "invariants": [
+    "No payment-confirmed event may be fabricated from user text alone.",
+    "No earning is final before payment evidence and applicable acceptance/refund policy.",
+    "No reputation update without an attributable reason and evidence.",
+    "No AI component may self-elevate authority.",
+    "No virtual-world record may be represented as statutory citizenship, banking, land title, court judgment or government licence."
+  ]
+}
