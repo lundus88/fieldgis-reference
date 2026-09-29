@@ -322,3 +322,51 @@ Canonical references:
 - `GLOBAL_NATION_BENCHMARK_MATRIX_V1.md`
 - `global-nation-benchmark-v1.json`
 - `benchmark-source-registry-v1.json`
+
+
+## 15. Foundational gap closure
+
+Before expanding more surface area, LOM Virtual World must close eight structural gaps:
+
+### P0
+- Persistent World State & Event Runtime
+- Economic Bootstrapping & Liquidity
+- Jurisdiction & Compliance Router
+- Delegated Authority & Permission Wallet
+
+### P1
+- Policy Lifecycle & Constitutional Change Control
+- Market Fairness & Economic Integrity
+- World Simulation & Synthetic Society Sandbox
+- Culture, Values & Social Cohesion
+
+Canonical integration:
+
+```text
+Identity
+→ Authority
+→ World State
+→ Learn
+→ Opportunity
+→ Market
+→ Transaction
+→ Delivery
+→ Trust
+→ Business
+→ Capital / Partner Access where lawful
+→ Community
+→ Analytics
+→ Improvement
+```
+
+Reuse bindings:
+- world state → Operational Twin World Model + canonical registries/event evidence;
+- jurisdiction → LD Global Commerce Readiness;
+- delegated authority → Agent Control Plane;
+- market fairness → LOM Trust + customer fraud/payment-abuse controls;
+- simulation → Golden World Preview + Operational Twin + CI;
+- liquidity → Market + LundusLead + Economic Participation + Education + Treasury.
+
+Detailed controls: `FOUNDATIONAL_GAPS_CLOSURE_V1.md`.
+
+Architectural priority now becomes **depth before breadth**: persistence, liquidity, jurisdiction, delegated authority, fairness and simulation must mature before major new feature families are added.
