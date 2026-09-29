@@ -28,6 +28,8 @@ if (root/"contract.json").exists():
         "one active payable entitlement",
         "Synthetic pilot evidence",
         "HUMAN_ONLY",
+        "LOM Trust owns reputation aggregation",
+        "dispute resolution remains owned by LOM Trust",
     ]:
         if phrase not in inv:
             errors.append(f"missing invariant: {phrase}")
