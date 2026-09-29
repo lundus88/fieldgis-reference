@@ -5,6 +5,19 @@
   "policy": "HIGH_VALUE_ONLY_REUSE_BEFORE_BUILD",
   "capabilities": [
     {
+      "id": "lom_market",
+      "priority": "P0",
+      "owner": "LD Commerce",
+      "reuse": [
+        "Golden Transaction",
+        "Marketplace",
+        "Payment Adapter",
+        "LOM Trust",
+        "LundusLead"
+      ],
+      "new_engine": false
+    },
+    {
       "id": "member_economic_passport",
       "priority": "P0",
       "owner": "LOM Core",
