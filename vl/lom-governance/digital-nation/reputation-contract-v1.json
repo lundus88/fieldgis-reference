@@ -1,0 +1,28 @@
+{
+  "schema": "lom.digital-nation.reputation-adapter/1",
+  "status": "DRAFT_NON_PRODUCTION",
+  "owner": "LOM Trust",
+  "dimensions": [
+    "DELIVERY_RELIABILITY",
+    "TRANSACTION_INTEGRITY",
+    "VERIFIED_SKILL",
+    "DISPUTE_OUTCOME",
+    "POLICY_COMPLIANCE"
+  ],
+  "event_model": "APPEND_ONLY_EVIDENCE_EVENTS",
+  "aggregate_model": "EXPLAINABLE_DIMENSIONAL_SIGNALS_ONLY",
+  "forbidden": [
+    "HUMAN_WORTH_SCORE",
+    "OPAQUE_SINGLE_GLOBAL_SCORE",
+    "UNATTRIBUTED_PENALTY",
+    "AUTOMATIC_IRREVERSIBLE_SANCTION"
+  ],
+  "invariants": [
+    "Every reputation event requires a reason_code and evidence_ref.",
+    "Reputation must remain explainable by dimension and source event.",
+    "A dispute opening alone is not proof of wrongdoing.",
+    "Consequential restrictions require separate authority and appeal.",
+    "Production activation remains separately human-gated."
+  ],
+  "production_activation_authorized": false
+}
