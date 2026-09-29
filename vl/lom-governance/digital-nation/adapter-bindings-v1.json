@@ -63,35 +63,35 @@
     {
       "id": "education_skill",
       "capability": "learning_skill_graph_and_verified_skill_signal",
-      "owner": "UNRESOLVED",
-      "source_repo": null,
-      "source_ref": null,
-      "source_path": null,
-      "binding_status": "HOLD_UNRESOLVED_OWNER",
+      "owner": "LOM Education",
+      "source_repo": "lundus88/fieldgis-reference",
+      "source_ref": "lom/digital-nation-foundation-v1-20260929",
+      "source_path": "vl/lom-governance/digital-nation/education-skill-contract-v1.json",
+      "binding_status": "BOUND_PREVIEW",
       "production_authorized": false,
-      "notes": "No authoritative implementation owner was found in the inspected repositories; do not invent one."
+      "notes": "Authoritative Preview owner established as a thin evidence adapter; not a second LMS and not a statutory credential issuer."
     },
     {
       "id": "reputation",
       "capability": "evidence_backed_member_reputation",
-      "owner": "UNRESOLVED",
-      "source_repo": null,
-      "source_ref": null,
-      "source_path": null,
-      "binding_status": "HOLD_UNRESOLVED_OWNER",
+      "owner": "LOM Trust",
+      "source_repo": "lundus88/fieldgis-reference",
+      "source_ref": "lom/digital-nation-foundation-v1-20260929",
+      "source_path": "vl/lom-governance/digital-nation/reputation-contract-v1.json",
+      "binding_status": "BOUND_PREVIEW",
       "production_authorized": false,
-      "notes": "Digital Nation contract defines events, but a canonical runtime owner is not yet proven."
+      "notes": "Evidence-backed dimensional reputation owner established for Preview; no opaque global human-worth score or automatic sanction authority."
     },
     {
       "id": "dispute",
       "capability": "platform_dispute_resolution",
-      "owner": "LD Trust/Safety components",
+      "owner": "LOM Trust",
       "source_repo": "lundus88/fieldgis-reference",
-      "source_ref": "main",
-      "source_path": "docs/commercial/lds-customer-fraud-payment-abuse/README.md",
-      "binding_status": "PARTIAL_PREVIEW",
+      "source_ref": "lom/digital-nation-foundation-v1-20260929",
+      "source_path": "vl/lom-governance/digital-nation/dispute-adapter-contract-v1.json",
+      "binding_status": "BOUND_PREVIEW",
       "production_authorized": false,
-      "notes": "Existing evidence/dispute controls are partial and do not yet form a complete Digital Nation tribunal workflow."
+      "notes": "Thin dispute adapter composes existing LD trust/refund controls and preserves human review plus appeal for material outcomes."
     }
   ],
   "activation_rules": [
