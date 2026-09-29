@@ -1,0 +1,51 @@
+{
+  "schema": "lom.digital-nation.market/1",
+  "status": "DRAFT_NON_PRODUCTION",
+  "owner": "LD Commerce",
+  "trust_owner": "LOM Trust",
+  "policy_owner": "LOM Core",
+  "surface_name": "LOM Market",
+  "market_types": [
+    "SERVICE",
+    "WORK_GIG",
+    "DIGITAL_GOOD_IP",
+    "B2B",
+    "VIRTUAL_ASSET"
+  ],
+  "p0_price_modes": [
+    "FIXED_PRICE",
+    "REQUEST_QUOTE",
+    "PACKAGE_PRICE"
+  ],
+  "p0_entry_points": [
+    "HIRE_A_SERVICE",
+    "FIND_WORK",
+    "BUY_DIGITAL_PRODUCTS",
+    "START_OR_GROW_A_BUSINESS"
+  ],
+  "required_listing_fields": [
+    "listing_id",
+    "seller_id",
+    "market_type",
+    "title",
+    "description",
+    "category",
+    "price_mode",
+    "scope",
+    "fulfilment_method",
+    "delivery_terms",
+    "policy_classification"
+  ],
+  "invariants": [
+    "LOM Market reuses LD Commerce and Golden Transaction contracts.",
+    "No listing may self-assert seller authority for consequential actions.",
+    "Payment confirmation requires provider evidence.",
+    "A browser redirect or user assertion cannot mark an order paid.",
+    "Price and scope used for an order must come from an authoritative server-side offer or approved quotation.",
+    "Disputes are owned by LOM Trust.",
+    "Reputation is evidence-backed and does not use a human-worth score.",
+    "Virtual assets are platform entitlements only and never statutory real-property title.",
+    "Production activation remains separately human-gated."
+  ],
+  "production_activation_authorized": false
+}
