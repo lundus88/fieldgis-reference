@@ -407,3 +407,31 @@ A durable Virtual World also requires institutional continuity and resilience. T
 Detailed boundaries are defined in `STRATEGIC_SOCIETY_INSTITUTIONS_V1.md`.
 
 These remain platform institutions only. They do not create sovereign, statutory, diplomatic, judicial, taxation or legal-tender authority.
+
+
+## 10. Twelve-fundamental institutional alignment
+
+LOM Virtual World now uses the following advanced-society alignment:
+
+| Fundamental | LOM institutional owner/composition |
+|---|---|
+| Rule of Law & Institutions | Charter, Policy & Rights Registry, LOM Core Governance, Trust Tribunal, Ombuds, Audit |
+| Productive Economy | LOM Market, LD Commerce, Business Engine, Opportunity Exchange, Economic Participation |
+| Financial & Capital System | Regulated payment/accounting/capital adapters + Treasury controls |
+| Education & Human Capital | LOM Education + Skill-to-Income Graph |
+| Science, Technology & Innovation | LOM R&D, Knowledge Foundation, HVAE, Product Factory |
+| Infrastructure | LOM Platform/SRE, VPS, storage, communications, search, recovery |
+| Administrative Capacity | Registries, workflows, case tracking, statistics, policy orchestration |
+| Security & Resilience | LOM Trust, Security, SRE, incident/recovery |
+| Health & Social Protection | Wellbeing access + retraining/opportunity/approved support pathways |
+| Financial Management | LOM Treasury, Accounting Adapter, budgets, procurement, project profitability |
+| Global Economic Relations | Global Commerce Bridge, localization, partner platform and lawful cross-border adapters |
+| Continuous Improvement | System Health, CAIE, Evidence Lineage, Completion Governance, HVAE |
+
+Important boundaries:
+- financial/capital functions that require licences remain with regulated providers;
+- physical security/defense, public taxation, diplomacy and statutory administration are outside LOM platform authority;
+- CI/documentation proves only defined/tested maturity, not live operational proof.
+
+Canonical doctrine:
+**Digital-First + AI-Native + Automation-First + Human-Centred + Evidence-Based + Secure + Auditable + Scalable**
