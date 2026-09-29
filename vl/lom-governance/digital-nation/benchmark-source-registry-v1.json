@@ -44,6 +44,13 @@
       "domain": "health",
       "url": "https://www.who.int/data/uhc-2025-technical-appendices-and-regional-data-tables",
       "notes": "Use service coverage/financial hardship definitions and reference years."
+    },
+    {
+      "id": "world_bank_lpi",
+      "name": "World Bank Logistics Performance Indicators",
+      "domain": "logistics",
+      "url": "https://lpi.worldbank.org/en/about",
+      "notes": "Use indicator-level evidence and reference periods; do not use a logistics composite ranking as the LOM absorption decision."
     }
   ]
 }
