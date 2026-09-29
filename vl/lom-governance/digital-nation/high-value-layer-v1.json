@@ -1,0 +1,176 @@
+{
+  "schema": "lom.digital-nation.high-value-layer/1",
+  "status": "DRAFT_NON_PRODUCTION",
+  "updated_at": "2026-09-29",
+  "policy": "HIGH_VALUE_ONLY_REUSE_BEFORE_BUILD",
+  "capabilities": [
+    {
+      "id": "member_economic_passport",
+      "priority": "P0",
+      "owner": "LOM Core",
+      "reuse": [
+        "member identity",
+        "education skill evidence",
+        "commerce history",
+        "LOM Trust reputation"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "skill_to_income_graph",
+      "priority": "P0",
+      "owner": "LOM Education + Economic Participation",
+      "reuse": [
+        "LOM Education",
+        "Economic Participation",
+        "Opportunity Exchange"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "opportunity_exchange",
+      "priority": "P0",
+      "owner": "LundusLead / Economic Participation",
+      "reuse": [
+        "LundusLead",
+        "Economic Participation"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "business_in_a_box",
+      "priority": "P0",
+      "owner": "LD Business Engine",
+      "reuse": [
+        "LD Business Engine",
+        "Product Factory",
+        "Commerce"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "evidence_wallet",
+      "priority": "P0",
+      "owner": "LOM Core Evidence",
+      "reuse": [
+        "Evidence Lineage",
+        "identity",
+        "domain evidence"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "trust_passport",
+      "priority": "P0",
+      "owner": "LOM Trust",
+      "reuse": [
+        "reputation adapter",
+        "dispute evidence"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "ai_personal_economic_agent",
+      "priority": "P1",
+      "owner": "LOM Core",
+      "reuse": [
+        "Agentic OS",
+        "Opportunity Exchange",
+        "LOM Education"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "member_to_member_services",
+      "priority": "P1",
+      "owner": "LD Commerce",
+      "reuse": [
+        "Marketplace",
+        "payment adapter",
+        "delivery",
+        "Trust"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "creator_digital_ip_economy",
+      "priority": "P1",
+      "owner": "LD Commerce / Product Factory",
+      "reuse": [
+        "Product Factory",
+        "Commerce",
+        "Evidence"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "virtual_business_spaces",
+      "priority": "P1",
+      "owner": "LOM Virtual World",
+      "reuse": [
+        "business registry",
+        "virtual asset registry"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "economic_mobility_engine",
+      "priority": "P1",
+      "owner": "LOM Intelligence",
+      "reuse": [
+        "Education",
+        "Economic Participation",
+        "Analytics"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "global_commerce_bridge",
+      "priority": "P2",
+      "owner": "LD Adapter Layer",
+      "reuse": [
+        "payment",
+        "accounting",
+        "localization",
+        "delivery"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "economic_safety_net",
+      "priority": "P2",
+      "owner": "LOM Treasury",
+      "reuse": [
+        "Treasury",
+        "Education",
+        "Opportunity"
+      ],
+      "new_engine": false
+    },
+    {
+      "id": "virtual_world_economic_twin",
+      "priority": "P2",
+      "owner": "LOM Intelligence",
+      "reuse": [
+        "analytics",
+        "world state",
+        "privacy aggregation"
+      ],
+      "new_engine": false
+    }
+  ],
+  "forbidden": [
+    "duplicate CRM",
+    "duplicate LMS",
+    "duplicate payment processor",
+    "duplicate accounting engine",
+    "duplicate reputation engine",
+    "duplicate dispute engine",
+    "unlicensed banking",
+    "legal citizenship or passport claims",
+    "social credit or human-worth scoring",
+    "fabricated economic statistics",
+    "automatic irreversible high-impact sanctions"
+  ],
+  "production_activation_authorized": false
+}
