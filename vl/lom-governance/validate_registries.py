@@ -69,8 +69,8 @@ if vps.get("office_workstation_role") != "EXCLUDED_FROM_RUNTIME":
 if vps.get("fallback_to_office_workstation") != "FORBIDDEN":
     fail("office workstation fallback must remain forbidden")
 excluded = set(vps.get("excluded_operational_dependencies") or [])
-if {"BPTSBH-G03-L011", "OFFICE_WORKSTATION"} - excluded:
-    fail("BPTSBH/office workstation exclusion missing")
+if {"OFFICE_WORKSTATION"} - excluded:
+    fail("office workstation exclusion missing")
 
 if doctrine.get("schema") != "lom.core-values-doctrine/1":
     fail("core values doctrine schema mismatch")

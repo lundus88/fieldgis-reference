@@ -45,7 +45,6 @@ def validate_canary(contract: dict[str, Any], evidence: dict[str, Any]) -> dict[
         "synthetic_sources_forbidden": True,
         "collector_version": "1.0",
         "authorized_node_id": "v103067",
-        "excluded_runtime_nodes": ["BPTSBH-G03-L011"],
     }
     for key, value in expected_live.items():
         if live_requirements.get(key) != value:
@@ -105,11 +104,8 @@ def validate_canary(contract: dict[str, Any], evidence: dict[str, Any]) -> dict[
         if not attestation_valid:
             violations.append("LIVE_NODE_ATTESTATION_INVALID")
         authorized_node_id = str(live_requirements.get("authorized_node_id") or "").strip()
-        excluded_runtime_nodes = set(live_requirements.get("excluded_runtime_nodes") or [])
         if node_id and node_id != authorized_node_id:
             violations.append("UNAUTHORIZED_RUNTIME_NODE")
-        if node_id and node_id in excluded_runtime_nodes:
-            violations.append("EXCLUDED_RUNTIME_NODE")
 
     source_prefix = f"vps:{node_id}:" if node_id else ""
     live_sources = bool(by_name) and bool(source_prefix) and all(

@@ -14,7 +14,7 @@ Establish the canonical VPS-only runtime boundary:
 
 `LOM -> signed task transport -> loopback Secure Task Ingress -> durable queue -> ACP -> VPS runner -> evidence`
 
-The office workstation `BPTSBH-G03-L011` is excluded from the operational dependency graph. There is no workstation failover path.
+Office workstations are excluded from the operational dependency graph. There is no workstation failover path.
 
 P0 intentionally stops before public network exposure. ACP handoff remains fail-closed until an authoritative grant loader for `private.agent_capability_grants` is available through an approved least-privilege path.
 
@@ -73,7 +73,7 @@ Required result:
 
 Before classifying the runtime as operational:
 
-- no LOM worker/service/timer is required on `BPTSBH-G03-L011`;
+- no LOM worker/service/timer is required on any office workstation;
 - no LOM runtime secret or queue is stored there;
 - no heartbeat or evidence source depends on that workstation;
 - no scheduled task on that workstation is required for VPS continuity;

@@ -38,7 +38,7 @@ OpenClaw keeps its existing controlled LundusLead integration path. It is **not*
 
 ## Canonical runtime host policy
 
-LOM runtime execution is `VPS_ONLY` on authorized node `v103067`. The office workstation `BPTSBH-G03-L011` is excluded from the runtime dependency graph and cannot satisfy live-canary activation. There is no workstation execution fallback.
+LOM runtime execution is `VPS_ONLY` on authorized node `v103067`. Office workstations are excluded from the runtime dependency graph and cannot satisfy live-canary activation. There is no workstation execution fallback.
 
 A human operator may administer or review the system from an approved client, but that client does not host LOM workers, queues, heartbeats, runtime secrets or execution evidence.
 

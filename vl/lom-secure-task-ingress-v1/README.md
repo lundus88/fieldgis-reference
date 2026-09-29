@@ -12,7 +12,6 @@ Target path:
 
 - canonical runtime host policy: `VPS_ONLY`;
 - authorized runtime node: `v103067`;
-- `BPTSBH-G03-L011` is `EXCLUDED_FROM_RUNTIME`;
 - no worker, scheduler, heartbeat, queue, ingress, runtime secret, evidence journal or execution fallback may depend on the office workstation;
 - the workstation being offline must not degrade normal LOM execution;
 - human administration may originate from any approved client, but that client is never part of the runtime chain.
