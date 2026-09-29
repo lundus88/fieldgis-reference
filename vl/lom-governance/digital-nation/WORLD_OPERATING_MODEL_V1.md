@@ -305,7 +305,7 @@ LOM Virtual World should feel like a functioning society, but every legal bounda
 **Digital society — real economic activity — real trust — real evidence — no false sovereignty.**
 
 
-## 11. Advanced society doctrine
+## 13. Advanced society doctrine
 
 LOM Virtual World is designed around twelve fundamentals:
 Rule of Law & Institutions; Productive Economy; Financial & Capital System; Education & Human Capital; Science/Technology/Innovation; Infrastructure; Administrative Capacity; Security & Resilience; Health/Wellbeing/Social Protection; Financial Management; Global Economic Relations; Continuous Improvement.
@@ -319,3 +319,21 @@ Member prosperity journey:
 **Join → Learn → Work → Earn → Hold lawful/platform assets → Build Business → Access regulated capital channels where available → Create Value → Contribute → Prosper**
 
 No financial, property, citizenship or institutional term in this journey overrides real-world law or creates regulated authority by itself.
+
+
+## 14. Foundation-first operating model
+
+LOM Virtual World must now prioritize the mechanisms that make the world persistent and economically alive:
+
+1. **Persistent World State** — members, businesses, assets, opportunities, orders, permissions and events remain coherently represented across sessions.
+2. **Economic Liquidity** — the Market must have real supply/demand pathways rather than empty categories.
+3. **Jurisdiction Routing** — cross-border activity is permitted only when supported-market evidence exists.
+4. **Delegated Authority** — AI/team action is narrow, revocable, scoped and audited.
+5. **Policy Lifecycle** — platform rules change through explicit versioned control.
+6. **Market Fairness** — manipulation signals are investigated with evidence and appeal.
+7. **Simulation Sandbox** — synthetic populations/failures are used before major real-world exposure.
+8. **Culture & Cohesion** — shared norms support trust, contribution, learning and craftsmanship without political or belief coercion.
+
+Operating doctrine:
+
+**Build depth before breadth. A world with many features but weak state, liquidity, authority and resilience is not yet a functioning world.**
