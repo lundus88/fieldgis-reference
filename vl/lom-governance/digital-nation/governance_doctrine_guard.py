@@ -30,7 +30,7 @@ def validate_governance_docs(docs: Dict[str,str]) -> List[str]:
         errors.append("WORLD_FOUNDER_LED_MODEL_MISSING")
     if "There are **no elections or binding member votes that determine governing power**" not in docs["charter"]:
         errors.append("NO_ELECTIONS_RULE_MISSING")
-    if "No person or AI may bypass the active Charter" not in docs["charter"]:
+    if "no person or AI may bypass the active Charter" not in docs["charter"] and "No person or AI may bypass the active Charter" not in docs["charter"]:
         errors.append("RULES_BOUND_AUTHORITY_MISSING")
     if "appoint itself as successor" not in all_text:
         errors.append("AI_SELF_SUCCESSION_BOUNDARY_MISSING")
