@@ -19,3 +19,11 @@ New ideas, technologies, research and competitor patterns must pass the governed
 `evidence -> duplicate scan -> architecture classification -> risk/impact -> controlled absorption -> measurement`
 
 HVAE is a shared governance capability, not a standalone product or second self-improvement engine. It must classify findings as reuse/upgrade, domain capability, adapter, template, shared engine, new module, knowledge-only or reject. New modules require a proven independent domain boundary.
+
+## Cross-cutting doctrine
+
+`LONG_TERM_EXECUTION_DOCTRINE.md` defines the approved LOM long-term execution decision filter. It is policy overlay only and must follow the registry rule:
+
+`reuse -> extend -> integrate -> build only on proven gap`
+
+It must not create duplicate capabilities or widen execution authority.

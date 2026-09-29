@@ -101,6 +101,10 @@ jobs:
         run: |
           python vl/lom-governance/validate_registries.py
           python vl/lom-governance/test_registries.py
+      - name: LOM Core Systems Consolidation
+        run: |
+          python vl/lom-governance/validate_core_systems_consolidation.py
+          python vl/lom-governance/test_core_systems_consolidation.py
       - name: LOM High-Value Absorption Governance
         run: python vl/lom-governance/test_hvae.py
       - name: LOM Knowledge Authority Retrieval & Complete-Body E2E
