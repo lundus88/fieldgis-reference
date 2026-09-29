@@ -1,0 +1,24 @@
+name: LOM Digital Nation P0 CI
+
+on:
+  pull_request:
+    paths:
+      - "vl/lom-governance/digital-nation/**"
+      - ".github/workflows/lom-digital-nation-p0-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run Digital Nation P0 tests
+        working-directory: vl/lom-governance/digital-nation
+        run: python -m pytest -q test_golden_world_transaction.py
