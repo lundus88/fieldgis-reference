@@ -282,3 +282,19 @@ New member
 ## 8. Core principle
 
 **A functioning virtual society is not defined by buildings or titles. It is defined by trusted identity, useful institutions, real economic activity, enforceable platform rules, education, opportunity and repeat participation.**
+
+
+### O. LOM Market
+Purpose:
+- provide the main economic marketplace of the Virtual World;
+- connect buyers, sellers, workers, creators and businesses;
+- compose Service Market, Work/Gig Market, Digital Goods/IP Market, B2B Market and Virtual Asset Market;
+- route transactions through the existing Golden Transaction / payment / delivery / acceptance / trust stack.
+
+P0 market entry points:
+1. Hire a Service
+2. Find Work
+3. Buy Digital Products
+4. Start / Grow a Business
+
+LOM Market is a commerce surface and orchestration layer, not a second payment, CRM, accounting, reputation or dispute engine.
