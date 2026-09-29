@@ -387,3 +387,24 @@ Required sequence:
 **Benchmark → Evidence → Trade-offs → Duplication → Compatibility → Security/Legal/Economic/Governance Review → Adapt → Pilot → Measure → Improve**
 
 Country-level prestige or popularity is never sufficient evidence. No overall country ranking is produced; only capability-level patterns may progress to REFERENCE_ONLY, PILOT, ABSORB or REJECT.
+
+
+## Foundation-first priority
+
+The following capabilities are now classified as higher priority than adding new feature families:
+
+### Critical P0
+- **Persistent World State** — makes the world durable across sessions without creating a second source of truth.
+- **Economic Liquidity** — ensures buyers, sellers, work and demand can actually meet.
+- **Jurisdiction Router** — prevents global reach from becoming unsupported global commerce.
+- **Delegated Authority Wallet** — enables bounded AI/team action without ambient authority.
+
+### P1 hardening
+- **Policy Lifecycle** — versioned, auditable change with rollback.
+- **Market Fairness** — protects competition and trust without opaque social-credit scoring.
+- **Simulation Sandbox** — stress-tests large synthetic populations and failures before real rollout.
+- **Culture & Social Cohesion** — builds shared norms around learning, evidence, trust, contribution and continuous improvement without coercing beliefs.
+
+Detailed design: `FOUNDATIONAL_GAPS_CLOSURE_V1.md`.
+
+No new standalone engine is authorized by this priority. Reuse and composition remain mandatory.
