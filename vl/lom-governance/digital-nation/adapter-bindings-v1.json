@@ -1,0 +1,104 @@
+{
+  "schema": "lom.digital-nation.adapter-bindings/1",
+  "status": "DRAFT_NON_PRODUCTION",
+  "updated_at": "2026-09-29",
+  "policy": "REUSE_EXISTING_OWNER_FAIL_CLOSED_ON_GAP",
+  "bindings": [
+    {
+      "id": "identity_authority",
+      "capability": "member_identity_and_authority",
+      "owner": "LOM Core / ACP",
+      "source_repo": "lundus88/fieldgis-reference",
+      "source_ref": "main",
+      "source_path": "vl/agent-control-plane/AGENT_CONTROL_PLANE_V1.md",
+      "binding_status": "BOUND_PREVIEW",
+      "production_authorized": false,
+      "notes": "Identity is descriptive; effective authority comes from policy-bound capability/grant evaluation."
+    },
+    {
+      "id": "business_registry",
+      "capability": "platform_business_identity_and_entitlement",
+      "owner": "LD Business Engine",
+      "source_repo": "lundus88/fieldgis-reference",
+      "source_ref": "main",
+      "source_path": "docs/commercial/lds-business-engine/PLATFORM_FOUNDATION_P0.md",
+      "binding_status": "BOUND_PREVIEW",
+      "production_authorized": false,
+      "notes": "Platform business registry only; does not replace statutory registration."
+    },
+    {
+      "id": "payment",
+      "capability": "payment_confirmation",
+      "owner": "Payment Adapter",
+      "source_repo": "lundus88/fieldgis-reference",
+      "source_ref": "main",
+      "source_path": "contracts/payment-gateway-v1.json",
+      "binding_status": "BOUND_PREVIEW",
+      "production_authorized": false,
+      "notes": "Provider remains unbound/experimental; verified provider evidence is required before paid state."
+    },
+    {
+      "id": "affiliate",
+      "capability": "referral_and_commission_attribution",
+      "owner": "LD Partner Affiliate",
+      "source_repo": "lundus88/fieldgis-reference",
+      "source_ref": "main",
+      "source_path": "docs/commercial/lds-partner-affiliate/contract.json",
+      "binding_status": "BOUND_PREVIEW",
+      "production_authorized": false,
+      "notes": "Commission eligibility may be computed; payout remains human-approved."
+    },
+    {
+      "id": "economic_participation",
+      "capability": "work_microtask_and_earnings_entitlement",
+      "owner": "LOM Economic Participation Network",
+      "source_repo": "lundus88/fieldgis-reference",
+      "source_ref": "lom/economic-participation-p0-20260928",
+      "source_path": "vl/lom-economic-participation-p0/contract.json",
+      "dependency_pr": 425,
+      "binding_status": "HOLD_PENDING_DEPENDENCY",
+      "production_authorized": false,
+      "notes": "PR #425 is open and must not be treated as main/proven Production capability."
+    },
+    {
+      "id": "education_skill",
+      "capability": "learning_skill_graph_and_verified_skill_signal",
+      "owner": "UNRESOLVED",
+      "source_repo": null,
+      "source_ref": null,
+      "source_path": null,
+      "binding_status": "HOLD_UNRESOLVED_OWNER",
+      "production_authorized": false,
+      "notes": "No authoritative implementation owner was found in the inspected repositories; do not invent one."
+    },
+    {
+      "id": "reputation",
+      "capability": "evidence_backed_member_reputation",
+      "owner": "UNRESOLVED",
+      "source_repo": null,
+      "source_ref": null,
+      "source_path": null,
+      "binding_status": "HOLD_UNRESOLVED_OWNER",
+      "production_authorized": false,
+      "notes": "Digital Nation contract defines events, but a canonical runtime owner is not yet proven."
+    },
+    {
+      "id": "dispute",
+      "capability": "platform_dispute_resolution",
+      "owner": "LD Trust/Safety components",
+      "source_repo": "lundus88/fieldgis-reference",
+      "source_ref": "main",
+      "source_path": "docs/commercial/lds-customer-fraud-payment-abuse/README.md",
+      "binding_status": "PARTIAL_PREVIEW",
+      "production_authorized": false,
+      "notes": "Existing evidence/dispute controls are partial and do not yet form a complete Digital Nation tribunal workflow."
+    }
+  ],
+  "activation_rules": [
+    "No HOLD_* binding may be presented as active.",
+    "No Preview binding grants Production authority.",
+    "A dependency PR must merge and pass exact-main validation before it may become a main binding.",
+    "A missing authoritative owner must remain HOLD until ownership is explicitly established.",
+    "Regulated financial functions remain adapters to lawful external providers."
+  ]
+}
