@@ -241,6 +241,30 @@
         "vl/lom-continuous-improvement",
         "vl/completion-governance"
       ]
+    },
+    {
+      "id": "economic_participation",
+      "owner": "vl/lom-economic-participation-p0",
+      "status": "PARTIAL",
+      "authority": "NON_PRODUCTION_TASK_LIFECYCLE_AND_ENTITLEMENT_PREPARATION",
+      "human_gate": [
+        "LIVE_PILOT_ACTIVATION",
+        "PAYOUT_APPROVAL",
+        "FINANCIAL_COMMITMENT",
+        "PRODUCTION_RELEASE",
+        "PROTECTED_MAIN_MERGE"
+      ],
+      "health_source": "vl/lom-economic-participation-p0/contract.json",
+      "tests": [
+        "economic participation P0 regression",
+        "registry validation"
+      ],
+      "composition": [
+        "vl/lom-gate-c-runtime",
+        "vl/completion-governance",
+        "vl/lom-security-hardening",
+        "docs/commercial/lds-partner-affiliate"
+      ]
     }
   ],
   "specialist_on_demand": {

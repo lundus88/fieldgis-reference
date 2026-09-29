@@ -1,0 +1,25 @@
+name: LOM Economic Participation P0
+
+on:
+  pull_request:
+    paths:
+      - 'vl/lom-economic-participation-p0/**'
+      - 'vl/lom-governance/capability-registry.json'
+      - '.github/workflows/lom-economic-participation-p0.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  economic-participation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - run: python3 vl/lom-economic-participation-p0/check.py
+      - working-directory: vl/lom-economic-participation-p0
+        run: python3 -m unittest -v test_engine.py
+      - working-directory: vl/lom-economic-participation-p0
+        run: python3 run_shadow_batch1.py
