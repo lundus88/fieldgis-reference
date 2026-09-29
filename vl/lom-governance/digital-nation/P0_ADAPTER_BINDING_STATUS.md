@@ -11,7 +11,7 @@ The binding audit distinguishes **existing reusable capability**, **new thin Pre
 | Business registry / entitlement | BOUND_PREVIEW | Existing LD Business Engine foundation on `main` |
 | Payment confirmation | BOUND_PREVIEW | Existing payment gateway contract on `main`; provider remains non-Production |
 | Affiliate / referral | BOUND_PREVIEW | Existing LD affiliate contract on `main` |
-| Economic participation | HOLD_PENDING_DEPENDENCY | PR #425 remains separate and unmerged |
+| Economic participation | HOLD_PENDING_DEPENDENCY | PR #425 refreshed to current `main`; exact-head CI PASS; still Draft/unmerged and requires explicit human approval |
 | Education / skill signal | BOUND_PREVIEW | LOM Education thin evidence adapter established in PR #428 |
 | Reputation | BOUND_PREVIEW | LOM Trust evidence-backed dimensional reputation adapter established in PR #428 |
 | Dispute workflow | BOUND_PREVIEW | LOM Trust thin adapter composes existing LD trust/refund controls |
@@ -32,9 +32,9 @@ Full Golden World execution remains **HOLD** until the Economic Participation de
 
 ## Next gate
 
-1. Validate exact-head CI for the new adapters.
-2. Keep PR #425 independent and review it on its own merits.
-3. When Economic Participation becomes an approved dependency, update its binding only after exact-main evidence exists.
-4. Run the complete **Golden World Journey Preview**.
+1. PR #425 exact-head CI is now PASS after refresh and overlap cleanup; keep it Draft until explicit human approval.
+2. Golden World Preview preflight is implemented and must remain HOLD while #425 is unmerged.
+3. If #425 is explicitly approved and merged, require exact-main evidence before changing the binding to `BOUND_PREVIEW`.
+4. Then run the complete **Golden World Journey Preview**.
 5. Review privacy, security, commercial and financial boundaries.
 6. Keep Production activation as a separate explicit human decision.
