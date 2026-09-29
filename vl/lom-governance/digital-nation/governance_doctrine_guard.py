@@ -36,6 +36,8 @@ def validate_governance_docs(docs: Dict[str,str]) -> List[str]:
         errors.append("AI_SELF_SUCCESSION_BOUNDARY_MISSING")
     if "ADVANCED_SOCIETY_FUNDAMENTALS_V1.md" not in all_text:
         errors.append("TWELVE_FUNDAMENTALS_REFERENCE_MISSING")
+    if "BEST-OF-WORLD ARCHITECTURE" not in docs["charter"]:
+        errors.append("BEST_OF_WORLD_ARCHITECTURE_MISSING")
 
     for phrase in FORBIDDEN:
         if phrase in all_text:
