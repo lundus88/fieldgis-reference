@@ -346,3 +346,18 @@ Do not use vanity population numbers as the primary success metric.
 The Virtual World should become more valuable because members can **learn, work, earn, build, trade, prove trust, and progress** inside one governed ecosystem.
 
 It should not become valuable by imitating sovereign powers it does not possess.
+
+
+## Society-critical high-value additions
+
+The economic layer alone is insufficient for a credible Virtual World. The following cross-cutting capabilities are now treated as high-value composition priorities:
+
+- **World Search & Navigation** — one route to people, businesses, services, work, learning, products, events and virtual places.
+- **Privacy & Data Control Center** — member control over visibility, consent, evidence sharing and connected services.
+- **Member Service Center** — one place for support, recovery, transaction help, disputes and domain routing.
+- **Personal Home / Dashboard** — a private composition of tasks, learning, opportunities, orders, earnings evidence, businesses, events and alerts.
+- **Community & Groups** — bounded social/professional communities with moderation and trust controls.
+- **Member Voice & Transparency** — feedback, non-binding proposals, change logs, explanations and appeal routes under founder-led governance.
+- **Developer & Partner Platform** — controlled APIs/adapters so the ecosystem can expand without LOM rebuilding every external service.
+
+Detailed controls and sequencing are defined in `SOCIETY_ESSENTIALS_V1.md`.
