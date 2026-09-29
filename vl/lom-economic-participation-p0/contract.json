@@ -2,17 +2,35 @@
   "schema": "lom.economic-participation.p0/1",
   "status": "DEVELOPMENT_NON_PRODUCTION",
   "owner": "vl/lom-economic-participation-p0",
-  "task_types": ["SCRIPT_POLISH"],
+  "task_types": [
+    "SCRIPT_POLISH"
+  ],
   "states": [
-    "DRAFT","FUNDED","READY","ASSIGNED","IN_PROGRESS","SUBMITTED","QA_CHECK",
-    "REVISION_REQUIRED","ESCALATED","REJECTED","PASS","PAYABLE",
-    "PAYOUT_PROCESSING","PAID","RECONCILED","CLOSED","CANCELLED",
-    "PAYMENT_HELD","DISPUTED","SECURITY_REVIEW"
+    "DRAFT",
+    "FUNDED",
+    "READY",
+    "ASSIGNED",
+    "IN_PROGRESS",
+    "SUBMITTED",
+    "QA_CHECK",
+    "REVISION_REQUIRED",
+    "ESCALATED",
+    "REJECTED",
+    "PASS",
+    "PAYABLE",
+    "PAYOUT_PROCESSING",
+    "PAID",
+    "RECONCILED",
+    "CLOSED",
+    "CANCELLED",
+    "PAYMENT_HELD",
+    "DISPUTED",
+    "SECURITY_REVIEW"
   ],
   "qa": {
     "pass_threshold": 85,
     "revision_floor": 70,
-    "minimum_pass_confidence": 0.80,
+    "minimum_pass_confidence": 0.8,
     "max_revisions": 2,
     "weights": {
       "factual_consistency": 30,
@@ -40,7 +58,9 @@
     "One task may create at most one active payable entitlement",
     "Synthetic pilot evidence must never be represented as real customer revenue or worker evidence",
     "Actual payout remains outside this capability and requires an existing approved payment path",
-    "Production activation financial commitment payout approval and protected-main merge remain HUMAN_ONLY"
+    "Production activation financial commitment payout approval and protected-main merge remain HUMAN_ONLY",
+    "Worker performance may emit reputation evidence only; LOM Trust owns reputation aggregation and consequential reputation actions",
+    "Opening a dispute may freeze the local task state only; dispute resolution remains owned by LOM Trust"
   ],
   "production_activation_authorized": false,
   "automatic_payout_authorized": false,
