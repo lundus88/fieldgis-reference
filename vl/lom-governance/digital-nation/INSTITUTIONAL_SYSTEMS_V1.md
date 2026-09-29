@@ -379,3 +379,31 @@ Purpose:
 - verified security notices.
 
 Composes LOM Trust, Security, Observability and Recovery capabilities.
+
+
+## 9. Strategic society institutions
+
+A durable Virtual World also requires institutional continuity and resilience. The following are now part of the formal architecture:
+
+- Charter, Policy & Rights Registry
+- Continuity & Succession Protocol
+- Integrity & Inspector Function
+- Critical Digital Infrastructure & Utilities
+- Emergency Management & Continuity Center
+- Records, Archives & Institutional Memory
+- Standards, Quality & Accreditation
+- Public-Interest Knowledge Hub
+- Research, Science & Innovation System
+- Strategic Projects Registry
+- Procurement & Vendor System
+- Supply/Logistics Coordination
+- Strategic Reserves & Recovery Resources
+- Sustainability & Resource Efficiency
+- External Partnerships & Interoperability
+- Member Rights & Ombuds Channel
+- Youth/Family/Vulnerable-User Safety
+- Society-Scale Analytics
+
+Detailed boundaries are defined in `STRATEGIC_SOCIETY_INSTITUTIONS_V1.md`.
+
+These remain platform institutions only. They do not create sovereign, statutory, diplomatic, judicial, taxation or legal-tender authority.
