@@ -195,7 +195,15 @@
         "vps canary contract",
         "runner tests"
       ],
-      "blocker": "LIVE_VPS_CANARY_NOT_PROVEN"
+      "blocker": "LIVE_VPS_CANARY_NOT_PROVEN",
+      "runtime_host_policy": "VPS_ONLY",
+      "canonical_runtime_node": "v103067",
+      "office_workstation_role": "EXCLUDED_FROM_RUNTIME",
+      "excluded_operational_dependencies": [
+        "BPTSBH-G03-L011",
+        "OFFICE_WORKSTATION"
+      ],
+      "fallback_to_office_workstation": "FORBIDDEN"
     },
     {
       "id": "knowledge_authority",

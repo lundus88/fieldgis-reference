@@ -2,11 +2,20 @@
 
 Status: **DRAFT / NON-PRODUCTION / NOT DEPLOYED**
 
-Purpose: remove the office workstation from the normal LOM execution path by adding an authenticated, bounded task buffer in front of the existing ACP and VPS executor.
+Purpose: enforce a VPS-only LOM execution path by adding an authenticated, bounded task buffer in front of the existing ACP and VPS executor. The BPTSBH office workstation is excluded from the runtime dependency graph.
 
 Target path:
 
 `Chat/LOM -> signed ingress envelope -> bounded buffer -> ACP policy gate -> VPS runner -> evidence journal -> result`
+
+## Runtime boundary policy
+
+- canonical runtime host policy: `VPS_ONLY`;
+- authorized runtime node: `v103067`;
+- `BPTSBH-G03-L011` is `EXCLUDED_FROM_RUNTIME`;
+- no worker, scheduler, heartbeat, queue, ingress, runtime secret, evidence journal or execution fallback may depend on the office workstation;
+- the workstation being offline must not degrade normal LOM execution;
+- human administration may originate from any approved client, but that client is never part of the runtime chain.
 
 ## Reuse, not duplication
 
