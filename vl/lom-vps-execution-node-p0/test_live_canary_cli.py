@@ -95,6 +95,13 @@ def test_cli_returns_nonzero_for_synthetic_fixture():
         assert resolution["activation_status"] == "HOLD"
 
 
+def test_runbook_uses_authorized_vps_node_id():
+    runbook = (HERE / "VPS_LIVE_CANARY_RUNBOOK.md").read_text(encoding="utf-8")
+    authorized_node = CONTRACT["live_evidence_requirements"]["authorized_node_id"]
+    assert f"--node-id {authorized_node}" in runbook
+    assert "--node-id openclaw-vps-01" not in runbook
+
+
 if __name__ == "__main__":
     tests = [v for k, v in globals().items() if k.startswith("test_") and callable(v)]
     for fn in tests:
