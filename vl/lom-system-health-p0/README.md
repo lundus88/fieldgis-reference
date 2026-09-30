@@ -131,3 +131,12 @@ Rules are deliberately fail-closed:
 - stale or malformed operational observations => `HOLD`.
 
 The classifier is observational only. It cannot expire approvals, delete queue rows, refresh certification records, mutate Production, or widen authority. Governed disposition remains a separate human-authorized operation.
+
+
+## 9. VPS Operational Hardening
+
+The canonical always-on VPS is covered by a read-only operational probe and recovery SOP in `VPS_OPERATIONAL_HARDENING.md`.
+
+`vps_operational_probe.py` composes the existing worker, heartbeat, Secure Task Ingress, live-canary and System Health surfaces instead of creating a duplicate monitoring stack. It fails closed when required services are inactive/disabled, ingress is not READY or Production-locked, live canary is not PASS, or free disk falls below the P0 floor.
+
+The probe has no remediation or notification authority. External alerting and consequential recovery remain governed by existing LOM health, alerting and human-approval paths.
