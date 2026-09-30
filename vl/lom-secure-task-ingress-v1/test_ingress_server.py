@@ -1,5 +1,12 @@
+import json
+import os
 from pathlib import Path
+import socket
+import subprocess
+import sys
 from tempfile import TemporaryDirectory
+import time
+from urllib.request import urlopen
 
 from ingress_server import build_ingress_from_env
 
@@ -51,6 +58,52 @@ def test_broad_secret_permissions_fail_closed():
             assert str(exc) == "INGRESS_KEY_FILE_PERMISSIONS_TOO_BROAD"
         else:
             raise AssertionError("broad secret permissions unexpectedly allowed")
+
+
+def test_health_endpoint_uses_sqlite_on_server_thread():
+    with TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        env = base_env(root)
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as probe:
+            probe.bind(("127.0.0.1", 0))
+            port = probe.getsockname()[1]
+        env["LOM_INGRESS_PORT"] = str(port)
+
+        child_env = os.environ.copy()
+        child_env.update(env)
+        proc = subprocess.Popen(
+            [sys.executable, str(Path(__file__).with_name("ingress_server.py"))],
+            cwd=Path(__file__).parent,
+            env=child_env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+        try:
+            deadline = time.time() + 5
+            last_error = None
+            while time.time() < deadline:
+                try:
+                    with urlopen(f"http://127.0.0.1:{port}/health", timeout=0.5) as response:
+                        body = json.loads(response.read().decode("utf-8"))
+                    assert response.status == 200
+                    assert body["status"] == "READY"
+                    assert body["production"] is False
+                    assert body["production_locked"] is True
+                    break
+                except Exception as exc:
+                    last_error = exc
+                    time.sleep(0.1)
+            else:
+                output = proc.stdout.read() if proc.stdout else ""
+                raise AssertionError(f"health endpoint failed: {last_error}\n{output}")
+        finally:
+            proc.terminate()
+            try:
+                proc.wait(timeout=3)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+                proc.wait(timeout=3)
 
 
 if __name__ == "__main__":

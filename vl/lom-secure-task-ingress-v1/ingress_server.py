@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 import os
 from pathlib import Path
@@ -112,7 +112,7 @@ def handler_for(ingress: SecureTaskIngress):
 
 def main() -> None:
     ingress, bind, port = build_ingress_from_env()
-    server = ThreadingHTTPServer((bind, port), handler_for(ingress))
+    server = HTTPServer((bind, port), handler_for(ingress))
     print(f"lom-secure-ingress READY http://{bind}:{port} production_locked=true", flush=True)
     try:
         server.serve_forever(poll_interval=0.5)
