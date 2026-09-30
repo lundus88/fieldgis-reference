@@ -5,8 +5,10 @@ import tempfile
 from health_drift import (
     CrossSystemEvidenceLedger,
     ProjectObservation,
+    OperationalHealthObservation,
     RegressionResult,
     assess_project_health,
+    assess_operational_health,
     build_portfolio_snapshot,
     detect_deployment_drift,
     evaluate_regression_sentinel,
@@ -314,3 +316,55 @@ def test_portfolio_unknown_or_duplicate_status_fails_closed():
     snapshot = build_portfolio_snapshot(health, sentinels, expected_project_ids={"x"})
     assert snapshot["overall"] == "HOLD"
     assert "DUPLICATE_HEALTH_ASSESSMENT" in snapshot["integrity_reasons"]
+
+
+def operational_observation(**overrides):
+    base = dict(
+        observed_at_epoch=NOW - 10,
+        max_age_seconds=300,
+        awaiting_approval_runs=0,
+        pending_approvals=0,
+        queued_release_validation_jobs=0,
+        cert_health_status="ok",
+        cert_health_updated_at_epoch=NOW - 20,
+        max_cert_health_age_seconds=300,
+        evidence_refs=("supabase:operational-snapshot",),
+    )
+    base.update(overrides)
+    return OperationalHealthObservation(**base)
+
+
+def test_operational_health_clean_is_healthy():
+    result = assess_operational_health(operational_observation(), now_epoch=NOW)
+    assert result["status"] == "HEALTHY"
+    assert result["automatic_disposition"] == "DISABLED"
+    assert result["production_authority"] == "HUMAN_ONLY"
+
+
+def test_operational_health_stale_cert_fails_closed():
+    result = assess_operational_health(
+        operational_observation(cert_health_updated_at_epoch=NOW - 1000),
+        now_epoch=NOW,
+    )
+    assert result["status"] == "HOLD"
+    assert "CERT_HEALTH_STALE" in result["reasons"]
+
+
+def test_operational_health_release_queue_holds():
+    result = assess_operational_health(
+        operational_observation(queued_release_validation_jobs=4),
+        now_epoch=NOW,
+    )
+    assert result["status"] == "HOLD"
+    assert "RELEASE_VALIDATION_QUEUE_NOT_EMPTY" in result["reasons"]
+
+
+def test_operational_health_approval_backlog_degrades_without_auto_disposal():
+    result = assess_operational_health(
+        operational_observation(awaiting_approval_runs=23, pending_approvals=30),
+        now_epoch=NOW,
+    )
+    assert result["status"] == "DEGRADED"
+    assert "AWAITING_APPROVAL_BACKLOG" in result["reasons"]
+    assert "PENDING_APPROVAL_BACKLOG" in result["reasons"]
+    assert result["automatic_disposition"] == "DISABLED"

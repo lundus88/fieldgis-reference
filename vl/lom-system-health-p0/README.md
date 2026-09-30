@@ -109,3 +109,25 @@ false
 ## BodyRuntime health bridge
 
 `body_probe_adapter.py` converts verified portfolio health into the canonical LOM homeostasis probe contract for the **eyes** organ. The bridge carries conservative evidence freshness into BodyRuntime, maps `ACTION_REQUIRED` to whole-body `HOLD`, rejects stale/unknown evidence, and has no execution authority. It cannot impersonate other organs or trigger recovery directly.
+
+
+## 8. Operational Health Freshness
+
+The existing health engine now includes a bounded operational-health classifier for control-plane debt that must not be hidden by a stale `ok` flag.
+
+Inputs include:
+
+- factory runs awaiting approval;
+- pending approval records;
+- queued release-validation jobs;
+- certification-health status and evidence age.
+
+Rules are deliberately fail-closed:
+
+- stale certification health => `HOLD`;
+- non-empty release-validation queue => `HOLD`;
+- approval backlog => `DEGRADED`;
+- non-`ok` fresh certification health => `ACTION_REQUIRED`;
+- stale or malformed operational observations => `HOLD`.
+
+The classifier is observational only. It cannot expire approvals, delete queue rows, refresh certification records, mutate Production, or widen authority. Governed disposition remains a separate human-authorized operation.
