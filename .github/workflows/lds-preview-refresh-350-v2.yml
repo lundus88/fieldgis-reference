@@ -20,7 +20,7 @@ jobs:
       VERCEL_TEAM_ID: team_tV4WIIVgvU5VybM7PIhiuVNO
       VERCEL_PROJECT_ID: prj_9areW7U50izhbz8yNrXK2r1YcJ1F
       VERCEL_PROJECT_NAME: lundus-digital-systems-preview
-      EXPECTED_MAIN_SHA: b8b553d35b98612e8ec16925aafef1e8679d60c0
+      EXPECTED_MAIN_SHA: ee95f45c00f25f647302951f50ad95e331e33376
 
     steps:
       - name: Verify deployment credential exists
@@ -108,7 +108,7 @@ jobs:
               'files': files,
               'gitMetadata': {
                   'remoteUrl':'https://github.com/lundus88/fieldgis-reference',
-                  'commitRef':'main',
+                  'commitRef':'ld/preview-evidence-mobile-20260930',
                   'commitSha':os.environ['EXPECTED_MAIN_SHA'],
                   'commitMessage':'LD Preview currentness refresh for Issue #350',
                   'dirty':False,
