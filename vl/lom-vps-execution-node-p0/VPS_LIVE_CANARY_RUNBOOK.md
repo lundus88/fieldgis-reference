@@ -24,7 +24,7 @@ cd vl/lom-vps-execution-node-p0
 REPO_SHA="$(git rev-parse HEAD)"
 python3 collect_live_canary.py \
   --confirm-live-vps \
-  --node-id openclaw-vps-01 \
+  --node-id v103067 \
   --repo-sha "$REPO_SHA" \
   --output "$HOME/lom-vps-canary-evidence.json"
 ```
