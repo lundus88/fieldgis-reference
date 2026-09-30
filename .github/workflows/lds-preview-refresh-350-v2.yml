@@ -195,6 +195,52 @@ jobs:
           print('aliases=',aliases)
           PY
 
+      - name: Render exact deployed static source on desktop and mobile
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet playwright==1.55.0
+          python3 -m playwright install --with-deps chromium
+          python3 -m http.server 8765 --directory commercial/lundus-digital-systems > /tmp/lds-http.log 2>&1 &
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          from playwright.sync_api import sync_playwright
+          out=Path('lds-preview-qa'); out.mkdir(exist_ok=True)
+          results=[]
+          pages=sorted(p.name for p in Path('commercial/lundus-digital-systems').glob('*.html'))
+          with sync_playwright() as p:
+              browser=p.chromium.launch()
+              for width in (390,768,1440):
+                  page=browser.new_page(viewport={'width':width,'height':900})
+                  for name in pages:
+                      response=page.goto('http://127.0.0.1:8765/'+name)
+                      page.wait_for_load_state('networkidle')
+                      assert response.status == 200, (name,response.status)
+                      assert page.locator('h1').count() == 1, name
+                      assert page.locator('meta[name="robots"]').get_attribute('content').find('noindex') >= 0, name
+                      dims=page.evaluate('({width:innerWidth,scroll:document.documentElement.scrollWidth})')
+                      assert dims['scroll'] <= dims['width']+1, (name,width,dims)
+                      results.append({'page':name,'viewport_width':width,'http':200,'horizontal_overflow':False})
+                      if name in ('index.html','contact.html','checkout.html'):
+                          page.screenshot(path=str(out/(str(width)+'-'+name+'.png')),full_page=True)
+                  page.close()
+              browser.close()
+          evidence={'source_sha':os.environ['EXPECTED_MAIN_SHA'],'deployment_id':os.environ['DEPLOYMENT_ID'],
+                    'deployment_url':os.environ['DEPLOYMENT_URL'],'status':'PASS',
+                    'scope':'Rendered exact source static files; deployed desktop inspected separately',
+                    'pages':len(pages),'viewports':[390,768,1440],'results':results}
+          (out/'responsive-qa.json').write_text(json.dumps(evidence,indent=2)+'\n')
+          print('RESPONSIVE_RENDER_QA_PASS',len(results),'page/viewport combinations')
+          PY
+
+      - name: Preserve responsive visual evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: lds-preview-responsive-evidence
+          path: lds-preview-qa/
+          retention-days: 14
+
       - name: Record evidence summary
         shell: bash
         run: |
