@@ -1,14 +1,16 @@
--- Requires an exhausted queued, production-locked staging candidate.
--- Every fixture is rolled back by its subtransaction; the outer transaction is also rolled back.
+-- Regression on an exhausted queued or fail-closed reconciled STAGING candidate.
+-- Fixture state changes are rolled back in each subtransaction and outer transaction.
 BEGIN;
 DO $test$
 DECLARE j private.release_validation_jobs%rowtype; r jsonb; token uuid; before_gates jsonb; after_gates jsonb; k int;
 BEGIN
-  SELECT q.* INTO j FROM private.release_validation_jobs q JOIN public.factory_runs f ON f.id=q.factory_run_id WHERE q.state='queued' AND q.attempts>=q.max_attempts AND f.target_environment='staging' AND f.production_locked=true AND f.state='validating' ORDER BY q.created_at LIMIT 1;
+  SELECT q.* INTO j FROM private.release_validation_jobs q JOIN public.factory_runs f ON f.id=q.factory_run_id WHERE (q.state='queued' OR (q.state='failed' AND q.result->>'retry_exhausted'='true')) AND q.attempts>=q.max_attempts AND f.target_environment='staging' AND f.production_locked=true AND f.state IN ('validating','failed') ORDER BY q.created_at LIMIT 1;
   IF NOT FOUND THEN RAISE EXCEPTION 'No eligible staging regression fixture'; END IF;
   SELECT jsonb_agg(jsonb_build_object('key',gate_key,'status',status) ORDER BY gate_key) INTO before_gates FROM public.release_gates WHERE factory_run_id=j.factory_run_id;
   FOR k IN 1..3 LOOP
     BEGIN
+      UPDATE public.factory_runs SET state='validating' WHERE id=j.factory_run_id;
+      UPDATE public.deployments SET status='planned' WHERE id=j.deployment_id;
       token:=gen_random_uuid();
       UPDATE private.release_validation_jobs SET state='leased',attempts=CASE WHEN k=1 THEN max_attempts-1 ELSE max_attempts END,lease_token=token,lease_expires_at=now()+interval '20 minutes' WHERE id=j.id;
       IF k=3 THEN
