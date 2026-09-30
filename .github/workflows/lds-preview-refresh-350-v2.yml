@@ -20,7 +20,7 @@ jobs:
       VERCEL_TEAM_ID: team_tV4WIIVgvU5VybM7PIhiuVNO
       VERCEL_PROJECT_ID: prj_9areW7U50izhbz8yNrXK2r1YcJ1F
       VERCEL_PROJECT_NAME: lundus-digital-systems-preview
-      EXPECTED_MAIN_SHA: 42b16dfb2a27e09b41cdf1ebbbd2c0dff02adb54
+      EXPECTED_MAIN_SHA: b8b553d35b98612e8ec16925aafef1e8679d60c0
 
     steps:
       - name: Verify deployment credential exists
