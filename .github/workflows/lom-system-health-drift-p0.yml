@@ -32,6 +32,10 @@ jobs:
         run: |
           cd vl/lom-system-health-p0
           python3 test_human_gate_intelligence.py
+      - name: VPS operational hardening probe
+        run: |
+          cd vl/lom-system-health-p0
+          python3 test_vps_operational_probe.py
       - name: Existing Agentic OS P2 regression
         run: |
           cd vl/lom-agentic-os-p2
