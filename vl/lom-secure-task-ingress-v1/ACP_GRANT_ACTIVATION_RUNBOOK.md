@@ -1,6 +1,6 @@
 # LOM Direct VPS — ACP Grant Activation Runbook
 
-Status: **NON-PRODUCTION / VPS LIVE-VERIFIED / AUTHORITY ACTIVE / RESOLVER HMAC PROOF PENDING**
+Status: **NON-PRODUCTION / VPS LIVE-VERIFIED / AUTHORITY ACTIVE / RESOLVER HMAC PROOF VERIFIED**
 
 ## Current verified live state — 2026-10-01
 
@@ -19,7 +19,7 @@ The canonical VPS activation has advanced beyond the historical preparation base
 - VPS operational probe reported HEALTHY;
 - office workstations remain excluded from runtime.
 
-The remaining gap is resolver-specific: prove the HMAC-authenticated query path from `v103067` through the Edge resolver and back into local canonical grant resolution.
+The HMAC-authenticated resolver path from `v103067` through the Edge resolver and back into local canonical grant resolution is now live-verified.
 
 The active authority is short-lived and expires on 2026-10-01 at approximately 22:13:48 MYT unless renewed through the same governed human-approved path.
 
@@ -75,15 +75,17 @@ It must not receive:
 
 ## Resolver proof
 
-Resolver-specific completion requires:
+Resolver-specific completion is verified with live evidence:
 
-1. positive signed query succeeds for the current child grant;
-2. returned chain is accepted by canonical `resolve_grant()`;
-3. bad signature is rejected;
-4. stale timestamp is rejected;
-5. wrong agent/project/environment is rejected;
-6. Production target is rejected;
-7. no secret value appears in logs or evidence.
+1. positive signed query succeeded for the current child grant;
+2. returned chain was accepted by canonical `resolve_grant()`;
+3. bad signature was rejected with HTTP 401;
+4. stale timestamp was rejected with HTTP 401;
+5. wrong agent/project/environment were rejected with HTTP 409;
+6. Production target was rejected with HTTP 400;
+7. Edge log audit for the proof window found no secret-name, HMAC-signature, or signature-header exposure.
+
+This verifies the bounded read-only transport only. It does not widen capability, grant lifetime, environment scope, connector access or Production authority.
 
 ## Existing live VPS proof
 

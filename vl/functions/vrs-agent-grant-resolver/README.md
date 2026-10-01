@@ -1,6 +1,6 @@
 # vrs-agent-grant-resolver
 
-Status: **DEPLOYED / NON-PRODUCTION / VPS LIVE-VERIFIED / HMAC END-TO-END NOT YET VERIFIED**
+Status: **DEPLOYED / NON-PRODUCTION / VPS LIVE-VERIFIED / HMAC END-TO-END VERIFIED**
 
 Live state verified on 2026-10-01:
 
@@ -9,7 +9,7 @@ Live state verified on 2026-10-01:
 - the bounded `lom-vps-runner -> lom-vps-staging-parent` chain is active for `factory.plan` in `staging`;
 - canonical VPS node `v103067` is live-verified non-Production with 13/13 canary PASS;
 - Secure Task Ingress is READY and loopback-only, reboot recovery is verified, and the operational probe is HEALTHY;
-- the remaining resolver-specific gap is proof of the signed HMAC path from VPS to this Edge Function.
+- the signed HMAC resolver path from canonical VPS `v103067` is live-verified end-to-end.
 
 ## Purpose
 
@@ -50,16 +50,24 @@ Verified behavior:
 
 ## Current activation boundary
 
-The VPS runtime itself is live-verified non-Production. This resolver must still prove its own signed transport path before the resolver-specific gap is closed:
+The VPS runtime and resolver transport are live-verified non-Production.
 
-`signed HMAC query -> Edge resolver -> RPC -> returned chain -> local canonical resolve_grant()`
+Verified flow:
 
-Required evidence:
+`v103067 -> signed HMAC query -> Edge resolver -> read-only RPC -> returned grant chain -> local canonical resolve_grant()`
+
+Live evidence on 2026-10-01 established:
 
 - dedicated `LOM_VPS_GRANT_QUERY_SECRET` provisioned through the approved Edge Function secret path;
-- matching secret on `v103067` only, stored with mode `0600`;
-- positive signed query accepted;
-- wrong signature, stale timestamp, wrong agent/project/environment and Production target rejected;
-- no `SUPABASE_SERVICE_ROLE_KEY` on the VPS.
+- matching VPS-side secret stored under `lom-runner` with mode `0600`;
+- positive signed query accepted and resolved to `factory.plan` in `staging`;
+- wrong signature rejected with HTTP 401;
+- stale timestamp rejected with HTTP 401;
+- wrong agent/project/environment rejected with HTTP 409;
+- Production target rejected with HTTP 400;
+- Edge log audit for the proof window found zero occurrences of the secret name, HMAC signature material, or `x-lom-signature` header;
+- no `SUPABASE_SERVICE_ROLE_KEY` is placed on the VPS.
+
+The proof remains freshness- and authority-bound. Expired/revoked grants, credential rotation, repository/runtime drift, widened scope, Production targeting, public ingress exposure, or resolver verification failure must return the relevant path to HOLD.
 
 Production authority remains `HUMAN_ONLY`.
