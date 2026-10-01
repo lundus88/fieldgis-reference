@@ -1,6 +1,15 @@
 # vrs-agent-grant-resolver
 
-Status: **REPOSITORY CANDIDATE / NON-PRODUCTION / NOT DEPLOYED**
+Status: **DEPLOYED / NON-PRODUCTION / VPS LIVE-VERIFIED / HMAC END-TO-END NOT YET VERIFIED**
+
+Live state verified on 2026-10-01:
+
+- Edge Function `vrs-agent-grant-resolver` is deployed and `ACTIVE`;
+- the required read-only grant-chain RPC is live;
+- the bounded `lom-vps-runner -> lom-vps-staging-parent` chain is active for `factory.plan` in `staging`;
+- canonical VPS node `v103067` is live-verified non-Production with 13/13 canary PASS;
+- Secure Task Ingress is READY and loopback-only, reboot recovery is verified, and the operational probe is HEALTHY;
+- the remaining resolver-specific gap is proof of the signed HMAC path from VPS to this Edge Function.
 
 ## Purpose
 
@@ -26,26 +35,31 @@ The Edge Function owns the broad server-side credential. The VPS owns only a ded
 
 ## Required database RPC
 
-This function expects a future RPC named:
+The required RPC is live:
 
 `public.acp_read_agent_grant_chain_nonprod(uuid,text,text,text)`
 
-That RPC is **not introduced by this branch**. It must be generated through the approved Supabase migration workflow, reviewed separately, and must:
+Verified behavior:
 
-1. be read-only;
-2. use a pinned/empty `search_path` with fully qualified objects;
-3. return only the minimum grant-chain columns required by `grant_resolution.py`;
-4. reject Production target environments;
-5. bind the leaf grant to exact agent/project/environment;
-6. cap traversal depth at 16 and reject cycles;
-7. revoke EXECUTE from `public`, `anon`, and `authenticated`;
-8. grant EXECUTE only to the server-side role used by this Edge Function;
-9. provide no direct SELECT/DML grants on `private.agent_capability_grants`.
+1. bounded read-only grant-chain resolution;
+2. non-Production scope binding;
+3. exact leaf binding by grant, agent, project and environment;
+4. maximum chain depth 16;
+5. no direct private-table credential is placed on the VPS;
+6. the active child -> parent staging chain resolves successfully.
 
-No database migration is included here because the migration must be generated and verified through the Supabase CLI/database workflow rather than invented manually.
+## Current activation boundary
 
-## Deployment gate
+The VPS runtime itself is live-verified non-Production. This resolver must still prove its own signed transport path before the resolver-specific gap is closed:
 
-Do not deploy this Edge Function or put its query secret on the VPS until the RPC exists, database advisors are clean for the change, and an end-to-end non-Production test proves:
+`signed HMAC query -> Edge resolver -> RPC -> returned chain -> local canonical resolve_grant()`
 
-`signed query -> RPC -> grant rows -> local chain resolution -> ACP/VPS execution -> evidence`.
+Required evidence:
+
+- dedicated `LOM_VPS_GRANT_QUERY_SECRET` provisioned through the approved Edge Function secret path;
+- matching secret on `v103067` only, stored with mode `0600`;
+- positive signed query accepted;
+- wrong signature, stale timestamp, wrong agent/project/environment and Production target rejected;
+- no `SUPABASE_SERVICE_ROLE_KEY` on the VPS.
+
+Production authority remains `HUMAN_ONLY`.
