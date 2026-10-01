@@ -1,0 +1,59 @@
+{
+  "schema": "vl.database-security-local-supabase-evidence/1",
+  "as_of": "2026-09-21",
+  "pull_request": 218,
+  "validated_head": "c41fc31a50c836253701e7c2623a797f1472771d",
+  "workflow": {
+    "name": "VL Database Security Local Supabase",
+    "run_id": 35554358922,
+    "url": "https://github.com/lundus88/fieldgis-reference/actions/runs/35554358922",
+    "conclusion": "SUCCESS",
+    "supabase_cli_version": "2.117.0",
+    "remote_project_linked": false,
+    "production_credentials_used": false,
+    "synthetic_data_only": true
+  },
+  "local_supabase_control_plane": {
+    "status": "PASS",
+    "stack_start": "PASS",
+    "real_boundary_migrations_apply": "PASS",
+    "postgres_privilege_evidence": "PASS",
+    "data_api_private_schema": "DENIED_PGRST106",
+    "anon_rpc_access": "DENIED",
+    "authenticated_aal1_readonly_quote": "PASS",
+    "authenticated_aal1_override": "DENIED_AAL2_REQUIRED",
+    "authenticated_aal2_owner_override": "PASS_AUDITED",
+    "public_tables_without_rls": 0,
+    "public_security_definer_exposed_to_client_roles": 0,
+    "client_executable_private_security_definers": 0,
+    "production_approval_bypassed": false,
+    "production_promotion_bypassed": false
+  },
+  "production_read_only_revalidation": {
+    "project_ref": "wczelfmnqpgzfdszxubl",
+    "mutation_performed": false,
+    "transaction_mode": "READ_ONLY",
+    "public_tables_without_rls": 0,
+    "public_security_definer_exposed_to_client_roles": 0,
+    "affected_private_definers_authenticated_executable": 3,
+    "interpretation": "PR #216 protects the public boundary, but #218 strict private-helper denial is still not live and remains relevant."
+  },
+  "remaining_gate": {
+    "status": "HOLD_REMOTE_FULL_SCHEMA_DEV_CANARY",
+    "safe_remote_dev_branch_available": false,
+    "production_default_branch_only": true,
+    "reasons": [
+      "local fixture intentionally represents the affected schema slice, not a complete replayable VL production schema",
+      "remote DEV migration compatibility against verified full-schema provenance is not evidenced",
+      "real remote DEV Assisted Build browser flow and Controlled Canary are not evidenced"
+    ]
+  },
+  "authority": {
+    "merge_authorized": false,
+    "production_migration_authorized": false,
+    "production_deployment_authorized": false,
+    "production_approval_authorized": false,
+    "production_promotion_authorized": false,
+    "controlled_canary_authorized": false
+  }
+}
