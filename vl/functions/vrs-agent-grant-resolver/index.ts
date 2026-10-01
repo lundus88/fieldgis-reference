@@ -3,7 +3,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const QUERY_SECRET = Deno.env.get("LOM_VPS_GRANT_QUERY_SECRET")!;
+const QUERY_SECRET = (Deno.env.get("LOM_VPS_GRANT_QUERY_SECRET") || "").trim();
 const KEY_ID = Deno.env.get("LOM_VPS_GRANT_QUERY_KEY_ID") || "vps-query-v1";
 const MAX_CLOCK_SKEW = 90;
 
