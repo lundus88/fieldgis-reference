@@ -23,7 +23,7 @@ Status: NON-PRODUCTION / EVIDENCE-BOUND
 | Capability registry | EXISTING | lom-governance | one capability -> one owner -> many consumers |
 | High-value absorption / architecture intake | EXISTING | lom-governance (HVAE) | evidence-bound reuse/extend/integrate/build classification; PREPARE_PR ceiling |
 | Self-healing / Homeostasis | PARTIAL | lom-organism-integration-p0 | bounded non-Production recovery only |
-| VPS always-on execution | BLOCKED / VPS_ONLY TARGET | lom-vps-execution-node-p0 | authorized node v103067; LIVE_VPS_CANARY_NOT_PROVEN |
+| VPS always-on execution | EXISTING / VPS_ONLY / NON-PRODUCTION | lom-vps-execution-node-p0 | v103067 live canary 13/13 PASS; Secure Task Ingress READY; reboot recovery verified; operational probe HEALTHY |
 | HR | NO_DUPLICATE | HR Adapter + specialist HRMS | no second payroll/attendance/leave engine |
 | Specialist domains | ON_DEMAND | capability-specific specialist | no permanent duplicate agents |
 
@@ -66,15 +66,23 @@ HOLD or HUMAN_REVIEW is mandatory when:
 - security/credential/permission widening;
 - payment, billing and material financial commitments;
 - legal/contractual and customer commitments;
-- live VPS activation after real canary evidence.
+- live VPS activation or re-activation requires real canary evidence and human approval.
 
 ## Runtime boundary
 
 The canonical execution host policy is `VPS_ONLY` on node `v103067`. Office workstations are excluded from the operational dependency graph. No runtime fallback to an office workstation is permitted.
 
-## Remaining blocker
+## Verified VPS runtime state
 
-The sole external runtime blocker for the always-on heart is a fresh real non-Production VPS canary on authorized node `v103067`. Repository or synthetic CI evidence cannot substitute for it.
+The authorized non-Production runtime node `v103067` has completed the live activation gate:
+
+- all 13 live VPS canary checks PASS with `live_vps_verified=true`;
+- Secure Task Ingress is loopback-only on `127.0.0.1:8765`, reports `READY`, and keeps `production_locked=true`;
+- `lom-worker.service`, `lom-heartbeat.timer` and `lom-secure-ingress.service` are enabled and active;
+- normal reboot recovery was verified;
+- the read-only VPS operational hardening probe reported `HEALTHY` with no reasons.
+
+This is an evidence-bound **non-Production** activation, not a permanent health guarantee. A stale or repository-mismatched canary, failed operational probe, public ingress bind, failed service recovery or weakened authority boundary must return the runtime to HOLD. Repository CI or synthetic evidence cannot substitute for live VPS evidence.
 
 ## High-Value Absorption Gate
 
