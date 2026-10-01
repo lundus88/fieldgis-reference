@@ -1,109 +1,69 @@
 # LOM Direct VPS — ACP Grant Activation Runbook
 
-Status: **PREPARED / NON-PRODUCTION / HUMAN-GATED / NOT APPLIED**
+Status: **NON-PRODUCTION / VPS LIVE-VERIFIED / AUTHORITY ACTIVE / RESOLVER HMAC PROOF PENDING**
 
-## Verified live baseline
+## Current verified live state — 2026-10-01
 
-Read-only inspection of the active `vrs-core` Supabase project confirms:
+The canonical VPS activation has advanced beyond the historical preparation baseline:
 
-- `private.agent_capability_grants` exists;
-- `private.agent_control_audit_events` exists;
-- `public.acp_delegate_agent_grant_nonprod(...)` exists;
-- `public.acp_revoke_agent_grant(...)` exists;
-- `public.acp_read_agent_grant_chain_nonprod(...)` does **not** yet exist;
-- there are currently **zero active non-Production grants**;
-- there is currently **no active grant for `lom-vps-runner`**;
-- the previous staging parent grant is expired;
-- the previous staging child canary grant is revoked;
-- `vrs-agent-control-oidc` is deployed and active.
+- `private.agent_capability_grants` and ACP audit storage are live;
+- `public.acp_delegate_agent_grant_nonprod(...)` and revocation RPCs are live;
+- `public.acp_read_agent_grant_chain_nonprod(...)` is live;
+- the short-lived `lom-vps-staging-parent` grant is active;
+- the bounded `lom-vps-runner` child grant is active for `factory.plan` in `staging`;
+- `vrs-agent-control-oidc` is ACTIVE;
+- `vrs-agent-grant-resolver` is ACTIVE;
+- canonical node `v103067` has real 13/13 live canary PASS;
+- Secure Task Ingress is READY and loopback-only;
+- worker, heartbeat timer and ingress are verified through reboot recovery;
+- VPS operational probe reported HEALTHY;
+- office workstations remain excluded from runtime.
 
-These facts mean direct LOM -> VPS execution must remain HOLD until a fresh bounded authority chain and read-only resolver exist.
+The remaining gap is resolver-specific: prove the HMAC-authenticated query path from `v103067` through the Edge resolver and back into local canonical grant resolution.
+
+The active authority is short-lived and expires on 2026-10-01 at approximately 22:13:48 MYT unless renewed through the same governed human-approved path.
 
 ## Canonical target scope
 
-The direct VPS path should use the existing logical project:
+- project slug: `fieldgis-reference`;
+- project ID: `432a4a98-1199-4326-a37c-41e2477a1d08`;
+- target environment: `staging`;
+- agent: `lom-vps-runner`;
+- capability: `factory.plan` only;
+- canonical runtime node: `v103067`.
 
-- project slug: `fieldgis-reference`
-- target environment: `staging`
-- environment status requirement: `ready`
+## Authority chain
 
-The database/project UUID must be resolved from the authoritative project store at activation time. Do not hardcode a generated UUID into reusable policy code.
+Current chain:
 
-## Required authority chain
+`lom-vps-runner -> lom-vps-staging-parent`
 
-### Parent grant — HUMAN GATE
+The child must never exceed the parent capability, scope, budget or validity. Root/parent renewal remains HUMAN_ONLY.
 
-A fresh parent grant is required because the old parent has expired.
+## Read-only grant resolver
 
-Minimum parent authority:
+The existing deployed resolver is:
 
-- principal type: `system`
-- role: dedicated LOM/VPS staging parent
-- capability: `factory.plan` only
-- project: resolved `fieldgis-reference`
-- target environment: `staging`
-- timeout budget: at most 60 seconds
-- max retries: 0
-- max cost: 0
-- short validity window, default 24 hours
-- no Production capability
-- no connector capability
-- no protected-main merge authority
+`vrs-agent-grant-resolver`
 
-Creating a new parent/root grant is **HUMAN_ONLY**. Existing runtime delegation APIs must not be extended to mint root authority.
+The VPS must never receive `SUPABASE_SERVICE_ROLE_KEY`. The Edge Function owns the server-side credential and exposes only the bounded read-only HMAC-authenticated grant query.
 
-### Child grant — existing governed path
+Every request binds:
 
-After a valid parent exists, use the existing OIDC admin workflow to delegate:
+- timestamp;
+- nonce;
+- agent;
+- project;
+- environment;
+- grant ref.
 
-- agent_id: `lom-vps-runner`
-- capability: `factory.plan`
-- same project/environment scope as parent
-- budget no wider than parent
-- validity no wider than parent
+Stale, missing, revoked, widened, malformed or Production-scoped chains fail closed.
 
-The child grant must be persisted in the authoritative ACP store and independently resolved before execution.
+## VPS HMAC handoff
 
-## Read-only grant resolver RPC
+Use the existing `grant_resolver_client.py`; do not create a second client or transport.
 
-A separately reviewed Supabase migration must introduce:
-
-`public.acp_read_agent_grant_chain_nonprod(uuid,text,text,text)`
-
-Required properties:
-
-1. read-only;
-2. reject target environments other than `development` or `staging`;
-3. bind the leaf grant to exact `grant_id`, `agent_id`, `project_id`, and target environment;
-4. traverse only `private.agent_capability_grants`;
-5. maximum depth 16;
-6. reject missing ancestors and cycles;
-7. return only fields required by canonical `grant_resolution.py`;
-8. no INSERT/UPDATE/DELETE;
-9. no generic SQL or arbitrary table selection;
-10. revoke EXECUTE from `public`, `anon`, and `authenticated`;
-11. grant only the minimum server-side role required by the dedicated Edge Function;
-12. do not grant direct SELECT/DML on the private ACP tables.
-
-The migration must be generated through the approved Supabase migration workflow, reviewed, applied only after human approval, and followed by security/performance advisors.
-
-## Edge resolver
-
-Only after the RPC exists:
-
-- deploy `vrs-agent-grant-resolver`;
-- use the server-side Supabase credential only inside the Edge Function;
-- never place `SUPABASE_SERVICE_ROLE_KEY` on the VPS;
-- give VPS only a dedicated HMAC query secret;
-- bind every request to timestamp, nonce, agent, project, environment, and grant ref;
-- fail closed on stale, missing, revoked, widened, or malformed grant chains.
-
-## VPS handoff
-
-The VPS must store only bounded local secrets with mode `0600`:
-
-- Secure Task Ingress HMAC key;
-- grant-query HMAC key.
+The VPS stores only the dedicated grant-query HMAC key with mode `0600`.
 
 It must not receive:
 
@@ -113,37 +73,46 @@ It must not receive:
 - Docker socket;
 - root/sudo authority for `lom-runner`.
 
-## End-to-end activation proof
+## Resolver proof
 
-Activation requires all of the following in one controlled non-Production window:
+Resolver-specific completion requires:
 
-1. fresh parent grant exists;
-2. bounded `lom-vps-runner` child grant exists;
-3. read-only resolver RPC exists;
-4. resolver Edge Function authenticates the VPS query;
-5. local canonical `resolve_grant()` accepts the returned chain;
-6. Secure Task Ingress accepts a correctly signed task;
-7. ACP authorizes `factory.plan` only;
-8. VPS worker prepares the bounded result;
-9. execution/evidence journals verify;
-10. identical replay is idempotent;
-11. changed replay is rejected;
-12. Production/connector attempts are rejected;
-13. worker and heartbeat remain healthy after restart.
+1. positive signed query succeeds for the current child grant;
+2. returned chain is accepted by canonical `resolve_grant()`;
+3. bad signature is rejected;
+4. stale timestamp is rejected;
+5. wrong agent/project/environment is rejected;
+6. Production target is rejected;
+7. no secret value appears in logs or evidence.
 
-Only after all checks PASS may the direct VPS path be activated. Office workstations remain excluded from the runtime path and must not be configured as a worker, scheduler, ingress, queue, heartbeat, evidence source or execution fallback. Human administration may use an approved client, but no client workstation is an operational dependency.
+## Existing live VPS proof
+
+The runtime activation evidence already establishes:
+
+- 13/13 live canary PASS;
+- dedicated unprivileged `lom-runner`;
+- Production/connector denials;
+- idempotent identical replay and changed replay rejection;
+- evidence journal integrity;
+- heartbeat availability;
+- Secure Task Ingress READY and loopback-only;
+- reboot recovery;
+- operational probe HEALTHY.
+
+This proof remains freshness-bound. A repository SHA mismatch, stale canary, public ingress exposure, failed service recovery or weakened authority boundary returns the node to HOLD.
 
 ## Stop conditions
 
-Immediate HOLD if any of the following occurs:
+Immediate HOLD if:
 
 - public ingress exposure;
-- missing or stale live VPS canary;
+- stale or repository-mismatched live canary;
 - missing/expired/revoked grant;
 - grant capability or scope widening;
 - resolver returns an unverified chain;
 - service-role credential appears on VPS;
-- Production capability appears in any grant;
-- connector capability is introduced;
+- Production or connector capability appears;
 - audit/evidence chain fails;
 - worker/heartbeat regression occurs.
+
+Production authority remains HUMAN_ONLY.
