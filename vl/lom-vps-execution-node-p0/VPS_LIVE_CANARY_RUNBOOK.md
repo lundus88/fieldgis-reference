@@ -1,8 +1,8 @@
 # VPS Live Canary Runbook — P1
 
-Status: READY TO RUN / NON-PRODUCTION / LIVE VPS UNVERIFIED
+Status: LIVE VPS VERIFIED / NON-PRODUCTION / RE-RUN AFTER RELEVANT CHANGE
 
-Repository CI validates the collector, contract, resolver and fail-closed behavior. It does **not** prove the real VPS. A real PASS requires evidence generated on the authorized non-Production VPS by the dedicated unprivileged `lom-runner` identity.
+Repository CI validates the collector, contract, resolver and fail-closed behavior. It does **not** prove the real VPS. Authorized node `v103067` has completed a real PASS, but continued activation still requires fresh evidence generated on the non-Production VPS by the dedicated unprivileged `lom-runner` identity.
 
 ## Preconditions
 
@@ -69,3 +69,5 @@ Live evidence must also contain a node attestation bound to the same `node_id`, 
 Every required check must PASS. Missing, unknown, stale, mismatched, synthetic, unattributed or failed evidence means HOLD.
 
 A PASS means only that the VPS is suitable as a bounded **non-Production** LOM execution node under this contract. It does **not** authorize connector/OpenClaw execution, Production access, Production deploy/rollback, protected-main merge, payment, pricing, legal, customer or financial commitments.
+
+The resolution carries the attested repository SHA. Operational health must compare that SHA with the current VPS checkout and fail closed on mismatch; an old PASS cannot silently validate a newer checkout.
