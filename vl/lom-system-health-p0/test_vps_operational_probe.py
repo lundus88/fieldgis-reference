@@ -16,6 +16,7 @@ def healthy_snapshot():
         "ingress_error": None,
         "canary": {
             "status": "PASS",
+            "repo_sha": "a" * 40,
             "activation_status": "READY",
             "live_vps_verified": True,
             "failed_checks": [],
@@ -26,6 +27,8 @@ def healthy_snapshot():
             "production_authority": "HUMAN_ONLY",
         },
         "canary_error": None,
+        "current_repo_sha": "a" * 40,
+        "repo_error": None,
         "disk_free_pct": 74.5,
     }
 
@@ -64,6 +67,24 @@ def test_canary_regression_fails_closed():
     assert result["status"] == "HOLD"
     assert "LIVE_CANARY_NOT_PASS" in result["reasons"]
     assert "LIVE_CANARY_VIOLATIONS" in result["reasons"]
+
+
+def test_stale_canary_repo_sha_fails_closed():
+    snap = healthy_snapshot()
+    snap["canary"]["repo_sha"] = "b" * 40
+    result = assess_snapshot(snap)
+    assert result["status"] == "HOLD"
+    assert "LIVE_CANARY_REPO_SHA_MISMATCH" in result["reasons"]
+
+
+def test_missing_repo_identity_fails_closed():
+    snap = healthy_snapshot()
+    snap["current_repo_sha"] = None
+    snap["repo_error"] = "RuntimeError:REPOSITORY_HEAD_UNAVAILABLE"
+    result = assess_snapshot(snap)
+    assert result["status"] == "HOLD"
+    assert "REPOSITORY_HEAD_UNAVAILABLE" in result["reasons"]
+    assert "LIVE_CANARY_REPO_SHA_MISMATCH" in result["reasons"]
 
 
 def test_low_disk_fails_closed():
