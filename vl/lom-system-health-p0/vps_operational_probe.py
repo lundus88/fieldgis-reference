@@ -17,6 +17,7 @@ REQUIRED_UNITS = (
 )
 DEFAULT_CANARY = Path("/home/lom-runner/lom-vps-canary-resolution.json")
 DEFAULT_HEALTH_URL = "http://127.0.0.1:8765/health"
+REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
 def _systemctl(action: str, unit: str) -> str:
@@ -39,6 +40,19 @@ def _load_health(url: str) -> dict[str, Any]:
 
 def _load_canary(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _repo_head(repo_root: Path = REPO_ROOT) -> str:
+    result = subprocess.run(
+        ["git", "-C", str(repo_root), "rev-parse", "HEAD"],
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=5,
+    )
+    if result.returncode != 0:
+        raise RuntimeError("REPOSITORY_HEAD_UNAVAILABLE")
+    return result.stdout.strip()
 
 
 def collect_snapshot(
@@ -69,6 +83,13 @@ def collect_snapshot(
         canary = {}
         canary_error = f"{type(exc).__name__}:{exc}"
 
+    repo_error = None
+    try:
+        current_repo_sha = _repo_head()
+    except Exception as exc:
+        current_repo_sha = None
+        repo_error = f"{type(exc).__name__}:{exc}"
+
     usage = shutil.disk_usage(disk_path)
     disk_free_pct = round((usage.free / usage.total) * 100, 2) if usage.total else 0.0
 
@@ -78,6 +99,8 @@ def collect_snapshot(
         "ingress_error": health_error,
         "canary": canary,
         "canary_error": canary_error,
+        "current_repo_sha": current_repo_sha,
+        "repo_error": repo_error,
         "disk_free_pct": disk_free_pct,
     }
 
@@ -118,6 +141,12 @@ def assess_snapshot(snapshot: dict[str, Any]) -> dict[str, Any]:
         reasons.append("LIVE_CANARY_MISSING_CHECKS")
     if canary.get("violations"):
         reasons.append("LIVE_CANARY_VIOLATIONS")
+    if snapshot.get("repo_error"):
+        reasons.append("REPOSITORY_HEAD_UNAVAILABLE")
+    current_repo_sha = snapshot.get("current_repo_sha")
+    canary_repo_sha = canary.get("repo_sha")
+    if not current_repo_sha or not canary_repo_sha or canary_repo_sha != current_repo_sha:
+        reasons.append("LIVE_CANARY_REPO_SHA_MISMATCH")
 
     try:
         disk_free_pct = float(snapshot.get("disk_free_pct", 0))
@@ -132,6 +161,8 @@ def assess_snapshot(snapshot: dict[str, Any]) -> dict[str, Any]:
         "runtime_host_policy": canary.get("runtime_host_policy"),
         "node_id": canary.get("node_id"),
         "production_authority": canary.get("production_authority"),
+        "current_repo_sha": current_repo_sha,
+        "canary_repo_sha": canary_repo_sha,
         "services": services,
         "ingress": ingress,
         "disk_free_pct": disk_free_pct,

@@ -11,8 +11,16 @@ assert "LOM_REGISTRY_VALIDATION=PASS" in p.stdout
 
 cap=json.loads((ROOT/"vl/lom-governance/capability-registry.json").read_text())
 by_id={x["id"]:x for x in cap["capabilities"]}
-assert by_id["vps_execution"]["status"] == "BLOCKED"
-assert by_id["vps_execution"]["blocker"] == "LIVE_VPS_CANARY_NOT_PROVEN"
+assert by_id["vps_execution"]["status"] == "EXISTING"
+assert "blocker" not in by_id["vps_execution"]
+assert by_id["vps_execution"]["activation_state"] == "LIVE_VERIFIED_NON_PRODUCTION"
+assert by_id["vps_execution"]["activation_evidence_verified"] is True
+assert by_id["vps_execution"]["live_vps_verified"] is True
+assert by_id["vps_execution"]["secure_ingress_verified"] is True
+assert by_id["vps_execution"]["reboot_recovery_verified"] is True
+assert by_id["vps_execution"]["operational_probe_verified"] is True
+assert by_id["vps_execution"]["production_authority"] == "HUMAN_ONLY"
+assert by_id["vps_execution"]["activation_boundary"] == "NON_PRODUCTION_ONLY"
 assert by_id["vps_execution"]["runtime_host_policy"] == "VPS_ONLY"
 assert by_id["vps_execution"]["canonical_runtime_node"] == "v103067"
 assert by_id["vps_execution"]["office_workstation_role"] == "EXCLUDED_FROM_RUNTIME"

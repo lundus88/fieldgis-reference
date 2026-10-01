@@ -60,6 +60,24 @@ if hr.get("duplicate_payroll_attendance_leave_engine_forbidden") is not True:
 vps = next((row for row in cap.get("capabilities", []) if row.get("id") == "vps_execution"), None)
 if not vps:
     fail("vps execution capability missing")
+if vps.get("status") != "EXISTING":
+    fail("verified VPS execution capability must be EXISTING")
+if vps.get("activation_state") != "LIVE_VERIFIED_NON_PRODUCTION":
+    fail("VPS activation state mismatch")
+if vps.get("activation_evidence_verified") is not True or vps.get("live_vps_verified") is not True:
+    fail("VPS live verification evidence missing")
+if vps.get("secure_ingress_verified") is not True:
+    fail("VPS secure ingress verification missing")
+if vps.get("reboot_recovery_verified") is not True:
+    fail("VPS reboot recovery verification missing")
+if vps.get("operational_probe_verified") is not True:
+    fail("VPS operational probe verification missing")
+if vps.get("production_authority") != "HUMAN_ONLY":
+    fail("VPS Production authority must remain HUMAN_ONLY")
+if vps.get("activation_boundary") != "NON_PRODUCTION_ONLY":
+    fail("VPS activation boundary widened")
+if "blocker" in vps:
+    fail("resolved VPS blocker must not remain canonical")
 if vps.get("runtime_host_policy") != "VPS_ONLY":
     fail("VPS-only runtime policy missing")
 if vps.get("canonical_runtime_node") != "v103067":
