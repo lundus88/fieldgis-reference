@@ -56,6 +56,7 @@ def test_live_vps_evidence_can_activate_only_with_bound_attestation():
     assert result["attestation_valid"] is True
     assert result["live_vps_verified"] is True
     assert result["activation_status"] == "READY"
+    assert result["repo_sha"] == "a" * 40
     assert result["observed_at_epoch"] == NOW
 
 
