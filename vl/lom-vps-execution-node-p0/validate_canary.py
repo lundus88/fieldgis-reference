@@ -140,6 +140,7 @@ def validate_canary(contract: dict[str, Any], evidence: dict[str, Any]) -> dict[
         "node_id": node_id or None,
         "authorized_node_id": live_requirements.get("authorized_node_id"),
         "runtime_host_policy": contract.get("runtime_host_policy"),
+        "repo_sha": str(attestation.get("repo_sha") or "") if attestation_valid and isinstance(attestation, dict) else None,
         "attestation_valid": attestation_valid,
         "observed_at_epoch": min(observed_times) if observed_times else None,
         "live_sources": live_sources,
