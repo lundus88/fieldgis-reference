@@ -1,0 +1,12 @@
+{
+  "name": "vl-database-security-rpc-regression",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test rpc-boundary.test.mjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.4.6"
+  }
+}
