@@ -1,6 +1,6 @@
 # LOM VPS Authority Activation Review
 
-Status: **LIVE NON-PRODUCTION AUTHORITY ACTIVE / VPS LIVE-VERIFIED / RESOLVER HMAC PROOF PENDING**
+Status: **LIVE NON-PRODUCTION AUTHORITY ACTIVE / VPS LIVE-VERIFIED / RESOLVER HMAC PROOF VERIFIED**
 
 ## Current verified live state — 2026-10-01
 
@@ -17,7 +17,7 @@ The original review pack has advanced through the governed activation path:
 - the read-only VPS operational probe reported HEALTHY;
 - Production remains HUMAN_ONLY and office workstations remain excluded from runtime.
 
-The remaining resolver-specific evidence gap is the signed HMAC query path between `v103067` and `vrs-agent-grant-resolver`.
+The signed HMAC query path between `v103067` and `vrs-agent-grant-resolver` is now live-verified end-to-end.
 
 The active parent and child grants are short-lived and expire on 2026-10-01 at approximately 22:13:48 MYT unless renewed through the governed human-approved path.
 
@@ -65,15 +65,20 @@ The bounded child grant was then delegated through the existing GitHub OIDC ACP 
 7. real VPS activation gate completed with 13/13 canary PASS;
 8. Secure Task Ingress, reboot recovery and operational probe verified.
 
-## Remaining resolver-specific work
+## Resolver-specific verification complete
 
-No new runtime module is required. Reuse the existing resolver client and Edge Function:
+No new runtime module was created. The existing resolver client and Edge Function were reused.
 
-1. provision the dedicated HMAC query secret using the approved secrets path;
-2. store the matching VPS-side key with mode `0600`;
-3. prove positive signed resolution;
-4. prove fail-closed negative cases;
-5. preserve Production as HUMAN_ONLY.
+Verified on 2026-10-01:
+
+1. the dedicated HMAC query secret was provisioned through the approved secrets path;
+2. the matching VPS-side key is owned by `lom-runner` with mode `0600`;
+3. positive signed resolution succeeded for the active `factory.plan` staging grant;
+4. fail-closed negative cases succeeded for bad signature, stale timestamp, wrong agent/project/environment and Production target;
+5. Edge logs for the proof window contained no secret name, HMAC signature material or signature header;
+6. Production remains HUMAN_ONLY.
+
+The proof is not an authority expansion and does not authorize Production, connectors, payment, merge, release or legal/customer commitments.
 
 ## Human gates
 
