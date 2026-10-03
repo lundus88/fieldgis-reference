@@ -27,6 +27,10 @@ jobs:
           python3 test_live_canary_collector.py
           python3 test_live_canary_cli.py
           python3 -m json.tool vps-canary-contract.json >/dev/null
+      - name: OpenClaw Gateway preflight contract regression
+        run: |
+          cd vl/lom-vps-execution-node-p0
+          python3 test_openclaw_gateway_preflight.py
       - name: Existing ACP runtime policy regression
         run: |
           cd vl/agent-control-plane
