@@ -1,0 +1,106 @@
+name: VL Database Security Local Supabase
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/migrations/20260914_public_security_definer_boundary.sql'
+      - 'vl/migrations/20260914_security_invoker_rpc_guarded_entry.sql'
+      - 'vl/tests/database-security/**'
+      - '.github/workflows/vl-database-security-local-supabase.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  local-supabase-control-plane:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      SUPABASE_TELEMETRY_DISABLED: '1'
+      DO_NOT_TRACK: '1'
+
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+
+      - name: Verify pinned Supabase CLI contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes supabase@2.117.0 --version
+          npx --yes supabase@2.117.0 start --help >/tmp/supabase-start-help.txt
+          npx --yes supabase@2.117.0 status --help >/tmp/supabase-status-help.txt
+          grep -q -- '--output' /tmp/supabase-status-help.txt || grep -q -- '-o' /tmp/supabase-status-help.txt
+
+      - name: Start isolated local Supabase stack
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v docker >/dev/null
+          command -v psql >/dev/null
+          rm -rf /tmp/vl-supabase-local
+          mkdir -p /tmp/vl-supabase-local
+          cd /tmp/vl-supabase-local
+          npx --yes supabase@2.117.0 init >/tmp/supabase-init.log 2>&1
+          if ! npx --yes supabase@2.117.0 start >/tmp/supabase-start.log 2>&1; then
+            echo 'LOCAL_SUPABASE_START_FAILED'
+            exit 1
+          fi
+          npx --yes supabase@2.117.0 status -o env >/tmp/supabase-status.env
+          grep -E '^(API_URL|DB_URL|ANON_KEY|JWT_SECRET|SERVICE_ROLE_KEY)=' /tmp/supabase-status.env > /tmp/supabase-runtime.env
+          test "$(grep -c '^API_URL=' /tmp/supabase-runtime.env)" -eq 1
+          test "$(grep -c '^DB_URL=' /tmp/supabase-runtime.env)" -eq 1
+          test "$(grep -c '^ANON_KEY=' /tmp/supabase-runtime.env)" -eq 1
+          test "$(grep -c '^JWT_SECRET=' /tmp/supabase-runtime.env)" -eq 1
+          echo 'LOCAL_SUPABASE_STACK_READY'
+
+      - name: Apply synthetic fixture and real boundary migrations
+        shell: bash
+        run: |
+          set -euo pipefail
+          set -a
+          source /tmp/supabase-runtime.env
+          set +a
+          echo "::add-mask::$ANON_KEY"
+          echo "::add-mask::$JWT_SECRET"
+          if [ -n "${SERVICE_ROLE_KEY:-}" ]; then echo "::add-mask::$SERVICE_ROLE_KEY"; fi
+          python3 vl/tests/database-security/build_supabase_local_fixture.py > /tmp/vl-rpc-bootstrap.sql
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -f /tmp/vl-rpc-bootstrap.sql >/tmp/vl-rpc-bootstrap.out
+          echo 'LOCAL_SUPABASE_MIGRATION_APPLY_PASS'
+
+      - name: Run Postgres privilege evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          set -a
+          source /tmp/supabase-runtime.env
+          set +a
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -f vl/tests/database-security/privilege-evidence.sql > /tmp/privilege-evidence.txt
+          grep -q 'public_tables_without_rls' /tmp/privilege-evidence.txt
+          echo 'LOCAL_SUPABASE_PRIVILEGE_EVIDENCE_PASS'
+
+      - name: Validate real Data API and RPC boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          set -a
+          source /tmp/supabase-runtime.env
+          set +a
+          echo "::add-mask::$ANON_KEY"
+          echo "::add-mask::$JWT_SECRET"
+          python3 vl/tests/database-security/validate_supabase_local_control_plane.py
+
+      - name: Stop isolated local Supabase stack
+        if: always()
+        shell: bash
+        run: |
+          cd /tmp/vl-supabase-local 2>/dev/null || exit 0
+          npx --yes supabase@2.117.0 stop --no-backup >/tmp/supabase-stop.log 2>&1 || true
+          echo 'LOCAL_SUPABASE_STACK_STOPPED'
