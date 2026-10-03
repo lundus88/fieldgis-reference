@@ -52,6 +52,17 @@ mkdir -p \
   "$ROOT/.android-sdk-components"
 rm -f "$ROOT/.vl-mobile-cache-prepared"
 
+# Bound Gradle memory inside the 4 GiB credential-free sandbox. Flutter's
+# generated Android template currently requests an 8 GiB daemon heap, which
+# exceeds this sandbox cgroup and can be killed by the kernel. GRADLE_USER_HOME
+# has higher precedence than the project gradle.properties and is reserved from
+# generated artifacts, so this runner-owned limit cannot be raised by generated code.
+cat > "$ROOT/.gradle/gradle.properties" <<'EOF'
+org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=1024m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
+org.gradle.daemon=false
+org.gradle.workers.max=2
+EOF
+
 HOST_UID="$(id -u)"
 HOST_GID="$(id -g)"
 
