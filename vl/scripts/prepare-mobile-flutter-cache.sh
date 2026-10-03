@@ -32,7 +32,7 @@ CMAKE_VERSION='3.22.1'
 # These are constants owned by the trusted runner, never values supplied by generated code.
 CERTIFIED_MOBILE_DEPENDENCIES=(
   'geolocator:^14.0.3'
-  'maplibre_gl:^0.27.0'
+  'maplibre_gl:0.27.1'
   'shared_preferences:^2.5.5'
   'path_provider:^2.1.6'
   'share_plus:^13.3.0'
@@ -51,6 +51,17 @@ mkdir -p \
   "$ROOT/.flutter-sdk" \
   "$ROOT/.android-sdk-components"
 rm -f "$ROOT/.vl-mobile-cache-prepared"
+
+# Bound Gradle memory inside the 4 GiB credential-free sandbox. Flutter's
+# generated Android template currently requests an 8 GiB daemon heap, which
+# exceeds this sandbox cgroup and can be killed by the kernel. GRADLE_USER_HOME
+# has higher precedence than the project gradle.properties and is reserved from
+# generated artifacts, so this runner-owned limit cannot be raised by generated code.
+cat > "$ROOT/.gradle/gradle.properties" <<'EOF'
+org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=1024m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
+org.gradle.daemon=false
+org.gradle.workers.max=2
+EOF
 
 HOST_UID="$(id -u)"
 HOST_GID="$(id -g)"
@@ -180,4 +191,4 @@ trap - EXIT
 
 # Do not allow the trusted warm-up artifact to be mistaken for a generated build.
 rm -rf "$ROOT/build"
-printf '%s\n' 'trusted-template-toolchain-prepared-v9-certified-deps-platform35-buildtools36' > "$ROOT/.vl-mobile-cache-prepared"
+printf '%s\n' 'trusted-template-toolchain-prepared-v10-certified-deps-platform35-buildtools36' > "$ROOT/.vl-mobile-cache-prepared"
