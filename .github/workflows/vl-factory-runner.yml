@@ -1,6 +1,7 @@
 name: VL Factory Runner
 
 # Scheduler registration refresh: no behavior change.
+# Operational retrigger 2026-10-04: verify Mobile factory fix on current main.
 on:
   workflow_dispatch:
   schedule:
