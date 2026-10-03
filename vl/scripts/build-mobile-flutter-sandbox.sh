@@ -32,6 +32,10 @@ ROOT="$(cd "$WORKSPACE" && pwd -P)"
 [ -x "$ROOT/.android-sdk-components/build-tools/$BUILD_TOOLS_VERSION/aapt2" ] || { echo "required Android Build Tools are missing" >&2; exit 73; }
 [ -s "$ROOT/.android-sdk-components/platforms/android-$COMPILE_SDK/android.jar" ] || { echo "required Android platform is missing" >&2; exit 74; }
 [ -x "$ROOT/.android-sdk-components/cmake/$CMAKE_VERSION/bin/cmake" ] || { echo "required Android CMake is missing" >&2; exit 75; }
+[ -s "$ROOT/.gradle/gradle.properties" ] || { echo "runner-owned Gradle resource contract is missing" >&2; exit 76; }
+grep -qx 'org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=1024m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8' "$ROOT/.gradle/gradle.properties" || { echo "unexpected Gradle JVM resource contract" >&2; exit 77; }
+grep -qx 'org.gradle.daemon=false' "$ROOT/.gradle/gradle.properties" || { echo "Gradle daemon must remain disabled" >&2; exit 78; }
+grep -qx 'org.gradle.workers.max=2' "$ROOT/.gradle/gradle.properties" || { echo "Gradle worker limit mismatch" >&2; exit 79; }
 
 mkdir -p "$ROOT/.home" "$ROOT/.pub-cache" "$ROOT/.gradle"
 HOST_UID="$(id -u)"
