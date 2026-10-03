@@ -31,7 +31,7 @@ CMAKE_VERSION='3.22.1'
 # Reviewed dependencies used by the certified mobile-flutter-v1 reference contract.
 # These are constants owned by the trusted runner, never values supplied by generated code.
 CERTIFIED_MOBILE_DEPENDENCIES=(
-  'geolocator:^14.0.3'
+  'geolocator:14.1.1'
   'maplibre_gl:0.27.1'
   'shared_preferences:^2.5.5'
   'path_provider:^2.1.6'
@@ -191,4 +191,4 @@ trap - EXIT
 
 # Do not allow the trusted warm-up artifact to be mistaken for a generated build.
 rm -rf "$ROOT/build"
-printf '%s\n' 'trusted-template-toolchain-prepared-v10-certified-deps-platform35-buildtools36' > "$ROOT/.vl-mobile-cache-prepared"
+printf '%s\n' 'trusted-template-toolchain-prepared-v11-certified-deps-platform35-buildtools36' > "$ROOT/.vl-mobile-cache-prepared"
