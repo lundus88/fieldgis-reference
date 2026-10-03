@@ -1,5 +1,7 @@
 name: VL Specialized Builder Depth
 
+# Operational retrigger 2026-10-04: refresh API certification evidence on current workflow.
+
 on:
   workflow_dispatch:
   push:
