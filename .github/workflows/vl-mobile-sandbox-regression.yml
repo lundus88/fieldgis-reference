@@ -189,8 +189,8 @@ jobs:
           grep -q -- "'platforms;android-\$COMPILE_SDK'" vl/scripts/prepare-mobile-flutter-cache.sh
           grep -q -- "'cmake;\$CMAKE_VERSION'" vl/scripts/prepare-mobile-flutter-cache.sh
           grep -q -- '/workspace/.flutter-sdk/bin/flutter' vl/scripts/prepare-mobile-flutter-cache.sh
-          grep -q -- "'geolocator:\14.1.1'" vl/scripts/prepare-mobile-flutter-cache.sh
-          grep -q -- "'maplibre_gl:\0.27.1'" vl/scripts/prepare-mobile-flutter-cache.sh
+          grep -q -- "'geolocator:14.1.1'" vl/scripts/prepare-mobile-flutter-cache.sh
+          grep -q -- "'maplibre_gl:0.27.1'" vl/scripts/prepare-mobile-flutter-cache.sh
           grep -q -- "'shared_preferences:\^2.5.5'" vl/scripts/prepare-mobile-flutter-cache.sh
           grep -q -- "'path_provider:\^2.1.6'" vl/scripts/prepare-mobile-flutter-cache.sh
           grep -q -- "'share_plus:\^13.3.0'" vl/scripts/prepare-mobile-flutter-cache.sh
