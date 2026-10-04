@@ -68,18 +68,52 @@ jobs:
               xs.sort(key=lambda a:(a.get('created_at') or '', int(a.get('id') or 0)), reverse=True)
               a=xs[0]
               m=re.match(r'^vl-factory-([0-9a-fA-F-]{36})-(.+)$',a['name']); assert m,a['name']
-              print(json.dumps({'found':True,'candidate_count':len(xs),'selection':'latest_created_at_then_id','artifact_id':a['id'],'artifact_name':a['name'],'artifact_created_at':a.get('created_at'),'factory_run_id':m.group(1),'builder_key':m.group(2)}))
+              print(json.dumps({'found':True,'candidate_count':len(xs),'selection':'latest_created_at_then_id','artifact_id':a['id'],'artifact_name':a['name'],'artifact_created_at':a.get('created_at'),'archive_download_url':a.get('archive_download_url'),'factory_run_id':m.group(1),'builder_key':m.group(2)}))
           PY
           FOUND=$(python3 -c 'import json;print(str(json.load(open("selected.json"))["found"]).lower())')
           echo "found=$FOUND" >> "$GITHUB_OUTPUT"
           echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
           if [ "$FOUND" != 'true' ]; then echo 'Factory Runner completed with no build artifact; no attestation work.'; exit 0; fi
           ART_ID=$(python3 -c 'import json;print(json.load(open("selected.json"))["artifact_id"])')
+          ART_NAME=$(python3 -c 'import json;print(json.load(open("selected.json"))["artifact_name"])')
           FACTORY_RUN_ID=$(python3 -c 'import json;print(json.load(open("selected.json"))["factory_run_id"])')
           BUILDER=$(python3 -c 'import json;print(json.load(open("selected.json"))["builder_key"])')
-          rm -rf source-artifact && mkdir source-artifact
-          gh api "repos/lundus88/fieldgis-reference/actions/artifacts/$ART_ID/zip" > source.zip
-          unzip -q source.zip -d source-artifact
+          export ART_ID ART_NAME
+          rm -rf source-artifact source.zip && mkdir source-artifact
+          python3 - <<'PY'
+          import json,os,pathlib,urllib.request,urllib.error,zipfile
+          d=json.load(open('selected.json'))
+          api_url=str(d.get('archive_download_url') or '')
+          if not api_url.startswith('https://api.github.com/'):
+              raise SystemExit('missing/invalid GitHub artifact archive URL')
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, req, fp, code, msg, headers, newurl):
+                  return None
+          req=urllib.request.Request(api_url,headers={
+              'Authorization':f"Bearer {os.environ['GH_TOKEN']}",
+              'Accept':'application/vnd.github+json',
+              'X-GitHub-Api-Version':'2022-11-28',
+          })
+          opener=urllib.request.build_opener(NoRedirect)
+          try:
+              opener.open(req)
+              raise SystemExit('artifact download endpoint did not redirect')
+          except urllib.error.HTTPError as e:
+              if e.code not in (302,307):
+                  raise
+              signed=e.headers.get('Location')
+          if not signed or not signed.startswith('https://'):
+              raise SystemExit('missing signed artifact download location')
+          zpath=pathlib.Path('source.zip')
+          with urllib.request.urlopen(signed) as r, zpath.open('wb') as f:
+              f.write(r.read())
+          with zipfile.ZipFile(zpath) as z:
+              z.extractall('source-artifact')
+          files=[p for p in pathlib.Path('source-artifact').rglob('*') if p.is_file()]
+          if len(files)!=1:
+              raise SystemExit(f'expected exactly one artifact file, found {len(files)}')
+          print(json.dumps({'artifact_id':os.environ['ART_ID'],'artifact_name':os.environ['ART_NAME'],'file':str(files[0]),'file_size':files[0].stat().st_size}))
+          PY
           mapfile -t FILES < <(find source-artifact -type f)
           test "${#FILES[@]}" -eq 1
           FILE="${FILES[0]}"; SHA=$(sha256sum "$FILE" | awk '{print $1}')

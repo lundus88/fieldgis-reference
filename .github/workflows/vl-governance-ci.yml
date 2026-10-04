@@ -88,6 +88,8 @@ jobs:
               ('supply-chain attestation must use OIDC', 'audience=vrs-supply-chain-attestation' in supply_chain and 'id-token: write' in supply_chain),
               ('supply-chain attestation must verify provenance', 'gh attestation verify' in supply_chain),
               ('supply-chain attestation must verify SPDX SBOM', 'https://spdx.dev/Document/v2.3' in supply_chain),
+              ('supply-chain artifact download must use signed redirect', 'archive_download_url' in supply_chain and 'HTTPRedirectHandler' in supply_chain),
+              ('supply-chain artifact download must reject raw gh api zip redirect handling', 'actions/artifacts/$ART_ID/zip" > source.zip' not in supply_chain),
               ('production approval endpoint source must exist', bool(approval)),
               ('production approval endpoint must forward caller bearer token', 'Authorization: auth' in approval),
               ('production approval endpoint must use official approval RPC', 'approve_vrs_production_release' in approval),
