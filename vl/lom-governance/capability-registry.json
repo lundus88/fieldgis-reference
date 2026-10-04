@@ -293,5 +293,140 @@
     "mode": "HR_ADAPTER_PLUS_SPECIALIST_HRMS",
     "duplicate_payroll_attendance_leave_engine_forbidden": true,
     "build_new_only_on_proven_gap": true
+  },
+  "maturity_ladder": {
+    "schema": "lom.maturity-ladder/1",
+    "principle": "Advance only on evidence; no stage may self-certify completion.",
+    "progression": [
+      {
+        "stage": "ECONOMIC_INTELLIGENCE",
+        "display": "Economic Intelligence",
+        "status": "PARTIAL",
+        "symbol": "◐",
+        "owner_refs": [
+          "vl/lom-4-5-interoperability-resource-intelligence",
+          "vl/lom-economic-participation-p0",
+          "docs/commercial/lds-autonomous-operations"
+        ],
+        "completion_evidence": [
+          "measured unit economics",
+          "risk-adjusted cost/value routing",
+          "revenue/margin/cost/latency tradeoff evidence",
+          "no unauthorized financial commitment"
+        ],
+        "human_gate": [
+          "BILLING_CHANGE",
+          "FINANCIAL_COMMITMENT"
+        ]
+      },
+      {
+        "stage": "SELF_HEALING",
+        "display": "Self-Healing / Homeostasis",
+        "status": "PARTIAL",
+        "symbol": "◐",
+        "owner_refs": [
+          "vl/lom-organism-integration-p0",
+          "vl/lom-gate-d-remediation",
+          "vl/lom-system-health-p0"
+        ],
+        "completion_evidence": [
+          "detect",
+          "diagnose",
+          "select bounded recovery",
+          "rollback",
+          "independent verification",
+          "learn from verified incident outcome"
+        ],
+        "human_gate": [
+          "CONSEQUENTIAL_ACTION",
+          "PRODUCTION_ROLLBACK"
+        ]
+      },
+      {
+        "stage": "REAL_REVENUE_PROOF",
+        "display": "Real Revenue Proof",
+        "status": "HOLD",
+        "symbol": "⏳",
+        "owner_refs": [
+          "vl/ld-ready-business-kit-p0/P3_REVENUE_PROOF_RUNBOOK.md",
+          "vl/ld-ready-business-kit-p0/p3-readiness.json"
+        ],
+        "completion_evidence": [
+          "qualified lead",
+          "approved quotation",
+          "real provider payment",
+          "paid order",
+          "delivery evidence",
+          "customer acceptance",
+          "invoice or receipt",
+          "reconciliation",
+          "measured acquisition and delivery cost"
+        ],
+        "synthetic_evidence_counts_as_completion": false,
+        "human_gate": [
+          "LIVE_PAYMENT_ACTIVATION",
+          "FINANCIAL_COMMITMENT",
+          "PUBLIC_LAUNCH"
+        ]
+      },
+      {
+        "stage": "INTERNATIONAL_VALIDATION",
+        "display": "International Validation",
+        "status": "HOLD",
+        "symbol": "⏳",
+        "owner_refs": [
+          "docs/commercial/lds-global-commerce-readiness"
+        ],
+        "completion_evidence": [
+          "at least one explicitly supported foreign market",
+          "current international operating evidence",
+          "real paid cross-border transaction",
+          "delivery acceptance",
+          "accounting or receipt evidence",
+          "human validation of international-ready claim"
+        ],
+        "worldwide_claim_inferred": false,
+        "self_certification": "FORBIDDEN",
+        "human_gate": [
+          "COUNTRY_SUPPORT_ACTIVATION",
+          "PUBLIC_INTERNATIONAL_READY_CLAIM"
+        ]
+      },
+      {
+        "stage": "EXTERNALLY_PROVEN_FRONTIER_INTELLIGENCE",
+        "display": "Externally Proven Frontier Intelligence",
+        "status": "HOLD",
+        "symbol": "⏳",
+        "owner_refs": [
+          "vl/lom-learning-evaluation/FRONTIER_EVALUATION_P1.md"
+        ],
+        "completion_evidence": [
+          "real internal baseline across all frontier dimensions",
+          "comparable external benchmarks",
+          "independent evaluator separate from executor",
+          "adversarial testing",
+          "third-party review for global-superiority claims"
+        ],
+        "world_best_claim": "FORBIDDEN_UNTIL_EXTERNALLY_PROVEN",
+        "human_gate": [
+          "PUBLIC_FRONTIER_CLAIM"
+        ]
+      }
+    ],
+    "ordered_path": [
+      "ECONOMIC_INTELLIGENCE",
+      "SELF_HEALING",
+      "REAL_REVENUE_PROOF",
+      "INTERNATIONAL_VALIDATION",
+      "EXTERNALLY_PROVEN_FRONTIER_INTELLIGENCE"
+    ],
+    "hard_invariants": {
+      "human_sovereignty": true,
+      "protected_main_merge": "HUMAN_ONLY",
+      "production_authority": "HUMAN_ONLY",
+      "self_certification": "FORBIDDEN",
+      "synthetic_revenue_as_real_revenue": "FORBIDDEN",
+      "worldwide_claim_by_inference": "FORBIDDEN"
+    }
   }
 }
