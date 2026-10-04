@@ -136,6 +136,10 @@ jobs:
       - name: LOM Frontier Evaluation & Adversarial Audit P1
         working-directory: vl/lom-learning-evaluation
         run: python -m unittest -v test_frontier_evaluation.py
+
+      - name: LOM Agentic Hierarchical Planning & Replanning P1
+        working-directory: vl/lom-agentic-os-p0
+        run: python -m unittest -v test_hierarchical_planner.py
       - name: LOM 4.3 Self-Improvement Runtime + Decision Twin
         working-directory: vl/lom-self-improvement-runtime
         run: python -m unittest -v test_self_improvement_runtime.py test_decision_twin.py
