@@ -90,6 +90,65 @@ excluded = set(vps.get("excluded_operational_dependencies") or [])
 if {"OFFICE_WORKSTATION"} - excluded:
     fail("office workstation exclusion missing")
 
+maturity = cap.get("maturity_ladder") or {}
+if maturity.get("schema") != "lom.maturity-ladder/1":
+    fail("maturity ladder schema mismatch")
+expected_path = [
+    "ECONOMIC_INTELLIGENCE",
+    "SELF_HEALING",
+    "REAL_REVENUE_PROOF",
+    "INTERNATIONAL_VALIDATION",
+    "EXTERNALLY_PROVEN_FRONTIER_INTELLIGENCE",
+]
+if maturity.get("ordered_path") != expected_path:
+    fail("maturity ladder path drift")
+stages = maturity.get("progression") or []
+stage_by_id = {row.get("stage"): row for row in stages}
+if set(stage_by_id) != set(expected_path) or len(stages) != len(expected_path):
+    fail("maturity ladder stages incomplete or duplicated")
+expected_states = {
+    "ECONOMIC_INTELLIGENCE": "PARTIAL",
+    "SELF_HEALING": "PARTIAL",
+    "REAL_REVENUE_PROOF": "HOLD",
+    "INTERNATIONAL_VALIDATION": "HOLD",
+    "EXTERNALLY_PROVEN_FRONTIER_INTELLIGENCE": "HOLD",
+}
+for sid, expected_status in expected_states.items():
+    row = stage_by_id[sid]
+    if row.get("status") != expected_status:
+        fail(f"maturity stage status drift: {sid}")
+    refs = row.get("owner_refs") or []
+    if not refs:
+        fail(f"maturity stage owner refs missing: {sid}")
+    for ref in refs:
+        if not (ROOT / ref).exists():
+            fail(f"maturity stage owner/evidence ref missing: {sid}: {ref}")
+    if not row.get("completion_evidence"):
+        fail(f"maturity stage completion evidence missing: {sid}")
+
+if stage_by_id["REAL_REVENUE_PROOF"].get("synthetic_evidence_counts_as_completion") is not False:
+    fail("synthetic revenue evidence must not count as real revenue proof")
+if stage_by_id["INTERNATIONAL_VALIDATION"].get("self_certification") != "FORBIDDEN":
+    fail("international validation self-certification must remain forbidden")
+if stage_by_id["INTERNATIONAL_VALIDATION"].get("worldwide_claim_inferred") is not False:
+    fail("worldwide support must not be inferred")
+if stage_by_id["EXTERNALLY_PROVEN_FRONTIER_INTELLIGENCE"].get("world_best_claim") != "FORBIDDEN_UNTIL_EXTERNALLY_PROVEN":
+    fail("frontier world-best claim discipline weakened")
+
+maturity_hard = maturity.get("hard_invariants") or {}
+if maturity_hard.get("human_sovereignty") is not True:
+    fail("maturity ladder must preserve human sovereignty")
+if maturity_hard.get("protected_main_merge") != "HUMAN_ONLY":
+    fail("maturity ladder protected-main authority widened")
+if maturity_hard.get("production_authority") != "HUMAN_ONLY":
+    fail("maturity ladder production authority widened")
+if maturity_hard.get("self_certification") != "FORBIDDEN":
+    fail("maturity ladder self-certification must remain forbidden")
+if maturity_hard.get("synthetic_revenue_as_real_revenue") != "FORBIDDEN":
+    fail("synthetic revenue claim invariant weakened")
+if maturity_hard.get("worldwide_claim_by_inference") != "FORBIDDEN":
+    fail("worldwide claim inference invariant weakened")
+
 if doctrine.get("schema") != "lom.core-values-doctrine/1":
     fail("core values doctrine schema mismatch")
 principles = doctrine.get("principles") or []
@@ -183,3 +242,4 @@ print(f"CAPABILITIES={len(ids)}")
 print(f"KNOWLEDGE_RECORDS={len(know.get('records', []))}")
 print(f"CORE_VALUES={len(principles)}")
 print(f"HVAE_DISPOSITIONS={len(hvae.get('dispositions', []))}")
+print(f"MATURITY_STAGES={len(stages)}")
