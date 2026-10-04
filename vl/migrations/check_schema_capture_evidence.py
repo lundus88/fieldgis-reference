@@ -31,6 +31,8 @@ for required in (
     'db dump --db-url "$DB_URL"',
     'migration fetch --db-url "$DB_URL"',
     "sslmode=require",
+    "${VL_SUPABASE_DB_HOST}:${VL_SUPABASE_DB_PORT}",
+    "${VL_SUPABASE_DB_USER}",
     "retention-days: 1",
 ):
     assert required in text, f"missing capture safeguard: {required}"
@@ -51,7 +53,9 @@ for forbidden in (
 ):
     assert forbidden not in lower, f"mutating or privilege-expanding command forbidden in capture workflow: {forbidden}"
 
-assert "VL_SUPABASE_DB_HOST: db.wczelfmnqpgzfdszxubl.supabase.co" in text
+assert "VL_SUPABASE_DB_HOST: aws-0-ap-southeast-1.pooler.supabase.com" in text
+assert "VL_SUPABASE_DB_PORT: 6543" in text
+assert "VL_SUPABASE_DB_USER: postgres.wczelfmnqpgzfdszxubl" in text
 assert '::add-mask::${ENCODED_DB_PASSWORD}' in text
 assert '::add-mask::${DB_URL}' in text
 assert "Potential credential material detected" in text
