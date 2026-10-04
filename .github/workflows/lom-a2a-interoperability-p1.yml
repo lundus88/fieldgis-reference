@@ -1,0 +1,58 @@
+name: LOM A2A Interoperability P1
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/lom-a2a-adapter-p1/**'
+      - 'vl/connector-governance/**'
+      - 'vl/lom-operational-safety/action-registry.json'
+      - '.github/workflows/lom-a2a-interoperability-p1.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'vl/lom-a2a-adapter-p1/**'
+      - 'vl/connector-governance/**'
+      - 'vl/lom-operational-safety/action-registry.json'
+      - '.github/workflows/lom-a2a-interoperability-p1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  a2a-interoperability-p1:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Validate connector registry
+        run: python vl/connector-governance/validate_connector_registry.py vl/connector-governance/connector-registry.json
+
+      - name: Compile A2A adapter
+        run: python -m py_compile vl/lom-a2a-adapter-p1/a2a_adapter.py
+
+      - name: Run A2A adapter regression
+        working-directory: vl/lom-a2a-adapter-p1
+        run: python -m unittest -v test_a2a_adapter.py
+
+      - name: Re-run MCP adapter regression
+        working-directory: vl/lom-mcp-adapter-p1
+        run: python -m unittest -v test_mcp_adapter.py
+
+      - name: Re-run Operational Safety
+        working-directory: vl/lom-operational-safety
+        run: python -m unittest -v test_operational_safety.py
+
+      - name: Assert A2A authority boundary
+        run: |
+          grep -q 'A2A_PROTOCOL_VERSION = "1.0"' vl/lom-a2a-adapter-p1/a2a_adapter.py
+          grep -q 'AUTONOMOUS_CEILING = "PREPARE_PR"' vl/lom-a2a-adapter-p1/a2a_adapter.py
+          grep -q 'EXECUTION_AUTHORITY = "NONE"' vl/lom-a2a-adapter-p1/a2a_adapter.py
+          grep -q 'PRODUCTION_AUTHORITY = "HUMAN_ONLY"' vl/lom-a2a-adapter-p1/a2a_adapter.py
+          grep -q '"external_delegation": "DISABLED"' vl/lom-a2a-adapter-p1/a2a_adapter.py
+          grep -q '"agent_authority_trusted": False' vl/lom-a2a-adapter-p1/a2a_adapter.py
