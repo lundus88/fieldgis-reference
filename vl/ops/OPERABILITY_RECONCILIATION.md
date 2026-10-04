@@ -47,7 +47,7 @@ This evidence does **not** authorize an ad-hoc timestamp refresh. It establishes
 11. Re-evaluating historical evidence is not sufficient to refresh health.
 12. A blocked certification finalization must leave `public.vl_cert_health` untouched and emit an audit record.
 13. A successful finalization may update only the existing health row; it may not create certification evidence/results or mutate Factory lifecycle state.
-14. Certification-health finalization requires an explicit source run, source URI and human authorization reference.
+14. Certification-health finalization requires a separate AAL2 human authorization audit record that is cryptographically bound to the exact selected evidence set by SHA-256 digest.
 
 ## Files
 
@@ -68,8 +68,12 @@ The writer contract requires all of the following before `vl_cert_health.updated
 6. Every active builder has one complete PASS evidence set created after `run_started_at` within a single factory run.
 7. The evidence rows have non-empty provenance URIs.
 8. The evidence-producing factory run is `staging`, `awaiting_approval` and `production_locked=true`.
-9. The caller provides `source_run_id`, `source_uri` and `human_authorization_ref`.
-10. Failure records an audit event and leaves the old health row untouched.
+9. The selected evidence set is canonicalized and SHA-256 digested.
+10. A separate `vl.cert_health_finalization_authorized` audit record must bind the same `run_started_at`, `max_run_age_seconds` and `evidence_digest`.
+11. The authorization must be AAL2, created after the selected evidence, no older than 15 minutes, and performed by an owner/admin who covers every selected evidence project.
+12. One authorization record may be consumed only once; replay is fail-closed.
+13. The health timestamp is the oldest selected builder `last_evidence_at`, not the wall-clock finalization time.
+14. Failure records an audit event and leaves the old health row untouched.
 
 This finalizer is not a certification producer. It only summarizes evidence produced by the existing certification engine.
 
@@ -80,7 +84,7 @@ Before runtime activation:
 1. Create an isolated Supabase development branch using the normal project tooling and cost approval process.
 2. Materialize the SQL as a proper Supabase migration using the project migration workflow; do not ad-hoc apply this candidate SQL to live `vrs-core`.
 3. Run database tests covering the two historical state pairs, idempotency, under-age rejection, production-deployment rejection and stale approval expiry.
-4. For certification health, test no-active-policy, stale run, incomplete evidence, non-certified result, non-staging run, unlocked run and successful fresh evidence cases.
+4. For certification health, test no-active-policy, stale run, incomplete evidence, non-certified result, non-staging run, unlocked run, fabricated authorization ID, wrong evidence digest, wrong AAL, stale authorization, authorization-before-evidence, scope mismatch, replay, and successful fresh evidence cases.
 5. Run Supabase security and performance advisors.
 6. Add an OIDC-authenticated or equivalently governed **human-triggered** finalization path; the DB function itself must not become a general public RPC.
 7. Run a dry-run inventory and require zero production-environment candidates.
