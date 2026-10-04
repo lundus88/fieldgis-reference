@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 
 MCP_PROTOCOL_VERSION = '2026-07-28'
+A2A_PROTOCOL_VERSION = '1.0'
 
 
 def validate(registry: dict) -> None:
@@ -54,6 +55,14 @@ def validate(registry: dict) -> None:
                 raise ValueError(f'connector {cid} MCP network access must remain disabled')
             if connector.get('server_authority_trusted') is not False:
                 raise ValueError(f'connector {cid} MCP server authority must remain untrusted')
+
+        if connector.get('protocol') == 'a2a':
+            if connector.get('protocol_version') != A2A_PROTOCOL_VERSION:
+                raise ValueError(f'connector {cid} A2A protocol version mismatch')
+            if connector.get('network_access') != 'DISABLED':
+                raise ValueError(f'connector {cid} A2A network access must remain disabled')
+            if connector.get('agent_authority_trusted') is not False:
+                raise ValueError(f'connector {cid} A2A agent authority must remain untrusted')
 
 
 def main() -> int:
