@@ -38,6 +38,7 @@ on:
       - 'vl/lom-canonical-compliance/**'
       - 'vl/lom-final-hardening/**'
       - 'vl/lom-governance/**'
+      - 'vl/lom-policy-as-code-p1/**'
       - 'vl/lom-knowledge-foundation/**'
       - '.github/workflows/lom-*.yml'
   workflow_dispatch:
@@ -142,6 +143,10 @@ jobs:
         run: python -m unittest -v test_cockpit.py
       - name: LOM Security Authority Alignment
         run: python vl/lom-security-hardening/validate_authority_alignment.py
+      - name: LOM Policy-as-Code canonical projection
+        run: |
+          python vl/lom-policy-as-code-p1/compile_policy_data.py --check
+          python -m unittest -v vl/lom-policy-as-code-p1/test_policy_compiler.py
       - name: LOM 4.5 Interoperability & Resource Intelligence
         working-directory: vl/lom-4-5-interoperability-resource-intelligence
         run: python -m unittest -v test_runtime.py
