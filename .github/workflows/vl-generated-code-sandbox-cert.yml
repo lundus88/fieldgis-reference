@@ -37,7 +37,7 @@ jobs:
         run: |
           set -euo pipefail
           docker pull ubuntu:24.04
-          vl/scripts/run-untrusted-sandbox.sh ubuntu:24.04 sandbox-workspace -- /bin/bash /workspace/probe.sh
+          VL_SANDBOX_EPHEMERAL=1 VL_SANDBOX_EXPORTS=.vl-sandbox-write-test vl/scripts/run-untrusted-sandbox.sh ubuntu:24.04 sandbox-workspace -- /bin/bash /workspace/probe.sh
           test -f sandbox-workspace/.vl-sandbox-write-test
           grep -qx 'sandbox-ok' sandbox-workspace/.vl-sandbox-write-test
 
