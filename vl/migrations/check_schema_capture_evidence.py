@@ -15,17 +15,14 @@ BOOTSTRAP = BASELINE_DIR / "bootstrap.sql"
 text = WORKFLOW.read_text(encoding="utf-8")
 lower = text.lower()
 
-# Capture remains opt-in/manual. Baseline promotion is a separate explicit opt-in
-# and is hard-bound to the recovery branch.
+# Capture remains opt-in/manual and repository-read-only.
 assert "workflow_dispatch:" in text
 assert "pull_request:" not in text
 assert "\n  push:" not in text
-assert "promote_baseline:" in text
-assert "default: false" in lower
-assert text.count("contents: write") == 1
+assert "promote_baseline:" not in text
+assert "contents: write" not in text
 assert "contents: read" in text
-assert "github.ref_name == 'fix/vl-migration-reproducibility-refresh-20261004'" in text
-assert 'test "$GITHUB_REF_NAME" = "fix/vl-migration-reproducibility-refresh-20261004"' in text
+assert "git push origin" not in text
 
 # Capture does not require a Supabase Management API access token.
 assert "supabase_access_token" not in lower
@@ -36,7 +33,6 @@ assert re.search(r"SUPABASE_CLI_VERSION:\s*2\.117\.0\b", text)
 assert "supabase@${SUPABASE_CLI_VERSION}" in text
 assert "actions/checkout@11d5960a326750d5838078e36cf38b85af677262" in text
 assert "actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f" in text
-assert "actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093" in text
 
 # Remote database work is read-only and goes through the IPv4 transaction pooler.
 for required in (
@@ -72,15 +68,6 @@ assert '::add-mask::${ENCODED_DB_PASSWORD}' in text
 assert '::add-mask::${DB_URL}' in text
 assert "Potential credential material detected" in text
 assert "artifact upload blocked" in text
-
-# Promotion can only preserve the already reviewed capture on the recovery branch.
-assert "50d426da6ad13641d5ef3d44b0a3fa84ea61828e4c549d4fef6faa5ef812afb5" in text
-assert 'wc -l' in text and '= "174"' in text
-assert "remote_schema.sql.gz" in text
-assert "fetched_migrations.tar.gz" in text
-assert "SHA256SUMS.txt" in text
-assert "PROVENANCE.json" in text
-assert "git push origin" in text
 
 fp = json.loads(FINGERPRINT.read_text(encoding="utf-8"))
 assert fp["schema"] == "vl.remote-schema-fingerprint/1"
