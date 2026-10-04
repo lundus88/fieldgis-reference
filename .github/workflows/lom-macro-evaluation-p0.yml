@@ -1,0 +1,60 @@
+name: LOM Macro Evaluation P0
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/lom-macro-evaluation-p0/**'
+      - 'vl/lom-learning-evaluation/**'
+      - 'vl/lom-operational-twin-causal-memory-p3/**'
+      - 'vl/lom-intelligence-stack-p0/**'
+      - 'vl/lom-6-11-live-operational-evidence-fabric/**'
+      - '.github/workflows/lom-macro-evaluation-p0.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'vl/lom-macro-evaluation-p0/**'
+      - 'vl/lom-learning-evaluation/**'
+      - 'vl/lom-operational-twin-causal-memory-p3/**'
+      - 'vl/lom-intelligence-stack-p0/**'
+      - 'vl/lom-6-11-live-operational-evidence-fabric/**'
+      - '.github/workflows/lom-macro-evaluation-p0.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  macro-evaluation-p0:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Compile Macro Evaluation
+        run: python -m py_compile vl/lom-macro-evaluation-p0/macro_evaluation.py
+
+      - name: Run Macro Evaluation tests
+        working-directory: vl/lom-macro-evaluation-p0
+        run: python test_macro_evaluation.py
+
+      - name: Re-run Learning Core regression
+        working-directory: vl/lom-learning-evaluation
+        run: python -m unittest -v test_learning_core.py
+
+      - name: Re-run Causal Memory P3 regression
+        working-directory: vl/lom-operational-twin-causal-memory-p3
+        run: python test_causal_memory_adapter.py
+
+      - name: Re-run Intelligence Stack P0 regression
+        working-directory: vl/lom-intelligence-stack-p0
+        run: python test_intelligence_stack.py
+
+      - name: Assert bounded learning authority
+        run: |
+          grep -q 'LEARNING_DISPOSITION = "PROPOSE_ONLY"' vl/lom-macro-evaluation-p0/macro_evaluation.py
+          grep -q 'AUTONOMOUS_CEILING = "PREPARE_PR"' vl/lom-macro-evaluation-p0/macro_evaluation.py
+          grep -q 'EXECUTION_AUTHORITY = "NONE"' vl/lom-macro-evaluation-p0/macro_evaluation.py
+          grep -q 'PRODUCTION_AUTHORITY = "HUMAN_ONLY"' vl/lom-macro-evaluation-p0/macro_evaluation.py
+          grep -q 'PROTECTED_MAIN_MERGE = "HUMAN_ONLY"' vl/lom-macro-evaluation-p0/macro_evaluation.py
