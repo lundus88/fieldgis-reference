@@ -45,12 +45,53 @@
     "No country may inherit another country's legal or tax assumptions",
     "A legitimate or qualified lead must not override market support evidence",
     "Commercial KPI progression must not authorize a hard-state transition",
-    "A supported market must still satisfy quotation payment acceptance and delivery controls"
+    "A supported market must still satisfy quotation payment acceptance and delivery controls",
+    "International readiness must not be inferred from global enquiry capability alone",
+    "International readiness requires at least one explicitly supported foreign market",
+    "Technical international capability without real cross-border proof is candidate status only",
+    "A real cross-border transaction must bind payment delivery acceptance and accounting evidence",
+    "Public international-ready claims require explicit human validation",
+    "Worldwide support must never be inferred from one or several supported foreign markets"
   ],
   "current_global_status": {
     "technical_factory": "CONDITIONAL",
     "global_enquiry": "ALLOWED_MANUAL",
     "global_paid_order": "HOLD",
     "public_global_checkout": "HOLD"
+  },
+  "international_readiness": {
+    "home_market": "MY",
+    "statuses": [
+      "HOLD",
+      "INTERNATIONAL_CANDIDATE",
+      "HUMAN_GATE",
+      "INTERNATIONAL_VALIDATED"
+    ],
+    "operating_dimensions": [
+      "locale_language",
+      "multi_currency",
+      "timezone_normalization",
+      "jurisdiction_knowledge",
+      "cross_border_payment",
+      "accounting_invoice",
+      "privacy_security",
+      "support_delivery",
+      "observability_recovery",
+      "evidence_current"
+    ],
+    "validation_requirements": [
+      "At least one foreign market must be explicitly SUPPORTED",
+      "All international operating dimensions must have current evidence",
+      "A real cross-border paid transaction must bind to a supported foreign market",
+      "Delivery acceptance must be independently evidenced",
+      "Accounting or receipt evidence must bind to the same cross-border transaction",
+      "Human validation is required before a public international-ready claim"
+    ],
+    "claim_rules": {
+      "international_candidate_public_claim_allowed": false,
+      "international_validated_requires_real_transaction": true,
+      "worldwide_claim_inferred_from_single_market": false,
+      "self_certification": "FORBIDDEN"
+    }
   }
 }
