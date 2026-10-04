@@ -97,10 +97,13 @@ The canonical recovery path is:
 
 - Operator schema capture: **GREEN**
 - Artifact integrity: **GREEN**
-- Production schema provenance parity with legacy migration history: **RED**
-- Canonical baseline: **PENDING**
-- Fresh DEV baseline replay: **PENDING**
-- PR #472 runtime proof: **BLOCKED by #153**
+- Legacy migration chain as a standalone fresh bootstrap: **RED / historical limitation confirmed**
+- Canonical baseline: **GREEN**
+- Exact schema parity on data-less DEV: **GREEN**
+- Exact migration-history parity on DEV after schema parity: **GREEN**
+- Repeat deterministic DEV replay: **GREEN**
+- PR #472 runtime proof: **GREEN candidate on DEV**
+- Production non-mutation verification: **GREEN**
 - Production activation: **HOLD**
 
 
@@ -117,3 +120,10 @@ The reviewed capture was promoted to repository evidence by workflow run `372096
   - `vl/migrations/baselines/2026-10-04/SHA256SUMS.txt`
   - `vl/migrations/baselines/2026-10-04/PROVENANCE.json`
 - no Production database mutation occurred.
+
+
+## Validation closure
+
+The recovery path above was executed twice on an isolated data-less DEV branch. The repository-controlled baseline reproduced the exact Production schema and migration-history fingerprints, Supabase branch health recovered to `FUNCTIONS_DEPLOYED / ACTIVE_HEALTHY`, runtime fail-closed regressions passed, and the temporary DEV branch was deleted. See `DEV_REPLAY_EVIDENCE_2026-10-04.md`.
+
+The legacy migration chain remains historically incomplete and is intentionally not rewritten. The accepted recovery mechanism is the canonical baseline + forward-only migrations after the baseline. Production activation remains a separate human gate.
