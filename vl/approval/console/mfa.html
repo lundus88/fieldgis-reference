@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>VL MFA / AAL2 Enrollment</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, system-ui, sans-serif; }
+    body { margin:0; min-height:100vh; display:grid; place-items:center; background:#0b1020; color:#e8eefc; padding:20px; }
+    .card { width:min(94vw,680px); background:#11182c; border:1px solid #26314f; border-radius:18px; padding:24px; box-shadow:0 20px 70px #0008; }
+    h1 { margin:0 0 8px; font-size:1.45rem; }
+    h2 { font-size:1.05rem; margin:24px 0 8px; }
+    p,li { color:#aeb9d4; line-height:1.5; }
+    label { display:block; margin:14px 0 6px; font-weight:600; }
+    input,button { width:100%; box-sizing:border-box; border-radius:10px; border:1px solid #33415f; background:#0d1425; color:#fff; padding:12px; font:inherit; }
+    button { margin-top:12px; cursor:pointer; background:#1769e0; border-color:#1769e0; font-weight:700; }
+    button.secondary { background:#1b253e; border-color:#33415f; }
+    button:disabled { opacity:.5; cursor:not-allowed; }
+    .meta { margin-top:14px; padding:12px; border-radius:10px; background:#0d1425; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.84rem; overflow-wrap:anywhere; white-space:pre-wrap; }
+    .ok { color:#72e6a6; } .bad { color:#ff8f8f; } .warn { color:#ffd27a; }
+    .hidden { display:none; }
+    .qrwrap { display:grid; place-items:center; margin:16px 0; padding:14px; background:white; border-radius:14px; }
+    .qrwrap img { width:min(320px,80vw); height:auto; }
+    .secret { user-select:all; word-break:break-all; }
+    .notice { border-left:3px solid #ffd27a; padding-left:12px; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>VL MFA / AAL2 Enrollment</h1>
+    <p>This page performs Supabase Auth MFA only. It cannot approve, deploy, promote, finalize health, or mutate Production lifecycle state.</p>
+    <p class="notice"><strong>Security note:</strong> enter your password only on this page. The page uses the project publishable key and sends credentials directly to Supabase Auth. No service-role key is present. First-time MFA verification may invalidate other sessions, which is expected Supabase behavior.</p>
+
+    <section id="loginPanel">
+      <h2>1. Sign in</h2>
+      <label for="email">VL operator email</label>
+      <input id="email" type="email" autocomplete="username" />
+      <label for="password">Password</label>
+      <input id="password" type="password" autocomplete="current-password" />
+      <button id="loginBtn">Sign in to Supabase Auth</button>
+    </section>
+
+    <section id="mfaPanel" class="hidden">
+      <h2>2. MFA status</h2>
+      <div id="aal" class="meta">Checking...</div>
+      <button id="refreshBtn" class="secondary">Refresh MFA status</button>
+
+      <div id="enrollBox">
+        <h2>3. Enroll TOTP</h2>
+        <button id="enrollBtn">Create TOTP factor</button>
+        <div id="qrSection" class="hidden">
+          <p>Scan this QR code using Google Authenticator, Microsoft Authenticator, Authy, 1Password, or another TOTP app.</p>
+          <div class="qrwrap"><img id="qr" alt="TOTP enrollment QR code" /></div>
+          <p>If scanning is unavailable, enter this secret manually:</p>
+          <div id="secret" class="meta secret"></div>
+          <label for="enrollCode">6-digit code</label>
+          <input id="enrollCode" inputmode="numeric" autocomplete="one-time-code" maxlength="8" />
+          <button id="verifyEnrollBtn">Verify and activate MFA</button>
+        </div>
+      </div>
+
+      <div id="challengeBox" class="hidden">
+        <h2>3. Elevate this session to AAL2</h2>
+        <p>A verified TOTP factor already exists. Enter its current 6-digit code.</p>
+        <label for="challengeCode">6-digit code</label>
+        <input id="challengeCode" inputmode="numeric" autocomplete="one-time-code" maxlength="8" />
+        <button id="challengeBtn">Verify TOTP and elevate to AAL2</button>
+      </div>
+
+      <button id="logoutBtn" class="secondary">Clear this local session</button>
+    </section>
+
+    <div id="status" class="meta">Not signed in.</div>
+  </main>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+    const SUPABASE_URL = 'https://wczelfmnqpgzfdszxubl.supabase.co';
+    const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_lWy0g5rcNuhg52xpI9w7Og_2bGXLiOR';
+
+    const sb = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
+    });
+
+    const $ = id => document.getElementById(id);
+    let pendingFactorId = null;
+    let verifiedFactorId = null;
+
+    function status(message, type='') {
+      $('status').textContent = message;
+      $('status').className = 'meta ' + type;
+    }
+
+    function qrSource(svg) {
+      if (!svg) return '';
+      if (/^data:image\//i.test(svg)) return svg;
+      return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    }
+
+    async function refresh() {
+      const { data: { session } } = await sb.auth.getSession();
+      const signedIn = Boolean(session?.access_token);
+      $('loginPanel').classList.toggle('hidden', signedIn);
+      $('mfaPanel').classList.toggle('hidden', !signedIn);
+      if (!signedIn) {
+        $('aal').textContent = 'No authenticated session.';
+        return;
+      }
+
+      const aalRes = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (aalRes.error) throw aalRes.error;
+      const factorsRes = await sb.auth.mfa.listFactors();
+      if (factorsRes.error) throw factorsRes.error;
+
+      const factors = factorsRes.data?.totp || [];
+      const verified = factors.filter(f => f.status === 'verified');
+      verifiedFactorId = verified[0]?.id || null;
+
+      const current = aalRes.data?.currentLevel || 'unknown';
+      const next = aalRes.data?.nextLevel || 'unknown';
+      $('aal').textContent =
+        'Signed in: ' + (session.user.email || session.user.id) +
+        '\nCurrent AAL: ' + current +
+        '\nNext AAL: ' + next +
+        '\nVerified TOTP factors: ' + verified.length;
+
+      $('enrollBox').classList.toggle('hidden', verified.length > 0);
+      $('challengeBox').classList.toggle('hidden', !(verified.length > 0 && current !== 'aal2'));
+
+      if (current === 'aal2') {
+        status('VERIFIED: current Supabase session is AAL2.', 'ok');
+      } else if (verified.length > 0) {
+        status('MFA factor is verified. Enter a TOTP code to elevate this session to AAL2.', 'warn');
+      } else {
+        status('No verified MFA factor. Create a TOTP factor and verify it.', 'warn');
+      }
+    }
+
+    $('loginBtn').onclick = async () => {
+      $('loginBtn').disabled = true;
+      status('Signing in...');
+      try {
+        const { error } = await sb.auth.signInWithPassword({
+          email: $('email').value.trim(),
+          password: $('password').value
+        });
+        $('password').value = '';
+        if (error) throw error;
+        await refresh();
+      } catch (e) {
+        status('Sign-in failed: ' + (e.message || e), 'bad');
+      } finally {
+        $('loginBtn').disabled = false;
+      }
+    };
+
+    $('enrollBtn').onclick = async () => {
+      $('enrollBtn').disabled = true;
+      status('Creating TOTP factor...');
+      try {
+        const { data, error } = await sb.auth.mfa.enroll({
+          factorType: 'totp',
+          friendlyName: 'VL Production Operator'
+        });
+        if (error) throw error;
+        pendingFactorId = data.id;
+        $('qr').src = qrSource(data.totp?.qr_code || '');
+        $('secret').textContent = data.totp?.secret || '(secret unavailable)';
+        $('qrSection').classList.remove('hidden');
+        status('TOTP factor created but NOT verified yet. Scan QR, then enter the 6-digit code.', 'warn');
+      } catch (e) {
+        status('Enrollment failed: ' + (e.message || e), 'bad');
+      } finally {
+        $('enrollBtn').disabled = false;
+      }
+    };
+
+    $('verifyEnrollBtn').onclick = async () => {
+      if (!pendingFactorId) return status('No pending factor. Create a TOTP factor first.', 'bad');
+      const code = $('enrollCode').value.trim();
+      if (!/^\d{6,8}$/.test(code)) return status('Enter the current 6-digit TOTP code.', 'bad');
+      $('verifyEnrollBtn').disabled = true;
+      status('Verifying TOTP...');
+      try {
+        const { error } = await sb.auth.mfa.challengeAndVerify({
+          factorId: pendingFactorId,
+          code
+        });
+        if (error) throw error;
+        $('enrollCode').value = '';
+        $('qrSection').classList.add('hidden');
+        pendingFactorId = null;
+        await refresh();
+        const aalRes = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+        if (aalRes.error) throw aalRes.error;
+        if (aalRes.data?.currentLevel !== 'aal2') {
+          throw new Error('Factor verified, but current session is not AAL2 yet.');
+        }
+        status('SUCCESS: MFA factor VERIFIED and current session is AAL2.', 'ok');
+      } catch (e) {
+        status('Verification failed: ' + (e.message || e), 'bad');
+      } finally {
+        $('verifyEnrollBtn').disabled = false;
+      }
+    };
+
+    $('challengeBtn').onclick = async () => {
+      if (!verifiedFactorId) return status('No verified TOTP factor available.', 'bad');
+      const code = $('challengeCode').value.trim();
+      if (!/^\d{6,8}$/.test(code)) return status('Enter the current 6-digit TOTP code.', 'bad');
+      $('challengeBtn').disabled = true;
+      status('Verifying existing TOTP factor...');
+      try {
+        const { error } = await sb.auth.mfa.challengeAndVerify({
+          factorId: verifiedFactorId,
+          code
+        });
+        if (error) throw error;
+        $('challengeCode').value = '';
+        await refresh();
+        const aalRes = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+        if (aalRes.error) throw aalRes.error;
+        if (aalRes.data?.currentLevel !== 'aal2') {
+          throw new Error('TOTP challenge passed, but session did not elevate to AAL2.');
+        }
+        status('SUCCESS: current Supabase session is AAL2.', 'ok');
+      } catch (e) {
+        status('AAL2 challenge failed: ' + (e.message || e), 'bad');
+      } finally {
+        $('challengeBtn').disabled = false;
+      }
+    };
+
+    $('refreshBtn').onclick = () => refresh().catch(e => status('Status check failed: ' + (e.message || e), 'bad'));
+
+    $('logoutBtn').onclick = async () => {
+      await sb.auth.signOut({ scope: 'local' }).catch(() => {});
+      pendingFactorId = null;
+      verifiedFactorId = null;
+      $('qrSection').classList.add('hidden');
+      $('challengeBox').classList.add('hidden');
+      status('Local session cleared.');
+      await refresh();
+    };
+
+    await refresh().catch(e => status('Initialization failed: ' + (e.message || e), 'bad'));
+  </script>
+</body>
+</html>
