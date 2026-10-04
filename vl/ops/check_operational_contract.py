@@ -6,6 +6,8 @@ ROOT = Path(__file__).resolve().parents[2]
 RECON = (ROOT / "vl/ops/reconciliation_contract.sql").read_text(encoding="utf-8")
 HEALTH = (ROOT / "vl/ops/health_freshness_contract.sql").read_text(encoding="utf-8")
 WRITER = (ROOT / "vl/ops/cert_health_writer_contract.sql").read_text(encoding="utf-8")
+FORWARD = (ROOT / "vl/migrations/20261004154500_cert_health_activation_hardening.sql").read_text(encoding="utf-8")
+REVERSE = (ROOT / "vl/ops/rollback_cert_health_activation_20261004.sql").read_text(encoding="utf-8")
 
 required_recon = [
     "private.reconcile_stale_factory_workflow",
@@ -142,6 +144,44 @@ assert "created_at < v_now - interval '15 minutes'" in WRITER
 assert "pm.role in ('owner','admin')" in WRITER
 assert "metadata->>'authorization_audit_id'=p_authorization_audit_id::text" in WRITER
 assert "expected exactly one vl_cert_health row" in WRITER
+
+# Forward migration must materialize the exact reviewed contracts without hidden drift.
+for source, label in (
+    (RECON, "reconciliation contract"),
+    (HEALTH, "health freshness contract"),
+    (WRITER, "certification-health writer contract"),
+):
+    assert source.strip() in FORWARD, f"forward migration drifted from {label}"
+
+assert "merge does NOT authorize Production deployment" in FORWARD
+assert "DDL only" in FORWARD
+assert not re.search(r"\binsert\s+into\s+public\.vl_cert_health\b", FORWARD, re.I)
+assert not re.search(r"\bupdate\s+public\.vl_cert_health\b", FORWARD.split(WRITER, 1)[0], re.I)
+
+# Reverse migration is code-only rollback. It may drop the introduced functions,
+# but must not rewrite evidence, health or lifecycle data.
+required_reverse = [
+    "drop function if exists public.authorize_vl_cert_health_finalization",
+    "drop function if exists private.finalize_vl_cert_health_from_fresh_certification",
+    "drop function if exists public.get_vl_cert_health_effective",
+    "drop function if exists private.get_effective_vl_cert_health",
+    "drop function if exists public.vl_expire_stale_approval",
+    "drop function if exists private.expire_stale_approval",
+    "drop function if exists public.vl_reconcile_stale_factory_workflow",
+    "drop function if exists private.reconcile_stale_factory_workflow",
+]
+for token in required_reverse:
+    assert token.lower() in REVERSE.lower(), f"missing reverse migration function drop: {token}"
+
+for pattern, message in [
+    (r"\bupdate\b", "reverse migration must not update data"),
+    (r"\binsert\b", "reverse migration must not insert data"),
+    (r"\bdelete\b", "reverse migration must not delete data"),
+    (r"\btruncate\b", "reverse migration must not truncate data"),
+    (r"\bdrop\s+table\b", "reverse migration must not drop tables"),
+    (r"\bdrop\s+schema\b", "reverse migration must not drop schemas"),
+]:
+    assert not re.search(pattern, REVERSE, re.I), message
 
 # Public SECURITY DEFINER wrappers must be explicitly removed from ordinary client roles.
 for fn in (
