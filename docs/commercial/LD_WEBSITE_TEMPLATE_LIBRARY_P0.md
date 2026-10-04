@@ -1,22 +1,25 @@
 # LD Website Template Library + Design System P0
 
-Status: DEVELOPMENT / NON-PRODUCTION
+Status: COMPATIBILITY / REFERENCE / NON-PRODUCTION
 
 ## Objective
 
-Create a small, high-quality flagship website library that lets LD deliver attractive, conversion-ready business sites quickly without creating a second renderer, CRM, payment system or deployment engine.
+Preserve the flagship website presets and design metadata as a compatibility/reference layer while reusing the canonical website runtime. This layer must not evolve into a second renderer, CRM, payment system, quotation engine, transaction store or deployment engine.
 
-Architecture:
+Canonical architecture:
 
 Customer intent
 → choose industry / outcome
-→ flagship template configuration
-→ existing LD Ready Business Kit renderer
-→ existing LUNDUS Business Engine
+→ flagship preset / configuration
+→ canonical Professional Service Website Engine in LundusLead
+→ Design Library / Design DNA
 → lead capture / LundusLead
-→ QA / preview
+→ Golden Transaction for quotation/sale authority
+→ existing QA / preview
 → human approval
-→ Production release
+→ controlled Production release
+
+The legacy LD Ready Business Kit renderer remains available only for regression, migration and reference compatibility. No new customer-facing runtime capability should be added to it.
 
 ## Six flagship templates
 
@@ -95,13 +98,18 @@ The template library must not create artificial data or domain lock-in.
 
 The library is configuration + design metadata only.
 
-It reuses:
-- **LD Ready Business Kit** as renderer/composition owner;
-- **LUNDUS Business Engine** as commercial lifecycle owner;
-- **LundusLead** as lead/growth owner;
-- existing payment, quotation, analytics, QA and deployment boundaries.
+Canonical ownership:
+- **Professional Service Website Engine (LundusLead)** = website runtime/rendering authority;
+- **LD Design Library / Design DNA** = reusable design variation authority;
+- **LundusLead** = lead/CRM/marketing system of record;
+- **Golden Transaction** = quotation/sale control authority;
+- **LUNDUS Business Engine** = orchestration/policy composer only, not a second transaction store;
+- **LD Ready Business Kit P0** = compatibility/reference renderer only;
+- existing payment, accounting, booking, WhatsApp, analytics, QA and deployment boundaries remain adapters or governed shared capabilities.
 
-Build-new is allowed only after a proven capability gap.
+The six flagship templates are presets/configuration inputs to the canonical website engine. They must not become independent runtimes.
+
+Build-new is allowed only after a proven capability gap and an explicit ownership review confirms that no existing authority can satisfy the requirement.
 
 ## Measurement
 
