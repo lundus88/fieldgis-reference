@@ -222,6 +222,9 @@ assert re.search(
 # The authorization producer may only write audit intent. It must never mutate
 # certification evidence, lifecycle state, deployment state or health state.
 producer = WRITER.split(
+    "create or replace function public.authorize_vl_cert_health_finalization",
+    1,
+)[1].split(
     "create or replace function private.finalize_vl_cert_health_from_fresh_certification",
     1,
 )[0]
