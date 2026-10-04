@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "action_id",
+    "evidence_ids",
+    "production",
+    "risk",
+    "self_approval",
+    "protected_main_merge",
+    "authority_known"
+  ],
+  "properties": {
+    "action_id": {"type": "string", "minLength": 1},
+    "evidence_ids": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    },
+    "production": {"type": "boolean"},
+    "risk": {"type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "UNKNOWN"]},
+    "self_approval": {"type": "boolean"},
+    "protected_main_merge": {"type": "boolean"},
+    "authority_known": {"type": "boolean"}
+  }
+}

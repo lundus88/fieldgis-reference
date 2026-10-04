@@ -33,15 +33,25 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
       - name: Compile Macro Evaluation
-        run: python -m py_compile vl/lom-macro-evaluation-p0/macro_evaluation.py
+        run: python -m py_compile vl/lom-macro-evaluation-p0/macro_evaluation.py vl/lom-macro-evaluation-p0/closed_loop_adapter.py
 
       - name: Run Macro Evaluation tests
         working-directory: vl/lom-macro-evaluation-p0
-        run: python test_macro_evaluation.py
+        run: |
+          python test_macro_evaluation.py
+          python -m unittest -v test_closed_loop_adapter.py
 
       - name: Re-run Learning Core regression
         working-directory: vl/lom-learning-evaluation
         run: python -m unittest -v test_learning_core.py
+
+      - name: Re-run Self-Improvement and Decision Twin regression
+        working-directory: vl/lom-self-improvement-runtime
+        run: python -m unittest -v test_self_improvement_runtime.py test_decision_twin.py
+
+      - name: Re-run CAIE P1 durable runtime regression
+        working-directory: vl/lom-continuous-improvement
+        run: python test_caie_p1.py
 
       - name: Re-run Causal Memory P3 regression
         working-directory: vl/lom-operational-twin-causal-memory-p3
@@ -58,3 +68,7 @@ jobs:
           grep -q 'EXECUTION_AUTHORITY = "NONE"' vl/lom-macro-evaluation-p0/macro_evaluation.py
           grep -q 'PRODUCTION_AUTHORITY = "HUMAN_ONLY"' vl/lom-macro-evaluation-p0/macro_evaluation.py
           grep -q 'PROTECTED_MAIN_MERGE = "HUMAN_ONLY"' vl/lom-macro-evaluation-p0/macro_evaluation.py
+          grep -q 'AUTONOMOUS_CEILING = "PREPARE_PR"' vl/lom-macro-evaluation-p0/closed_loop_adapter.py
+          grep -q 'EXECUTION_AUTHORITY = "NONE"' vl/lom-macro-evaluation-p0/closed_loop_adapter.py
+          grep -q 'PRODUCTION_AUTHORITY = "HUMAN_ONLY"' vl/lom-macro-evaluation-p0/closed_loop_adapter.py
+          grep -q 'PROTECTED_MAIN_MERGE = "HUMAN_ONLY"' vl/lom-macro-evaluation-p0/closed_loop_adapter.py

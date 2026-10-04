@@ -1,0 +1,64 @@
+name: LOM Secure Ephemeral Sandbox P1
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/lom-6-7-autonomous-validation-sandbox/**'
+      - 'vl/scripts/run-untrusted-sandbox.sh'
+      - 'vl/scripts/build-gis-web-sandbox.sh'
+      - 'vl/scripts/build-web-pwa-sandbox.sh'
+      - 'vl/scripts/validate-api-sandbox.sh'
+      - '.github/workflows/lom-secure-ephemeral-sandbox-p1.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'vl/lom-6-7-autonomous-validation-sandbox/**'
+      - 'vl/scripts/run-untrusted-sandbox.sh'
+      - 'vl/scripts/build-gis-web-sandbox.sh'
+      - 'vl/scripts/build-web-pwa-sandbox.sh'
+      - 'vl/scripts/validate-api-sandbox.sh'
+      - '.github/workflows/lom-secure-ephemeral-sandbox-p1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  secure-ephemeral-sandbox-p1:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Validate shell syntax
+        run: |
+          bash -n vl/scripts/run-untrusted-sandbox.sh
+          bash -n vl/scripts/build-gis-web-sandbox.sh
+          bash -n vl/scripts/build-web-pwa-sandbox.sh
+          bash -n vl/scripts/validate-api-sandbox.sh
+
+      - name: Existing LOM 6.7 regression
+        working-directory: vl/lom-6-7-autonomous-validation-sandbox
+        run: python -m unittest -v test_sandbox.py
+
+      - name: Secure isolation profile regression
+        working-directory: vl/lom-6-7-autonomous-validation-sandbox
+        run: python -m unittest -v test_isolation_profile.py
+
+      - name: Assert secure ephemeral runner contract
+        run: |
+          grep -q 'VL_SANDBOX_EPHEMERAL' vl/scripts/run-untrusted-sandbox.sh
+          grep -q 'VL_SANDBOX_EXPORTS' vl/scripts/run-untrusted-sandbox.sh
+          grep -q 'mktemp -d' vl/scripts/run-untrusted-sandbox.sh
+          grep -q -- '--network none' vl/scripts/run-untrusted-sandbox.sh
+          grep -q -- '--cap-drop ALL' vl/scripts/run-untrusted-sandbox.sh
+          grep -q 'no-new-privileges:true' vl/scripts/run-untrusted-sandbox.sh
+          grep -q -- '--read-only' vl/scripts/run-untrusted-sandbox.sh
+          grep -q 'symlink export forbidden' vl/scripts/run-untrusted-sandbox.sh
+          grep -q 'VL_SANDBOX_EPHEMERAL=1' vl/scripts/build-gis-web-sandbox.sh
+          grep -q 'VL_SANDBOX_EPHEMERAL=1' vl/scripts/build-web-pwa-sandbox.sh
+          grep -q 'VL_SANDBOX_EPHEMERAL=1' vl/scripts/validate-api-sandbox.sh

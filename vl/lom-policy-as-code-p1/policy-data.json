@@ -1,0 +1,75 @@
+{
+  "lom": {
+    "authority": {
+      "autonomous_ceiling": "PREPARE_PR",
+      "missing_evidence": "HOLD",
+      "production_authority": "HUMAN_ONLY",
+      "protected_main_merge": "HUMAN_ONLY",
+      "self_approval": "FORBIDDEN",
+      "unknown_authority": "HOLD"
+    },
+    "bounded_actions": [
+      {
+        "action_id": "GENERATE_ARTIFACT",
+        "capability_id": "cap.artifact.generate",
+        "max_risk": "LOW",
+        "reversible_required": true
+      },
+      {
+        "action_id": "NON_PRODUCTION_REVERSIBLE_ACTION",
+        "capability_id": "cap.nonprod.reversible",
+        "max_risk": "LOW",
+        "reversible_required": true
+      },
+      {
+        "action_id": "READ_ONLY_OBSERVATION",
+        "capability_id": "cap.observe.readonly",
+        "max_risk": "LOW",
+        "reversible_required": true
+      },
+      {
+        "action_id": "RENDER_REPORT",
+        "capability_id": "cap.report.render",
+        "max_risk": "LOW",
+        "reversible_required": true
+      },
+      {
+        "action_id": "RUN_TEST",
+        "capability_id": "cap.test.execute",
+        "max_risk": "LOW",
+        "reversible_required": true
+      }
+    ],
+    "default_decision": "HOLD",
+    "execution_authority": "NONE",
+    "human_only_actions": [
+      "AUTHORITY_WIDENING",
+      "AUTH_SECURITY_POLICY_CHANGE",
+      "BID_SUBMISSION",
+      "CONTRACT_COMMITMENT",
+      "CUSTOMER_COMMITMENT",
+      "DATA_DELETION",
+      "FINANCIAL_COMMITMENT",
+      "PRICING_COMMITMENT",
+      "PRODUCTION_DATA_MUTATION",
+      "PRODUCTION_RELEASE",
+      "PROTECTED_MAIN_MERGE"
+    ],
+    "live_policy_mutation": "DISABLED",
+    "opa_network_runtime": "DISABLED",
+    "policy_role": "VERIFIER_ONLY",
+    "production_locked": true,
+    "projection_digest": "sha256:6ae74b5ff5b64b698e75fd3d056b13dd745dc09c0532c1cb28730a9db9c3ebe6",
+    "schema": "lom.policy-projection/1",
+    "sources": {
+      "action_registry": {
+        "path": "vl/lom-operational-safety/action-registry.json"
+      },
+      "canonical_chain": {
+        "path": "vl/lom-canonical-compliance/canonical-chain.json"
+      },
+      "canonical_input_digest": "sha256:58911384537f1fb7f4bd4524916fa6a9a432d68d96e4d15fed63c20f4405e86f"
+    },
+    "status": "DEVELOPMENT_NON_PRODUCTION"
+  }
+}
