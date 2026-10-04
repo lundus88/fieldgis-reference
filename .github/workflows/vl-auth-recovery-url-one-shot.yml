@@ -1,0 +1,80 @@
+name: VL Auth Recovery URL One-Shot
+
+on:
+  push:
+    branches:
+      - ops/vl-auth-recovery-url-20261005
+    paths:
+      - .github/workflows/vl-auth-recovery-url-one-shot.yml
+
+permissions:
+  contents: read
+
+jobs:
+  configure-auth-recovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      PROJECT_REF: wczelfmnqpgzfdszxubl
+      SITE_URL: https://lundus88.github.io/fieldgis-reference/
+      RESET_URL: https://lundus88.github.io/fieldgis-reference/reset-password.html
+    steps:
+      - name: Require scoped Supabase management credential
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_ACCESS_TOKEN:-}" || { echo 'SUPABASE_ACCESS_TOKEN_MISSING'; exit 1; }
+
+      - name: Read current Auth config without printing it
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail-with-body --silent --show-error             -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}"             "https://api.supabase.com/v1/projects/${PROJECT_REF}/config/auth"             -o "$RUNNER_TEMP/auth-before.json"
+
+      - name: Build minimal non-destructive patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+
+          before = json.loads(Path(os.environ["RUNNER_TEMP"] + "/auth-before.json").read_text())
+          current = before.get("uri_allow_list") or ""
+          urls = [u.strip() for u in current.split(",") if u.strip()]
+          for u in (os.environ["SITE_URL"], os.environ["RESET_URL"]):
+              if u not in urls:
+                  urls.append(u)
+
+          patch = {
+              "site_url": os.environ["SITE_URL"],
+              "uri_allow_list": ",".join(urls),
+          }
+          Path(os.environ["RUNNER_TEMP"] + "/auth-patch.json").write_text(json.dumps(patch))
+          PY
+
+      - name: Update Auth Site URL and redirect allow-list
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail-with-body --silent --show-error             -X PATCH             -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}"             -H "Content-Type: application/json"             --data-binary @"$RUNNER_TEMP/auth-patch.json"             "https://api.supabase.com/v1/projects/${PROJECT_REF}/config/auth"             -o "$RUNNER_TEMP/auth-after-patch.json"
+
+      - name: Verify effective Auth recovery redirect config
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail-with-body --silent --show-error             -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}"             "https://api.supabase.com/v1/projects/${PROJECT_REF}/config/auth"             -o "$RUNNER_TEMP/auth-after.json"
+
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+
+          cfg = json.loads(Path(os.environ["RUNNER_TEMP"] + "/auth-after.json").read_text())
+          site = cfg.get("site_url")
+          allow = {u.strip() for u in (cfg.get("uri_allow_list") or "").split(",") if u.strip()}
+
+          assert site == os.environ["SITE_URL"], (site, os.environ["SITE_URL"])
+          assert os.environ["RESET_URL"] in allow
+          print("AUTH_RECOVERY_REDIRECT_CONFIGURED=PASS")
+          PY
