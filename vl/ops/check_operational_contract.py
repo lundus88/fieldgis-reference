@@ -98,7 +98,7 @@ for pattern, message in [
 ]:
     assert not re.search(pattern, WRITER, re.I), message
 
-health_updates = re.findall(r"\bupdate\s+public\.vl_cert_health\b", WRITER, re.I)
+health_updates = re.findall(r"(?im)^\\s*update\\s+public\\.vl_cert_health\\b", WRITER)
 assert len(health_updates) == 1, f"expected one guarded health update, found {len(health_updates)}"
 
 assert not re.search(r"\bset\s+production_locked\s*=\s*false\b", WRITER, re.I), "writer must never unlock production"
