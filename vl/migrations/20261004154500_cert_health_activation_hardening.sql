@@ -517,13 +517,29 @@ grant execute on function public.get_vl_cert_health_effective(integer) to servic
 --   - records intent only; it cannot update health or lifecycle state;
 --   - the finalizer still recomputes evidence, digest, scope and freshness independently.
 
-create or replace function public.authorize_vl_cert_health_finalization(
-  p_run_started_at timestamptz,
-  p_max_run_age_seconds integer,
-  p_evidence_digest text,
-  p_reason text
-)
-returns jsonb
+create or replace view private.vl_cert_health_authorization_request
+with (security_barrier = true, security_invoker = true) as
+select
+  null::timestamptz as run_started_at,
+  null::integer as max_run_age_seconds,
+  null::text as evidence_digest,
+  null::text as reason,
+  null::jsonb as result
+where false;
+
+revoke all on private.vl_cert_health_authorization_request
+  from public,anon,authenticated,service_role;
+revoke all (
+  run_started_at,max_run_age_seconds,evidence_digest,reason,result
+) on private.vl_cert_health_authorization_request
+  from public,anon,authenticated,service_role;
+grant insert (run_started_at,max_run_age_seconds,evidence_digest,reason),
+      select (result)
+  on private.vl_cert_health_authorization_request to authenticated;
+grant usage on schema private to authenticated;
+
+create or replace function private.authorize_vl_cert_health_finalization_impl()
+returns trigger
 language plpgsql
 security definer
 set search_path=''
@@ -532,11 +548,17 @@ declare
   v_now timestamptz := clock_timestamp();
   v_uid uuid := auth.uid();
   v_aal text := coalesce(auth.jwt()->>'aal','aal1');
-  v_digest text := lower(btrim(coalesce(p_evidence_digest,'')));
-  v_reason text := btrim(coalesce(p_reason,''));
+  v_digest text := lower(btrim(coalesce(new.evidence_digest,'')));
+  v_reason text := btrim(coalesce(new.reason,''));
   v_existing_id bigint;
   v_id bigint;
 begin
+  if tg_op <> 'INSERT'
+     or tg_table_schema <> 'private'
+     or tg_table_name <> 'vl_cert_health_authorization_request' then
+    raise exception 'invalid certification-health authorization entry point' using errcode='42501';
+  end if;
+
   if v_uid is null then
     raise exception 'authenticated human required' using errcode='42501';
   end if;
@@ -545,21 +567,21 @@ begin
     raise exception 'AAL2 MFA required for certification-health authorization' using errcode='42501';
   end if;
 
-  if p_run_started_at is null then
+  if new.run_started_at is null then
     raise exception 'run_started_at is required' using errcode='22023';
   end if;
 
-  if p_run_started_at > v_now then
+  if new.run_started_at > v_now then
     raise exception 'run_started_at cannot be in the future' using errcode='22023';
   end if;
 
-  if p_max_run_age_seconds is null
-     or p_max_run_age_seconds < 60
-     or p_max_run_age_seconds > 86400 then
+  if new.max_run_age_seconds is null
+     or new.max_run_age_seconds < 60
+     or new.max_run_age_seconds > 86400 then
     raise exception 'max_run_age_seconds must be between 60 and 86400' using errcode='22023';
   end if;
 
-  if extract(epoch from (v_now-p_run_started_at))::bigint > p_max_run_age_seconds then
+  if extract(epoch from (v_now-new.run_started_at))::bigint > new.max_run_age_seconds then
     raise exception 'certification run window is already stale' using errcode='22023';
   end if;
 
@@ -588,8 +610,8 @@ begin
     and a.entity_id='1'
     and a.actor_user_id=v_uid
     and a.created_at >= v_now - interval '15 minutes'
-    and a.metadata->>'run_started_at'=p_run_started_at::text
-    and a.metadata->>'max_run_age_seconds'=p_max_run_age_seconds::text
+    and a.metadata->>'run_started_at'=new.run_started_at::text
+    and a.metadata->>'max_run_age_seconds'=new.max_run_age_seconds::text
     and a.metadata->>'evidence_digest'=v_digest
     and not exists (
       select 1
@@ -603,14 +625,15 @@ begin
   limit 1;
 
   if v_existing_id is not null then
-    return jsonb_build_object(
+    new.result := jsonb_build_object(
       'ok',true,
       'decision','already_authorized',
       'authorization_audit_id',v_existing_id,
-      'run_started_at',p_run_started_at,
-      'max_run_age_seconds',p_max_run_age_seconds,
+      'run_started_at',new.run_started_at,
+      'max_run_age_seconds',new.max_run_age_seconds,
       'evidence_digest',v_digest
     );
+    return new;
   end if;
 
   insert into public.audit_logs(
@@ -622,8 +645,8 @@ begin
     'vl_cert_health',
     '1',
     jsonb_build_object(
-      'run_started_at',p_run_started_at,
-      'max_run_age_seconds',p_max_run_age_seconds,
+      'run_started_at',new.run_started_at,
+      'max_run_age_seconds',new.max_run_age_seconds,
       'evidence_digest',v_digest,
       'authenticator_assurance_level',v_aal,
       'reason',v_reason,
@@ -633,22 +656,66 @@ begin
   )
   returning id into v_id;
 
-  return jsonb_build_object(
+  new.result := jsonb_build_object(
     'ok',true,
     'decision','authorized',
     'authorization_audit_id',v_id,
-    'run_started_at',p_run_started_at,
-    'max_run_age_seconds',p_max_run_age_seconds,
+    'run_started_at',new.run_started_at,
+    'max_run_age_seconds',new.max_run_age_seconds,
     'evidence_digest',v_digest,
     'production_authority_created',false
   );
+  return new;
+end;
+$$;
+
+revoke all on function private.authorize_vl_cert_health_finalization_impl()
+  from public,anon,authenticated,service_role;
+
+drop trigger if exists trg_vl_cert_health_authorization_request
+  on private.vl_cert_health_authorization_request;
+
+create trigger trg_vl_cert_health_authorization_request
+instead of insert on private.vl_cert_health_authorization_request
+for each row execute function private.authorize_vl_cert_health_finalization_impl();
+
+create or replace function public.authorize_vl_cert_health_finalization(
+  p_run_started_at timestamptz,
+  p_max_run_age_seconds integer,
+  p_evidence_digest text,
+  p_reason text
+)
+returns jsonb
+language plpgsql
+security invoker
+set search_path=''
+as $$
+declare
+  v_result jsonb;
+begin
+  if auth.uid() is null then
+    raise exception 'authenticated human required' using errcode='42501';
+  end if;
+
+  insert into private.vl_cert_health_authorization_request(
+    run_started_at,max_run_age_seconds,evidence_digest,reason
+  )
+  values (
+    p_run_started_at,p_max_run_age_seconds,p_evidence_digest,p_reason
+  )
+  returning result into v_result;
+
+  if v_result is null then
+    raise exception 'certification-health authorization result unavailable' using errcode='42501';
+  end if;
+
+  return v_result;
 end;
 $$;
 
 revoke all on function public.authorize_vl_cert_health_finalization(
   timestamptz,integer,text,text
-) from public,anon,authenticated,service_role;
-
+) from public,anon,service_role;
 grant execute on function public.authorize_vl_cert_health_finalization(
   timestamptz,integer,text,text
 ) to authenticated;
