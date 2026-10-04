@@ -39,6 +39,12 @@ for token in required_health:
 
 required_writer = [
     "public.authorize_vl_cert_health_finalization",
+    "private.vl_cert_health_authorization_request",
+    "private.authorize_vl_cert_health_finalization_impl",
+    "security invoker",
+    "instead of insert on private.vl_cert_health_authorization_request",
+    "grant insert (run_started_at,max_run_age_seconds,evidence_digest,reason)",
+    "select (result)",
     "auth.uid()",
     "auth.jwt()->>'aal'",
     "AAL2 MFA required for certification-health authorization",
@@ -162,6 +168,9 @@ assert not re.search(r"\bupdate\s+public\.vl_cert_health\b", FORWARD.split(WRITE
 # but must not rewrite evidence, health or lifecycle data.
 required_reverse = [
     "drop function if exists public.authorize_vl_cert_health_finalization",
+    "drop trigger if exists trg_vl_cert_health_authorization_request",
+    "drop view if exists private.vl_cert_health_authorization_request",
+    "drop function if exists private.authorize_vl_cert_health_finalization_impl",
     "drop function if exists private.finalize_vl_cert_health_from_fresh_certification",
     "drop function if exists public.get_vl_cert_health_effective",
     "drop function if exists private.get_effective_vl_cert_health",
@@ -208,21 +217,33 @@ assert re.search(
 ), "missing cert-health writer revoke"
 
 assert re.search(
-    r"revoke all on function public\.authorize_vl_cert_health_finalization\([\s\S]+?\) from public,anon,authenticated,service_role;",
+    r"revoke all on function public\.authorize_vl_cert_health_finalization\([\s\S]+?\) from public,anon,service_role;",
     WRITER,
     re.I,
-), "missing authorization producer revoke"
+), "missing public authorization facade revoke"
 
 assert re.search(
     r"grant execute on function public\.authorize_vl_cert_health_finalization\([\s\S]+?\) to authenticated;",
     WRITER,
     re.I,
-), "authorization producer must be human authenticated only"
+), "authorization facade must be human authenticated only"
+
+assert re.search(
+    r"revoke all on function private\.authorize_vl_cert_health_finalization_impl\(\)\s+from public,anon,authenticated,service_role;",
+    WRITER,
+    re.I,
+), "privileged authorization helper must not be client-executable"
+
+assert re.search(
+    r"create or replace function public\.authorize_vl_cert_health_finalization\([\s\S]+?security invoker",
+    WRITER,
+    re.I,
+), "public authorization facade must be SECURITY INVOKER"
 
 # The authorization producer may only write audit intent. It must never mutate
 # certification evidence, lifecycle state, deployment state or health state.
 producer = WRITER.split(
-    "create or replace function public.authorize_vl_cert_health_finalization",
+    "create or replace view private.vl_cert_health_authorization_request",
     1,
 )[1].split(
     "create or replace function private.finalize_vl_cert_health_from_fresh_certification",
