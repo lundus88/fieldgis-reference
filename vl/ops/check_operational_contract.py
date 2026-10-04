@@ -36,6 +36,16 @@ for token in required_health:
     assert token.lower() in HEALTH.lower(), f"missing health safeguard: {token}"
 
 required_writer = [
+    "public.authorize_vl_cert_health_finalization",
+    "auth.uid()",
+    "auth.jwt()->>'aal'",
+    "AAL2 MFA required for certification-health authorization",
+    "owner/admin membership required",
+    "authorization reason must be explicit",
+    "evidence_digest must be a lowercase SHA-256 hex digest",
+    "production_authority_created",
+    "grant execute on function public.authorize_vl_cert_health_finalization",
+    "to authenticated",
     "private.finalize_vl_cert_health_from_fresh_certification",
     "p_run_started_at timestamptz",
     "p_max_run_age_seconds integer",
@@ -58,6 +68,12 @@ required_writer = [
     "FRESH_CERTIFICATION_INCOMPLETE",
     "RUN_WINDOW_STALE",
     "ACTIVE_BUILDER_POLICY_MISMATCH",
+    "SELECTED_EVIDENCE_RUN_HAS_PRODUCTION_AUTHORITY",
+    "EVIDENCE_TOO_OLD_FOR_EFFECTIVE_HEALTH",
+    "v_effective_health_window_seconds integer := 1800",
+    "d.status in ('approved','deploying','deployed')",
+    "d.approved_by is not null",
+    "d.deployed_at is not null",
     "vl.cert_health_finalization_blocked",
     "vl.cert_health_finalized",
     "authorization_audit_id",
@@ -117,6 +133,9 @@ assert not re.search(r"\bset\s+production_locked\s*=\s*false\b", WRITER, re.I), 
 assert not re.search(r"\bset\s+status\s*=\s*'active'\b", WRITER, re.I), "writer must never activate a builder"
 assert "authorization_audit_id is required" in WRITER
 assert "extensions.digest" in WRITER
+assert "insert into public.audit_logs(" in WRITER
+assert "authorization_scope','FINALIZER_REVALIDATES_ALL_SELECTED_PROJECTS'" in WRITER
+assert "created_at >= v_now - interval '15 minutes'" in WRITER
 assert "set search_path=''" in WRITER
 assert "updated_at=v_health_evidence_at" in WRITER
 assert "created_at < v_now - interval '15 minutes'" in WRITER
@@ -146,5 +165,33 @@ assert re.search(
     WRITER,
     re.I,
 ), "missing cert-health writer revoke"
+
+assert re.search(
+    r"revoke all on function public\.authorize_vl_cert_health_finalization\([\s\S]+?\) from public,anon,authenticated,service_role;",
+    WRITER,
+    re.I,
+), "missing authorization producer revoke"
+
+assert re.search(
+    r"grant execute on function public\.authorize_vl_cert_health_finalization\([\s\S]+?\) to authenticated;",
+    WRITER,
+    re.I,
+), "authorization producer must be human authenticated only"
+
+# The authorization producer may only write audit intent. It must never mutate
+# certification evidence, lifecycle state, deployment state or health state.
+producer = WRITER.split(
+    "create or replace function private.finalize_vl_cert_health_from_fresh_certification",
+    1,
+)[0]
+for pattern, message in [
+    (r"\bupdate\s+public\.vl_cert_health\b", "authorization producer must not update health"),
+    (r"\bupdate\s+public\.factory_runs\b", "authorization producer must not mutate factory runs"),
+    (r"\bupdate\s+public\.deployments\b", "authorization producer must not mutate deployments"),
+    (r"\bupdate\s+public\.approvals\b", "authorization producer must not mutate approvals"),
+    (r"\binsert\s+into\s+public\.builder_certification_evidence\b", "authorization producer must not create evidence"),
+    (r"\binsert\s+into\s+public\.builder_certification_results\b", "authorization producer must not create results"),
+]:
+    assert not re.search(pattern, producer, re.I), message
 
 print("VL_OPERATIONAL_RECONCILIATION_CONTRACT=PASS")
