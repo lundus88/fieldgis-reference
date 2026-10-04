@@ -4,7 +4,7 @@ framework: react+vite+pwa
 role: official-pwa-builder-candidate
 status: experimental
 certification:
-  state: technical_pass_awaiting_human_approval
+  state: approved
   activation_policy: certification-approved-only
   direct_activation_allowed: false
   required_gates:
@@ -30,7 +30,7 @@ certification:
     artifact_upload: passed
     release_validator_pass: passed
     reproducible_build: passed
-    human_approval: pending
+    human_approval: approved
   evidence:
     reference_repo: lundus88/fieldgis-reference
     workflow: .github/workflows/vl-pwa-react-cert.yml
@@ -52,6 +52,8 @@ certification:
     certification_engine_decision: certified
     certification_engine_score: 1.0
     certification_engine_missing_evidence: []
+    human_approval_source: user_phase_authorization_2026-10-04
+    approval_scope: certification_only_no_activation
     activation_requested: false
 activation:
   target_status: active
