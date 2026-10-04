@@ -4,8 +4,7 @@ from __future__ import annotations
 import hashlib
 import json
 import math
-from dataclasses import dataclass
-from typing import Any, Iterable
+from typing import Any, Iterable, NamedTuple
 
 ALLOWED_EVIDENCE_STATES = {'PASS', 'FAIL', 'BLOCKED', 'NOT_RUN'}
 
@@ -105,8 +104,7 @@ CONSENSUS_SCHEMA = 'vl.verifier-consensus-decision/1'
 ALLOWED_VERIFIER_STATES = {'PASS', 'FAIL', 'HOLD'}
 
 
-@dataclass(frozen=True)
-class VerifierReport:
+class VerifierReport(NamedTuple):
     validator_id: str
     executor_id: str
     decision_sha256: str
@@ -117,8 +115,7 @@ class VerifierReport:
     method_id: str
 
 
-@dataclass(frozen=True)
-class ConsensusPolicy:
+class ConsensusPolicy(NamedTuple):
     minimum_validators: int = 2
     minimum_methods: int = 2
     maximum_confidence_spread: float = 0.20
