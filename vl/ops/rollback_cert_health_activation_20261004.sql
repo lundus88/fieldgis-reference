@@ -11,7 +11,13 @@
 -- separate evidence-backed human decision rather than an automatic timestamp rewrite.
 
 drop function if exists public.authorize_vl_cert_health_finalization(timestamptz,integer,text,text);
-drop trigger if exists trg_vl_cert_health_authorization_request on private.vl_cert_health_authorization_request;
+do $
+begin
+  if to_regclass('private.vl_cert_health_authorization_request') is not null then
+    execute 'drop trigger if exists trg_vl_cert_health_authorization_request on private.vl_cert_health_authorization_request';
+  end if;
+end;
+$;
 drop view if exists private.vl_cert_health_authorization_request;
 drop function if exists private.authorize_vl_cert_health_finalization_impl();
 drop function if exists private.finalize_vl_cert_health_from_fresh_certification(timestamptz,integer,bigint);
