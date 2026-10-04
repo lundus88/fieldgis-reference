@@ -1,0 +1,47 @@
+name: LOM MCP Adapter P1
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/connector-governance/**'
+      - 'vl/lom-operational-safety/action-registry.json'
+      - 'vl/lom-mcp-adapter-p1/**'
+      - '.github/workflows/lom-mcp-adapter-p1.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'vl/connector-governance/**'
+      - 'vl/lom-operational-safety/action-registry.json'
+      - 'vl/lom-mcp-adapter-p1/**'
+      - '.github/workflows/lom-mcp-adapter-p1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mcp-adapter-p1:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Validate connector registry
+        run: python vl/connector-governance/validate_connector_registry.py vl/connector-governance/connector-registry.json
+      - name: Compile MCP adapter
+        run: python -m py_compile vl/lom-mcp-adapter-p1/mcp_adapter.py
+      - name: Run MCP adapter regression
+        working-directory: vl/lom-mcp-adapter-p1
+        run: python -m unittest -v test_mcp_adapter.py
+      - name: Re-run Operational Safety
+        working-directory: vl/lom-operational-safety
+        run: python -m unittest -v test_operational_safety.py
+      - name: Assert MCP authority boundary
+        run: |
+          grep -q 'MCP_PROTOCOL_VERSION = "2026-07-28"' vl/lom-mcp-adapter-p1/mcp_adapter.py
+          grep -q 'AUTONOMOUS_CEILING = "PREPARE_PR"' vl/lom-mcp-adapter-p1/mcp_adapter.py
+          grep -q 'EXECUTION_AUTHORITY = "NONE"' vl/lom-mcp-adapter-p1/mcp_adapter.py
+          grep -q 'PRODUCTION_AUTHORITY = "HUMAN_ONLY"' vl/lom-mcp-adapter-p1/mcp_adapter.py
+          grep -q '"network_access": "DISABLED"' vl/lom-mcp-adapter-p1/mcp_adapter.py
+          grep -q '"server_authority_trusted": False' vl/lom-mcp-adapter-p1/mcp_adapter.py
