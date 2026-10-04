@@ -20,9 +20,21 @@ LOM Intelligence
 
 The engine composes existing LD capabilities such as AUTH, CUSTOMER_DB, LEAD_CRM, QUOTATION, ORDER, PAYMENT, INVOICE, RECEIPT, PROJECT_STATUS, FILE_UPLOAD, PDF_GENERATOR, NOTIFICATION, APPROVAL_WORKFLOW, AUDIT_EVIDENCE and AI_ASSISTANT.
 
-It does not replace FinanceBridge, the existing Ready Business Kit renderer, Delivery Factory, QA, Production release governance or human authority gates.
+It is an orchestration and policy-composition layer only. Capability names in this engine are references to the owning system; they are not permission to create a second database, ledger, renderer or workflow authority.
+
+Canonical ownership:
+- **LundusLead** remains system of record for lead/CRM, marketing, qualification and follow-up.
+- **Golden Transaction** remains authoritative for quotation and sale controls.
+- **Payment, accounting, booking, WhatsApp and email** remain adapters/integration surfaces owned by their existing boundaries.
+- **Professional Service Website Engine in LundusLead** is the canonical LD website runtime.
+- **LD Ready Business Kit** is compatibility/reference only and must not be extended into a second website runtime.
+- **Delivery Factory, QA, Production release governance and human authority gates** retain their existing authority.
+
+The Business Engine must not persist authoritative duplicate lead, quotation, sale, payment, invoice or receipt state when an owning system already exists.
 
 ## Canonical commercial lifecycle
+
+The lifecycle below is an orchestration view over authoritative systems, not a second transaction ledger:
 
 VISITOR
 → ASSESSMENT
@@ -37,6 +49,8 @@ VISITOR
 → CUSTOMER_ACCEPTED
 → DELIVERED
 → SUPPORT_ACTIVE / CLOSED
+
+Each state transition must resolve to the current owning system and reuse its existing evidence, approval and audit boundary.
 
 ## Industry Pack contract
 
