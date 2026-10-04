@@ -160,5 +160,8 @@ jobs:
         run: |
           python vl/lom-canonical-compliance/validate_canonical_chain.py
           python -m unittest -v vl/lom-canonical-compliance/test_canonical_chain.py
+      - name: LOM Secure Ephemeral Sandbox P1 contract
+        working-directory: vl/lom-6-7-autonomous-validation-sandbox
+        run: python -m unittest -v test_isolation_profile.py
       - name: LOM 6.x exact-SHA functional regression
         run: python vl/lom-final-hardening/run_level6_exact_main.py

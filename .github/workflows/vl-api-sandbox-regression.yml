@@ -45,7 +45,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          vl/scripts/run-untrusted-sandbox.sh denoland/deno:2.5.6 sandbox-api -- run --allow-env --allow-write=/workspace/.vl-api-sandbox-env.json probe.ts
+          VL_SANDBOX_EPHEMERAL=1 VL_SANDBOX_EXPORTS=.vl-api-sandbox-env.json vl/scripts/run-untrusted-sandbox.sh denoland/deno:2.5.6 sandbox-api -- run --allow-env --allow-write=/workspace/.vl-api-sandbox-env.json probe.ts
 
       - name: Validate generated API inside isolated sandbox
         shell: bash

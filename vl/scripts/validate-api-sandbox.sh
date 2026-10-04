@@ -29,7 +29,7 @@ SANDBOX="$SCRIPT_DIR/run-untrusted-sandbox.sh"
 # Deno 2.5.6 does not support `deno check --cached-only`. The network boundary is
 # enforced by the sandbox itself (`--network none`), while DENO_DIR points at the
 # dependency cache prepared on the trusted host. Any uncached import therefore fails.
-"$SANDBOX" denoland/deno:2.5.6 "$ROOT" -- env DENO_DIR=/workspace/.deno-cache deno check index.ts
+VL_SANDBOX_EPHEMERAL=1 "$SANDBOX" denoland/deno:2.5.6 "$ROOT" -- env DENO_DIR=/workspace/.deno-cache deno check index.ts
 
 OUT="$ROOT/../vl-api-build.tgz"
 tar -C "$ROOT" -czf "$OUT" .

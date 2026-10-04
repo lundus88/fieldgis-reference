@@ -30,7 +30,7 @@ SANDBOX="$SCRIPT_DIR/run-untrusted-sandbox.sh"
 [ -x "$SANDBOX" ] || { echo "sandbox runner not executable" >&2; exit 68; }
 
 # Build generated code inside isolated container. No host secrets/OIDC/network are passed.
-"$SANDBOX" node:22-bookworm "$ROOT" -- /bin/bash -lc 'npm run build'
+VL_SANDBOX_EPHEMERAL=1 VL_SANDBOX_EXPORTS="dist,.vl-web-sandbox-env.json" "$SANDBOX" node:22-bookworm "$ROOT" -- /bin/bash -lc 'npm run build'
 
 [ -s "$ROOT/dist/index.html" ] || { echo "missing dist/index.html" >&2; exit 69; }
 if [ "$BUILDER" = "pwa-react-v1" ]; then
