@@ -39,7 +39,7 @@ required_writer = [
     "private.finalize_vl_cert_health_from_fresh_certification",
     "p_run_started_at timestamptz",
     "p_max_run_age_seconds integer",
-    "p_human_authorization_ref text",
+    "p_authorization_audit_id bigint",
     "p_max_run_age_seconds < 60",
     "p_max_run_age_seconds > 86400",
     "r.status='active'",
@@ -60,7 +60,19 @@ required_writer = [
     "ACTIVE_BUILDER_POLICY_MISMATCH",
     "vl.cert_health_finalization_blocked",
     "vl.cert_health_finalized",
-    "human_authorization_ref",
+    "authorization_audit_id",
+    "vl.cert_health_finalization_authorized",
+    "authenticator_assurance_level",
+    "evidence_digest",
+    "AUTHORIZATION_NOT_FOUND",
+    "AUTHORIZATION_RECORD_INVALID",
+    "AUTHORIZATION_AAL2_REQUIRED",
+    "AUTHORIZATION_EVIDENCE_DIGEST_MISMATCH",
+    "AUTHORIZATION_RUN_BINDING_MISMATCH",
+    "AUTHORIZATION_PREDATES_EVIDENCE",
+    "AUTHORIZATION_STALE",
+    "AUTHORIZATION_SCOPE_MISMATCH",
+    "AUTHORIZATION_REPLAYED",
     "update public.vl_cert_health",
     "where id=1",
     "get diagnostics v_updated = row_count",
@@ -103,7 +115,13 @@ assert len(health_updates) == 1, f"expected one guarded health update, found {le
 
 assert not re.search(r"\bset\s+production_locked\s*=\s*false\b", WRITER, re.I), "writer must never unlock production"
 assert not re.search(r"\bset\s+status\s*=\s*'active'\b", WRITER, re.I), "writer must never activate a builder"
-assert "source_run_id, source_uri and human_authorization_ref are required" in WRITER
+assert "authorization_audit_id is required" in WRITER
+assert "extensions.digest" in WRITER
+assert "set search_path=''" in WRITER
+assert "updated_at=v_health_evidence_at" in WRITER
+assert "created_at < v_now - interval '15 minutes'" in WRITER
+assert "pm.role in ('owner','admin')" in WRITER
+assert "metadata->>'authorization_audit_id'=p_authorization_audit_id::text" in WRITER
 assert "expected exactly one vl_cert_health row" in WRITER
 
 # Public SECURITY DEFINER wrappers must be explicitly removed from ordinary client roles.
