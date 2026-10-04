@@ -109,4 +109,14 @@ assert gov["historical_migrations_edited"] is False
 assert gov["synthetic_certification_evidence_created"] is False
 assert gov["production_activation_hold"] is True
 
+raw_schema = RAW_SCHEMA.read_bytes()
+assert __import__("hashlib").sha256(raw_schema).hexdigest() == "50d426da6ad13641d5ef3d44b0a3fa84ea61828e4c549d4fef6faa5ef812afb5"
+bootstrap = BOOTSTRAP.read_text(encoding="utf-8")
+assert "NEVER apply this file to Production" in bootstrap
+assert "DROP SCHEMA IF EXISTS private CASCADE;" in bootstrap
+assert "DROP SCHEMA IF EXISTS public CASCADE;" in bootstrap
+assert "CREATE SCHEMA public AUTHORIZATION postgres;" in bootstrap
+assert "CREATE SCHEMA private AUTHORIZATION postgres;" in bootstrap
+assert bootstrap.endswith(RAW_SCHEMA.read_text(encoding="utf-8"))
+
 print("VL_SCHEMA_CAPTURE_EVIDENCE_CONTRACT=PASS")
