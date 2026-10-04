@@ -1,0 +1,82 @@
+name: LOM Policy as Code P1
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/lom-policy-as-code-p1/**'
+      - 'vl/lom-canonical-compliance/**'
+      - 'vl/lom-operational-safety/action-registry.json'
+      - '.github/workflows/lom-policy-as-code-p1.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'vl/lom-policy-as-code-p1/**'
+      - 'vl/lom-canonical-compliance/**'
+      - 'vl/lom-operational-safety/action-registry.json'
+      - '.github/workflows/lom-policy-as-code-p1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  policy-as-code-p1:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Checkout exact revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Setup Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+
+      - name: Verify canonical policy projection
+        run: python vl/lom-policy-as-code-p1/compile_policy_data.py --check
+
+      - name: Run compiler regressions
+        working-directory: vl/lom-policy-as-code-p1
+        run: python -m unittest -v test_policy_compiler.py
+
+      - name: Setup pinned Open Policy Agent
+        uses: open-policy-agent/setup-opa@b2b258e089860efaadaaf71bf6e3aecb4a3eeff1
+        with:
+          version: 1.21.1
+
+      - name: Check Rego
+        working-directory: vl/lom-policy-as-code-p1
+        run: opa check --strict authority.rego authority_test.rego
+
+      - name: Run Rego unit tests
+        working-directory: vl/lom-policy-as-code-p1
+        run: opa test -v policy-data.json authority.rego authority_test.rego
+
+      - name: Smoke-evaluate bounded action
+        working-directory: vl/lom-policy-as-code-p1
+        run: |
+          cat > /tmp/lom-policy-input.json <<'JSON'
+          {
+            "action_id": "RUN_TEST",
+            "evidence_ids": ["ev-ci"],
+            "production": false,
+            "risk": "LOW",
+            "self_approval": false,
+            "protected_main_merge": false,
+            "authority_known": true
+          }
+          JSON
+          RESULT="$(opa eval -f raw -d policy-data.json -d authority.rego -i /tmp/lom-policy-input.json 'data.lom.governance.decision.decision')"
+          test "$RESULT" = "ALLOW"
+
+      - name: Assert verifier-only authority
+        run: |
+          grep -q '"policy_role": "VERIFIER_ONLY"' vl/lom-policy-as-code-p1/policy-data.json
+          grep -q '"autonomous_ceiling": "PREPARE_PR"' vl/lom-policy-as-code-p1/policy-data.json
+          grep -q '"production_authority": "HUMAN_ONLY"' vl/lom-policy-as-code-p1/policy-data.json
+          grep -q '"self_approval": "FORBIDDEN"' vl/lom-policy-as-code-p1/policy-data.json
+          grep -q '"live_policy_mutation": "DISABLED"' vl/lom-policy-as-code-p1/policy-data.json
+          grep -q '"opa_network_runtime": "DISABLED"' vl/lom-policy-as-code-p1/policy-data.json
