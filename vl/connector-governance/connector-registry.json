@@ -1,7 +1,7 @@
 {
   "schema": "lom.connector-registry/1",
   "registry_id": "lom-v1-readonly-connectors",
-  "version": 2,
+  "version": 3,
   "default_decision": "deny",
   "production_locked": true,
   "write_authority": false,
@@ -13,8 +13,12 @@
       "version": "1.0.0",
       "status": "certified-fixture",
       "mode": "read-only",
-      "allowed_operations": ["read"],
-      "resource_scopes": ["fixture/repository"],
+      "allowed_operations": [
+        "read"
+      ],
+      "resource_scopes": [
+        "fixture/repository"
+      ],
       "external_runtime": false,
       "credentials_required": false
     },
@@ -23,14 +27,36 @@
       "version": "1.0.0",
       "status": "certified-fixture",
       "mode": "read-only",
-      "allowed_operations": ["read"],
-      "resource_scopes": ["fixture/mcp"],
+      "allowed_operations": [
+        "read"
+      ],
+      "resource_scopes": [
+        "fixture/mcp"
+      ],
       "external_runtime": false,
       "credentials_required": false,
       "protocol": "mcp",
       "protocol_version": "2026-07-28",
       "network_access": "DISABLED",
       "server_authority_trusted": false
+    },
+    {
+      "id": "fixture-a2a-readonly",
+      "version": "1.0.0",
+      "status": "certified-fixture",
+      "mode": "read-only",
+      "allowed_operations": [
+        "read"
+      ],
+      "resource_scopes": [
+        "fixture/a2a"
+      ],
+      "external_runtime": false,
+      "credentials_required": false,
+      "protocol": "a2a",
+      "protocol_version": "1.0",
+      "network_access": "DISABLED",
+      "agent_authority_trusted": false
     }
   ]
 }
