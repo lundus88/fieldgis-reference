@@ -5,6 +5,7 @@ import re
 ROOT = Path(__file__).resolve().parents[2]
 RECON = (ROOT / "vl/ops/reconciliation_contract.sql").read_text(encoding="utf-8")
 HEALTH = (ROOT / "vl/ops/health_freshness_contract.sql").read_text(encoding="utf-8")
+HEALTH_WRITER = (ROOT / "vl/migrations/20261004_refresh_cert_health_from_builder_certifications.sql").read_text(encoding="utf-8")
 
 required_recon = [
     "private.reconcile_stale_factory_workflow",
@@ -33,6 +34,26 @@ required_health = [
 ]
 for token in required_health:
     assert token.lower() in HEALTH.lower(), f"missing health safeguard: {token}"
+
+required_health_writer = [
+    "private.refresh_vl_cert_health_from_builder_certifications",
+    "security definer",
+    "set search_path=private,public,pg_temp",
+    "public.builder_certification_results",
+    "distinct_run_count < 4",
+    "cardinality(missing_evidence) <> 0",
+    "activation_requested",
+    "interval '6 hours'",
+    "values(1,'ok',v_authoritative_at)",
+    "updated_at=excluded.updated_at",
+    "grant execute on function private.refresh_vl_cert_health_from_builder_certifications() to service_role",
+]
+for token in required_health_writer:
+    assert token.lower() in HEALTH_WRITER.lower(), f"missing evidence-bound health writer safeguard: {token}"
+
+assert "values(1,'ok',now())" not in HEALTH_WRITER.lower(), "health writer must not synthesize freshness with now()"
+assert "to anon" not in HEALTH_WRITER.lower(), "health writer must never be granted to anon"
+assert "to authenticated" not in HEALTH_WRITER.lower(), "health writer must never be granted to authenticated"
 
 # These contracts must never create a positive lifecycle state. Positive states may
 # appear in read-only comparisons/comments, but never on the right-hand side of SET.
