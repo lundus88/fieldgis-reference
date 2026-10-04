@@ -103,3 +103,17 @@ The canonical recovery path is:
 - PR #472 runtime proof: **BLOCKED by #153**
 - Production activation: **HOLD**
 
+
+
+## Baseline preservation
+
+The reviewed capture was promoted to repository evidence by workflow run `37209604260`.
+
+- promotion commit: `3943b787ad3a71678a4af582f695516bd9dd97a9`
+- recovery branch only: `fix/vl-migration-reproducibility-refresh-20261004`
+- preserved files:
+  - `vl/migrations/baselines/2026-10-04/remote_schema.sql.gz`
+  - `vl/migrations/baselines/2026-10-04/fetched_migrations.tar.gz`
+  - `vl/migrations/baselines/2026-10-04/SHA256SUMS.txt`
+  - `vl/migrations/baselines/2026-10-04/PROVENANCE.json`
+- no Production database mutation occurred.
