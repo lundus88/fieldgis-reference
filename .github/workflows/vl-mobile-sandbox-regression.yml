@@ -6,6 +6,7 @@ on:
     paths:
       - 'vl/scripts/prepare-mobile-flutter-cache.sh'
       - 'vl/migrations/20261004_fix_mobile_maplibre_dependency.sql'
+      - 'vl/migrations/20261004_fix_mobile_geolocator_dependency.sql'
       - 'vl/scripts/build-mobile-flutter-sandbox.sh'
       - '.github/workflows/vl-factory-runner.yml'
       - '.github/workflows/vl-mobile-sandbox-regression.yml'
@@ -44,7 +45,7 @@ jobs:
           chmod +x vl/scripts/prepare-mobile-flutter-cache.sh vl/scripts/build-mobile-flutter-sandbox.sh
           vl/scripts/prepare-mobile-flutter-cache.sh sandbox-mobile
           test -f sandbox-mobile/.vl-mobile-cache-prepared
-          grep -q 'trusted-template-toolchain-prepared-v10-certified-deps-platform35' sandbox-mobile/.vl-mobile-cache-prepared
+          grep -q 'trusted-template-toolchain-prepared-v11-certified-deps-platform35' sandbox-mobile/.vl-mobile-cache-prepared
           test -x sandbox-mobile/.flutter-sdk/bin/flutter
           test -s sandbox-mobile/.flutter-sdk/bin/cache/engine.stamp
           test -s sandbox-mobile/.android-sdk-components/ndk/28.2.13676358/source.properties
@@ -64,7 +65,7 @@ jobs:
           marker='dev_dependencies:'
           assert marker in text
           deps=(
-              '  geolocator: ^14.0.3\n'
+              '  geolocator: 14.1.1\n'
               '  maplibre_gl: 0.27.1\n'
               '  shared_preferences: ^2.5.5\n'
               '  path_provider: ^2.1.6\n'
@@ -174,6 +175,9 @@ jobs:
           grep -q -- "TRANSITIVE_PLATFORM='35'" vl/scripts/prepare-mobile-flutter-cache.sh
           grep -q -- "CMAKE_VERSION='3.22.1'" vl/scripts/prepare-mobile-flutter-cache.sh
           grep -q -- "'maplibre_gl:0.27.1'" vl/scripts/prepare-mobile-flutter-cache.sh
+          grep -q -- "'geolocator:14.1.1'" vl/scripts/prepare-mobile-flutter-cache.sh
+          grep -q -- 'geolocator: 14.1.1' vl/migrations/20261004_fix_mobile_geolocator_dependency.sql
+          ! grep -q -- 'geolocator: 14.0.3' vl/migrations/20261004_fix_mobile_geolocator_dependency.sql
           grep -q -- 'org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=1024m' vl/scripts/prepare-mobile-flutter-cache.sh
           grep -q -- 'org.gradle.daemon=false' vl/scripts/prepare-mobile-flutter-cache.sh
           grep -q -- 'org.gradle.workers.max=2' vl/scripts/prepare-mobile-flutter-cache.sh
@@ -185,8 +189,8 @@ jobs:
           grep -q -- "'platforms;android-\$COMPILE_SDK'" vl/scripts/prepare-mobile-flutter-cache.sh
           grep -q -- "'cmake;\$CMAKE_VERSION'" vl/scripts/prepare-mobile-flutter-cache.sh
           grep -q -- '/workspace/.flutter-sdk/bin/flutter' vl/scripts/prepare-mobile-flutter-cache.sh
-          grep -q -- "'geolocator:\^14.0.3'" vl/scripts/prepare-mobile-flutter-cache.sh
-          grep -q -- "'maplibre_gl:\0.27.1'" vl/scripts/prepare-mobile-flutter-cache.sh
+          grep -q -- "'geolocator:14.1.1'" vl/scripts/prepare-mobile-flutter-cache.sh
+          grep -q -- "'maplibre_gl:0.27.1'" vl/scripts/prepare-mobile-flutter-cache.sh
           grep -q -- "'shared_preferences:\^2.5.5'" vl/scripts/prepare-mobile-flutter-cache.sh
           grep -q -- "'path_provider:\^2.1.6'" vl/scripts/prepare-mobile-flutter-cache.sh
           grep -q -- "'share_plus:\^13.3.0'" vl/scripts/prepare-mobile-flutter-cache.sh
