@@ -27,6 +27,24 @@ Status: NON-PRODUCTION / EVIDENCE-BOUND
 | HR | NO_DUPLICATE | HR Adapter + specialist HRMS | no second payroll/attendance/leave engine |
 | Specialist domains | ON_DEMAND | capability-specific specialist | no permanent duplicate agents |
 
+## Canonical maturity ladder
+
+LOM maturity is tracked as an evidence ladder, not a self-declared title:
+
+`Economic Intelligence ◐ -> Self-Healing ◐ -> Real Revenue Proof ⏳ -> International Validation ⏳ -> Externally Proven Frontier Intelligence ⏳`
+
+| Stage | Current state | Promotion evidence |
+|---|---|---|
+| Economic Intelligence | PARTIAL ◐ | measured unit economics, risk-adjusted cost/value routing, revenue/margin/cost/latency tradeoff evidence |
+| Self-Healing / Homeostasis | PARTIAL ◐ | detect -> diagnose -> bounded recovery -> rollback -> independent verification -> verified incident learning |
+| Real Revenue Proof | HOLD ⏳ | qualified lead -> approved quotation -> real provider payment -> paid order -> delivery -> customer acceptance -> invoice/receipt -> reconciliation -> measured costs |
+| International Validation | HOLD ⏳ | supported foreign market + current international operating evidence + real paid cross-border transaction + delivery acceptance + accounting evidence + human validation |
+| Externally Proven Frontier Intelligence | HOLD ⏳ | real internal baseline + comparable external benchmarks + independent evaluator + adversarial evidence + third-party review for global-superiority claims |
+
+Promotion is fail-closed. Synthetic revenue cannot satisfy Real Revenue Proof. International capability cannot self-certify international validation. A supported foreign market does not imply worldwide support. Internal benchmarks cannot establish world-best status.
+
+Human sovereignty applies to every stage: protected-main merge and Production authority remain HUMAN_ONLY.
+
 ## Canonical core values doctrine
 
 LOM governance now binds ten core operating values in `core-values-doctrine.json`:

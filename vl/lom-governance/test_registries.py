@@ -30,6 +30,28 @@ assert "PROTECTED_MAIN_MERGE" in by_id["orchestration"]["human_gate"]
 assert by_id["high_value_absorption"]["owner"] == "vl/lom-governance"
 assert by_id["high_value_absorption"]["authority"] == "CLASSIFY_PROPOSE_PREPARE_PR"
 
+maturity=cap["maturity_ladder"]
+assert maturity["ordered_path"] == [
+    "ECONOMIC_INTELLIGENCE",
+    "SELF_HEALING",
+    "REAL_REVENUE_PROOF",
+    "INTERNATIONAL_VALIDATION",
+    "EXTERNALLY_PROVEN_FRONTIER_INTELLIGENCE",
+]
+mstage={x["stage"]:x for x in maturity["progression"]}
+assert mstage["ECONOMIC_INTELLIGENCE"]["status"] == "PARTIAL"
+assert mstage["SELF_HEALING"]["status"] == "PARTIAL"
+assert mstage["REAL_REVENUE_PROOF"]["status"] == "HOLD"
+assert mstage["REAL_REVENUE_PROOF"]["synthetic_evidence_counts_as_completion"] is False
+assert mstage["INTERNATIONAL_VALIDATION"]["status"] == "HOLD"
+assert mstage["INTERNATIONAL_VALIDATION"]["worldwide_claim_inferred"] is False
+assert mstage["INTERNATIONAL_VALIDATION"]["self_certification"] == "FORBIDDEN"
+assert mstage["EXTERNALLY_PROVEN_FRONTIER_INTELLIGENCE"]["status"] == "HOLD"
+assert mstage["EXTERNALLY_PROVEN_FRONTIER_INTELLIGENCE"]["world_best_claim"] == "FORBIDDEN_UNTIL_EXTERNALLY_PROVEN"
+assert maturity["hard_invariants"]["human_sovereignty"] is True
+assert maturity["hard_invariants"]["protected_main_merge"] == "HUMAN_ONLY"
+assert maturity["hard_invariants"]["production_authority"] == "HUMAN_ONLY"
+
 know=json.loads((ROOT/"vl/lom-knowledge-foundation/master-knowledge-registry.json").read_text())
 assert know["duplicate_policy"] == "FLAG_ONLY_NO_AUTODELETE"
 assert know["low_confidence_policy"] == "FAIL_CLOSED"
