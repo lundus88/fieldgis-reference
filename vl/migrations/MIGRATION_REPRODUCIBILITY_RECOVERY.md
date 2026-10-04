@@ -32,9 +32,9 @@ A fresh read-only metadata fingerprint of `vrs-core` shows that the 2026-09-10 s
 - indexes: **215** (unchanged);
 - policies: **88** (unchanged).
 
-This metadata refresh is evidence of drift only. It is **not** a canonical schema dump and must not be used to authorize migration-history repair. The authoritative operator step remains the manual, read-only `VL Schema Capture Evidence` workflow (`db dump --linked` + `migration fetch`).
+This metadata refresh is evidence of drift only. It is **not** a canonical schema dump and must not be used to authorize migration-history repair. The authoritative operator step is the manual, read-only `VL Schema Capture Evidence` workflow using the project IPv4 Transaction Pooler with `db dump --db-url` + `migration fetch --db-url`.
 
-An isolated DEV validation on 2026-10-04 reproduced the known gap: `public.vl_cert_health` exists in Production but is absent from the fresh replay path. No manual DDL scaffolding or synthetic PASS evidence was introduced. PR #472 therefore remains blocked by issue #153 until canonical schema parity is established.
+An isolated DEV validation on 2026-10-04 reproduced the known gap: `public.vl_cert_health` exists in Production but is absent from the native fresh replay path. Canonical baseline recovery then achieved exact schema and migration-history parity twice on a data-less DEV branch, without synthetic PASS evidence. Issue #153 is therefore technically GREEN candidate, pending repository merge of PR #474. PR #472 has runtime-proof PASS on DEV but remains HOLD until #474 is merged and #472 is refreshed against `main`.
 
 ## Governing rule
 
@@ -42,15 +42,15 @@ Historical migrations that were already used against production are immutable fo
 
 ## Canonical recovery path
 
-1. Generate a canonical schema snapshot from the linked production project using the supported Supabase schema-pull workflow (`supabase db pull --linked`) in an authenticated operator environment.
-2. Review the generated snapshot against the current production schema before accepting it as baseline evidence.
-3. Compare local and remote migration history with `supabase migration list`.
-4. Use migration-history repair only as a tracking correction when the database schema is already proven to match. History repair must not be used to claim that SQL ran when schema parity has not been demonstrated.
-5. Establish a fresh-data baseline for future environments so replay does not require production-only historical rows.
-6. Recreate a data-less DEV branch from scratch and require the full migration/bootstrap path to finish without manual DDL scaffolding.
+1. Run the manual read-only `VL Schema Capture Evidence` workflow through the IPv4 Transaction Pooler and preserve the schema + migration evidence with checksums.
+2. Review the captured schema against current Production metadata before accepting it as canonical baseline evidence.
+3. On a fresh data-less DEV branch, apply the canonical schema baseline through the repository-controlled bootstrap path.
+4. Prove exact schema parity before synchronizing migration tracking; tracking synchronization must never stand in for schema creation.
+5. Synchronize DEV-only migration tracking to the exact authoritative 174-row Production history only after parity is proven.
+6. Recreate/reset the data-less DEV branch and repeat the bootstrap path to prove deterministic recovery without manual DDL scaffolding.
 7. Run Supabase security and performance advisors.
-8. Re-run the operational reconciliation and certification-health freshness regression suite.
-9. Verify production read-only: no approval, deployment, factory run, workflow, or certification-health row changed as a side effect of recovery work.
+8. Re-run the operational reconciliation and certification-health freshness/finalizer regression suite.
+9. Verify Production read-only: no approval, deployment, factory run, workflow, candidate function, audit row, or certification-health row changed as a side effect of recovery work.
 
 ## Certification-data migration rule
 
@@ -72,3 +72,20 @@ Migration Reproducibility P0 is GREEN only when all are true:
 - read-only production verification shows zero unintended mutation.
 
 Until then, production activation of the operational reconciliation contract remains HOLD.
+
+
+## Validation result — 2026-10-04
+
+All technical exit criteria above were demonstrated on an isolated data-less DEV branch and recorded in `DEV_REPLAY_EVIDENCE_2026-10-04.md`.
+
+- canonical baseline: PASS
+- repeatable bootstrap: PASS
+- exact schema parity: PASS
+- exact migration-history parity: PASS
+- security/performance advisor review: PASS / INFO-only
+- operational reconciliation regression: PASS
+- certification-health fail-closed regression: PASS
+- Production non-mutation verification: PASS
+- temporary DEV branch: deleted after testing
+
+Repository merge remains a human gate. Production activation remains HOLD.
