@@ -9,10 +9,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Agentic intelligence core regressions
+      - name: Agentic intelligence core and hierarchical planning regressions
         run: |
           cd vl/lom-agentic-os-p0
           python3 test_intelligence_core.py
+          python3 -m unittest -v test_hierarchical_planner.py
       - name: Contract remains non-production
         run: |
           python3 - <<'PY'
