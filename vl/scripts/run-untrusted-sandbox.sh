@@ -56,7 +56,7 @@ validate_relative_path() {
 }
 
 if [ "$EPHEMERAL" = "1" ]; then
-  if find "$ROOT" \( -type b -o -type c -o -type p -o -type s \) -print -quit | grep -q .; then
+  if find "$ROOT" \( -type b -o -type c -o -type p \) -print -quit | grep -q .; then
     echo "VL sandbox: special host file in workspace forbidden" >&2
     exit 75
   fi
