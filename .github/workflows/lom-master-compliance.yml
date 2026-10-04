@@ -112,6 +112,11 @@ jobs:
         run: |
           python vl/lom-knowledge-foundation/test_retrieval_policy.py
           python vl/lom-knowledge-foundation/test_complete_body_e2e.py
+      - name: LOM International Commerce Readiness
+        run: |
+          python docs/commercial/lds-global-commerce-readiness/check_gate.py
+          cd docs/commercial/lds-global-commerce-readiness
+          python -m unittest -v test_gate.py
       - name: LOM 2.0 Gate F Mission Control
         working-directory: vl/lom-mission-control
         run: python -m unittest -q
