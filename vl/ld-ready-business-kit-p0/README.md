@@ -1,14 +1,18 @@
 # LD Ready Business Kit P0
 
-Status: DEVELOPMENT / NON-PRODUCTION
+Status: COMPATIBILITY / REFERENCE / NON-PRODUCTION
 
 ## Goal
 
-Provide one reusable core business-site kit with vertical configuration for Cafe/F&B, Homestay and Tutor/Education.
+Preserve the original reusable business-site kit as a compatibility/reference implementation for legacy vertical presets and regression evidence. It is not the canonical LD website runtime.
+
+Canonical runtime ownership now belongs to the existing **Professional Service Website Engine in LundusLead**, with the shared Design Library / Design DNA pipeline used for website composition.
 
 Operating principle:
 
-**Build once → configure → preview → QA → deploy many**
+**Reuse canonical engine → map legacy preset/configuration → preview → QA → human gate**
+
+The deterministic legacy renderer may remain for regression and migration checks, but it must not receive new customer-facing runtime features.
 
 ## P0 scope
 
@@ -59,7 +63,7 @@ LD manages:
 
 ## Flagship website template library
 
-A governed design/configuration layer now sits above the existing renderer. It does not replace this Ready Business Kit.
+The flagship set is retained as governed preset/configuration metadata. New delivery must map these presets into the canonical Professional Service Website Engine rather than extending this legacy renderer.
 
 Initial flagship set:
 - Surveyor Pro
