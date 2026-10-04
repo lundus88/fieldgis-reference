@@ -2,12 +2,6 @@ name: VL Schema Capture Evidence
 
 on:
   workflow_dispatch:
-    inputs:
-      promote_baseline:
-        description: Commit the reviewed 2026-10-04 schema baseline to the recovery branch
-        required: true
-        type: boolean
-        default: false
 
 permissions:
   contents: read
@@ -53,8 +47,9 @@ jobs:
           echo "::add-mask::${ENCODED_DB_PASSWORD}"
           echo "::add-mask::${DB_URL}"
 
-          # IPv4 Transaction Pooler avoids both Management API project-link permissions and GitHub-hosted runner IPv6 limits.
-          # Both commands are read-only. Default db dump is schema-only: no production table rows are exported.
+          # IPv4 Transaction Pooler avoids Management API project-link permissions
+          # and GitHub-hosted runner IPv6 limits. Both commands are read-only.
+          # Default db dump is schema-only: no production table rows are exported.
           npx -y "supabase@${SUPABASE_CLI_VERSION}" db dump --db-url "$DB_URL" -f remote_schema.sql
           npx -y "supabase@${SUPABASE_CLI_VERSION}" migration fetch --db-url "$DB_URL"
 
@@ -78,69 +73,3 @@ jobs:
           path: vl-schema-capture-evidence.tar.gz
           if-no-files-found: error
           retention-days: 1
-
-  promote-reviewed-baseline:
-    needs: capture-read-only
-    if: ${{ inputs.promote_baseline == true && github.ref_name == 'fix/vl-migration-reproducibility-refresh-20261004' }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-        with:
-          ref: ${{ github.ref_name }}
-          fetch-depth: 1
-
-      - name: Download reviewed capture
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
-        with:
-          name: vl-schema-capture-evidence
-          path: ${{ runner.temp }}/vl-schema-capture-promote
-
-      - name: Verify and commit canonical baseline evidence
-        shell: bash
-        run: |
-          set -euo pipefail
-          test "$GITHUB_REF_NAME" = "fix/vl-migration-reproducibility-refresh-20261004"
-
-          CAPTURE="$RUNNER_TEMP/vl-schema-capture-promote"
-          cd "$CAPTURE"
-          tar -xzf vl-schema-capture-evidence.tar.gz
-
-          sha256sum -c SHA256SUMS.txt
-          test "$(sha256sum remote_schema.sql | awk '{print $1}')" = "50d426da6ad13641d5ef3d44b0a3fa84ea61828e4c549d4fef6faa5ef812afb5"
-          test "$(find supabase/migrations -type f -name '*.sql' | wc -l | tr -d ' ')" = "174"
-          ! grep -Eqi '^(INSERT INTO|COPY[[:space:]])' remote_schema.sql
-
-          DEST="$GITHUB_WORKSPACE/vl/migrations/baselines/2026-10-04"
-          mkdir -p "$DEST"
-          gzip -9 -c remote_schema.sql > "$DEST/remote_schema.sql.gz"
-          tar -czf "$DEST/fetched_migrations.tar.gz" supabase/migrations
-          cp SHA256SUMS.txt "$DEST/SHA256SUMS.txt"
-
-          cat > "$DEST/PROVENANCE.json" <<JSON
-          {
-            "schema": "vl.canonical-schema-baseline-evidence/1",
-            "captured_at": "2026-10-04",
-            "source_project_ref": "wczelfmnqpgzfdszxubl",
-            "source_workflow_run_id": ${GITHUB_RUN_ID},
-            "source_head_sha": "${GITHUB_SHA}",
-            "remote_schema_sha256": "50d426da6ad13641d5ef3d44b0a3fa84ea61828e4c549d4fef6faa5ef812afb5",
-            "migration_file_count": 174,
-            "contains_production_rows": false,
-            "production_mutation_performed": false,
-            "purpose": "fresh-environment migration reproducibility recovery only"
-          }
-          JSON
-
-          cd "$GITHUB_WORKSPACE"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add vl/migrations/baselines/2026-10-04
-          if git diff --cached --quiet; then
-            echo "Reviewed baseline evidence already committed."
-            exit 0
-          fi
-          git commit -m "chore(vl): preserve reviewed production schema baseline evidence"
-          git push origin "HEAD:${GITHUB_REF_NAME}"
