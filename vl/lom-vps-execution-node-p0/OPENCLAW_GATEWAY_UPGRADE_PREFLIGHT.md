@@ -10,14 +10,33 @@ This runbook exists to determine the actual OpenClaw install/version/ownership b
 
 LundusLead production has verified that both Prospect Hunter and Tender Watch reach the configured OpenClaw hook with HTTP 200, but the current Gateway response does not expose terminal completion evidence expected by the current LL integration. Do not assume the installed Gateway version or install type.
 
+## Verified canonical runtime ownership
+
+Fresh read-only evidence from `v103067` on 2026-10-04 established:
+
+- verified runtime owner is `server`;
+- verified CLI path is `/home/server/.npm-global/bin/openclaw`;
+- the user systemd unit is `/home/server/.config/systemd/user/openclaw-gateway.service`;
+- the Gateway is loopback-bound at `ws://127.0.0.1:18789`;
+- runtime/Gateway version evidence reported `2026.9.7`;
+- Gateway RPC recovered to `ok: true` after controlled service start;
+- plugin version drift reported no drift.
+
+The repository checkout ownership is separate from OpenClaw runtime ownership. Do not chown, migrate, duplicate, or reinstall OpenClaw merely to make this preflight run from another account.
+
 ## Read-only preflight
 
-Run as the account that owns the OpenClaw CLI/Gateway installation. Do **not** use root merely to make the checks pass.
+Run as the account that owns the OpenClaw CLI/Gateway installation. On canonical `v103067`, that account is currently `server`. Do **not** use root merely to make the checks pass.
+
+Use the verified binary explicitly so PATH differences cannot produce a false `OPENCLAW_NOT_FOUND` result:
 
 ```bash
-cd /home/lom-runner/fieldgis-reference
-bash vl/lom-vps-execution-node-p0/openclaw_gateway_preflight.sh
+OPENCLAW_EXPECTED_USER=server \
+OPENCLAW_BIN=/home/server/.npm-global/bin/openclaw \
+bash /path/to/fieldgis-reference/vl/lom-vps-execution-node-p0/openclaw_gateway_preflight.sh
 ```
+
+A readable repository checkout may remain owned by another non-root execution account. Source checkout ownership must not be confused with Gateway runtime ownership.
 
 The script prints one local evidence directory. Review only `summary.txt` first.
 
@@ -30,6 +49,8 @@ Required commands captured:
 - `openclaw doctor --lint --json`
 
 No update, restart, package mutation, config mutation, firewall change, reboot, Docker change, or service ownership change is permitted by this preflight.
+
+A non-zero command result is evidence, not permission to repair automatically. In particular, `doctor --lint` warnings must be reviewed before any `doctor --fix`, service stop/restart, scope change, or configuration mutation.
 
 ## Decision gate
 
