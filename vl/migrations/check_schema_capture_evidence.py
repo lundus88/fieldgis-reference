@@ -7,7 +7,7 @@ import re
 
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW = ROOT / ".github" / "workflows" / "vl-schema-capture-evidence.yml"
-FINGERPRINT = ROOT / "vl" / "migrations" / "remote_schema_fingerprint_2026-09-10.json"
+FINGERPRINT = ROOT / "vl" / "migrations" / "remote_schema_fingerprint_2026-10-04.json"
 
 text = WORKFLOW.read_text(encoding="utf-8")
 lower = text.lower()
