@@ -146,7 +146,8 @@ jobs:
       - name: LOM Policy-as-Code canonical projection
         run: |
           python vl/lom-policy-as-code-p1/compile_policy_data.py --check
-          python -m unittest -v vl/lom-policy-as-code-p1/test_policy_compiler.py
+          cd vl/lom-policy-as-code-p1
+          python -m unittest -v test_policy_compiler.py
       - name: LOM 4.5 Interoperability & Resource Intelligence
         working-directory: vl/lom-4-5-interoperability-resource-intelligence
         run: python -m unittest -v test_runtime.py
