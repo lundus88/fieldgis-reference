@@ -1,0 +1,51 @@
+{
+  "schema": "vl.remote-schema-fingerprint/1",
+  "verified_at": "2026-10-04",
+  "repository": "lundus88/fieldgis-reference",
+  "project_ref": "wczelfmnqpgzfdszxubl",
+  "capture": {
+    "workflow_run_id": 37208650759,
+    "workflow_run_number": 4,
+    "branch": "fix/vl-migration-reproducibility-refresh-20261004",
+    "head_sha": "3d99fbfcce9628d93cf2250d1490f02f4ef46241",
+    "artifact_id": 11305628752,
+    "artifact_digest": "sha256:1949d6ff4d58d65ce7c2501811ec04f01fba9174bf6e4cc37740facabfd6f67f",
+    "remote_schema_sha256": "50d426da6ad13641d5ef3d44b0a3fa84ea61828e4c549d4fef6faa5ef812afb5",
+    "sha256_manifest_sha256": "1f6b3c60298f2a4babe6320e15cda11af4e2bb34d087d2f1f047d025186a9d38",
+    "schema_only": true,
+    "contains_production_rows": false,
+    "credential_scan_passed": true
+  },
+  "migration_history": {
+    "count": 174,
+    "first_version": "20260825085858",
+    "last_version": "20261004003624",
+    "metadata_chain_sha256": "1099e33d3b2e7125e1dee037572e46ae8da390497660e10f70322ec19116949e"
+  },
+  "schema_fingerprint": {
+    "schemas": ["public", "private"],
+    "functions": 128,
+    "columns": 821,
+    "constraints": 346,
+    "indexes": 215,
+    "policies": 88
+  },
+  "parity_findings": {
+    "repo_sql_files": 37,
+    "remote_migrations": 174,
+    "exact_filename_version_matches": 0,
+    "logical_stem_matches": 27,
+    "remote_without_logical_stem_match": 147,
+    "vl_cert_health_present_in_schema": true,
+    "vl_cert_health_migration_hits": 0,
+    "legacy_chain_replay_is_authoritative": false,
+    "canonical_schema_baseline_required": true
+  },
+  "governance": {
+    "production_schema_mutation_performed": false,
+    "migration_history_repair_performed": false,
+    "historical_migrations_edited": false,
+    "synthetic_certification_evidence_created": false,
+    "production_activation_hold": true
+  }
+}
