@@ -27,9 +27,9 @@ jobs:
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: '3.12'
-      - name: LOM 4.2 learning and trust regression
+      - name: LOM 4.2 learning, trust and frontier evaluation regression
         working-directory: vl/lom-learning-evaluation
-        run: python -m unittest -v test_learning_core.py test_trust_confidence.py
+        run: python -m unittest -v test_learning_core.py test_trust_confidence.py test_frontier_evaluation.py
       - name: Emit calibrated trust evidence
         working-directory: vl/lom-learning-evaluation
         run: |
