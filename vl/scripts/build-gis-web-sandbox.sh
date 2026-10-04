@@ -26,7 +26,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 SANDBOX="$SCRIPT_DIR/run-untrusted-sandbox.sh"
 [ -x "$SANDBOX" ] || { echo "sandbox runner not executable" >&2; exit 68; }
 
-"$SANDBOX" node:22-bookworm "$ROOT" -- /bin/bash -lc 'npm run build'
+VL_SANDBOX_EPHEMERAL=1 VL_SANDBOX_EXPORTS="dist,.vl-gis-sandbox-env.json" "$SANDBOX" node:22-bookworm "$ROOT" -- /bin/bash -lc 'npm run build'
 
 [ -s "$ROOT/dist/index.html" ] || { echo "missing dist/index.html" >&2; exit 69; }
 JS_BUNDLE="$(find "$ROOT/dist/assets" -type f -name '*.js' -print -quit)"
