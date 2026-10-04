@@ -11,18 +11,19 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
       VL_SUPABASE_PROJECT_REF: wczelfmnqpgzfdszxubl
+      VL_SUPABASE_DB_HOST: aws-0-ap-southeast-1.pooler.supabase.com
+      VL_SUPABASE_DB_PORT: 6543
+      VL_SUPABASE_DB_USER: postgres.wczelfmnqpgzfdszxubl
       SUPABASE_CLI_VERSION: 2.117.0
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
-      - name: Require operator credentials
+      - name: Require operator database credential
         shell: bash
         run: |
           set -euo pipefail
-          test -n "${SUPABASE_ACCESS_TOKEN:-}" || { echo 'SUPABASE_ACCESS_TOKEN is required'; exit 1; }
           test -n "${SUPABASE_DB_PASSWORD:-}" || { echo 'SUPABASE_DB_PASSWORD is required'; exit 1; }
 
       - name: Capture schema and migration history read-only
@@ -35,11 +36,22 @@ jobs:
 
           npx -y "supabase@${SUPABASE_CLI_VERSION}" --version
           npx -y "supabase@${SUPABASE_CLI_VERSION}" init
-          npx -y "supabase@${SUPABASE_CLI_VERSION}" link --project-ref "$VL_SUPABASE_PROJECT_REF"
 
+          ENCODED_DB_PASSWORD="$(python3 - <<'PY'
+          import os
+          from urllib.parse import quote
+          print(quote(os.environ["SUPABASE_DB_PASSWORD"], safe=""))
+          PY
+          )"
+          DB_URL="postgresql://${VL_SUPABASE_DB_USER}:${ENCODED_DB_PASSWORD}@${VL_SUPABASE_DB_HOST}:${VL_SUPABASE_DB_PORT}/postgres?sslmode=require"
+          echo "::add-mask::${ENCODED_DB_PASSWORD}"
+          echo "::add-mask::${DB_URL}"
+
+          # IPv4 Transaction Pooler avoids Management API project-link permissions
+          # and GitHub-hosted runner IPv6 limits. Both commands are read-only.
           # Default db dump is schema-only: no production table rows are exported.
-          npx -y "supabase@${SUPABASE_CLI_VERSION}" db dump --linked -f remote_schema.sql
-          npx -y "supabase@${SUPABASE_CLI_VERSION}" migration fetch
+          npx -y "supabase@${SUPABASE_CLI_VERSION}" db dump --db-url "$DB_URL" -f remote_schema.sql
+          npx -y "supabase@${SUPABASE_CLI_VERSION}" migration fetch --db-url "$DB_URL"
 
           {
             sha256sum remote_schema.sql

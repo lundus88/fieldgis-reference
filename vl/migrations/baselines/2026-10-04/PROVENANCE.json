@@ -1,0 +1,12 @@
+{
+  "schema": "vl.canonical-schema-baseline-evidence/1",
+  "captured_at": "2026-10-04",
+  "source_project_ref": "wczelfmnqpgzfdszxubl",
+  "source_workflow_run_id": 37209604260,
+  "source_head_sha": "6db697026efc0f586c1dd4534f9caf473b59251f",
+  "remote_schema_sha256": "50d426da6ad13641d5ef3d44b0a3fa84ea61828e4c549d4fef6faa5ef812afb5",
+  "migration_file_count": 174,
+  "contains_production_rows": false,
+  "production_mutation_performed": false,
+  "purpose": "fresh-environment migration reproducibility recovery only"
+}
