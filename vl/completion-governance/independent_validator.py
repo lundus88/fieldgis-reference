@@ -3,7 +3,8 @@ from __future__ import annotations
 
 import hashlib
 import json
-from typing import Any
+import math
+from typing import Any, Iterable, NamedTuple
 
 ALLOWED_EVIDENCE_STATES = {'PASS', 'FAIL', 'BLOCKED', 'NOT_RUN'}
 
@@ -97,3 +98,218 @@ def _decision(status, reason, inventory, manifest, results):
         'decision_sha256': canonical_sha256(decision_input),
         'production_locked': True,
     }
+
+
+CONSENSUS_SCHEMA = 'vl.verifier-consensus-decision/1'
+ALLOWED_VERIFIER_STATES = {'PASS', 'FAIL', 'HOLD'}
+
+
+class VerifierReport(NamedTuple):
+    validator_id: str
+    executor_id: str
+    decision_sha256: str
+    status: str
+    evidence_ref: str
+    evidence_fresh: bool
+    confidence: float
+    method_id: str
+
+
+class ConsensusPolicy(NamedTuple):
+    minimum_validators: int = 2
+    minimum_methods: int = 2
+    maximum_confidence_spread: float = 0.20
+    require_unique_evidence_refs: bool = True
+
+
+def _addressable_ref(value: str) -> bool:
+    v = str(value or '').strip()
+    return bool(v) and ('://' in v or v.startswith('urn:') or v.startswith('sha256:'))
+
+
+def _consensus_decision(
+    status: str,
+    reason: str,
+    base_decision: dict[str, Any],
+    reports: Iterable[VerifierReport],
+    *,
+    policy: ConsensusPolicy,
+    errors: list[str] | None = None,
+) -> dict[str, Any]:
+    rows = list(reports)
+    confidences = [float(r.confidence) for r in rows] if rows else []
+    body = {
+        'schema': CONSENSUS_SCHEMA,
+        'status': status,
+        'reason': reason,
+        'base_decision_sha256': base_decision.get('decision_sha256'),
+        'base_status': base_decision.get('status'),
+        'validator_count': len(rows),
+        'method_count': len({r.method_id for r in rows}),
+        'evidence_ref_count': len({r.evidence_ref for r in rows}),
+        'confidence_min': min(confidences) if confidences else None,
+        'confidence_max': max(confidences) if confidences else None,
+        'confidence_spread': (max(confidences) - min(confidences)) if confidences else None,
+        'errors': sorted(errors or []),
+        'validator_ids': sorted(r.validator_id for r in rows),
+        'method_ids': sorted({r.method_id for r in rows}),
+        'execution_authority': 'NONE',
+        'execution_performed': False,
+        'production_locked': True,
+        'production_authority': 'HUMAN_ONLY',
+        'protected_main_merge': 'HUMAN_ONLY',
+        'self_approval': 'FORBIDDEN',
+        'authority_widening': 'DISABLED',
+        'builder_self_report_trusted': False,
+        'high_assurance_verified': status == 'PASS',
+        'policy': {
+            'minimum_validators': policy.minimum_validators,
+            'minimum_methods': policy.minimum_methods,
+            'maximum_confidence_spread': policy.maximum_confidence_spread,
+            'require_unique_evidence_refs': policy.require_unique_evidence_refs,
+            'unanimous_pass_required': True,
+        },
+    }
+    return {**body, 'consensus_sha256': canonical_sha256(body)}
+
+
+def validate_completion_consensus(
+    base_decision: dict[str, Any],
+    reports: Iterable[VerifierReport],
+    *,
+    policy: ConsensusPolicy = ConsensusPolicy(),
+) -> dict[str, Any]:
+    rows = list(reports)
+
+    if base_decision.get('schema') != 'vl.independent-completion-decision/1':
+        return _consensus_decision(
+            'HOLD', 'BASE_DECISION_SCHEMA_INVALID', base_decision, rows, policy=policy
+        )
+
+    decision_sha = str(base_decision.get('decision_sha256') or '')
+    try:
+        _require_sha('decision_sha256', decision_sha)
+    except ValueError:
+        return _consensus_decision(
+            'HOLD', 'BASE_DECISION_DIGEST_INVALID', base_decision, rows, policy=policy
+        )
+
+    if base_decision.get('builder_self_report_trusted') is not False:
+        return _consensus_decision(
+            'HOLD', 'BASE_DECISION_INVARIANT_INVALID', base_decision, rows, policy=policy
+        )
+    if base_decision.get('production_locked') is not True:
+        return _consensus_decision(
+            'HOLD', 'BASE_DECISION_INVARIANT_INVALID', base_decision, rows, policy=policy
+        )
+
+    if not isinstance(policy.minimum_validators, int) or isinstance(policy.minimum_validators, bool) or policy.minimum_validators < 2:
+        return _consensus_decision(
+            'HOLD', 'INVALID_CONSENSUS_POLICY', base_decision, rows, policy=policy,
+            errors=['minimum_validators must be >= 2'],
+        )
+    if not isinstance(policy.minimum_methods, int) or isinstance(policy.minimum_methods, bool) or policy.minimum_methods < 1:
+        return _consensus_decision(
+            'HOLD', 'INVALID_CONSENSUS_POLICY', base_decision, rows, policy=policy,
+            errors=['minimum_methods must be >= 1'],
+        )
+    if (
+        not isinstance(policy.maximum_confidence_spread, (int, float))
+        or isinstance(policy.maximum_confidence_spread, bool)
+        or not math.isfinite(float(policy.maximum_confidence_spread))
+        or not 0.0 <= float(policy.maximum_confidence_spread) <= 1.0
+    ):
+        return _consensus_decision(
+            'HOLD', 'INVALID_CONSENSUS_POLICY', base_decision, rows, policy=policy,
+            errors=['maximum_confidence_spread must be finite and within [0,1]'],
+        )
+
+    if base_decision.get('status') == 'FAIL':
+        return _consensus_decision(
+            'FAIL', 'BASE_COMPLETION_FAILED', base_decision, rows, policy=policy
+        )
+    if base_decision.get('status') != 'PASS':
+        return _consensus_decision(
+            'HOLD', 'BASE_COMPLETION_NOT_PASS', base_decision, rows, policy=policy
+        )
+
+    if len(rows) < policy.minimum_validators:
+        return _consensus_decision(
+            'HOLD', 'VERIFIER_QUORUM_NOT_MET', base_decision, rows, policy=policy
+        )
+
+    validator_ids = [r.validator_id.strip() for r in rows]
+    if any(not x for x in validator_ids):
+        return _consensus_decision(
+            'HOLD', 'VERIFIER_ID_REQUIRED', base_decision, rows, policy=policy
+        )
+    if len(set(validator_ids)) != len(validator_ids):
+        return _consensus_decision(
+            'HOLD', 'DUPLICATE_VERIFIER_ID', base_decision, rows, policy=policy
+        )
+
+    errors: list[str] = []
+    for report in rows:
+        if not report.executor_id.strip():
+            errors.append(f'{report.validator_id}:EXECUTOR_ID_REQUIRED')
+        if report.validator_id.strip() == report.executor_id.strip():
+            errors.append(f'{report.validator_id}:SELF_VALIDATION_FORBIDDEN')
+        if report.decision_sha256 != decision_sha:
+            errors.append(f'{report.validator_id}:DECISION_BINDING_MISMATCH')
+        if report.status not in ALLOWED_VERIFIER_STATES:
+            errors.append(f'{report.validator_id}:INVALID_VERIFIER_STATE')
+        if not report.evidence_fresh:
+            errors.append(f'{report.validator_id}:STALE_VERIFIER_EVIDENCE')
+        if not _addressable_ref(report.evidence_ref):
+            errors.append(f'{report.validator_id}:EVIDENCE_REF_INVALID')
+        if not report.method_id.strip():
+            errors.append(f'{report.validator_id}:METHOD_ID_REQUIRED')
+        if (
+            not isinstance(report.confidence, (int, float))
+            or isinstance(report.confidence, bool)
+            or not math.isfinite(float(report.confidence))
+            or not 0.0 <= float(report.confidence) <= 1.0
+        ):
+            errors.append(f'{report.validator_id}:CONFIDENCE_INVALID')
+
+    if errors:
+        return _consensus_decision(
+            'HOLD', 'VERIFIER_REPORT_INVALID', base_decision, rows, policy=policy, errors=errors
+        )
+
+    methods = {r.method_id for r in rows}
+    if len(methods) < policy.minimum_methods:
+        return _consensus_decision(
+            'HOLD', 'VERIFIER_METHOD_DIVERSITY_NOT_MET', base_decision, rows, policy=policy
+        )
+
+    evidence_refs = [r.evidence_ref for r in rows]
+    if policy.require_unique_evidence_refs and len(set(evidence_refs)) != len(evidence_refs):
+        return _consensus_decision(
+            'HOLD', 'VERIFIER_EVIDENCE_NOT_INDEPENDENT', base_decision, rows, policy=policy
+        )
+
+    states = [r.status for r in rows]
+    if 'FAIL' in states:
+        return _consensus_decision(
+            'FAIL', 'VERIFIER_NEGATIVE_FINDING', base_decision, rows, policy=policy
+        )
+    if 'HOLD' in states:
+        return _consensus_decision(
+            'HOLD', 'VERIFIER_HOLD_OR_DISAGREEMENT', base_decision, rows, policy=policy
+        )
+    if any(state != 'PASS' for state in states):
+        return _consensus_decision(
+            'HOLD', 'VERIFIER_DISAGREEMENT', base_decision, rows, policy=policy
+        )
+
+    confidences = [float(r.confidence) for r in rows]
+    spread = max(confidences) - min(confidences)
+    if spread > float(policy.maximum_confidence_spread):
+        return _consensus_decision(
+            'HOLD', 'VERIFIER_CONFIDENCE_DISAGREEMENT', base_decision, rows, policy=policy
+        )
+
+    return _consensus_decision(
+        'PASS', 'INDEPENDENT_CONSENSUS_PASS', base_decision, rows, policy=policy
+    )

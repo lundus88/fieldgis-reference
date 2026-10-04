@@ -79,6 +79,10 @@ jobs:
           grep -q 'INCOMPLETE_ACCEPTANCE_EVIDENCE' vl/completion-governance/independent_validator.py
           grep -q 'APP_SPEC_BINDING_MISMATCH' vl/completion-governance/independent_validator.py
           grep -q "'production_locked': True" vl/completion-governance/independent_validator.py
+          grep -q "INDEPENDENT_CONSENSUS_PASS" vl/completion-governance/independent_validator.py
+          grep -q "VERIFIER_NEGATIVE_FINDING" vl/completion-governance/independent_validator.py
+          grep -q "'execution_authority': 'NONE'" vl/completion-governance/independent_validator.py
+          grep -q "'self_approval': 'FORBIDDEN'" vl/completion-governance/independent_validator.py
           grep -q 'MODEL_ROUTING_BLOCKED' vl/model-governance/route_model.py
           grep -q "'deterministic': True" vl/model-governance/route_model.py
           grep -q "'production_locked': True" vl/model-governance/route_model.py
