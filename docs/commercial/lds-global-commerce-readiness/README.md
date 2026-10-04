@@ -82,3 +82,38 @@ Even a SUPPORTED country remains quote-only when public payment readiness is fal
 ## Initial rollout recommendation
 
 Start with a small country matrix and widen only after real legal/payment/support evidence exists. Do not label "worldwide supported" until the matrix genuinely supports that statement.
+
+
+## International operating profile
+
+International readiness is a separate evidence state from global enquiry or country support.
+
+LOM/LD uses four states:
+
+- **HOLD** — no sufficient foreign-market or operating evidence.
+- **INTERNATIONAL_CANDIDATE** — at least one foreign market is supported and the operating stack is evidenced, but no real cross-border end-to-end commercial proof has been verified.
+- **HUMAN_GATE** — real cross-border proof exists, but a human has not yet validated the international-ready claim.
+- **INTERNATIONAL_VALIDATED** — a real paid cross-border transaction, delivery acceptance and accounting/receipt evidence are bound to a supported foreign market and a human validates the claim.
+
+The operating profile checks:
+
+1. locale / language handling;
+2. multi-currency handling;
+3. timezone normalization;
+4. jurisdiction-aware knowledge;
+5. cross-border payment capability;
+6. accounting / invoice capability;
+7. privacy and security readiness;
+8. support and delivery readiness;
+9. observability and recovery;
+10. evidence freshness.
+
+### Claim discipline
+
+Technical capability alone is not international validation.
+
+A single supported foreign market does not imply worldwide support. Even after INTERNATIONAL_VALIDATED, the system must only claim the markets that are explicitly supported by the country matrix.
+
+No synthetic transaction, fixture, sandbox payment or internal test may be represented as real cross-border revenue proof.
+
+Human validation remains mandatory before a public international-ready claim.
