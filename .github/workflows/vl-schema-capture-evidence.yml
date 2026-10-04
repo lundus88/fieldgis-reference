@@ -13,7 +13,9 @@ jobs:
     env:
       SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
       VL_SUPABASE_PROJECT_REF: wczelfmnqpgzfdszxubl
-      VL_SUPABASE_DB_HOST: db.wczelfmnqpgzfdszxubl.supabase.co
+      VL_SUPABASE_DB_HOST: aws-0-ap-southeast-1.pooler.supabase.com
+      VL_SUPABASE_DB_PORT: 6543
+      VL_SUPABASE_DB_USER: postgres.wczelfmnqpgzfdszxubl
       SUPABASE_CLI_VERSION: 2.117.0
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
@@ -41,11 +43,11 @@ jobs:
           print(quote(os.environ["SUPABASE_DB_PASSWORD"], safe=""))
           PY
           )"
-          DB_URL="postgresql://postgres:${ENCODED_DB_PASSWORD}@${VL_SUPABASE_DB_HOST}:5432/postgres?sslmode=require"
+          DB_URL="postgresql://${VL_SUPABASE_DB_USER}:${ENCODED_DB_PASSWORD}@${VL_SUPABASE_DB_HOST}:${VL_SUPABASE_DB_PORT}/postgres?sslmode=require"
           echo "::add-mask::${ENCODED_DB_PASSWORD}"
           echo "::add-mask::${DB_URL}"
 
-          # Direct database capture avoids Management API project-link permissions.
+          # IPv4 Transaction Pooler avoids both Management API project-link permissions and GitHub-hosted runner IPv6 limits.
           # Both commands are read-only. Default db dump is schema-only: no production table rows are exported.
           npx -y "supabase@${SUPABASE_CLI_VERSION}" db dump --db-url "$DB_URL" -f remote_schema.sql
           npx -y "supabase@${SUPABASE_CLI_VERSION}" migration fetch --db-url "$DB_URL"
