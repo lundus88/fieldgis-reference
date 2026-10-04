@@ -17,7 +17,7 @@ assert "workflow_dispatch:" in text
 assert "pull_request:" not in text
 assert "\n  push:" not in text
 assert "contents: read" in text
-assert "supabase_access_token: ${{ secrets.supabase_access_token }}" in lower
+assert "supabase_access_token" not in lower
 assert "supabase_db_password: ${{ secrets.supabase_db_password }}" in lower
 
 # Toolchain and third-party actions are pinned.
@@ -27,10 +27,17 @@ assert "actions/checkout@11d5960a326750d5838078e36cf38b85af677262" in text
 assert "actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f" in text
 
 # The only remote database operations allowed here are read-only capture operations.
-for required in ("db dump --linked", "migration fetch", "retention-days: 1"):
+for required in (
+    'db dump --db-url "$DB_URL"',
+    'migration fetch --db-url "$DB_URL"',
+    "sslmode=require",
+    "retention-days: 1",
+):
     assert required in text, f"missing capture safeguard: {required}"
 
 for forbidden in (
+    "supabase link",
+    "--linked",
     "db push",
     "db pull",
     "db reset",
@@ -42,8 +49,11 @@ for forbidden in (
     "apply_migration",
     "merge_branch",
 ):
-    assert forbidden not in lower, f"mutating or data-export command forbidden in capture workflow: {forbidden}"
+    assert forbidden not in lower, f"mutating or privilege-expanding command forbidden in capture workflow: {forbidden}"
 
+assert "VL_SUPABASE_DB_HOST: db.wczelfmnqpgzfdszxubl.supabase.co" in text
+assert '::add-mask::${ENCODED_DB_PASSWORD}' in text
+assert '::add-mask::${DB_URL}' in text
 assert "Potential credential material detected" in text
 assert "artifact upload blocked" in text
 
