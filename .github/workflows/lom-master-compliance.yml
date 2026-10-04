@@ -138,6 +138,14 @@ jobs:
       - name: LOM 4.4 Continuous Improvement Orchestrator
         working-directory: vl/lom-continuous-improvement
         run: python -m unittest -v test_orchestrator.py
+
+      - name: LOM Macro Closed-Loop Learning Binding P1
+        working-directory: vl/lom-macro-evaluation-p0
+        run: python -m unittest -v test_closed_loop_adapter.py
+
+      - name: LOM CAIE P1 Durable Runtime
+        working-directory: vl/lom-continuous-improvement
+        run: python test_caie_p1.py
       - name: LOM Daily Operations Cockpit
         working-directory: vl/lom-daily-ops-cockpit
         run: python -m unittest -v test_cockpit.py
