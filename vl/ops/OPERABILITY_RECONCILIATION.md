@@ -1,6 +1,6 @@
 # VL Operability Reconciliation
 
-Status: proposed fail-closed repair contract. This branch does not deploy or mutate the live control plane.
+Status: proposed fail-closed repair contract. This branch does not deploy or mutate the live control plane.\n\nCurrent stabilization base: synchronized with `main` commit `714f4b43e1dadd7536026503ac0e59c21055873a`.
 
 Repository context: visual preview enforcement from PR #141 is now merged to `main`; this operability patch remains independent and does not alter Factory visual-gate logic.
 
