@@ -5,6 +5,8 @@ import json
 import sys
 from pathlib import Path
 
+MCP_PROTOCOL_VERSION = '2026-07-28'
+
 
 def validate(registry: dict) -> None:
     if registry.get('schema') != 'lom.connector-registry/1':
@@ -44,6 +46,14 @@ def validate(registry: dict) -> None:
             raise ValueError(f'connector {cid} must not enable external runtime')
         if connector.get('credentials_required') is not False:
             raise ValueError(f'connector {cid} must not require credentials')
+
+        if connector.get('protocol') == 'mcp':
+            if connector.get('protocol_version') != MCP_PROTOCOL_VERSION:
+                raise ValueError(f'connector {cid} MCP protocol version mismatch')
+            if connector.get('network_access') != 'DISABLED':
+                raise ValueError(f'connector {cid} MCP network access must remain disabled')
+            if connector.get('server_authority_trusted') is not False:
+                raise ValueError(f'connector {cid} MCP server authority must remain untrusted')
 
 
 def main() -> int:
