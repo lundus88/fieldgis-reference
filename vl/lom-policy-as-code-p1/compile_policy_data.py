@@ -22,19 +22,17 @@ EXPECTED_AUTHORITY = {
 }
 
 
-def sha256_bytes(raw: bytes) -> str:
-    return hashlib.sha256(raw).hexdigest()
-
-
 def canonical_json(value: Any) -> str:
     return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
 
 
+def sha256_json(value: Any) -> str:
+    return "sha256:" + hashlib.sha256(canonical_json(value).encode("utf-8")).hexdigest()
+
+
 def build_projection() -> dict[str, Any]:
-    chain_raw = CHAIN.read_bytes()
-    action_raw = ACTIONS.read_bytes()
-    chain = json.loads(chain_raw)
-    actions = json.loads(action_raw)
+    chain = json.loads(CHAIN.read_text(encoding="utf-8"))
+    actions = json.loads(ACTIONS.read_text(encoding="utf-8"))
 
     if chain.get("schema") != "lom.canonical-compliance-chain/1":
         raise ValueError("CANONICAL_CHAIN_SCHEMA_INVALID")
@@ -75,6 +73,12 @@ def build_projection() -> dict[str, Any]:
         })
     bounded.sort(key=lambda x: x["action_id"])
 
+    source_payload = {
+        "authority": dict(sorted(authority.items())),
+        "human_only_actions": human_only,
+        "bounded_actions": bounded,
+    }
+
     projection = {
         "schema": "lom.policy-projection/1",
         "status": "DEVELOPMENT_NON_PRODUCTION",
@@ -90,17 +94,14 @@ def build_projection() -> dict[str, Any]:
         "sources": {
             "canonical_chain": {
                 "path": str(CHAIN.relative_to(ROOT)),
-                "sha256": sha256_bytes(chain_raw),
             },
             "action_registry": {
                 "path": str(ACTIONS.relative_to(ROOT)),
-                "sha256": sha256_bytes(action_raw),
             },
+            "canonical_input_digest": sha256_json(source_payload),
         },
     }
-    projection["projection_digest"] = "sha256:" + sha256_bytes(
-        canonical_json(projection).encode("utf-8")
-    )
+    projection["projection_digest"] = sha256_json(projection)
     return {"lom": projection}
 
 
