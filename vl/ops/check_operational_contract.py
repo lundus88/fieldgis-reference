@@ -173,6 +173,7 @@ required_reverse = [
 for token in required_reverse:
     assert token.lower() in REVERSE.lower(), f"missing reverse migration function drop: {token}"
 
+reverse_exec = re.sub(r"(?m)^\s*--.*$", "", REVERSE)
 for pattern, message in [
     (r"\bupdate\b", "reverse migration must not update data"),
     (r"\binsert\b", "reverse migration must not insert data"),
@@ -181,7 +182,7 @@ for pattern, message in [
     (r"\bdrop\s+table\b", "reverse migration must not drop tables"),
     (r"\bdrop\s+schema\b", "reverse migration must not drop schemas"),
 ]:
-    assert not re.search(pattern, REVERSE, re.I), message
+    assert not re.search(pattern, reverse_exec, re.I), message
 
 # Public SECURITY DEFINER wrappers must be explicitly removed from ordinary client roles.
 for fn in (
