@@ -53,7 +53,7 @@ This evidence does **not** authorize an ad-hoc timestamp refresh. It establishes
 
 - `reconciliation_contract.sql`: candidate database contract for governed orphan reconciliation and explicit stale-approval expiry.
 - `health_freshness_contract.sql`: read-only effective-health calculation that converts old signals to `stale`.
-- `cert_health_writer_contract.sql`: candidate evidence-bound finalizer that may refresh the existing health row only after every active builder has a fresh complete certification run.
+- `cert_health_writer_contract.sql`: candidate evidence-bound AAL2 authorization + finalization contract; it may refresh the existing health row only after every active builder has a fresh complete certification run and all Production-authority/freshness gates pass.
 - `check_operational_contract.py`: CI governance checks preventing positive lifecycle/deployment mutations, synthetic certification evidence and unsafe health refreshes from entering this patch.
 
 ## Certification-health finalization gate
@@ -101,3 +101,22 @@ Before runtime activation:
 - No certification evidence/result creation by the health writer.
 - No builder activation.
 - No weakening of certified-deployment or immutable provenance requirements.
+
+
+## Production activation readiness hardening — 2026-10-04
+
+Read-only activation audit found that repository integration alone is insufficient for Production activation.
+
+Additional hard gates now enforced by the candidate contract:
+
+1. A human authorization producer requires an authenticated AAL2 session.
+2. Authorization records intent only; the finalizer independently revalidates digest, project scope, timing and replay status.
+3. Evidence older than the effective-health 30-minute window is rejected with `EVIDENCE_TOO_OLD_FOR_EFFECTIVE_HEALTH`.
+4. Selected evidence runs with actual Production authority/effect are rejected with `SELECTED_EVIDENCE_RUN_HAS_PRODUCTION_AUTHORITY`.
+5. A certified Production-environment deployment placeholder is not by itself treated as live deployment when `approved_by IS NULL`, `deployed_at IS NULL` and status is not `approved/deploying/deployed`.
+6. Forward DDL is materialized in `vl/migrations/20261004154500_cert_health_activation_hardening.sql`.
+7. Reverse DDL is isolated in `vl/ops/rollback_cert_health_activation_20261004.sql` and removes only introduced functions.
+8. Backup freshness, tested restore evidence and verified human MFA remain operator prerequisites before any Production DDL gate.
+9. Current Production health must not be finalized from stale historical evidence; a genuine fresh certification run is required immediately before authorization.
+
+See `PRODUCTION_ACTIVATION_READINESS_2026-10-04.md` for the full gate record.
