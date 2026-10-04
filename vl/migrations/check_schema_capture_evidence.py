@@ -8,6 +8,9 @@ import re
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW = ROOT / ".github" / "workflows" / "vl-schema-capture-evidence.yml"
 FINGERPRINT = ROOT / "vl" / "migrations" / "remote_schema_fingerprint_2026-10-04.json"
+BASELINE_DIR = ROOT / "vl" / "migrations" / "baselines" / "2026-10-04"
+RAW_SCHEMA = BASELINE_DIR / "remote_schema.sql"
+BOOTSTRAP = BASELINE_DIR / "bootstrap.sql"
 
 text = WORKFLOW.read_text(encoding="utf-8")
 lower = text.lower()
