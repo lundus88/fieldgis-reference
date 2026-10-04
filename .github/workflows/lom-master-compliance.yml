@@ -156,6 +156,10 @@ jobs:
           python vl/lom-policy-as-code-p1/compile_policy_data.py --check
           cd vl/lom-policy-as-code-p1
           python -m unittest -v test_policy_compiler.py
+      - name: LOM A2A Interoperability P1
+        working-directory: vl/lom-a2a-adapter-p1
+        run: python -m unittest -v test_a2a_adapter.py
+
       - name: LOM 4.5 Interoperability & Resource Intelligence
         working-directory: vl/lom-4-5-interoperability-resource-intelligence
         run: python -m unittest -v test_runtime.py
