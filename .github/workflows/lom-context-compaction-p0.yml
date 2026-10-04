@@ -1,0 +1,43 @@
+name: LOM Context Compaction P0
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vl/context-governance/**'
+      - '.github/workflows/lom-context-compaction-p0.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'vl/context-governance/**'
+      - '.github/workflows/lom-context-compaction-p0.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  context-compaction-p0:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Compile context compaction
+        run: python -m py_compile vl/context-governance/context_compaction.py vl/context-governance/pre_model_invocation.py
+
+      - name: Existing context governance regression
+        working-directory: vl/context-governance
+        run: python -m unittest -v test_lom_context_governance.py
+
+      - name: Context compaction regression
+        working-directory: vl/context-governance
+        run: python -m unittest -v test_context_compaction.py
+
+      - name: Assert bounded authority
+        run: |
+          grep -q 'AUTONOMOUS_CEILING = "PREPARE_PR"' vl/context-governance/context_compaction.py
+          grep -q 'PRODUCTION_AUTHORITY = "HUMAN_ONLY"' vl/context-governance/context_compaction.py
+          grep -q 'PROTECTED_MAIN_MERGE = "HUMAN_ONLY"' vl/context-governance/context_compaction.py
+          grep -q 'EXECUTION_AUTHORITY = "NONE"' vl/context-governance/context_compaction.py
