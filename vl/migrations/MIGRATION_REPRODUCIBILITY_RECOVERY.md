@@ -19,6 +19,23 @@ The replay was safely advanced in an isolated DEV branch with temporary fail-clo
 
 A second class of blocker is historical-data dependence. `20260829_raise_web_pwa_certification_depth.sql` and `20260829_builder_certification_depth_3.sql` require historical certification evidence to already prove the requested depth. A data-less branch cannot satisfy that condition by design. Synthetic PASS evidence is prohibited.
 
+
+## Read-only refresh — 2026-10-04
+
+A fresh read-only metadata fingerprint of `vrs-core` shows that the 2026-09-10 snapshot is no longer current:
+
+- migration history: **174** entries (was 166);
+- latest migration: `20261004003624` (was `20260901034112`);
+- functions: **128** (was 122);
+- columns: **821** (was 815);
+- constraints: **346** (unchanged);
+- indexes: **215** (unchanged);
+- policies: **88** (unchanged).
+
+This metadata refresh is evidence of drift only. It is **not** a canonical schema dump and must not be used to authorize migration-history repair. The authoritative operator step remains the manual, read-only `VL Schema Capture Evidence` workflow (`db dump --linked` + `migration fetch`).
+
+An isolated DEV validation on 2026-10-04 reproduced the known gap: `public.vl_cert_health` exists in Production but is absent from the fresh replay path. No manual DDL scaffolding or synthetic PASS evidence was introduced. PR #472 therefore remains blocked by issue #153 until canonical schema parity is established.
+
 ## Governing rule
 
 Historical migrations that were already used against production are immutable for recovery purposes. Do not edit them in place merely to make a new branch pass. Do not inject fake certification evidence, fake approvals, fake deployments, or fake health timestamps.
