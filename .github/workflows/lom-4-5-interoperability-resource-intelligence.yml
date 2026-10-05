@@ -24,4 +24,4 @@ jobs:
           python-version: '3.12'
       - name: Run LOM 4.5 regression suite
         working-directory: vl/lom-4-5-interoperability-resource-intelligence
-        run: python -m unittest -v test_runtime.py
+        run: python -m unittest -v test_runtime.py test_openai_responses_adapter.py
