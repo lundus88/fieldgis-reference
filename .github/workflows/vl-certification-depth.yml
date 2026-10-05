@@ -1,6 +1,6 @@
 name: VL Certification Depth Driver
 
-# Operational retrigger 2026-10-04: refresh locked-staging certification evidence only.
+# Operational retrigger 2026-10-05: refresh locked-staging certification evidence for finalization window.
 # No production approval, promotion, deployment, payment, or authority change.
 
 on:
