@@ -48,6 +48,14 @@ jobs:
           grep -q "ACTIONS_ID_TOKEN_REQUEST_TOKEN" .github/workflows/vl-factory-runner.yml
           grep -q "vite.config.mjs" .github/workflows/vl-factory-runner.yml
 
+      - name: Assert Factory Runner MapLibre worker bundling
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -F -q "maplibre-gl-worker.mjs?worker&url" .github/workflows/vl-factory-runner.yml
+          grep -F -q "setWorkerUrl(workerUrl)" .github/workflows/vl-factory-runner.yml
+          grep -F -q "import { Map, NavigationControl, setWorkerUrl } from 'maplibre-gl';" .github/workflows/vl-factory-runner.yml
+
       - name: Build generated GIS fixture inside isolated sandbox
         shell: bash
         run: |
