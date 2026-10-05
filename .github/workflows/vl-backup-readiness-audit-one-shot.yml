@@ -1,0 +1,100 @@
+name: VL Backup Readiness Audit One-Shot
+
+on:
+  push:
+    branches:
+      - ops/vl-backup-readiness-audit-20261005
+    paths:
+      - .github/workflows/vl-backup-readiness-audit-one-shot.yml
+
+permissions:
+  contents: read
+
+jobs:
+  audit-backup-readiness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      PROJECT_REF: wczelfmnqpgzfdszxubl
+    steps:
+      - name: Require scoped Supabase management credential
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_ACCESS_TOKEN:-}" || { echo 'SUPABASE_ACCESS_TOKEN_MISSING'; exit 1; }
+
+      - name: Read backup inventory
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail-with-body --silent --show-error             -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}"             "https://api.supabase.com/v1/projects/${PROJECT_REF}/database/backups"             -o "$RUNNER_TEMP/backups.json"
+
+      - name: Emit sanitized readiness evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          from datetime import datetime, timezone
+
+          raw = json.loads(Path(os.environ["RUNNER_TEMP"] + "/backups.json").read_text())
+
+          def pick(d, *keys):
+              for k in keys:
+                  if isinstance(d, dict) and k in d and d[k] is not None:
+                      return d[k]
+              return None
+
+          if isinstance(raw, dict):
+              backups = raw.get("backups") or raw.get("items") or raw.get("data") or []
+              pitr = pick(raw, "pitr_enabled", "point_in_time_recovery_enabled", "pitr")
+          elif isinstance(raw, list):
+              backups = raw
+              pitr = None
+          else:
+              backups = []
+              pitr = None
+
+          safe = []
+          for b in backups if isinstance(backups, list) else []:
+              if not isinstance(b, dict):
+                  continue
+              safe.append({
+                  "id": pick(b, "id", "backup_id"),
+                  "status": pick(b, "status"),
+                  "created_at": pick(b, "created_at", "inserted_at", "started_at", "timestamp"),
+                  "completed_at": pick(b, "completed_at", "finished_at"),
+                  "type": pick(b, "type", "backup_type"),
+                  "is_physical_backup": pick(b, "is_physical_backup"),
+              })
+
+          def parse_dt(v):
+              if not v: return None
+              try:
+                  return datetime.fromisoformat(str(v).replace("Z","+00:00"))
+              except Exception:
+                  return None
+
+          dated = [(parse_dt(x.get("completed_at") or x.get("created_at")), x) for x in safe]
+          dated = [(dt,x) for dt,x in dated if dt is not None]
+          dated.sort(key=lambda t:t[0], reverse=True)
+          latest_dt, latest = dated[0] if dated else (None, None)
+
+          now = datetime.now(timezone.utc)
+          age_minutes = None
+          if latest_dt:
+              if latest_dt.tzinfo is None:
+                  latest_dt = latest_dt.replace(tzinfo=timezone.utc)
+              age_minutes = int((now-latest_dt.astimezone(timezone.utc)).total_seconds()//60)
+
+          print("BACKUP_API_READ=PASS")
+          print("BACKUP_COUNT=" + str(len(safe)))
+          print("PITR_SIGNAL=" + str(pitr))
+          print("LATEST_BACKUP_STATUS=" + str(latest.get("status") if latest else None))
+          print("LATEST_BACKUP_TYPE=" + str(latest.get("type") if latest else None))
+          print("LATEST_BACKUP_IS_PHYSICAL=" + str(latest.get("is_physical_backup") if latest else None))
+          print("LATEST_BACKUP_TIMESTAMP=" + str((latest.get("completed_at") or latest.get("created_at")) if latest else None))
+          print("LATEST_BACKUP_AGE_MINUTES=" + str(age_minutes))
+          PY
