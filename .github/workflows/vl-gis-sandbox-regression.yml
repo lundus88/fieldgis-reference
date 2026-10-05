@@ -17,7 +17,7 @@ permissions:
 jobs:
   gis-sandbox-regression:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 18
     env:
       VRS_OIDC_TOKEN: host-secret-must-not-leak
       SUPABASE_SERVICE_ROLE_KEY: host-secret-must-not-leak
@@ -63,6 +63,7 @@ jobs:
           test -s sandbox-gis/.vercel/output/config.json
           test -s sandbox-gis/.vercel/output/static/index.html
           grep -R -q '__VL_MAPLIBRE_RUNTIME__' sandbox-gis/.vercel/output/static/assets
+          find sandbox-gis/.vercel/output/static/assets -maxdepth 1 -type f -name '*maplibre-gl-worker*.js' -print -quit | grep -q .
           test -s vl-gis-build.tgz
           sha256sum -c sandbox-sha256.txt
           python3 - <<'PY'
@@ -70,4 +71,32 @@ jobs:
           d=json.load(open('sandbox-gis/.vl-gis-sandbox-env.json'))
           assert d == {'leaked': False}, d
           print('VL GIS SANDBOX REGRESSION: PASS')
+          PY
+
+      - name: Run GIS runtime preview regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > gis-claim.json <<'JSON'
+          {
+            "status":"leased",
+            "builder_key":"gis-web-v1",
+            "factory_run_id":"gis-regression-fixture",
+            "app_spec":{
+              "id":"gis-regression-app-spec",
+              "title":"VL GIS Sandbox Regression",
+              "status":"approved",
+              "target_platforms":["gis","web"]
+            }
+          }
+          JSON
+          chmod +x vl/visual-preview/run-factory-preview-gate.sh
+          vl/visual-preview/run-factory-preview-gate.sh gis-web-v1 vl-gis-build.tgz '${{ github.sha }}' gis-claim.json
+          python3 - <<'PY'
+          import json
+          d=json.load(open('vl/visual-preview/evidence-factory/evidence.json'))
+          assert d['conclusion']=='PASS', d
+          assert d['checks']['gis_runtime']['booted'] is True, d
+          assert d['checks']['same_origin_network_failures']==[], d
+          print('VL GIS RUNTIME PREVIEW REGRESSION: PASS')
           PY
