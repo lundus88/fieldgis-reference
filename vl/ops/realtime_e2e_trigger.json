@@ -1,5 +1,5 @@
 {
-  "enabled": false,
-  "nonce": null,
-  "note": "Human-gated. Set enabled=true with a fresh nonce only after temporary Production probe DDL is explicitly approved and applied."
+  "enabled": true,
+  "nonce": "vl-op-proof-5631ecab3f2e",
+  "note": "Human-approved temporary Production Realtime proof. Revert to disabled/null after PASS and cleanup."
 }
