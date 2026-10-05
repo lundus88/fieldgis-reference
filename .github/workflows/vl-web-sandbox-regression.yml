@@ -46,6 +46,16 @@ jobs:
           cd ..
           docker pull node:22-bookworm
 
+      - name: Assert Factory Runner web sandbox probe wiring
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q "workspace/web/vite.config.mjs" .github/workflows/vl-factory-runner.yml
+          grep -q ".vl-web-sandbox-env.json" .github/workflows/vl-factory-runner.yml
+          grep -q "SUPABASE_SERVICE_ROLE_KEY" .github/workflows/vl-factory-runner.yml
+          grep -q "ACTIONS_ID_TOKEN_REQUEST_TOKEN" .github/workflows/vl-factory-runner.yml
+          grep -q "vite.config.mjs" .github/workflows/vl-factory-runner.yml
+
       - name: Build generated web fixture inside isolated sandbox
         shell: bash
         run: |

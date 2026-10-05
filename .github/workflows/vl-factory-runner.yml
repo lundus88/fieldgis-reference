@@ -156,6 +156,17 @@ jobs:
           cat > workspace/gis/index.html <<'HTML'
           <!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VL GIS Build</title><style>html,body,#map{height:100%;width:100%;margin:0}body{overflow:hidden}</style></head><body><div id="map" aria-label="Interactive GIS map"></div><script type="module" src="/src/main.ts"></script></body></html>
           HTML
+          cat > workspace/gis/vite.config.mjs <<'JS'
+          import { writeFileSync } from 'node:fs';
+          const leaked = Boolean(
+            process.env.VRS_OIDC_TOKEN ||
+            process.env.SUPABASE_SERVICE_ROLE_KEY ||
+            process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN ||
+            process.env.ACTIONS_ID_TOKEN_REQUEST_URL
+          );
+          writeFileSync('.vl-gis-sandbox-env.json', JSON.stringify({ leaked }, null, 2));
+          export default { build: { outDir: 'dist' } };
+          JS
           cat > workspace/gis/src/main.ts <<'TS'
           import * as maplibregl from 'maplibre-gl';
           import 'maplibre-gl/dist/maplibre-gl.css';
@@ -175,7 +186,7 @@ jobs:
               p=str(a.get('path') or '')
               if not p.startswith('gis/'): continue
               rel=p[len('gis/'):]
-              if rel in ('package.json','index.html','src/main.ts'): continue
+              if rel in ('package.json','index.html','vite.config.mjs','src/main.ts'): continue
               target=(root/rel).resolve()
               if root not in target.parents and target!=root: raise SystemExit('unsafe artifact path')
               target.parent.mkdir(parents=True,exist_ok=True)
@@ -208,6 +219,17 @@ jobs:
           cat > workspace/web/index.html <<'HTML'
           <!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="manifest" href="/manifest.webmanifest"></head><body><div id="root"></div><script type="module" src="/src/main.tsx"></script></body></html>
           HTML
+          cat > workspace/web/vite.config.mjs <<'JS'
+          import { writeFileSync } from 'node:fs';
+          const leaked = Boolean(
+            process.env.VRS_OIDC_TOKEN ||
+            process.env.SUPABASE_SERVICE_ROLE_KEY ||
+            process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN ||
+            process.env.ACTIONS_ID_TOKEN_REQUEST_URL
+          );
+          writeFileSync('.vl-web-sandbox-env.json', JSON.stringify({ leaked }, null, 2));
+          export default { build: { outDir: 'dist' } };
+          JS
           python3 - <<'PY'
           import json,pathlib,re
           d=json.load(open('claim.json')); root=pathlib.Path('workspace/web').resolve(); builder=d.get('builder_key')
@@ -215,7 +237,9 @@ jobs:
           for a in d.get('generated_artifacts') or []:
               p=str(a.get('path') or '')
               if not p.startswith('web/'): continue
-              target=(root/p[len('web/'):]).resolve()
+              rel=p[len('web/'):]
+              if rel in ('package.json','index.html','vite.config.mjs'): continue
+              target=(root/rel).resolve()
               if root not in target.parents and target!=root: raise SystemExit('unsafe artifact path')
               target.parent.mkdir(parents=True,exist_ok=True)
               text=re.sub(r'\\n(?=(?:import|export|class|function|const|let|var|interface|type)\b)','\n',str(a.get('content') or ''))
