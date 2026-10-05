@@ -94,3 +94,77 @@ Operational proof becomes GREEN only when:
 - all residual checks show no Production authority change and no test residue.
 
 Until then Production remains HOLD.
+
+
+## Verified closure evidence
+
+### Realtime Postgres Changes E2E — PASS
+
+- GitHub Actions workflow run: `37277220479`
+- Realtime job: `111656812892`
+- nonce: `vl-op-proof-5631ecab3f2e`
+- subscriber state: `SUBSCRIBED` at 2026-10-05 07:20:54 UTC
+- matching INSERT received: 2026-10-05 07:21:07 UTC
+- workflow evidence: `REALTIME_E2E_PASS nonce=vl-op-proof-5631ecab3f2e id=1`
+- temporary probe table removed after PASS
+- `supabase_realtime` publication restored to its exact pre-test state: zero tables
+- `public.realtime_e2e_probe` no longer exists
+- managed Realtime relations remain present: `messages`, `schema_migrations`, `subscription`
+- sampled post-test logs show no `realtime.subscription` missing-relation error
+
+Result: **PASS — controlled Realtime delivery proven with zero test residue.**
+
+### Isolated logical backup / restore drill — PASS
+
+Temporary Supabase DEV branch:
+
+- branch id: `51733cdd-2588-4d88-b2c7-988c119344ff`
+- project ref: `bwzdfvwlkeaccveosxyh`
+- created: 2026-10-05 07:10:16 UTC
+- measured drill elapsed time: **00:08:05**
+- branch deleted after verification: **YES**
+
+Scope:
+
+- `builder_registry`: 7 Production rows → 7 restored rows
+- `builder_certification_policies`: 7 Production rows → 7 restored rows
+- `vl_cert_health`: 1 Production row → 1 restored row
+
+Semantic-canonical SHA-256 verification:
+
+- `builder_registry`: `6dc9fdcce6508f9e9a4493a2a820d15562f22904e89f70feedf817d5e77d5dd6` — MATCH
+- `builder_certification_policies`: `5c849d056788d28bd64ac23c4b878c5ec842803382c30e296d6d4949a709278d` — MATCH
+- `vl_cert_health`: `edf1f42b3732085155698479ead294eb2383557821443e642722f349dc334756` — MATCH
+
+The first byte-text comparison exposed only JSON numeric-scale transport differences such as `1.0` versus `1`; semantic canonicalization then produced exact row equality and matching canonical SHA-256 for all 15 rows.
+
+Supabase advisors on the temporary branch:
+
+- Security Advisor: **0 lints**
+- Performance Advisor: INFO-only findings; no blocking security finding
+
+Branch limitation observed:
+
+- the temporary branch inherited `MIGRATIONS_FAILED` from historical migration replay;
+- the restore proof therefore used a fully isolated `restore_drill` schema and did not rely on branch schema parity;
+- this proves the selected control-plane logical snapshot/restore path, not full-environment migration parity.
+
+Result: **PASS — selected control-plane logical backup/restore proven.**
+
+This proof does not claim provider PITR or physical-backup recovery.
+
+## Operational proof closure
+
+**Status: GREEN — 2026-10-05.**
+
+Closure basis:
+
+- controlled Realtime subscribe → INSERT → matching event delivery: PASS;
+- Realtime cleanup and zero residue: PASS;
+- fresh logical snapshot → isolated restore → semantic canonical SHA-256 equality: PASS;
+- temporary paid branch deleted: PASS;
+- no customer data used;
+- no Production approval, promotion, deployment or builder activation;
+- human authority remains unchanged.
+
+Production activation remains a separate human-gated decision.
