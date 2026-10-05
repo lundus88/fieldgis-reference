@@ -7,6 +7,17 @@ on:
       - 'vl/lom-4-5-interoperability-resource-intelligence/**'
       - '.github/workflows/lom-4-5-interoperability-resource-intelligence.yml'
   workflow_dispatch:
+    inputs:
+      run_openai_runtime_proof:
+        description: 'Run one bounded non-production OpenAI runtime proof'
+        required: true
+        default: false
+        type: boolean
+      approved_request_digest:
+        description: 'Exact human-approved request digest'
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: read
@@ -25,3 +36,249 @@ jobs:
       - name: Run LOM 4.5 regression suite
         working-directory: vl/lom-4-5-interoperability-resource-intelligence
         run: python -m unittest -v test_runtime.py test_openai_responses_adapter.py
+
+  openai-runtime-proof:
+    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.run_openai_runtime_proof }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify OpenAI secret is absent before broker step
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "${LOM_OPENAI_NONPROD_KEY+x}"
+          echo 'PRE_BROKER_SECRET_ISOLATION=PASS'
+
+      - name: Execute exact-digest governed OpenAI proof via broker-scoped secret
+        env:
+          APPROVED_REQUEST_DIGEST: ${{ inputs.approved_request_digest }}
+          LOM_OPENAI_NONPROD_KEY: ${{ secrets.LOM_OPENAI_NONPROD_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${LOM_OPENAI_NONPROD_KEY:-}" || { echo 'LOM_OPENAI_NONPROD_KEY_MISSING'; exit 1; }
+          test "${APPROVED_REQUEST_DIGEST}" = "a0a14ad0aa411fe44726350ed3f81d1aa80f057f8fda95329272cb7c24283517" || {
+            echo 'APPROVED_REQUEST_DIGEST_MISMATCH'
+            exit 1
+          }
+
+          python3 - <<'PY'
+          import json
+          import os
+          import sys
+          import urllib.error
+          import urllib.request
+          from pathlib import Path
+
+          sys.path.insert(0, "vl/model-governance")
+          sys.path.insert(0, "vl/lom-4-5-interoperability-resource-intelligence")
+          sys.path.insert(0, "docs/commercial/lds-autonomous-operations")
+
+          from route_model import route_model
+          from openai_responses_adapter import (
+              authorize_nonprod_live_call,
+              normalize_openai_response,
+              prepare_openai_request,
+          )
+          from governance_closure import AccessLeaseRequest, broker_access
+
+          ROUTE_DIGEST = "78c45dcf230aa0c8bf953051d4a0038e314643b7f2c3a9af5617af36a423fb0c"
+          APPROVED_DIGEST = os.environ["APPROVED_REQUEST_DIGEST"]
+          key = os.environ.get("LOM_OPENAI_NONPROD_KEY", "")
+          if not key:
+              raise SystemExit("LOM_OPENAI_NONPROD_KEY_MISSING")
+
+          registry = json.loads(Path("vl/model-governance/model-registry.json").read_text())
+          route_request = {
+              "task_class": "youtube_qa",
+              "data_class": "public",
+              "input_tokens": 55,
+              "output_tokens": 80,
+              "cost_ceiling": 0.001,
+              "autonomy_horizon": 1,
+              "max_retention": "30_days",
+          }
+          route = route_model(registry, route_request)
+          assert route["selected_model_id"] == "gpt-6-luna"
+          assert route["decision_sha256"] == ROUTE_DIGEST
+          assert route["production_locked"] is True
+          assert route["estimated_cost"] <= 0.001
+
+          model = next(m for m in registry["models"] if m["id"] == "gpt-6-luna")
+          route_binding = {
+              "provider": "openai",
+              "model_id": "gpt-6-luna",
+              "authoritative_source": "vl/model-governance",
+              "verification_status": model["verification_status"],
+              "certified": model["certified"],
+              "production_locked": model["production_locked"],
+              "training": model["privacy"]["training"],
+              "retention": model["privacy"]["retention"],
+              "decision_sha256": route["decision_sha256"],
+          }
+          schema = {
+              "type": "object",
+              "properties": {
+                  "status": {"type": "string", "enum": ["READY"]},
+                  "proof": {"type": "string", "enum": ["LOM_RUNTIME"]},
+              },
+              "required": ["status", "proof"],
+              "additionalProperties": False,
+          }
+          envelope = {
+              "request_id": "req-lom-openai-runtime-proof-001",
+              "job_id": "LOM-YT-SHADOW-001",
+              "content_id": "LOM-RUNTIME-PROOF-001",
+              "capability": "youtube.qa.evaluate",
+              "input_text": "Return the required structured runtime proof.",
+              "route_binding": route_binding,
+              "output_schema": schema,
+              "environment": "development",
+              "data_class": "public",
+              "max_output_tokens": 80,
+          }
+
+          prepared = prepare_openai_request(envelope)
+          assert prepared["decision"] == "ALLOW"
+          assert prepared["request_digest"] == APPROVED_DIGEST
+
+          lease = broker_access(AccessLeaseRequest(
+              capability="youtube.qa.evaluate",
+              task_id="LOM-YT-SHADOW-001",
+              least_privilege=True,
+              ttl_minutes=10,
+              max_ttl_minutes=10,
+              secret_embedded=False,
+              privilege_widening=False,
+              production_admin=False,
+          ))
+          assert lease["status"] == "PASS"
+          assert lease["lease_issued"] is True
+
+          broker_attestation = {
+              "broker_id": "lom-openai-nonprod",
+              "environment": "development",
+              "secret_injected_server_side": True,
+              "worker_secret_access": False,
+              "production_locked": True,
+          }
+          approval = {
+              "status": "VERIFIED",
+              "principal_type": "human",
+              "request_digest": APPROVED_DIGEST,
+              "evidence_ref": (
+                  "github-actions-dispatch:"
+                  + os.environ.get("GITHUB_ACTOR", "unknown")
+                  + ":"
+                  + os.environ.get("GITHUB_RUN_ID", "unknown")
+              ),
+          }
+          authorization = authorize_nonprod_live_call(prepared, broker_attestation, approval)
+          assert authorization["decision"] == "ALLOW"
+          assert authorization["paid_call_authority"] == "SINGLE_BOUNDED_REQUEST"
+
+          payload = json.dumps(prepared["http"]["body"], separators=(",", ":")).encode("utf-8")
+          req = urllib.request.Request(
+              prepared["http"]["endpoint"],
+              data=payload,
+              method="POST",
+              headers={
+                  "Authorization": "Bearer " + key,
+                  "Content-Type": "application/json",
+              },
+          )
+          try:
+              with urllib.request.urlopen(req, timeout=60) as resp:
+                  raw = json.loads(resp.read().decode("utf-8"))
+          except urllib.error.HTTPError as exc:
+              body = exc.read().decode("utf-8", errors="replace")
+              try:
+                  err = json.loads(body).get("error", {})
+                  print("RESULT=API_ERROR")
+                  print("HTTP_STATUS=", exc.code)
+                  print("TYPE=", err.get("type"))
+                  print("CODE=", err.get("code"))
+                  print("MESSAGE=", err.get("message"))
+              except Exception:
+                  print("RESULT=API_ERROR")
+                  print("HTTP_STATUS=", exc.code)
+              raise
+
+          verified = normalize_openai_response(raw, prepared)
+          if verified.get("decision") != "ALLOW":
+              print("RESULT=HOLD")
+              print("REASON=", verified.get("reason"))
+              raise SystemExit(1)
+
+          evidence = verified["evidence"]
+          conservative_cost = (
+              evidence["total_tokens"] / 1000.0
+              * float(model["estimated_cost_per_1k_tokens"])
+          )
+          assert conservative_cost <= 0.001
+
+          proof = {
+              "schema": "lom.openai-governed-runtime-proof/1",
+              "source_commit": os.environ.get("GITHUB_SHA"),
+              "dispatch_actor": os.environ.get("GITHUB_ACTOR"),
+              "dispatch_run_id": os.environ.get("GITHUB_RUN_ID"),
+              "request_digest": prepared["request_digest"],
+              "route_decision_sha256": route["decision_sha256"],
+              "broker": {
+                  "broker_id": "lom-openai-nonprod",
+                  "runtime": "github_actions_secret_injection",
+                  "generic_worker_secret_access": False,
+                  "production_locked": True,
+              },
+              "authorization": {
+                  "paid_call_authority": authorization["paid_call_authority"],
+                  "approval_evidence_ref": authorization["approval_evidence_ref"],
+              },
+              "response_evidence": evidence,
+              "structured_output": verified["structured_output"],
+              "conservative_estimated_cost_usd": round(conservative_cost, 10),
+              "cost_ceiling_usd": 0.001,
+              "production_locked": True,
+          }
+          serialized = json.dumps(proof, sort_keys=True)
+          if "sk-" in serialized or "Bearer " in serialized:
+              raise SystemExit("SECRET_SCAN_FAIL")
+          Path("lom-openai-runtime-proof.json").write_text(
+              json.dumps(proof, indent=2, sort_keys=True) + "\n"
+          )
+
+          print("RESULT=GOVERNED_RUNTIME_RESPONSE_VERIFIED")
+          print("STATE=", verified["state"])
+          print("MODEL=", evidence["model"])
+          print("REQUEST_DIGEST=", prepared["request_digest"])
+          print("ROUTE_DIGEST=", route["decision_sha256"])
+          print("INPUT_TOKENS=", evidence["input_tokens"])
+          print("OUTPUT_TOKENS=", evidence["output_tokens"])
+          print("TOTAL_TOKENS=", evidence["total_tokens"])
+          print("CONSERVATIVE_ESTIMATED_COST_USD=", f"{conservative_cost:.10f}")
+          print("EVIDENCE_SHA256=", evidence["evidence_sha256"])
+          print("OUTPUT=", json.dumps(verified["structured_output"], separators=(",", ":")))
+          print("SECRET_SCAN=PASS")
+          PY
+
+      - name: Verify OpenAI secret is absent after broker step
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "${LOM_OPENAI_NONPROD_KEY+x}"
+          echo 'POST_BROKER_SECRET_ISOLATION=PASS'
+
+      - name: Upload sanitized runtime proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: lom-openai-runtime-proof-${{ github.run_id }}
+          path: lom-openai-runtime-proof.json
+          if-no-files-found: error
+          retention-days: 7
