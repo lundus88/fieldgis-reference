@@ -1,6 +1,6 @@
 name: VL Specialized Builder Depth V2
 
-# Operational retrigger 2026-10-04: refresh strong GIS/Mobile certification evidence only.
+# Operational retrigger 2026-10-05: refresh strong GIS/Mobile certification evidence only.
 
 on:
   workflow_dispatch:
