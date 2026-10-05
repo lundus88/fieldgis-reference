@@ -38,6 +38,16 @@ jobs:
           cd ..
           docker pull node:22-bookworm
 
+      - name: Assert Factory Runner GIS sandbox probe wiring
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q "workspace/gis/vite.config.mjs" .github/workflows/vl-factory-runner.yml
+          grep -q ".vl-gis-sandbox-env.json" .github/workflows/vl-factory-runner.yml
+          grep -q "SUPABASE_SERVICE_ROLE_KEY" .github/workflows/vl-factory-runner.yml
+          grep -q "ACTIONS_ID_TOKEN_REQUEST_TOKEN" .github/workflows/vl-factory-runner.yml
+          grep -q "vite.config.mjs" .github/workflows/vl-factory-runner.yml
+
       - name: Build generated GIS fixture inside isolated sandbox
         shell: bash
         run: |
