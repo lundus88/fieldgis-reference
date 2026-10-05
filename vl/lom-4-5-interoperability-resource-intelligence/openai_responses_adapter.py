@@ -8,6 +8,7 @@ from typing import Any, Dict
 SCHEMA = "lom.openai-responses-adapter/1"
 OPENAI_RESPONSES_ENDPOINT = "https://api.openai.com/v1/responses"
 ALLOWED_ENVIRONMENTS = {"development", "staging"}
+ALLOWED_DATA_CLASSES = {"public", "internal"}
 ALLOWED_CAPABILITIES = {
     "youtube.research.prepare",
     "youtube.script.generate",
@@ -74,19 +75,30 @@ def prepare_openai_request(envelope: Dict[str, Any]) -> Dict[str, Any]:
     if envelope["capability"] not in ALLOWED_CAPABILITIES:
         return {"decision": "HOLD", "reason": "CAPABILITY_NOT_ALLOWED"}
 
+    data_class = str(envelope.get("data_class") or "public")
+    if data_class not in ALLOWED_DATA_CLASSES:
+        return {"decision": "HOLD", "reason": "P0_DATA_CLASS_NOT_ALLOWED"}
+
     route = envelope["route_binding"]
     if not isinstance(route, dict):
         return {"decision": "HOLD", "reason": "ROUTE_BINDING_REQUIRED"}
     if route.get("provider") != "openai":
         return {"decision": "HOLD", "reason": "OPENAI_ROUTE_REQUIRED"}
+    if route.get("authoritative_source") != "vl/model-governance":
+        return {"decision": "HOLD", "reason": "AUTHORITATIVE_ROUTE_SOURCE_REQUIRED"}
+    if route.get("verification_status") != "VERIFIED":
+        return {"decision": "HOLD", "reason": "ROUTE_VERIFICATION_REQUIRED"}
     if route.get("certified") is not True:
         return {"decision": "HOLD", "reason": "CERTIFIED_ROUTE_REQUIRED"}
     if route.get("production_locked") is not True:
         return {"decision": "HOLD", "reason": "PRODUCTION_LOCK_REQUIRED"}
-    if route.get("training") != "disabled" or route.get("retention") != "none":
-        return {"decision": "HOLD", "reason": "PRIVACY_POLICY_MISMATCH"}
+    if route.get("training") != "disabled":
+        return {"decision": "HOLD", "reason": "TRAINING_DISABLED_REQUIRED"}
+    if route.get("retention") not in {"none", "30_days"}:
+        return {"decision": "HOLD", "reason": "RETENTION_POLICY_NOT_ALLOWED"}
     if not isinstance(route.get("decision_sha256"), str) or len(route["decision_sha256"]) != 64:
         return {"decision": "HOLD", "reason": "ROUTE_EVIDENCE_REQUIRED"}
+
     model = str(route.get("model_id") or "").strip()
     if not model:
         return {"decision": "HOLD", "reason": "MODEL_ID_REQUIRED"}
@@ -108,10 +120,12 @@ def prepare_openai_request(envelope: Dict[str, Any]) -> Dict[str, Any]:
         "job_id": str(envelope["job_id"]),
         "content_id": str(envelope["content_id"]),
         "capability": envelope["capability"],
+        "data_class": data_class,
         "environment": environment,
         "provider": "openai",
         "model": model,
         "route_decision_sha256": route["decision_sha256"],
+        "route_retention": route["retention"],
         "input_sha256": canonical_hash(envelope["input_text"]),
         "output_schema_sha256": canonical_hash(envelope["output_schema"]),
         "max_output_tokens": max_output_tokens,
