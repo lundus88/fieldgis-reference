@@ -1,0 +1,52 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>VL MFA / AAL2</title>
+<style>
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0b1020;color:#eef3ff;font-family:system-ui;padding:20px}
+main{width:min(92vw,620px);background:#11182c;border:1px solid #26314f;border-radius:18px;padding:24px}
+button,input{width:100%;box-sizing:border-box;padding:12px;margin-top:10px;border-radius:10px;border:1px solid #33415f;background:#0d1425;color:#fff}
+button{background:#1769e0;font-weight:700;cursor:pointer}.meta{margin-top:14px;padding:12px;background:#0d1425;border-radius:10px;white-space:pre-wrap}.hidden{display:none}
+.qr{display:grid;place-items:center;background:#fff;padding:12px;border-radius:12px;margin-top:12px}.qr img{max-width:320px;width:80%}.ok{color:#72e6a6}.bad{color:#ff8f8f}.warn{color:#ffd27a}
+</style>
+<main>
+<h1>VL MFA / AAL2</h1>
+<p>Uses the existing VL Supabase session on this GitHub Pages origin. This page cannot approve or deploy Production.</p>
+<div id="status" class="meta">Checking session...</div>
+<div id="enroll" class="hidden">
+  <button id="create">Create TOTP factor</button>
+  <div id="qrbox" class="hidden">
+    <div class="qr"><img id="qr"></div>
+    <div id="secret" class="meta"></div>
+    <input id="code" inputmode="numeric" autocomplete="one-time-code" placeholder="6-digit authenticator code">
+    <button id="verify">Verify MFA</button>
+  </div>
+</div>
+<div id="challenge" class="hidden">
+  <input id="challengeCode" inputmode="numeric" autocomplete="one-time-code" placeholder="6-digit authenticator code">
+  <button id="challengeBtn">Elevate session to AAL2</button>
+</div>
+</main>
+<script type="module">
+import {createClient} from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+const sb=createClient('https://wczelfmnqpgzfdszxubl.supabase.co','sb_publishable_lWy0g5rcNuhg52xpI9w7Og_2bGXLiOR',{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
+const $=id=>document.getElementById(id);
+let pending=null,verified=null;
+const msg=(t,c='')=>{$('status').textContent=t;$('status').className='meta '+c};
+function qrSrc(v){if(!v)return'';return /^data:image\//i.test(v)?v:'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(v)}
+async function refresh(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session){msg('No VL session found. Open the Approval Console and sign in first.','bad');return}
+  const a=await sb.auth.mfa.getAuthenticatorAssuranceLevel(); if(a.error)throw a.error;
+  const f=await sb.auth.mfa.listFactors(); if(f.error)throw f.error;
+  const factors=f.data?.totp||[]; const ok=factors.filter(x=>x.status==='verified'); verified=ok[0]?.id||null;
+  if(a.data?.currentLevel==='aal2'){msg('SUCCESS: MFA verified and current session is AAL2.','ok');$('enroll').classList.add('hidden');$('challenge').classList.add('hidden');return}
+  if(ok.length){msg('MFA factor verified. Enter current TOTP code to elevate this session to AAL2.','warn');$('challenge').classList.remove('hidden');$('enroll').classList.add('hidden');return}
+  msg('Signed in as '+session.user.email+'. No verified MFA factor yet.','warn');$('enroll').classList.remove('hidden');$('challenge').classList.add('hidden');
+}
+$('create').onclick=async()=>{try{const r=await sb.auth.mfa.enroll({factorType:'totp',friendlyName:'VL Production Operator'});if(r.error)throw r.error;pending=r.data.id;$('qr').src=qrSrc(r.data.totp?.qr_code);$('secret').textContent='Manual secret: '+(r.data.totp?.secret||'unavailable');$('qrbox').classList.remove('hidden');msg('Scan QR using an authenticator app, then enter the current 6-digit code.','warn')}catch(e){msg('Enrollment failed: '+e.message,'bad')}};
+$('verify').onclick=async()=>{try{if(!pending)throw new Error('Create a factor first');const code=$('code').value.trim();const r=await sb.auth.mfa.challengeAndVerify({factorId:pending,code});if(r.error)throw r.error;await refresh()}catch(e){msg('Verification failed: '+e.message,'bad')}};
+$('challengeBtn').onclick=async()=>{try{if(!verified)throw new Error('No verified factor');const code=$('challengeCode').value.trim();const r=await sb.auth.mfa.challengeAndVerify({factorId:verified,code});if(r.error)throw r.error;await refresh()}catch(e){msg('AAL2 challenge failed: '+e.message,'bad')}};
+await refresh().catch(e=>msg('Initialization failed: '+e.message,'bad'));
+</script>
