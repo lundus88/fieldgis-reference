@@ -32,6 +32,21 @@ The actual builder certification engine is active and evidence-backed:
 
 This evidence does **not** authorize an ad-hoc timestamp refresh. It establishes that an authoritative health finalizer can be built on existing certification evidence without creating a duplicate certification engine.
 
+## Verified 2026-10-05 certification phase closure — GREEN
+
+The builder certification phase is formally closed as **GREEN** based on fresh evidence and current evaluator results after PR #480 merged.
+
+- all five supported builders are `certified`: `web-react-v1`, `pwa-react-v1`, `mobile-flutter-v1`, `gis-web-v1`, and `api-service-v1`;
+- every latest certification result has score `1.0` and zero missing evidence;
+- `gis-web-v1` and `mobile-flutter-v1` each have six distinct complete certification runs under the official evaluator;
+- GitHub Actions run `37156359095` completed both `gis-depth` and `mobile-depth` successfully, including Android emulator GPS/device E2E and evidence recording;
+- PR #480 resolved the MapLibre worker bundling blocker and its relevant CI completed successfully;
+- the supporting certification runs remain staging-targeted and `production_locked=true`.
+
+**Closure status: GREEN.**
+
+This closes the certification phase only. It does **not** authorize Production activation, promotion, deployment, broad public launch, or bypass of the existing human gate.
+
 ## Repair principles
 
 1. Historical reconciliation is terminal-only: `failed` or `cancelled`.
