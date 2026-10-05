@@ -76,5 +76,33 @@ class ModelRoutingTests(unittest.TestCase):
         self.assertNotIn('sandbox-provider-a/model-fast-v1', evidence['fallback_chain'])
 
 
+    def test_openai_luna_route_is_bounded_and_nonproduction(self):
+        evidence = route_model(REGISTRY, request(
+            task_class='youtube_script_generation',
+            data_class='public',
+            input_tokens=55,
+            output_tokens=80,
+            cost_ceiling=0.001,
+            autonomy_horizon=1,
+            max_retention='30_days',
+        ))
+        self.assertEqual(evidence['selected_model_id'], 'gpt-6-luna')
+        self.assertTrue(evidence['production_locked'])
+        self.assertLessEqual(evidence['estimated_cost'], 0.001)
+        self.assertEqual(len(evidence['decision_sha256']), 64)
+
+    def test_openai_luna_route_rejects_sensitive_data_without_zero_retention(self):
+        with self.assertRaisesRegex(ModelRoutingBlocked, 'MODEL_ROUTING_BLOCKED'):
+            route_model(REGISTRY, request(
+                task_class='youtube_script_generation',
+                data_class='customer_private',
+                input_tokens=55,
+                output_tokens=80,
+                cost_ceiling=0.001,
+                autonomy_horizon=1,
+                max_retention='none',
+            ))
+
+
 if __name__ == '__main__':
     unittest.main()
