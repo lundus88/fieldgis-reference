@@ -29,7 +29,8 @@ for forbidden in [
 
 if not re.search(r'alter publication supabase_realtime drop table public\.realtime_e2e_probe',doc,re.I):
     raise SystemExit('missing Realtime cleanup contract')
-if 'does not claim provider pitr or physical-backup recovery' not in doc.lower():
+normalized_doc=doc.lower().replace('**','')
+if 'does not claim provider pitr or physical-backup recovery' not in normalized_doc:
     raise SystemExit('restore drill scope must not be overstated')
 
 print('VL_OPERATIONAL_PROOF_HARNESS=PASS')
