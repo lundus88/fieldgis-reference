@@ -1,7 +1,7 @@
 {
   "schema": "vl.model-registry/1",
   "registry_id": "lom-sandbox-model-registry",
-  "version": 1,
+  "version": 2,
   "models": [
     {
       "id": "sandbox-provider-a/model-fast-v1",
@@ -9,8 +9,15 @@
       "model": "model-fast-v1",
       "version": "1",
       "status": "active",
-      "task_classes": ["planning", "code_generation", "analysis"],
-      "privacy": {"retention": "none", "training": "disabled"},
+      "task_classes": [
+        "planning",
+        "code_generation",
+        "analysis"
+      ],
+      "privacy": {
+        "retention": "none",
+        "training": "disabled"
+      },
       "max_input_tokens": 64000,
       "max_output_tokens": 16000,
       "max_autonomy_horizon": 2,
@@ -24,8 +31,16 @@
       "model": "model-deep-v2",
       "version": "2",
       "status": "active",
-      "task_classes": ["planning", "code_generation", "analysis", "security_review"],
-      "privacy": {"retention": "none", "training": "disabled"},
+      "task_classes": [
+        "planning",
+        "code_generation",
+        "analysis",
+        "security_review"
+      ],
+      "privacy": {
+        "retention": "none",
+        "training": "disabled"
+      },
       "max_input_tokens": 128000,
       "max_output_tokens": 32000,
       "max_autonomy_horizon": 4,
@@ -39,8 +54,13 @@
       "model": "model-legacy-v0",
       "version": "0",
       "status": "deprecated",
-      "task_classes": ["analysis"],
-      "privacy": {"retention": "none", "training": "disabled"},
+      "task_classes": [
+        "analysis"
+      ],
+      "privacy": {
+        "retention": "none",
+        "training": "disabled"
+      },
       "max_input_tokens": 16000,
       "max_output_tokens": 4000,
       "max_autonomy_horizon": 1,
@@ -54,14 +74,54 @@
       "model": "model-retained-v1",
       "version": "1",
       "status": "active",
-      "task_classes": ["analysis"],
-      "privacy": {"retention": "30_days", "training": "disabled"},
+      "task_classes": [
+        "analysis"
+      ],
+      "privacy": {
+        "retention": "30_days",
+        "training": "disabled"
+      },
       "max_input_tokens": 32000,
       "max_output_tokens": 8000,
       "max_autonomy_horizon": 1,
       "estimated_cost_per_1k_tokens": 0.3,
       "priority": 5,
       "deprecation_date": null
+    },
+    {
+      "id": "gpt-6-luna",
+      "provider": "openai",
+      "model": "gpt-6-luna",
+      "version": "2026-10-05-docs-verified",
+      "status": "active",
+      "task_classes": [
+        "youtube_research",
+        "youtube_script_generation",
+        "youtube_qa"
+      ],
+      "privacy": {
+        "retention": "30_days",
+        "training": "disabled"
+      },
+      "max_input_tokens": 32000,
+      "max_output_tokens": 8000,
+      "max_autonomy_horizon": 1,
+      "estimated_cost_per_1k_tokens": 0.0005,
+      "priority": 100,
+      "deprecation_date": null,
+      "certified": true,
+      "supported": true,
+      "security_reviewed": true,
+      "license_clear": true,
+      "verification_status": "VERIFIED",
+      "production_locked": true,
+      "certification_scope": "NONPRODUCTION_RESPONSES_STRUCTURED_OUTPUT_ONLY",
+      "pricing_basis": "CONSERVATIVE_STANDARD_SHORT_CONTEXT_OUTPUT_RATE_PER_1K_ALL_TOKENS",
+      "evidence_refs": [
+        "https://developers.openai.com/api/docs/models/gpt-6-luna",
+        "https://developers.openai.com/api/docs/pricing",
+        "https://developers.openai.com/api/docs/guides/your-data"
+      ]
     }
   ]
 }
