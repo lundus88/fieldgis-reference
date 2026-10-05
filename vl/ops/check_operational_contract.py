@@ -6,6 +6,8 @@ ROOT = Path(__file__).resolve().parents[2]
 RECON = (ROOT / "vl/ops/reconciliation_contract.sql").read_text(encoding="utf-8")
 HEALTH = (ROOT / "vl/ops/health_freshness_contract.sql").read_text(encoding="utf-8")
 WRITER = (ROOT / "vl/ops/cert_health_writer_contract.sql").read_text(encoding="utf-8")
+FORWARD = (ROOT / "vl/migrations/20261004154500_cert_health_activation_hardening.sql").read_text(encoding="utf-8")
+REVERSE = (ROOT / "vl/ops/rollback_cert_health_activation_20261004.sql").read_text(encoding="utf-8")
 
 required_recon = [
     "private.reconcile_stale_factory_workflow",
@@ -36,6 +38,22 @@ for token in required_health:
     assert token.lower() in HEALTH.lower(), f"missing health safeguard: {token}"
 
 required_writer = [
+    "public.authorize_vl_cert_health_finalization",
+    "private.vl_cert_health_authorization_request",
+    "private.authorize_vl_cert_health_finalization_impl",
+    "security invoker",
+    "instead of insert on private.vl_cert_health_authorization_request",
+    "grant insert (run_started_at,max_run_age_seconds,evidence_digest,reason)",
+    "select (result)",
+    "auth.uid()",
+    "auth.jwt()->>'aal'",
+    "AAL2 MFA required for certification-health authorization",
+    "owner/admin membership required",
+    "authorization reason must be explicit",
+    "evidence_digest must be a lowercase SHA-256 hex digest",
+    "production_authority_created",
+    "grant execute on function public.authorize_vl_cert_health_finalization",
+    "to authenticated",
     "private.finalize_vl_cert_health_from_fresh_certification",
     "p_run_started_at timestamptz",
     "p_max_run_age_seconds integer",
@@ -58,6 +76,12 @@ required_writer = [
     "FRESH_CERTIFICATION_INCOMPLETE",
     "RUN_WINDOW_STALE",
     "ACTIVE_BUILDER_POLICY_MISMATCH",
+    "SELECTED_EVIDENCE_RUN_HAS_PRODUCTION_AUTHORITY",
+    "EVIDENCE_TOO_OLD_FOR_EFFECTIVE_HEALTH",
+    "v_effective_health_window_seconds integer := 1800",
+    "d.status in ('approved','deploying','deployed')",
+    "d.approved_by is not null",
+    "d.deployed_at is not null",
     "vl.cert_health_finalization_blocked",
     "vl.cert_health_finalized",
     "authorization_audit_id",
@@ -117,12 +141,57 @@ assert not re.search(r"\bset\s+production_locked\s*=\s*false\b", WRITER, re.I), 
 assert not re.search(r"\bset\s+status\s*=\s*'active'\b", WRITER, re.I), "writer must never activate a builder"
 assert "authorization_audit_id is required" in WRITER
 assert "extensions.digest" in WRITER
+assert "insert into public.audit_logs(" in WRITER
+assert "authorization_scope','FINALIZER_REVALIDATES_ALL_SELECTED_PROJECTS'" in WRITER
+assert "created_at >= v_now - interval '15 minutes'" in WRITER
 assert "set search_path=''" in WRITER
 assert "updated_at=v_health_evidence_at" in WRITER
 assert "created_at < v_now - interval '15 minutes'" in WRITER
 assert "pm.role in ('owner','admin')" in WRITER
 assert "metadata->>'authorization_audit_id'=p_authorization_audit_id::text" in WRITER
 assert "expected exactly one vl_cert_health row" in WRITER
+
+# Forward migration must materialize the exact reviewed contracts without hidden drift.
+for source, label in (
+    (RECON, "reconciliation contract"),
+    (HEALTH, "health freshness contract"),
+    (WRITER, "certification-health writer contract"),
+):
+    assert source.strip() in FORWARD, f"forward migration drifted from {label}"
+
+assert "merge does NOT authorize Production deployment" in FORWARD
+assert "DDL only" in FORWARD
+assert not re.search(r"\binsert\s+into\s+public\.vl_cert_health\b", FORWARD, re.I)
+assert not re.search(r"\bupdate\s+public\.vl_cert_health\b", FORWARD.split(WRITER, 1)[0], re.I)
+
+# Reverse migration is code-only rollback. It may drop the introduced functions,
+# but must not rewrite evidence, health or lifecycle data.
+required_reverse = [
+    "drop function if exists public.authorize_vl_cert_health_finalization",
+    "drop trigger if exists trg_vl_cert_health_authorization_request",
+    "drop view if exists private.vl_cert_health_authorization_request",
+    "drop function if exists private.authorize_vl_cert_health_finalization_impl",
+    "drop function if exists private.finalize_vl_cert_health_from_fresh_certification",
+    "drop function if exists public.get_vl_cert_health_effective",
+    "drop function if exists private.get_effective_vl_cert_health",
+    "drop function if exists public.vl_expire_stale_approval",
+    "drop function if exists private.expire_stale_approval",
+    "drop function if exists public.vl_reconcile_stale_factory_workflow",
+    "drop function if exists private.reconcile_stale_factory_workflow",
+]
+for token in required_reverse:
+    assert token.lower() in REVERSE.lower(), f"missing reverse migration function drop: {token}"
+
+reverse_exec = re.sub(r"(?m)^\s*--.*$", "", REVERSE)
+for pattern, message in [
+    (r"\bupdate\b", "reverse migration must not update data"),
+    (r"\binsert\b", "reverse migration must not insert data"),
+    (r"\bdelete\b", "reverse migration must not delete data"),
+    (r"\btruncate\b", "reverse migration must not truncate data"),
+    (r"\bdrop\s+table\b", "reverse migration must not drop tables"),
+    (r"\bdrop\s+schema\b", "reverse migration must not drop schemas"),
+]:
+    assert not re.search(pattern, reverse_exec, re.I), message
 
 # Public SECURITY DEFINER wrappers must be explicitly removed from ordinary client roles.
 for fn in (
@@ -146,5 +215,48 @@ assert re.search(
     WRITER,
     re.I,
 ), "missing cert-health writer revoke"
+
+assert re.search(
+    r"revoke all on function public\.authorize_vl_cert_health_finalization\([\s\S]+?\) from public,anon,service_role;",
+    WRITER,
+    re.I,
+), "missing public authorization facade revoke"
+
+assert re.search(
+    r"grant execute on function public\.authorize_vl_cert_health_finalization\([\s\S]+?\) to authenticated;",
+    WRITER,
+    re.I,
+), "authorization facade must be human authenticated only"
+
+assert re.search(
+    r"revoke all on function private\.authorize_vl_cert_health_finalization_impl\(\)\s+from public,anon,authenticated,service_role;",
+    WRITER,
+    re.I,
+), "privileged authorization helper must not be client-executable"
+
+assert re.search(
+    r"create or replace function public\.authorize_vl_cert_health_finalization\([\s\S]+?security invoker",
+    WRITER,
+    re.I,
+), "public authorization facade must be SECURITY INVOKER"
+
+# The authorization producer may only write audit intent. It must never mutate
+# certification evidence, lifecycle state, deployment state or health state.
+producer = WRITER.split(
+    "create or replace view private.vl_cert_health_authorization_request",
+    1,
+)[1].split(
+    "create or replace function private.finalize_vl_cert_health_from_fresh_certification",
+    1,
+)[0]
+for pattern, message in [
+    (r"\bupdate\s+public\.vl_cert_health\b", "authorization producer must not update health"),
+    (r"\bupdate\s+public\.factory_runs\b", "authorization producer must not mutate factory runs"),
+    (r"\bupdate\s+public\.deployments\b", "authorization producer must not mutate deployments"),
+    (r"\bupdate\s+public\.approvals\b", "authorization producer must not mutate approvals"),
+    (r"\binsert\s+into\s+public\.builder_certification_evidence\b", "authorization producer must not create evidence"),
+    (r"\binsert\s+into\s+public\.builder_certification_results\b", "authorization producer must not create results"),
+]:
+    assert not re.search(pattern, producer, re.I), message
 
 print("VL_OPERATIONAL_RECONCILIATION_CONTRACT=PASS")
