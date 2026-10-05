@@ -41,9 +41,6 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.run_openai_runtime_proof }}
     runs-on: ubuntu-24.04
     timeout-minutes: 5
-    env:
-      APPROVED_REQUEST_DIGEST: ${{ inputs.approved_request_digest }}
-      LOM_OPENAI_NONPROD_KEY: ${{ secrets.LOM_OPENAI_NONPROD_KEY }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -52,7 +49,17 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Execute exact-digest governed OpenAI proof
+      - name: Verify OpenAI secret is absent before broker step
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "${LOM_OPENAI_NONPROD_KEY+x}"
+          echo 'PRE_BROKER_SECRET_ISOLATION=PASS'
+
+      - name: Execute exact-digest governed OpenAI proof via broker-scoped secret
+        env:
+          APPROVED_REQUEST_DIGEST: ${{ inputs.approved_request_digest }}
+          LOM_OPENAI_NONPROD_KEY: ${{ secrets.LOM_OPENAI_NONPROD_KEY }}
         shell: bash
         run: |
           set -euo pipefail
@@ -260,6 +267,13 @@ jobs:
           print("OUTPUT=", json.dumps(verified["structured_output"], separators=(",", ":")))
           print("SECRET_SCAN=PASS")
           PY
+
+      - name: Verify OpenAI secret is absent after broker step
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "${LOM_OPENAI_NONPROD_KEY+x}"
+          echo 'POST_BROKER_SECRET_ISOLATION=PASS'
 
       - name: Upload sanitized runtime proof
         uses: actions/upload-artifact@v4
