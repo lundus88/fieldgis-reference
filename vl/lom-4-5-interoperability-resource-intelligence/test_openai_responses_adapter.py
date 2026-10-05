@@ -11,11 +11,13 @@ from openai_responses_adapter import (
 def route():
     return {
         "provider": "openai",
-        "model_id": "openai/model-approved-v1",
+        "model_id": "model-approved-v1",
+        "authoritative_source": "vl/model-governance",
+        "verification_status": "VERIFIED",
         "certified": True,
         "production_locked": True,
         "training": "disabled",
-        "retention": "none",
+        "retention": "30_days",
         "decision_sha256": "a" * 64,
     }
 
@@ -42,6 +44,7 @@ def envelope(**kw):
         "route_binding": route(),
         "output_schema": schema(),
         "environment": "development",
+        "data_class": "public",
         "max_output_tokens": 2000,
     }
     data.update(kw)
@@ -59,15 +62,22 @@ class OpenAIResponsesAdapterP0Tests(unittest.TestCase):
         self.assertEqual(r["http"]["body"]["text"]["format"]["strict"], True)
         self.assertEqual(r["http"]["auth_mode"], "BROKER_INJECTED_BEARER")
         self.assertNotIn("Authorization", r["http"])
+        self.assertEqual(r["evidence"]["route_retention"], "30_days")
 
     def test_secret_material_is_rejected(self):
         r = prepare_openai_request(envelope(api_key="sk-test-should-never-be-here"))
         self.assertEqual(r["reason"], "SECRET_MATERIAL_FORBIDDEN")
 
-    def test_only_openai_certified_nonprod_route_allowed(self):
+    def test_only_verified_openai_certified_nonprod_route_allowed(self):
         bad = route()
         bad["provider"] = "other"
         self.assertEqual(prepare_openai_request(envelope(route_binding=bad))["reason"], "OPENAI_ROUTE_REQUIRED")
+        bad = route()
+        bad["authoritative_source"] = "caller"
+        self.assertEqual(prepare_openai_request(envelope(route_binding=bad))["reason"], "AUTHORITATIVE_ROUTE_SOURCE_REQUIRED")
+        bad = route()
+        bad["verification_status"] = "UNVERIFIED"
+        self.assertEqual(prepare_openai_request(envelope(route_binding=bad))["reason"], "ROUTE_VERIFICATION_REQUIRED")
         bad = route()
         bad["certified"] = False
         self.assertEqual(prepare_openai_request(envelope(route_binding=bad))["reason"], "CERTIFIED_ROUTE_REQUIRED")
@@ -77,8 +87,12 @@ class OpenAIResponsesAdapterP0Tests(unittest.TestCase):
 
     def test_privacy_and_environment_fail_closed(self):
         bad = route()
-        bad["retention"] = "30_days"
-        self.assertEqual(prepare_openai_request(envelope(route_binding=bad))["reason"], "PRIVACY_POLICY_MISMATCH")
+        bad["training"] = "enabled"
+        self.assertEqual(prepare_openai_request(envelope(route_binding=bad))["reason"], "TRAINING_DISABLED_REQUIRED")
+        bad = route()
+        bad["retention"] = "session"
+        self.assertEqual(prepare_openai_request(envelope(route_binding=bad))["reason"], "RETENTION_POLICY_NOT_ALLOWED")
+        self.assertEqual(prepare_openai_request(envelope(data_class="customer_private"))["reason"], "P0_DATA_CLASS_NOT_ALLOWED")
         self.assertEqual(prepare_openai_request(envelope(environment="production"))["reason"], "NONPRODUCTION_ENVIRONMENT_REQUIRED")
 
     def test_capability_and_token_bound_enforced(self):
@@ -117,7 +131,7 @@ class OpenAIResponsesAdapterP0Tests(unittest.TestCase):
         p = prepare_openai_request(envelope())
         raw = {
             "id": "resp_001",
-            "model": "openai/model-approved-v1",
+            "model": "model-approved-v1",
             "output": [{
                 "type": "message",
                 "content": [{"type": "output_text", "text": '{"title":"T","summary":"S"}'}],
@@ -133,7 +147,7 @@ class OpenAIResponsesAdapterP0Tests(unittest.TestCase):
     def test_refusal_bad_json_model_mismatch_and_usage_missing_hold(self):
         p = prepare_openai_request(envelope())
         refusal = {
-            "id": "resp_1", "model": "openai/model-approved-v1",
+            "id": "resp_1", "model": "model-approved-v1",
             "output": [{"type":"message","content":[{"type":"refusal","refusal":"no"}]}],
             "usage": {"input_tokens":1,"output_tokens":1,"total_tokens":2},
         }
@@ -147,14 +161,14 @@ class OpenAIResponsesAdapterP0Tests(unittest.TestCase):
         self.assertEqual(normalize_openai_response(mismatch,p)["reason"], "RESPONSE_MODEL_MISMATCH")
 
         no_usage = {
-            "id":"resp_3","model":"openai/model-approved-v1",
+            "id":"resp_3","model":"model-approved-v1",
             "output":[{"type":"message","content":[{"type":"output_text","text":'{"title":"T","summary":"S"}'}]}],
             "usage":{},
         }
         self.assertEqual(normalize_openai_response(no_usage,p)["reason"], "USAGE_EVIDENCE_REQUIRED")
 
         bad_json = {
-            "id":"resp_4","model":"openai/model-approved-v1",
+            "id":"resp_4","model":"model-approved-v1",
             "output":[{"type":"message","content":[{"type":"output_text","text":"not-json"}]}],
             "usage":{"input_tokens":1,"output_tokens":1,"total_tokens":2},
         }
