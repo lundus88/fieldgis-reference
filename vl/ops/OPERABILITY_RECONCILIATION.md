@@ -47,6 +47,22 @@ The builder certification phase is formally closed as **GREEN** based on fresh e
 
 This closes the certification phase only. It does **not** authorize Production activation, promotion, deployment, broad public launch, or bypass of the existing human gate.
 
+## Production activation readiness hardening — 2026-10-05
+
+The certification phase is GREEN, but Production readiness remains separately governed.
+
+- the reviewed candidate path adds an AAL2-only human authorization producer for certification-health finalization;
+- the finalizer independently revalidates evidence digest, project scope, freshness, replay state and Production-authority exclusions;
+- evidence older than the effective-health 30-minute window is rejected;
+- selected evidence runs with actual Production authority/effect are rejected;
+- forward DDL is materialized in `vl/migrations/20261004154500_cert_health_activation_hardening.sql`;
+- reverse DDL is code-only and removes only the introduced functions/views/triggers;
+- Supabase Auth currently has one verified MFA factor, but a live AAL2 operator session is still required at authorization time;
+- backup freshness and tested restore evidence remain required before any Production DDL gate;
+- `vl_cert_health` remains stale until a genuine fresh certification window is finalized through the reviewed human-gated path.
+
+No Production approval, promotion, deployment or builder activation is authorized by this hardening.
+
 ## Repair principles
 
 1. Historical reconciliation is terminal-only: `failed` or `cancelled`.
