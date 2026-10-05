@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'vl/ops/**'
+      - 'vl/migrations/20261004154500_cert_health_activation_hardening.sql'
       - '.github/workflows/vl-operational-reconciliation-contract.yml'
   push:
     branches:
