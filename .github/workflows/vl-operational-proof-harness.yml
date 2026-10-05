@@ -1,0 +1,59 @@
+name: VL Operational Proof Harness
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/vl-operational-proof-harness.yml'
+      - 'vl/ops/realtime_e2e_probe.mjs'
+      - 'vl/ops/realtime_e2e_trigger.json'
+      - 'vl/ops/OPERATIONAL_PROOF_CLOSURE_2026-10-05.md'
+      - 'vl/ops/check_operational_proof_harness.py'
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c
+        with:
+          python-version: '3.12'
+      - run: python3 vl/ops/check_operational_proof_harness.py
+
+  realtime-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - id: trigger
+        shell: bash
+        run: |
+          set -euo pipefail
+          ENABLED=$(python3 -c "import json;print(str(bool(json.load(open('vl/ops/realtime_e2e_trigger.json')).get('enabled'))).lower())")
+          NONCE=$(python3 -c "import json;print(json.load(open('vl/ops/realtime_e2e_trigger.json')).get('nonce') or '')")
+          echo "enabled=$ENABLED" >> "$GITHUB_OUTPUT"
+          echo "nonce=$NONCE" >> "$GITHUB_OUTPUT"
+      - name: Realtime proof is gated
+        if: steps.trigger.outputs.enabled != 'true'
+        run: echo "REALTIME_E2E=GATED"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        if: steps.trigger.outputs.enabled == 'true'
+        with:
+          node-version: '22'
+      - name: Install isolated Realtime client
+        if: steps.trigger.outputs.enabled == 'true'
+        run: |
+          mkdir -p /tmp/vl-realtime-proof
+          cd /tmp/vl-realtime-proof
+          npm init -y >/dev/null
+          npm install --ignore-scripts --no-audit --no-fund @supabase/supabase-js@2.57.4
+      - name: Subscribe and prove Postgres Changes delivery
+        if: steps.trigger.outputs.enabled == 'true'
+        env:
+          VL_RT_URL: https://zetqezdvupdlrzrlqddq.supabase.co
+          VL_RT_KEY: sb_publishable_vMTFf1R7ki55iHlaWm4ZGA_IKThZQXz
+          VL_RT_NONCE: ${{ steps.trigger.outputs.nonce }}
+          NODE_PATH: /tmp/vl-realtime-proof/node_modules
+        run: node vl/ops/realtime_e2e_probe.mjs
