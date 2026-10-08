@@ -6,7 +6,7 @@
 <style>
 body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0b1020;color:#eef3ff;font-family:system-ui;padding:20px}
 main{width:min(92vw,620px);background:#11182c;border:1px solid #26314f;border-radius:18px;padding:24px}
-button,input{width:100%;box-sizing:border-box;padding:12px;margin-top:10px;border-radius:10px;border:1px solid #33415f;background:#0d1425;color:#fff}
+button,input,textarea{width:100%;box-sizing:border-box;padding:12px;margin-top:10px;border-radius:10px;border:1px solid #33415f;background:#0d1425;color:#fff} textarea{min-height:74px}
 button{background:#1769e0;font-weight:700;cursor:pointer}.meta{margin-top:14px;padding:12px;background:#0d1425;border-radius:10px;white-space:pre-wrap}.hidden{display:none}
 .qr{display:grid;place-items:center;background:#fff;padding:12px;border-radius:12px;margin-top:12px}.qr img{max-width:320px;width:80%}.ok{color:#72e6a6}.bad{color:#ff8f8f}.warn{color:#ffd27a}
 </style>
@@ -27,6 +27,15 @@ button{background:#1769e0;font-weight:700;cursor:pointer}.meta{margin-top:14px;p
   <input id="challengeCode" inputmode="numeric" autocomplete="one-time-code" placeholder="6-digit authenticator code">
   <button id="challengeBtn">Elevate session to AAL2</button>
 </div>
+<div id="finalizeAuth" class="hidden">
+  <h2>Certification Health Authorization</h2>
+  <p>AAL2 human authorization only. This creates an audit-bound authorization record; it does not finalize health, approve a release, or deploy Production.</p>
+  <input id="runStartedAt" placeholder="Run window start (ISO 8601)">
+  <input id="evidenceDigest" autocomplete="off" spellcheck="false" placeholder="64-char lowercase SHA-256 evidence digest">
+  <textarea id="reason">Human authorization to finalize certification health from the verified fresh 5/5 certification window.</textarea>
+  <button id="authorizeBtn">Authorize Certification Health Finalization</button>
+  <div id="authResult" class="meta">Not authorized.</div>
+</div>
 </main>
 <script type="module">
 import {createClient} from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
@@ -41,12 +50,33 @@ async function refresh(){
   const a=await sb.auth.mfa.getAuthenticatorAssuranceLevel(); if(a.error)throw a.error;
   const f=await sb.auth.mfa.listFactors(); if(f.error)throw f.error;
   const factors=f.data?.totp||[]; const ok=factors.filter(x=>x.status==='verified'); verified=ok[0]?.id||null;
-  if(a.data?.currentLevel==='aal2'){msg('SUCCESS: MFA verified and current session is AAL2.','ok');$('enroll').classList.add('hidden');$('challenge').classList.add('hidden');return}
+  if(a.data?.currentLevel==='aal2'){msg('SUCCESS: MFA verified and current session is AAL2.','ok');$('enroll').classList.add('hidden');$('challenge').classList.add('hidden');$('finalizeAuth').classList.remove('hidden');return}
+  $('finalizeAuth').classList.add('hidden');
   if(ok.length){msg('MFA factor verified. Enter current TOTP code to elevate this session to AAL2.','warn');$('challenge').classList.remove('hidden');$('enroll').classList.add('hidden');return}
   msg('Signed in as '+session.user.email+'. No verified MFA factor yet.','warn');$('enroll').classList.remove('hidden');$('challenge').classList.add('hidden');
 }
 $('create').onclick=async()=>{try{const r=await sb.auth.mfa.enroll({factorType:'totp',friendlyName:'VL Production Operator'});if(r.error)throw r.error;pending=r.data.id;$('qr').src=qrSrc(r.data.totp?.qr_code);$('secret').textContent='Manual secret: '+(r.data.totp?.secret||'unavailable');$('qrbox').classList.remove('hidden');msg('Scan QR using an authenticator app, then enter the current 6-digit code.','warn')}catch(e){msg('Enrollment failed: '+e.message,'bad')}};
 $('verify').onclick=async()=>{try{if(!pending)throw new Error('Create a factor first');const code=$('code').value.trim();const r=await sb.auth.mfa.challengeAndVerify({factorId:pending,code});if(r.error)throw r.error;await refresh()}catch(e){msg('Verification failed: '+e.message,'bad')}};
 $('challengeBtn').onclick=async()=>{try{if(!verified)throw new Error('No verified factor');const code=$('challengeCode').value.trim();const r=await sb.auth.mfa.challengeAndVerify({factorId:verified,code});if(r.error)throw r.error;await refresh()}catch(e){msg('AAL2 challenge failed: '+e.message,'bad')}};
+$('authorizeBtn').onclick=async()=>{try{
+  const aal=await sb.auth.mfa.getAuthenticatorAssuranceLevel(); if(aal.error)throw aal.error;
+  if(aal.data?.currentLevel!=='aal2')throw new Error('Current session is not AAL2');
+  const runStartedAt=$('runStartedAt').value.trim();
+  const digest=$('evidenceDigest').value.trim().toLowerCase();
+  const reason=$('reason').value.trim();
+  if(!runStartedAt)throw new Error('Run window start is required');
+  if(!/^[0-9a-f]{64}$/.test(digest))throw new Error('Evidence digest must be 64 lowercase hex characters');
+  if(!reason)throw new Error('Reason is required');
+  $('authorizeBtn').disabled=true;$('authResult').textContent='Submitting AAL2 authorization...';
+  const r=await sb.rpc('authorize_vl_cert_health_finalization',{
+    p_run_started_at:runStartedAt,
+    p_max_run_age_seconds:1800,
+    p_evidence_digest:digest,
+    p_reason:reason
+  });
+  if(r.error)throw r.error;
+  $('authResult').textContent='AUTHORIZED: '+JSON.stringify(r.data);
+  $('authResult').className='meta ok';
+}catch(e){$('authResult').textContent='Authorization failed: '+e.message;$('authResult').className='meta bad'}finally{$('authorizeBtn').disabled=false}};
 await refresh().catch(e=>msg('Initialization failed: '+e.message,'bad'));
 </script>
